@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+rm -f /etc/nginx/sites-enabled/raveberry*
+ln -s /etc/nginx/sites-available/raveberry-static /etc/nginx/sites-enabled/
+systemctl disable daphne
+systemctl enable gunicorn
+systemctl start gunicorn
+systemctl restart nginx
+systemctl stop daphne

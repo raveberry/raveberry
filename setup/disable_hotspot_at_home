@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+# try to read the homewifi file and exit if nonexistent
+HOMEWIFI=$(cat "$SERVER_ROOT/config/homewifi") 2>/dev/null || exit 0
+# wait until we can successfully ping the gateway
+NUM=60
+for i in $(seq 1 $NUM); do
+	sleep 1
+	DEFAULT_ROUTE=$(ip route show default | head -n 1 | awk '/default/ {print $3}')
+	[ -z "$DEFAULT_ROUTE" ] && continue
+	ping -c 1 -W 1 $DEFAULT_ROUTE > /dev/null && break
+done
+# disable the hotspot when we are connected to the homewifi
+[ $i -lt $NUM ] && [ "$(/sbin/iwgetid --raw)" = "$HOMEWIFI" ] && /bin/systemctl stop hostapd.service

@@ -1,0 +1,18 @@
+[Unit]
+Description=daphne daemon
+After=network.target mpd.socket
+Wants=mpd.socket
+
+[Service]
+PIDFile=/run/daphne/pid
+User=www-data
+Group=www-data
+WorkingDirectory=$SERVER_ROOT
+Environment="DJANGO_SETTINGS_MODULE=raveberry.settings"
+ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 raveberry.asgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

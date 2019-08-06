@@ -1,0 +1,29 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+ssid=''
+pw=''
+if (( $# >= 1 )); then
+	ssid=$1
+fi
+if (( $# >= 2 )); then
+	pw=$2
+fi
+
+if [ "$ssid" == '' ]; then
+	>&2 echo "# reading ssid from stdin"
+	read ssid
+fi
+if [ "$pw" == '' ]; then
+	>&2 echo "# reading passphrase from stdin"
+	read pw
+fi
+entry=$(wpa_passphrase "$ssid" "$pw")
+if [ $? -eq 1 ]; then
+	exit 1
+fi
+echo "$entry" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf
+wpa_cli -i wlan1 reconfigure

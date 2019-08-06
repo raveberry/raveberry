@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block scripts %}
+<script>
+	urls['state'] = '{% url 'musiq_state' %}';
+	urls['random_suggestion'] = '{% url 'random_suggestion' %}';
+	urls['request_archived_song'] = '{% url 'request_archived_song' %}';
+	urls['request_new_song'] = '{% url 'request_new_song' %}';
+	urls['suggestions'] = '{% url 'suggestions' %}';
+
+	urls['restart'] = '{% url 'restart_song' %}';
+	urls['seek_backward'] = '{% url 'seek_backward' %}';
+	urls['play'] = '{% url 'play_song' %}';
+	urls['pause'] = '{% url 'pause_song' %}';
+	urls['seek_forward'] = '{% url 'seek_forward' %}';
+	urls['skip'] = '{% url 'skip_song' %}';
+	urls['set_shuffle'] = '{% url 'set_shuffle' %}';
+	urls['set_repeat'] = '{% url 'set_repeat' %}';
+	urls['set_autoplay'] = '{% url 'set_autoplay' %}';
+	urls['set_volume'] = '{% url 'set_volume' %}';
+
+	urls['prioritize'] = '{% url 'prioritize_song' %}';
+	urls['remove'] = '{% url 'remove_song' %}';
+	urls['reorder'] = '{% url 'reorder_song' %}';
+	urls['vote_up'] = '{% url 'vote_up_song' %}';
+	urls['vote_down'] = '{% url 'vote_down_song' %}';
+</script>
+<script src="{% static "js/musiq/title_scrolling.js" %}"></script>
+<script src="{% static "js/musiq/autocomplete.js" %}"></script>
+<script src="{% static "js/musiq/queue.js" %}"></script>
+<script src="{% static "js/musiq/buttons.js" %}"></script>
+{% if voting_system and not controls_enabled %}
+<script src="{% static "js/musiq/buttons_voting.js" %}"></script>
+{% else %}
+<script src="{% static "js/musiq/buttons_normal.js" %}"></script>
+{% endif %}
+<script src="{% static "js/musiq/update.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<ul class="list-group">
+	<li class="list-group-item" id="song_input_card">
+		<i class="fas fa-dice" id="random_suggestion"></i>
+		<span class="clearable">
+			<input class="form-control autocomplete" id="song_input" placeholder="Search for Music..." autofocus autocomplete="off">
+			<i class="fas fa-times" id="clearbutton"></i>
+		</span>
+		<div class="anim-container" id="request_button_container">
+			<i class="fas fa-arrow-circle-right other" id="request_archived_song"></i>
+			<i class="fas fa-search default" id="request_new_song"></i>
+		</div>
+	</li>
+</ul>
+<ul class="list-group" id="current_song_card">
+	<li class="list-group-item empty" id="current_song">
+		<div class="autoscrolling_container"><span id="current_song_title">Currently Empty</span></div>
+	</li>
+	<li class="list-group-item" id="progress_bar_container">
+		<div class="progress">
+			<div id="progress_bar" class="progress-bar">
+			</div>
+		</div> 
+	</li>
+	<li class="list-group-item" id="song_votes"{% if not voting_system or controls_enabled %} style="display: none"{%endif%}>
+		<i class="fas fa-chevron-circle-up vote_up"></i>
+		<span id="current_song_votes"></span>
+		<i class="fas fa-chevron-circle-down vote_down"></i>
+	</li>
+	<li class="list-group-item" id="song_controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+		<div id="song_control_icons">
+			<i class="fas fa-fast-backward" id="restart_song"></i>
+			<i class="fas fa-backward" id="seek_backward"></i>
+			<div class="anim-container" id="play_button_container">
+				<i class="fas fa-pause other" id="pause"></i>
+				<i class="fas fa-play default" id="play"></i>
+			</div>
+			<i class="fas fa-forward" id="seek_forward"></i>
+			<i class="fas fa-fast-forward" id='skip_song'></i><br/>
+			<i class="fas fa-random icon_disabled" id="set_shuffle"></i>
+			<i class="fas fa-sync icon_disabled" id="set_repeat"></i>
+			<i class="fas fa-play-circle icon_disabled" id="set_autoplay"></i>
+		</div>
+	</li>
+	<li class="list-group-item" id="volume_slider_container"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+		<i id="volume_indicator" class="fas fa-volume-down"></i>
+		<input type="range" id="volume_slider" min="0" max="1" step="0.01" readonly="readonly"/>
+		<i class="fas fa-volume-off" style="visibility: hidden;"></i>
+	</li>
+</ul>
+<ul class="list-group" id="song_queue">
+</ul>
+
+<div id="title_modal" class="modal fade" role="dialog">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-text">
+				Some text in the modal.
+			</div>
+			<a target="_blank" rel="noopener noreferrer" href="" id="youtube_link">
+				<i class="fas fa-link"></i>
+			</a>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

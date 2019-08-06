@@ -1,0 +1,22 @@
+@import "imports";
+
+$theme-colors: (
+  "background": #ffffff,
+  "list-border": #ced4da,
+  "elevated-background": #f7f7f7,
+  "silent-text": #999999,
+  "normal-text": #495057,
+
+  "accent": #1997c6,
+  "blue": #1997c6,
+  "green": #1bc98e,
+  "yellow": #e4d836,
+  "red": #e64759,
+  "contrast": #252830,
+  //"upvote": #cc3700,
+  //"downvote": #5a75cc,
+  "upvote": #1bc98e,
+  "downvote": #e64759,
+);
+
+@import "style";

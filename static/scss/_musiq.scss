@@ -1,0 +1,246 @@
+#content>ul {
+	margin-bottom: 10px;
+}
+
+// song input
+#song_input_card {
+	padding-left: 5px;
+	padding-right: 5px;
+	display: inline-flex;
+}
+#song_input_card>i {
+	margin: 7px 2px;
+	font-size: x-large;
+}
+#song_input_card .anim-container {
+	margin: 7px 2px;
+	height: 1.5rem;
+	width: 1.5rem;
+	min-width: 1.5rem;
+	font-size:.375rem;
+}
+#song_input {
+	padding: 6px;
+	min-width: 100px;
+	padding-right: 20px;
+}
+
+span.clearable {
+	position: relative;
+	margin: 0px 5px;
+	width: 100%;
+}
+span.clearable i {
+	position: absolute;
+	display: block;
+	top: 10px;
+	right: 10px;
+	font-size: large;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+span.clearable input {
+	padding-right: 16px;
+	box-sizing: border-box;
+}
+
+// autocomplete
+.ui-autocomplete {
+    position: absolute;
+    z-index: 1000;
+    cursor: default;
+    padding: 0;
+    margin-top: 2px;
+    list-style: none;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+	color: #495057;
+	border-radius: 5px;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+	max-height: 200px;
+	overflow-y: auto;
+}
+.ui-autocomplete > li {
+	padding: 3px 5px;
+}
+.ui-autocomplete > li.ui-state-focus {
+  background-color: #DDD;
+}
+.ui-helper-hidden-accessible {
+  display: none;
+}
+
+.ui-menu-item-with-icon {
+	display: flex;
+	justify-content: space-between;
+	word-break: break-all;
+}
+.autocomplete_info {
+	color: theme-color("normal-text");
+	flex: 0 0 auto;
+	padding-left: 5px;
+}
+.insert_icon {
+	padding-left: 5px;
+}
+.suggestion_type {
+	width: 20px;
+	padding-right: 5px;
+	text-align: center;
+}
+
+// current song
+#current_song {
+	text-align: center;
+	//font-style: italic;
+	//font-weight: bold;
+	font-size: larger;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+#progress_bar_container {
+	padding: 0px;
+}
+#progress_bar_container>.progress {
+	height: 5px;
+	background-color: theme-color("list-border");
+}
+#progress_bar {
+	width: 0%;
+	transition: none;
+}
+
+#song_votes {
+	text-align: center;
+	font-size: x-large;
+}
+#song_controls {
+	text-align: center;
+}
+#song_control_icons>i {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-left: 10px;
+	padding-right: 10px;
+	display: inline-block;
+	font-size: x-large;
+}
+#song_control_icons .anim-container {
+	display: inline-block;
+
+	height: 1.5rem;
+	width: 1.5rem;
+	min-width: 1.5rem;
+
+	// css hack to center play button
+	margin-right: 31px;
+}
+#song_control_icons>i{
+}
+#set_repeat {
+	margin-left: 20px !important;
+	margin-right: 20px !important;
+}
+#volume_slider_container {
+	text-align: center;
+}
+#volume_slider_container > i {
+	display: inline-block;
+	font-size: xx-large;
+	margin: 0px 5px;
+}
+#volume_slider {
+	width: 70%;
+	max-width: 200px;
+}
+
+// song queue
+$entry_height: 50px;
+#song_queue>li {
+	padding: 5px;
+}
+#song_queue>li.unconfirmed .queue_info_controls .fas{
+	color: theme-color("silent-text");
+}
+.queue_entry {
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: column;
+	height: $entry_height;
+}
+.download_icon {
+	position: relative;
+	height: 100%;
+	width: 50px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.download_icon img {
+	max-height: 100%;
+	max-width: 100%;
+	height: 70%;
+}
+.download_overlay {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+    animation: downloading 2s linear infinite;
+	background: linear-gradient(transparent 50%, theme-color("elevated-background") 0%);
+	background-size: 200% 200%;
+}
+@keyframes downloading {
+    0%{background-position:0% 100%}
+    60%{background-position:0% 0%}
+    100%{background-position:0% 0%}
+}
+.queue_index {
+	flex: 0 0 100%;
+	width: $entry_height;
+
+	line-height: $entry_height;
+	text-align: center;
+
+	font-size: larger;
+	font-weight: bold;
+}
+.queue_title, .queue_info {
+	word-break: break-all;
+	overflow: hidden;
+	flex: 0 0 50%;
+	order: 1;
+	width: calc(100% - #{$entry_height});
+	padding-left: 5px;
+	padding-right: 5px;
+}
+.queue_info_time {
+	font-size: small;
+}
+.queue_info_controls {
+	float: right;
+}
+.queue_info_controls>i {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.vote_up.pressed {
+	color: theme-color("upvote");
+}
+.vote_down.pressed {
+	color: theme-color("downvote");
+}
+
+#vote_timeout {
+	width: 100%;
+	height: 5px;
+}
+#vote_timeout_bar {
+	height: 100%;
+}
+
+#youtube_link {
+	padding: 10px;
+}

@@ -1,0 +1,14 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+systemctl is-active --quiet daphne
+if [[ $? == 0 ]]; then
+	systemctl restart daphne
+fi
+systemctl is-active --quiet gunicorn
+if [[ $? == 0 ]]; then
+	systemctl restart gunicorn
+fi

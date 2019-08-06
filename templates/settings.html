@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block scripts %}
+<script>
+	urls['state'] = '{% url 'settings_state' %}';
+	urls['set_voting_system'] = '{% url 'set_voting_system' %}';
+	urls['set_logging_enabled'] = '{% url 'set_logging_enabled' %}';
+	urls['set_people_to_party'] = '{% url 'set_people_to_party' %}';
+	urls['set_alarm_probability'] = '{% url 'set_alarm_probability' %}';
+	urls['set_downvotes_to_kick'] = '{% url 'set_downvotes_to_kick' %}';
+	urls['set_max_download_size'] = '{% url 'set_max_download_size' %}';
+	urls['check_internet'] = '{% url 'check_internet' %}';
+	urls['update_user_count'] = '{% url 'update_user_count' %}';
+
+	urls['available_ssids'] = '{% url 'available_ssids' %}';
+	urls['connect_to_wifi'] = '{% url 'connect_to_wifi' %}';
+	urls['enable_homewifi'] = '{% url 'enable_homewifi' %}';
+	urls['disable_homewifi'] = '{% url 'disable_homewifi' %}';
+	urls['stored_ssids'] = '{% url 'stored_ssids' %}';
+	urls['set_homewifi_ssid'] = '{% url 'set_homewifi_ssid' %}';
+
+	urls['analyse'] = '{% url 'analyse' %}';
+
+	urls['disable_events'] = '{% url 'disable_events' %}';
+	urls['enable_events'] = '{% url 'enable_events' %}';
+	urls['disable_hotspot'] = '{% url 'disable_hotspot' %}';
+	urls['enable_hotspot'] = '{% url 'enable_hotspot' %}';
+	urls['unprotect_wifi'] = '{% url 'unprotect_wifi' %}';
+	urls['protect_wifi'] = '{% url 'protect_wifi' %}';
+	urls['disable_tunneling'] = '{% url 'disable_tunneling' %}';
+	urls['enable_tunneling'] = '{% url 'enable_tunneling' %}';
+	urls['disable_remote'] = '{% url 'disable_remote' %}';
+	urls['enable_remote'] = '{% url 'enable_remote' %}';
+	urls['reboot_server'] = '{% url 'reboot_server' %}';
+	urls['reboot_system'] = '{% url 'reboot_system' %}';
+
+</script>
+<script src="{% static "js/settings.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<ul class="list-group" id="settings">
+	<li class="list-group-item list_header">
+		Settings
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Voting System</span>
+		<input type="checkbox" id="voting_system">
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Logging</span>
+		<input type="checkbox" id="logging_enabled">
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">People to Party</span>
+		<input id="people_to_party"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Alarm Probability (from 0 to 1)</span>
+		<input id="alarm_probability"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Downvotes to kick</span>
+		<input id="downvotes_to_kick"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Max Download Size (MB, 0 to disable)</span>
+		<input id="max_download_size"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Internet Connection</span>
+		<div>
+			<input type="checkbox" id="has_internet">
+			<i class="fas fa-sync" id="check_internet"></i>
+		</div>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Update User Count</span>
+		<div>
+			<i class="fas fa-sync" id="update_user_count"></i>
+		</div>
+	</li>
+</ul>
+
+<ul class="list-group">
+	<li class="list-group-item list_header">
+		Wifi
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">SSID</span>
+		<input id="wifi_ssid"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Password</span>
+		<input id="wifi_password"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="connect_to_wifi">Connect to Wifi</button>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Home Wifi Enabled:</span>
+		<div id="homewifi_enabled"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<button class="btn" id="disable_homewifi">Disable Home Wifi</button>
+		<button class="btn" id="enable_homewifi">Enable Home Wifi</button>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Home Wifi SSID</span>
+		<input id="homewifi_ssid"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="set_homewifi_ssid">Set Home Wifi</button>
+	</li>
+</ul>
+
+<ul class="list-group" id="settings">
+	<li class="list-group-item list_header">
+		Analysis
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Start Date</span>
+		<input type="date" id="startdate" autocomplete="off"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Start Time</span>
+		<input type="time" id="starttime" autocomplete="off"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">End Date</span>
+		<input type="date" id="enddate" autocomplete="off"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">End Time</span>
+		<input type="time" id="endtime" autocomplete="off"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="analyse">Analyse</button>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Songs Played</span>
+		<div id="songs_played"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Most Played Song</span>
+		<div id="most_played_song"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Votes Cast</span>
+		<div id="votes_cast"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Highest Voted Song</span>
+		<div id="highest_voted_song"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Most Active Device</span>
+	</li>
+	<li class="list-group-item list_item" id="most_active_device">
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Request Activity</span>
+	</li>
+	<li class="list-group-item list_item" id="request_activity">
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Playlist</span>
+	</li>
+	<li class="list-group-item list_item" id="playlist">
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="copy_playlist">Copy</button>
+	</li>
+</ul>
+
+<ul class="list-group">
+	<li class="list-group-item list_item">
+		<span class="description">Events Enabled:</span>
+		<div id="events_enabled"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<button class="btn" id="disable_events">Disable Events</button>
+		<button class="btn" id="enable_events">Enable Events</button>
+	</li>
+</ul>
+<ul class="list-group">
+	<li class="list-group-item list_item">
+		<span class="description">Hotspot Enabled:</span>
+		<div id="hotspot_enabled"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<button class="btn" id="disable_hotspot">Disable Hotspot</button>
+		<button class="btn" id="enable_hotspot">Enable Hotspot</button>
+	</li>
+</ul>
+<ul class="list-group">
+	<li class="list-group-item list_item">
+		<span class="description">Wifi Protected:</span>
+		<div id="wifi_protected"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<button class="btn" id="unprotect_wifi">Unprotect Wifi</button>
+		<button class="btn" id="protect_wifi">Protect Wifi</button>
+	</li>
+</ul>
+<ul class="list-group">
+	<li class="list-group-item list_item">
+		<span class="description">Tunneling Enabled:</span>
+		<div id="tunneling_enabled"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<button class="btn" id="disable_tunneling">Disable Tunneling</button>
+		<button class="btn" id="enable_tunneling">Enable Tunneling</button>
+	</li>
+</ul>
+<ul class="list-group">
+	<li class="list-group-item list_item">
+		<span class="description">Remote Enabled:</span>
+		<div id="remote_enabled"></div>
+	</li>
+	<li class="list-group-item list_item">
+		<button class="btn" id="disable_remote">Disable Remote</button>
+		<button class="btn" id="enable_remote">Enable Remote</button>
+	</li>
+</ul>
+<ul class="list-group">
+	<li class="list-group-item list_item">
+		<button class="btn" id="reboot_server">Reboot Server</button>
+		<button class="btn" id="reboot_system">Reboot System</button>
+	</li>
+</ul>
+{% endblock %}

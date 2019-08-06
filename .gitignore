@@ -1,0 +1,6 @@
+*.pyc
+*.swp
+
+/backup_*
+/db.sqlite3
+/yarn.lock

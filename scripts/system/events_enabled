@@ -1,0 +1,2 @@
+#!/bin/bash
+! ls /etc/nginx/sites-enabled/raveberry-events > /dev/null 2>&1

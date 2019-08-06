@@ -1,0 +1,210 @@
+// basic theming
+body {
+	background-color: theme-color("background");
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+.bg-dark {
+	background-color: theme-color("background") !important;
+}
+.list-group-item {
+	background-color: theme-color("elevated-background");
+	color: theme-color("normal-text");
+}
+
+// icon colors
+.fas {
+	color: theme-color("normal-text");
+}
+.fas:active {
+	color: theme-color("silent-text");
+}
+.fas.icon_disabled {
+	color: theme-color("silent-text");
+}
+.fas.icon_enabled {
+	color: theme-color("normal-text");
+}
+
+// connection information banner
+.connection-banner {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	z-index: 10;
+
+	text-align: center;
+	display: none;
+}
+.connection-banner > i {
+	color: theme-color("elevated-background");
+}
+#disconnected-banner {
+	background-color: theme-color("red");
+}
+#reconnected-banner {
+	background-color: theme-color("green");
+}
+
+// toasts
+#toast-container {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	height: 90vh;
+    z-index: 10;
+	pointer-events: none;
+
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+}
+.toast {
+	position: fixed;
+	margin: 10px;
+	background-color: transparent;
+	font-size: 1rem;
+	display: none;
+	opacity: 1;
+}
+.toast i {
+	margin-right: 0.75rem;
+	font-size: x-large;
+}
+.toast.error i {
+	color: theme-color("red");
+}
+.toast.warning i {
+	color: theme-color("yellow");
+}
+.toast.success i {
+	color: theme-color("green");
+}
+.toast.info i {
+	color: theme-color("blue");
+}
+.toast .toast-header {
+	color: theme-color("normal-text");
+	border-color: theme-color("list-border");
+	background-color: theme-color("elevated-background");
+}
+.toast .toast-body {
+	color: theme-color("normal-text");
+	background-color: theme-color("elevated-background");
+}
+
+// modals
+.modal .modal-content {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+
+	padding: 5px;
+	background-color: theme-color("elevated-background");
+	color: theme-color("normal-text");
+}
+
+// input feedback ripple effect
+.ripple {
+	width: 0;
+	height: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.4);
+	transform: scale(0);
+	position: absolute;
+	opacity: 1;
+}
+.rippleEffect {
+	animation: rippleDrop .4s linear;
+}
+@keyframes rippleDrop {
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+// button transition animation
+// https://stackoverflow.com/questions/28988665/css-js-icon-morphing
+.anim-container {
+	height: 2rem;
+	width: 2rem;
+	font-size: .5rem;
+	transition: .3s;
+	position: relative;
+}
+.anim-container i {
+	position: absolute;
+	// also has to be adapted to container size
+	font-size: 4em !important;
+	height: 1em;
+	width: 1em;
+	transition: .3s;
+}
+.anim-container .default{
+	opacity: 1;
+	transform: rotate(0);
+}
+.anim-container .other {
+	opacity: 0;
+	transform: rotate(-135deg);
+}
+.anim-container.morphed .default {
+	opacity: 0;
+	transform: rotate(135deg);
+}
+.anim-container.morphed .other {
+	opacity: 1;
+	transform: rotate(0);
+}
+
+
+.list_header {
+	font-size: x-large;
+}
+.list_item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.list_item.centered {
+	justify-content: center;
+}
+.list_item > *{
+	width: 50%;
+	max-width: 200px;
+}
+.list_item > div {
+	text-align: center;
+}
+.list_item > button {
+	margin: 0px 10px;
+}
+
+.btn {
+	background-color: theme-color("accent");
+	color: theme-color("elevated-background");
+}
+
+.autoscrolling_container {
+	white-space: nowrap;
+	overflow: hidden;
+}
+.autoscrolling_container>span.autoscrolling {
+	display: inline-block;
+}
+
+
+@import "base";
+@import "musiq";
+@import "lights";
+@import "settings";
+@import "pad";

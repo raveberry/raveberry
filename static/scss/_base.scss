@@ -1,0 +1,137 @@
+// Navbar
+.navbar {
+	padding-bottom: 0px;
+}
+.navbar-brand {
+	margin: 0px;
+}
+.navbar-toggler {
+	background-color: theme-color("elevated-background");
+	border-color: theme-color("list-border");
+}
+
+#hashtag_container {
+	width: 60%;
+	text-align: center;
+}
+#hashtag_container>i {
+	color: theme-color("normal-text");
+	display: inline-block;
+}
+#hashtag_text_container {
+	color: theme-color("normal-text");
+	vertical-align: middle;
+	display: inline-block;
+
+	transition: max-width 0.5s ease;
+	/* subtract space for the plus icon */ 
+	overflow: hidden;
+	white-space: nowrap;
+	max-width: 70%;
+}
+#hashtag_input {
+	visibility: hidden;
+	transition: max-width 0.5s ease;
+}
+#hashtag_input.shown, #hashtag_text_container.shown {
+	visibility: visible;
+	max-width: 70%;
+}
+#hashtag_input.hidden, #hashtag_text_container.hidden {
+	max-width: 0%;
+}
+
+// collapsible menu
+#menu {
+	margin: 16px;
+	margin-bottom: 0px;
+	font-size: xx-large;
+}
+#menu i {
+	padding: 5px;
+}
+.menu_row {
+	display: flex;
+	justify-content: space-between;
+}
+
+#users_container {
+	width: 25%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+#users_container>*{
+	padding: 5px;
+}
+#users {
+	color: theme-color("normal-text");
+}
+
+#visitors_container {
+	width: 50%;
+	color: theme-color("normal-text");
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-size: medium;
+}
+#visitors {
+	font-size: x-large;
+}
+
+#theme_controls {
+	width: 25%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+#theme_controls > i.icon_enabled{
+	color: theme-color('contrast');
+}
+
+#lights_controls {
+	width: 25%;
+	max-width: 80px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+#lights_indicator.icon_enabled {
+	color: yellow;
+}
+
+#presence {
+	width: 25%;
+	max-width: 80px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	display: none;
+}
+#presence>div {
+	margin: 3px;
+}
+.presence_circle {
+	height: 25px;
+	width: 25px;
+	line-height: 25px;
+	text-align: center;
+	border-radius: 50%;
+}
+.presence_circle.present {
+	background-color: theme-color("green");
+}
+.presence_circle.absent {
+	background-color: theme-color("red");
+}
+#additional_presence {
+	color: theme-color('normal-text');
+}
+#github_link {
+	margin: 5px;
+}
+
+#content {
+	padding: 8px;
+}

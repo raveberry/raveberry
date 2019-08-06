@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+iptables -t nat -D  POSTROUTING -o wlan1 -j MASQUERADE
+iptables -t nat -D  POSTROUTING -o eth0 -j MASQUERADE
+iptables-save > /etc/iptables.ipv4.nat

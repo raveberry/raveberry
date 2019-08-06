@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block scripts %}
+<script>
+	urls['state'] = '{% url 'pad_state' %}';
+	urls['submit_pad'] = '{% url 'submit_pad' %}';
+	let PAD_VERSION = {{ pad_version }};
+</script>
+<script src="{% static "js/pad.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<ul class="list-group" id="settings">
+	<li class="list-group-item list_header">
+		Pad
+	</li>
+	<li class="list-group-item list_item">
+		<textarea id="pad" autofocus autocomplete="off">{{pad_content}}</textarea>
+	</li>
+	<li class="list-group-item list_item">
+		<div id="pad_status">
+			<i class="fas fa-check-circle" id="pad_status_icon"></i>
+			<span id="pad_status_text">Synced</span>
+		</div>
+		<button class="btn" id="submit_pad">Submit</button>
+	</li>
+</ul>
+{% endblock %}

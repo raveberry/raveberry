@@ -1,0 +1,171 @@
+{% load static %}
+{% load sass_tags %}
+{% load compress %}
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<link id="active-stylesheet" rel="stylesheet" href="{% sass_src "scss/dark.scss" %}"/>
+		<link id="inactive-stylesheet" rel="stylesheet-disabled" href="{% sass_src "scss/light.scss" %}"/>
+
+
+		<!-- Optional JavaScript for Bootstrap -->
+		<!-- jQuery first, then Popper.js (not used), then Bootstrap JS -->
+		{% compress js file %}
+		<script src="{% static "libs/jquery/dist/jquery.min.js" %}"></script>
+		<script src="{% static "libs/bootstrap/dist/js/bootstrap.min.js" %}"></script>
+		<script src="{% static "libs/jquery-ui-dist/jquery-ui.min.js" %}"></script>
+		<script src="{% static "libs/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js" %}"></script>
+		<script src="{% static "libs/jquerykeyframes/dist/jquery.keyframes.js" %}"></script>
+		<script src="{% static "libs/js-cookie/src/js.cookie.js" %}"></script>
+		<script src="{% static "libs/reconnecting-websocket/dist/reconnecting-websocket-iife.min.js" %}"></script>
+		<script>
+			CSRF_TOKEN = "{{ csrf_token }}";
+			urls = {
+				/* the state url is changed by every page so it receives their specific state */
+				'state': '{% url 'base_state' %}',
+				'submit_hashtag': '{% url 'submit_hashtag' %}',
+				'set_lights_shortcut': '{% url 'set_lights_shortcut' %}',
+				'dark_icon': '{% static "graphics/raveberry_dark.png" %}',
+				'normal_icon': '{% static "graphics/raveberry_normal.png" %}',
+				'normal_light_icon': '{% static "graphics/raveberry_normal_light.png" %}',
+				'party_icon': '{% static "graphics/raveberry_rainbow.gif" %}',
+				'github_light_icon': '{% static "graphics/github_light.png" %}',
+				'github_dark_icon': '{% static "graphics/github_dark.png" %}',
+			};
+			{% if voting_system %}
+			let VOTING_SYSTEM = true;
+			{% else %}
+			let VOTING_SYSTEM = false;
+			{% endif %}
+			{% if is_admin %}
+			let ADMIN = true;
+			{% else %}
+			let ADMIN = false;
+			{% endif %}
+			{% if pad_enabled %}
+			let PAD_ENABLED = true;
+			{% else %}
+			let PAD_ENABLED = false;
+			{% endif %}
+			{% if controls_enabled %}
+			let CONTROLS_ENABLED = true;
+			{% else %}
+			let CONTROLS_ENABLED = false;
+			{% endif %}
+		</script>
+		<script src="{% static "js/base.js" %}"></script>
+		{% block scripts %}
+		{% endblock %}
+		<script src="{% static "js/events.js" %}"></script>
+		{% endcompress %}
+
+		<title>Raveberry</title>
+		<link id="favicon" rel="shortcut icon" type="image/png" href=""/>
+	</head>
+	<body>
+		<div id="disconnected-banner" class="connection-banner">
+			<i class="fas fa-exclamation-circle"></i>
+			disconnected, trying to reconnect...
+		</div>
+		<div id="reconnected-banner" class="connection-banner">
+			<i class="fas fa-check-circle"></i>
+			reconnected!
+		</div>
+		<nav class="navbar">
+			<a class="navbar-brand" href="/">
+				<img id="navbar_icon" src="" height="30" alt="" onerror="this.style.visibility='hidden'">
+			</a>
+			<div id="hashtag_container">
+				<input id="hashtag_input" class="hidden">
+				<div id="hashtag_text_container" class="autoscrolling_container"><span id="hashtag_text">{{ hashtag }}</span></div>
+				<i id="hashtag_plus" class="fas fa-plus-circle"></i>
+			</div>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#menu_container">
+				<i class="fas fa-bars"></i>
+			</button>
+		</nav>
+		<div class="collapse" id="menu_container">
+			<div id="menu">
+				<div class="menu_row">
+					<div id="users_container">
+						<i class="fas fa-user"></i>
+						<span id="users"></span>
+					</div>
+					<div id="visitors_container">
+						<span>Visitors</span>
+						<span id="visitors"></span>
+					</div>
+					<div id="theme_controls">
+						<i id="light_theme" class="fas fa-sun icon_disabled"></i>
+						<i id="dark_theme" class="fas fa-moon icon_disabled"></i>
+					</div>
+				</div>
+				<div class="menu_row"{%if not controls_enabled and not pad_enabled and not is_admin %} style='display: none;'{%endif%}>
+					<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
+						<i class="fas fa-wrench"></i>
+					</a>
+					<div id="lights_controls"{%if voting_system and controls_enabled == False%} style="visibility: hidden"{%endif%}>
+						<i class="fas fa-lightbulb icon_disabled" id="lights_indicator"></i>
+						<a href="{% url 'lights' %}">
+							<i class="fas fa-cog"></i>
+						</a>
+					</div>
+					<a href="{% url 'pad' %}"{%if pad_enabled == False%} style='visibility: hidden;'{%endif%}>
+							<i class="fas fa-file-alt"></i>
+					</a>
+				</div>
+				<div class="menu_row">
+					<a id="github_link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry">
+						<img id="github_icon" height="30" src="{% static "graphics/github_dark.png" %}">
+					</a>
+				</div>
+			<div id="presence">
+				<div class="presence_circle present">A</div>
+				<div class="presence_circle absent">B</div>
+				<div class="presence_circle absent">C</div>
+				<div id="additional_presence">+4</div>
+			</div>
+			</div>
+		</div>
+		<div id="content">
+			{% block content %}
+			{% endblock %}
+		</div>
+
+		<div id="toast-container">
+			<div class="toast info" id="info-toast">
+				<div class="toast-header">
+					<i class="fas fa-info-circle"></i>
+					<span class="toast-content"></span>
+				</div>
+			</div>
+			<div class="toast success" id="success-toast">
+				<div class="toast-header">
+					<i class="fas fa-check-circle"></i>
+					<span class="toast-content"></span>
+				</div>
+			</div>
+			<div class="toast warning" id="warning-toast">
+				<div class="toast-header">
+					<i class="fas fa-exclamation-triangle"></i>
+					<span class="toast-content"></span>
+				</div>
+				<div id="vote_timeout">
+					<div id="vote_timeout_bar" class="progress-bar">
+					</div>
+				</div>
+			</div>
+			<div class="toast error" id="error-toast">
+				<div class="toast-header">
+					<i class="fas fa-exclamation-circle"></i>
+					<span class="toast-content"></span>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

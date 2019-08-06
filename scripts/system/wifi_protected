@@ -1,0 +1,2 @@
+#!/bin/bash
+! grep -q 'hostapd_protected' /etc/default/hostapd

@@ -1,0 +1,38 @@
+Arguments: 
+  /usr/bin/node /usr/share/yarn/bin/yarn.js install
+
+PATH: 
+  /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+
+Yarn version: 
+  1.17.3
+
+Node version: 
+  8.10.0
+
+Platform: 
+  linux x64
+
+Trace: 
+  Error: EACCES: permission denied, scandir '/home/ubuntu/.config/yarn/link'
+
+npm manifest: 
+  {
+    "name": "raveberry",
+    "dependencies": {
+      "@fortawesome/fontawesome-free": "^5.9.0",
+      "bootstrap": "^4.3.1",
+      "jquery": "^3.4.1",
+      "jquery-ui-dist": "^1.12.1",
+      "jquery-ui-touch-punch": "^0.2.3",
+      "jquerykeyframes": "^1.0.7",
+      "js-cookie": "^2.2.0",
+      "reconnecting-websocket": "^4.1.10"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

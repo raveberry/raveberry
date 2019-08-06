@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+SSIDS=$(cat /etc/wpa_supplicant/wpa_supplicant.conf | grep "ssid=")
+while read -r line; do
+	line=${line#*'"'}
+	line=${line%'"'*}
+    echo $line
+done <<< "$SSIDS"

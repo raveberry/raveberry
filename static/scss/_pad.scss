@@ -1,0 +1,23 @@
+#pad {
+	width: 100%;
+	max-width: none;
+	resize: none;
+	background-color: theme-color("background");
+	color: theme-color("normal-text");
+	border: none;
+	padding: 5px 10px;
+	border-radius: 0.25rem;
+}
+
+#pad_status_icon {
+	font-size: large;
+}
+#pad_status_icon.fa-check-circle {
+	color: theme-color("green");
+}
+#pad_status_icon.fa-exclamation-triangle {
+	color: theme-color("yellow");
+}
+#pad_status_icon.fa-exclamation-circle {
+	color: theme-color("red");
+}

@@ -1,0 +1,10 @@
+[Unit]
+Description=disables the hostapd service when connected to the home wifi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/sbin/raveberry/disable_hotspot_at_home
+
+[Install]
+WantedBy=multi-user.target

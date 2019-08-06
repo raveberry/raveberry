@@ -1,0 +1,10 @@
+[Unit]
+Description=remote
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/local/sbin/raveberry/connect_to_remote
+
+[Install]
+WantedBy=multi-user.target

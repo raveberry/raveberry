@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block scripts %}
+<script>
+	urls['state'] = '{% url 'lights_state' %}';
+	urls['set_ring_program'] = '{% url 'set_ring_program' %}';
+	urls['set_strip_program'] = '{% url 'set_strip_program' %}';
+	urls['set_ring_brightness'] = '{% url 'set_ring_brightness' %}';
+	urls['set_strip_brightness'] = '{% url 'set_strip_brightness' %}';
+	urls['set_ring_monochrome'] = '{% url 'set_ring_monochrome' %}';
+	urls['set_program_speed'] = '{% url 'set_program_speed' %}';
+	urls['set_fixed_color'] = '{% url 'set_fixed_color' %}';
+</script>
+<script src="{% static "js/lights.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<ul class="list-group" id="ring_options">
+	<li class="list-group-item list_header">
+		Ring
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Program</span>
+		<select class="form-control" id="ring_program">
+			{% for program_name in program_names %}
+			<option>{{ program_name }}</option>
+			{% endfor %}
+		</select>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Brightness</span>
+		<input type="range" id="ring_brightness" min="0" max="1" step="0.01">
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Monochrome</span>
+		<input type="checkbox" id="ring_monochrome">
+	</li>
+</ul>
+
+<ul class="list-group" id="strip_options">
+	<li class="list-group-item list_header">
+		Strip
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Program</span>
+		<select class="form-control" id="strip_program">
+			{% for program_name in program_names %}
+			<option>{{ program_name }}</option>
+			{% endfor %}
+		</select>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Brightness</span>
+		<input type="range" id="strip_brightness" min="0" max="1" step="0.01">
+	</li>
+</ul>
+
+<ul class="list-group" id="program_options">
+	<li class="list-group-item list_header">
+		Programs
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Rainbow Speed</span>
+		<input type="range" id="program_speed" min="0" max="1" step="0.01">
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Fixed Color</span>
+		<input type="color" id="fixed_color">
+	</li>
+</ul>
+{% endblock %}

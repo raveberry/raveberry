@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul class="list-group" id>
+	<form method="post">
+		{% csrf_token %}
+		<li class="list-group-item list_header">
+			Login
+			{{ form.non_field_errors }}
+		</li>
+		{% for field in form %}
+		<li class="list-group-item list_item">
+			{{ field.errors }}
+			{{ field.label_tag }} {{ field }}
+		</li>
+		{% endfor %}
+		<li class="list-group-item list_item centered">
+			<button class="btn" type="submit">Login</button>
+		</li>
+	</form>
+</ul>
+
+{% endblock %}
