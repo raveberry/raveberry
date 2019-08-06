@@ -1,4 +1,4 @@
-# ![](static/graphics/raveberry_dark.png "Raveberry logo") Raveberry
+# Raveberry
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
