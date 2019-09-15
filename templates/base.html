@@ -107,7 +107,7 @@
 				</div>
 				<div class="menu_row"{%if not controls_enabled and not pad_enabled and not is_admin %} style='display: none;'{%endif%}>
 					<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
-						<i class="fas fa-wrench"></i>
+						<i class="fas fa-sliders-h"></i>
 					</a>
 					<div id="lights_controls"{%if voting_system and controls_enabled == False%} style="visibility: hidden"{%endif%}>
 						<i class="fas fa-lightbulb icon_disabled" id="lights_indicator"></i>

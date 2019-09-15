@@ -6,7 +6,7 @@ $(document).ready(function() {
 		let time_passed = now - last_vote;
 		if (time_passed < voting_timeout) {
 			let ratio = (voting_timeout - time_passed) / voting_timeout;
-			warningToast("You're doing that too often");
+			warningToastWithBar("You're doing that too often");
 			$('#vote_timeout_bar').css('transition', 'none');
 			$('#vote_timeout_bar').css('width', ratio * 100 + '%');
 			$('#vote_timeout_bar')[0].offsetHeight;

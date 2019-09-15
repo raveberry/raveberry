@@ -31,8 +31,8 @@ else:
             path('musiq/', include([
                 path('state/', base.musiq.get_state, name='musiq_state'),
                 path('random_suggestion/', base.musiq.song_provider.random_suggestion, name='random_suggestion'),
-                path('request_archived_song/', base.musiq.request_archived_song, name='request_archived_song'),
-                path('request_new_song/', base.musiq.request_new_song, name='request_new_song'),
+                path('request_archived_music/', base.musiq.request_archived_music, name='request_archived_music'),
+                path('request_new_music/', base.musiq.request_new_music, name='request_new_music'),
                 path('suggestions/', base.musiq.song_provider.get_suggestions, name='suggestions'),
 
                 path('restart/', base.musiq.player.restart, name='restart_song'),
@@ -44,7 +44,9 @@ else:
                 path('set_shuffle/', base.musiq.player.set_shuffle, name='set_shuffle'),
                 path('set_repeat/', base.musiq.player.set_repeat, name='set_repeat'),
                 path('set_autoplay/', base.musiq.player.set_autoplay, name='set_autoplay'),
+                path('request_radio/', base.musiq.request_radio, name='request_radio'),
                 path('set_volume/', base.musiq.player.set_volume, name='set_volume'),
+                path('remove_all/', base.musiq.player.remove_all, name='remove_all'),
 
                 path('prioritize/', base.musiq.player.prioritize, name='prioritize_song'),
                 path('remove/', base.musiq.player.remove, name='remove_song'),
@@ -75,6 +77,7 @@ else:
                 path('set_alarm_probability/', base.settings.set_alarm_probability, name='set_alarm_probability'),
                 path('set_downvotes_to_kick/', base.settings.set_downvotes_to_kick, name='set_downvotes_to_kick'),
                 path('set_max_download_size/', base.settings.set_max_download_size, name='set_max_download_size'),
+                path('set_max_playlist_items/', base.settings.set_max_playlist_items, name='set_max_playlist_items'),
                 path('check_internet/', base.settings.check_internet, name='check_internet'),
                 path('update_user_count/', base.settings.update_user_count, name='update_user_count'),
 

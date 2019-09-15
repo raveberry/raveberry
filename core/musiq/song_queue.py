@@ -9,12 +9,18 @@ import core.models
 class SongQueue(models.Manager):
 
     @transaction.atomic
-    def enqueue(self, location):
+    def enqueue(self, location, manually_requested):
         metadata = song_utils.gather_metadata(location)
 
         last = self.last()
         index = 1 if last is None else last.index + 1
-        song = self.create(index=index, **metadata)
+        song = self.create(
+                index=index,
+                manually_requested=manually_requested,
+                url=metadata['url'],
+                artist=metadata['artist'],
+                title=metadata['title'],
+                duration=metadata['duration'])
         return song
 
     @transaction.atomic
@@ -132,5 +138,7 @@ class SongQueue(models.Manager):
             song = self.get(id=key)
             if song.votes <= threshold:
                 song.delete()
+                return song
         except core.models.QueuedSong.DoesNotExist:
             pass
+        return None

@@ -11,6 +11,7 @@ updateState = function (newState) {
 	$('#alarm_probability').val(newState.alarm_probability);
 	$('#downvotes_to_kick').val(newState.downvotes_to_kick);
 	$('#max_download_size').val(newState.max_download_size);
+	$('#max_playlist_items').val(newState.max_playlist_items);
 	$('#has_internet').prop("checked", newState.has_internet);
 
 	$('#homewifi_enabled').text(newState.homewifi_enabled);
@@ -61,6 +62,11 @@ $(document).ready(function() {
 	});
 	$('#max_download_size').change(function() {
 		$.post(urls['set_max_download_size'], {
+			value: $(this).val(),
+		});
+	});
+	$('#max_playlist_items').change(function() {
+		$.post(urls['set_max_playlist_items'], {
 			value: $(this).val(),
 		});
 	});

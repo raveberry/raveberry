@@ -4,3 +4,4 @@
 /backup_*
 /db.sqlite3
 /yarn.lock
+/yarn-error.log

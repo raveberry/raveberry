@@ -2,7 +2,10 @@ $(document).ready(function() {
 	$(function() {
 		$(".autocomplete").autocomplete({
 			source: function(request, response) {
-				$.get(urls['suggestions'], {'term': request.term}).done(function(data) {
+				$.get(urls['suggestions'], {
+					'term': request.term,
+					'playlist': playlistEnabled(),
+				}).done(function(data) {
 					let suggestions = JSON.parse(data);
 
 					let search_entry = {
@@ -14,13 +17,13 @@ $(document).ready(function() {
 					response(suggestions);
 				})
 			},
-			appendTo: '#song_input_card',
+			appendTo: '#music_input_card',
 			open: function() {
 				// align the autocomplete box with the card instead of the input field
-				let card_position = $("#song_input_card").position();
-				let input_position = $("#song_input").position();
+				let card_position = $("#music_input_card").position();
+				let input_position = $("#music_input").position();
 
-				$("#song_input_card > ul").css({left: '0px',
+				$("#music_input_card > ul").css({left: '0px',
 					top: (input_position.bottom - card_position.bottom) + "px" });
 
 			},
@@ -38,9 +41,9 @@ $(document).ready(function() {
 
 				// the text was clicked, push the song and clear the input box
 				if (ui.item.type == 'search') {
-					request_new_song(ui.item.label);
+					request_new_music(ui.item.label);
 				} else {
-					request_archived_song(ui.item.key, ui.item.label);
+					request_archived_music(ui.item.key, ui.item.label);
 				}
 				return false;
 			},
@@ -58,9 +61,9 @@ $(document).ready(function() {
 
 				let icon = '<i class="fas fa-'
 				if (item.type == 'cached') {
-					icon += 'download';
+					icon += 'database';
 				} else if (item.type == 'online') {
-					icon += 'cloud-download-alt';
+					icon += 'cloud';
 				}
 				icon += ' suggestion_type"></i>';
 				// modify the suggestions to contain an icon

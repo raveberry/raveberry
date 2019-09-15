@@ -33,6 +33,7 @@ class Settings:
         self.alarm_probability = float(Setting.objects.get_or_create(key='alarm_probability', defaults={'value': 0})[0].value)
         self.downvotes_to_kick = int(Setting.objects.get_or_create(key='downvotes_to_kick', defaults={'value': 3})[0].value)
         self.max_download_size = int(Setting.objects.get_or_create(key='max_download_size', defaults={'value': 10})[0].value)
+        self.max_playlist_items = int(Setting.objects.get_or_create(key='max_playlist_items', defaults={'value': 10})[0].value)
         self._check_internet()
         self.homewifi = Setting.objects.get_or_create(key='homewifi', defaults={'value': ''})[0].value
 
@@ -44,6 +45,7 @@ class Settings:
         state_dict['alarm_probability'] = self.alarm_probability
         state_dict['downvotes_to_kick'] = self.downvotes_to_kick
         state_dict['max_download_size'] = self.max_download_size
+        state_dict['max_playlist_items'] = self.max_playlist_items
         state_dict['has_internet'] = self.has_internet
 
         try:
@@ -52,12 +54,15 @@ class Settings:
         except FileNotFoundError:
             state_dict['homewifi_ssid'] = ''
 
-        state_dict['homewifi_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/homewifi_enabled']) != 0
-        state_dict['events_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/events_enabled']) != 0
-        state_dict['hotspot_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/hotspot_enabled']) != 0
-        state_dict['wifi_protected'] = subprocess.call(['/usr/local/sbin/raveberry/wifi_protected']) != 0
-        state_dict['tunneling_enabled'] = subprocess.call(['sudo', '/usr/local/sbin/raveberry/tunneling_enabled']) != 0
-        state_dict['remote_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/remote_enabled']) != 0
+        try:
+            state_dict['homewifi_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/homewifi_enabled']) != 0
+            state_dict['events_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/events_enabled']) != 0
+            state_dict['hotspot_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/hotspot_enabled']) != 0
+            state_dict['wifi_protected'] = subprocess.call(['/usr/local/sbin/raveberry/wifi_protected']) != 0
+            state_dict['tunneling_enabled'] = subprocess.call(['sudo', '/usr/local/sbin/raveberry/tunneling_enabled']) != 0
+            state_dict['remote_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/remote_enabled']) != 0
+        except FileNotFoundError:
+            self.base.logger.error('scripts not installed')
 
         return state_dict
 
@@ -124,6 +129,11 @@ class Settings:
         value = int(request.POST.get('value'))
         Setting.objects.filter(key='max_download_size').update(value=value)
         self.max_download_size = value
+    @option
+    def set_max_playlist_items(self, request):
+        value = int(request.POST.get('value'))
+        Setting.objects.filter(key='max_playlist_items').update(value=value)
+        self.max_playlist_items = value
     @option
     def check_internet(self, request):
         self._check_internet()

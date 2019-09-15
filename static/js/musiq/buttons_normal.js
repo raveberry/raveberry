@@ -40,6 +40,19 @@ $(document).ready(function() {
 				value: $(this).hasClass('icon_disabled'),
 			});
 	});
+	$('#request_radio').on('click tap', function (e) {
+		if (!playlistEnabled()) {
+			warningToast('Please enable playlists to use this');
+			return;
+		}
+		$.post(urls['request_radio']).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+		infoToast('Getting radio info', 'This could take some time');
+		disablePlaylistMode();
+	});
 	$('#song_queue').on('click tap', '.prioritize', function() {
 		$.post(urls['prioritize'], {
 			key: keyOfElement($(this)),

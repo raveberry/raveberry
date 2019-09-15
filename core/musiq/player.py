@@ -6,8 +6,10 @@ from django.http import HttpResponseBadRequest
 from django.utils import timezone
 from django.conf import settings
 
+from core.models import Setting
 import core.models as models
 import core.musiq.song_utils as song_utils
+import core.musiq.youtube as youtube
 
 from threading import Semaphore
 from threading import Lock
@@ -26,10 +28,9 @@ class Player:
 
     def __init__(self, musiq):
         self.SEEK_DISTANCE = 10
-        self.shuffle = False
-        self.repeat = False
-        self.autoplay = False
-        self.volume = 1
+        self.shuffle = Setting.objects.get_or_create(key='shuffle', defaults={'value': False})[0].value == 'True'
+        self.repeat = Setting.objects.get_or_create(key='repeat', defaults={'value': False})[0].value == 'True'
+        self.autoplay = Setting.objects.get_or_create(key='autoplay', defaults={'value': False})[0].value == 'True'
 
         self.musiq = musiq
         self.queue = models.QueuedSong.objects
@@ -40,6 +41,11 @@ class Player:
         self.player_lock = Lock()
         with self.mpd_command(important=True):
             self.player.clear()
+
+        with self.mpd_command(important=True):
+            status = self.player.status()
+            currentsong = self.player.currentsong()
+            self.volume = int(status['volume']) / 100
 
     def start(self):
         Thread(target=self._loop, daemon=True).start()
@@ -94,16 +100,18 @@ class Player:
                     self.musiq.base.logger.info('dequeued on empty list')
                     continue
                 
-
                 location = song_utils.path_from_url(song.url)
                 current_song = models.CurrentSong.objects.create(
                         queue_key=song_id,
+                        manually_requested=song.manually_requested,
                         votes=song.votes,
                         url=song.url,
                         artist=song.artist,
                         title=song.title,
                         duration=song.duration,
                         location=location)
+
+                self._handle_autoplay()
 
                 try:
                     archived_song = models.ArchivedSong.objects.get(url=current_song.url)
@@ -114,6 +122,7 @@ class Player:
                     if self.musiq.base.settings.logging_enabled:
                         models.PlayLog.objects.create(
                                 song=archived_song,
+                                manually_requested=current_song.manually_requested,
                                 votes=votes)
                 except (models.ArchivedSong.DoesNotExist, models.ArchivedSong.MultipleObjectsReturned):
                     pass
@@ -138,7 +147,7 @@ class Player:
             current_song.delete()
 
             if self.repeat:
-                self.queue.enqueue(current_song.location)
+                self.queue.enqueue(current_song.location, current_song.manually_requested)
                 self.queue_semaphore.release()
             else:
                 # the song left the queue, we can delete big downloads
@@ -151,7 +160,7 @@ class Player:
                 self.musiq.base.lights.alarm_started()
 
                 with self.mpd_command(important=True):
-                    self.player.add('file://'+os.path.join(settings.BASE_DIR, 'config/sounds/alarm.mp3'))
+                    self.player.add('file://'+os.path.join(settings.BASE_DIR, 'config/sounds/alarm.m4a'))
                     self.player.play()
                 self._wait_until_song_end()
 
@@ -168,6 +177,31 @@ class Player:
                     if self.player.status()['state'] == 'stop':
                         break
             time.sleep(0.1) 
+
+    def _handle_autoplay(self, url=None):
+        if self.autoplay and models.QueuedSong.objects.count() == 0:
+            if url is None:
+                # if no url was specified, use the one of the current song
+                try:
+                    current_song = models.CurrentSong.objects.get()
+                    url = current_song.url
+                except (models.CurrentSong.DoesNotExist, models.CurrentSong.MultipleObjectsReturned):
+                    return
+
+            try:
+                suggestion = youtube.get_suggestion(url)
+            except Exception as e:
+                self.musiq.base.logger.error('error during suggestions for ' + url)
+                self.musiq.base.logger.error(e)
+            else:
+                self.musiq.request_song(
+                        None,
+                        suggestion, 
+                        self.musiq.song_provider.check_new_song_accessible,
+                        self.musiq.song_provider.get_new_song_location,
+                        suggestion,
+                        archive=False)
+
 
 
     # wrapper method for our mpd client that pings the mpd server before any command and reconnects if necessary. also catches protocol errors
@@ -262,15 +296,22 @@ class Player:
     @disabled_when_voting
     @control
     def set_shuffle(self, request):
-        self.shuffle = request.POST.get('value') == 'true'
+        enabled = request.POST.get('value') == 'true'
+        Setting.objects.filter(key='shuffle').update(value=enabled)
+        self.shuffle = enabled
     @disabled_when_voting
     @control
     def set_repeat(self, request):
-        self.repeat = request.POST.get('value') == 'true'
+        enabled = request.POST.get('value') == 'true'
+        Setting.objects.filter(key='repeat').update(value=enabled)
+        self.repeat = enabled
     @disabled_when_voting
     @control
     def set_autoplay(self, request):
-        self.autoplay = request.POST.get('value') == 'true'
+        enabled = request.POST.get('value') == 'true'
+        Setting.objects.filter(key='autoplay').update(value=enabled)
+        self.autoplay = enabled
+        self._handle_autoplay()
     @disabled_when_voting
     @control
     def set_volume(self, request):
@@ -283,6 +324,18 @@ class Player:
                     # sometimes the volume can't be set
                     self.musiq.base.logger.info('could not set volume')
                     pass
+    @disabled_when_voting
+    @control
+    def remove_all(self, request):
+        if not self.musiq.base.user_manager.is_admin(request.user):
+            return HttpResponseForbidden()
+        with self.mpd_command() as allowed:
+            if allowed:
+                with transaction.atomic():
+                    count = self.queue.count()
+                    self.queue.all().delete()
+                for _ in range(count):
+                    self.queue_semaphore.acquire(blocking=False)
     @disabled_when_voting
     @control
     def prioritize(self, request):
@@ -299,8 +352,14 @@ class Player:
             return HttpResponseBadRequest()
         key = int(key)
         try:
-            self.queue.remove(key)
+            removed = self.queue.remove(key)
             self.queue_semaphore.acquire(blocking=False)
+            # if we removed a song and it was added by autoplay,
+            # we want it to be the new basis for autoplay
+            if not removed.manually_requested:
+                self._handle_autoplay(removed.url)
+            else:
+                self._handle_autoplay()
         except models.QueuedSong.DoesNotExist:
             return HttpResponseBadRequest('song does not exist')
     @disabled_when_voting
@@ -351,5 +410,12 @@ class Player:
         except models.CurrentSong.DoesNotExist:
             pass
 
-        self.queue.vote_down(key, -self.musiq.base.settings.downvotes_to_kick)
-
+        removed = self.queue.vote_down(key, -self.musiq.base.settings.downvotes_to_kick)
+        # if we removed a song by voting, and it was added by autoplay,
+        # we want it to be the new basis for autoplay
+        if removed is not None:
+            self.queue_semaphore.acquire(blocking=False)
+            if not removed.manually_requested:
+                self._handle_autoplay(removed.url)
+            else:
+                self._handle_autoplay()

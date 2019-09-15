@@ -34,7 +34,10 @@ function successToast(firstLine, secondLine) {
 			$('#success-toast').fadeOut();
 	}, toastTimeout);
 }
-function warningToast(firstLine, secondLine) {
+function warningToast(firstLine, secondLine, showBar) {
+	if (!showBar) {
+		$('#vote_timeout_bar').hide();
+	}
 	$('#warning-toast').find('.toast-content').text(firstLine);
 	if (secondLine != null) {
 		$('#warning-toast').find('.toast-content').append($('<br/>'));
@@ -50,6 +53,9 @@ function warningToast(firstLine, secondLine) {
 		if (showedToastId == currentToastId)
 			$('#warning-toast').fadeOut();
 	}, toastTimeout);
+}
+function warningToastWithBar(firstLine, secondLine) {
+	warningToast(firstLine, secondLine, true);
 }
 function errorToast(firstLine, secondLine) {
 	$('#error-toast').find('.toast-content').text(firstLine);

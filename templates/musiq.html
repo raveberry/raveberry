@@ -5,8 +5,8 @@
 <script>
 	urls['state'] = '{% url 'musiq_state' %}';
 	urls['random_suggestion'] = '{% url 'random_suggestion' %}';
-	urls['request_archived_song'] = '{% url 'request_archived_song' %}';
-	urls['request_new_song'] = '{% url 'request_new_song' %}';
+	urls['request_archived_music'] = '{% url 'request_archived_music' %}';
+	urls['request_new_music'] = '{% url 'request_new_music' %}';
 	urls['suggestions'] = '{% url 'suggestions' %}';
 
 	urls['restart'] = '{% url 'restart_song' %}';
@@ -18,7 +18,9 @@
 	urls['set_shuffle'] = '{% url 'set_shuffle' %}';
 	urls['set_repeat'] = '{% url 'set_repeat' %}';
 	urls['set_autoplay'] = '{% url 'set_autoplay' %}';
+	urls['request_radio'] = '{% url 'request_radio' %}';
 	urls['set_volume'] = '{% url 'set_volume' %}';
+	urls['remove_all'] = '{% url 'remove_all' %}';
 
 	urls['prioritize'] = '{% url 'prioritize_song' %}';
 	urls['remove'] = '{% url 'remove_song' %}';
@@ -40,15 +42,16 @@
 
 {% block content %}
 <ul class="list-group">
-	<li class="list-group-item" id="song_input_card">
+	<li class="list-group-item" id="music_input_card">
+		<i class="fas fa-stream icon_disabled" id="playlist_mode"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}></i>
 		<i class="fas fa-dice" id="random_suggestion"></i>
 		<span class="clearable">
-			<input class="form-control autocomplete" id="song_input" placeholder="Search for Music..." autofocus autocomplete="off">
+			<input class="form-control autocomplete" id="music_input" placeholder="Search for Music..." autofocus autocomplete="off">
 			<i class="fas fa-times" id="clearbutton"></i>
 		</span>
 		<div class="anim-container" id="request_button_container">
-			<i class="fas fa-arrow-circle-right other" id="request_archived_song"></i>
-			<i class="fas fa-search default" id="request_new_song"></i>
+			<i class="fas fa-arrow-circle-right other" id="request_archived_music"></i>
+			<i class="fas fa-search default" id="request_new_music"></i>
 		</div>
 	</li>
 </ul>
@@ -80,12 +83,15 @@
 			<i class="fas fa-random icon_disabled" id="set_shuffle"></i>
 			<i class="fas fa-sync icon_disabled" id="set_repeat"></i>
 			<i class="fas fa-play-circle icon_disabled" id="set_autoplay"></i>
+			<i class="fas fa-robot icon_disabled" id="request_radio"></i>
 		</div>
 	</li>
 	<li class="list-group-item" id="volume_slider_container"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
 		<i id="volume_indicator" class="fas fa-volume-down"></i>
 		<input type="range" id="volume_slider" min="0" max="1" step="0.01" readonly="readonly"/>
-		<i class="fas fa-volume-off" style="visibility: hidden;"></i>
+		{% if is_admin %}<i class="fas fa-trash-alt icon_disabled" id="remove_all"></i>
+		{% else %}<i class="fas fa-volume-off" style="visibility: hidden;"></i>
+		{% endif %}
 	</li>
 </ul>
 <ul class="list-group" id="song_queue">

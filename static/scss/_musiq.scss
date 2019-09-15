@@ -3,23 +3,23 @@
 }
 
 // song input
-#song_input_card {
+#music_input_card {
 	padding-left: 5px;
 	padding-right: 5px;
 	display: inline-flex;
 }
-#song_input_card>i {
+#music_input_card>i {
 	margin: 7px 2px;
 	font-size: x-large;
 }
-#song_input_card .anim-container {
+#music_input_card .anim-container {
 	margin: 7px 2px;
 	height: 1.5rem;
 	width: 1.5rem;
 	min-width: 1.5rem;
 	font-size:.375rem;
 }
-#song_input {
+#music_input {
 	padding: 6px;
 	min-width: 100px;
 	padding-right: 20px;
@@ -137,12 +137,6 @@ span.clearable input {
 	// css hack to center play button
 	margin-right: 31px;
 }
-#song_control_icons>i{
-}
-#set_repeat {
-	margin-left: 20px !important;
-	margin-right: 20px !important;
-}
 #volume_slider_container {
 	text-align: center;
 }
@@ -154,6 +148,9 @@ span.clearable input {
 #volume_slider {
 	width: 70%;
 	max-width: 200px;
+}
+#remove_all {
+	float: right;
 }
 
 // song queue

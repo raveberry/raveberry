@@ -14,8 +14,14 @@ def path_from_id(song_id):
 
 def path_from_url(url):
     ''' returns the file path for the song corresponding to the given url or None if the url is not cached '''
-    song_id = parse_qs(urlparse(url).query)['v'][0]
+    song_id = id_from_url(url)
     return path_from_id(song_id)
+
+def id_from_url(url):
+    return parse_qs(urlparse(url).query)['v'][0]
+
+def is_radio(id_or_url):
+    return id_or_url.split('&list=')[-1].startswith('RD')
 
 def format_seconds(seconds):
     hours, seconds =  seconds // 3600, seconds % 3600

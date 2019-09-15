@@ -10,6 +10,7 @@
 	urls['set_alarm_probability'] = '{% url 'set_alarm_probability' %}';
 	urls['set_downvotes_to_kick'] = '{% url 'set_downvotes_to_kick' %}';
 	urls['set_max_download_size'] = '{% url 'set_max_download_size' %}';
+	urls['set_max_playlist_items'] = '{% url 'set_max_playlist_items' %}';
 	urls['check_internet'] = '{% url 'check_internet' %}';
 	urls['update_user_count'] = '{% url 'update_user_count' %}';
 
@@ -67,6 +68,10 @@
 	<li class="list-group-item list_item">
 		<span class="description">Max Download Size (MB, 0 to disable)</span>
 		<input id="max_download_size"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Max Songs Enqueued per Playlist</span>
+		<input id="max_playlist_items"/>
 	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Internet Connection</span>

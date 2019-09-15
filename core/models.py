@@ -24,14 +24,44 @@ class ArchivedSong(models.Model):
     def displayname(self):
         return song_utils.displayname(self.artist, self.title)
 
+class ArchivedPlaylist(models.Model):
+    list_id = models.CharField(max_length=200)
+    title = models.CharField(max_length=1000)
+    created = models.DateTimeField(auto_now_add=True)
+    counter = models.IntegerField()
+    def __str__(self):
+        return self.title + ': ' + str(self.counter)
+
+class PlaylistEntry(models.Model):
+    playlist = models.ForeignKey('ArchivedPlaylist', on_delete=models.CASCADE, related_name='entries')
+    song = models.ForeignKey('ArchivedSong', on_delete=models.SET_NULL, blank=True, null=True, related_name='playlist_entries')
+    index = models.IntegerField()
+    url = models.CharField(max_length=200)
+    def __str__(self):
+        s = self.playlist.title + '[' + str(self.index) + ']: '
+        if self.song is not None:
+            s += self.song.displayname()
+        else:
+            s += self.url
+        return s
+    class Meta:
+       ordering = ['playlist', 'index']
+
 class ArchivedQuery(models.Model):
     song = models.ForeignKey('ArchivedSong', on_delete=models.CASCADE, related_name='queries')
     query = models.CharField(max_length=1000)
     def __str__(self):
         return self.query
 
+class ArchivedPlaylistQuery(models.Model):
+    playlist = models.ForeignKey('ArchivedPlaylist', on_delete=models.CASCADE, related_name='queries')
+    query = models.CharField(max_length=1000)
+    def __str__(self):
+        return self.query
+
 class QueuedSong(models.Model):
     index = models.IntegerField()
+    manually_requested = models.BooleanField()
     votes = models.IntegerField(default=0)
     url = models.CharField(max_length=200)
     artist = models.CharField(max_length=1000)
@@ -47,6 +77,7 @@ class QueuedSong(models.Model):
 
 class CurrentSong(models.Model):
     queue_key = models.IntegerField()
+    manually_requested = models.BooleanField()
     votes = models.IntegerField()
     url = models.CharField(max_length=200)
     artist = models.CharField(max_length=1000)
@@ -62,13 +93,20 @@ class CurrentSong(models.Model):
 class RequestLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     song = models.ForeignKey('ArchivedSong', on_delete=models.SET_NULL, blank=True, null=True)
+    playlist = models.ForeignKey('ArchivedPlaylist', on_delete=models.SET_NULL, blank=True, null=True)
     address = models.CharField(max_length=50)
     def __str__(self):
-        return self.address + ': ' + self.song.displayname()
+        if self.song is not None:
+            return self.address + ': ' + self.song.displayname()
+        elif self.playlist is not None:
+            return self.address + ': ' + self.playlist.title
+        else:
+            return self.address + ': <None>'
 
 class PlayLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     song = models.ForeignKey('ArchivedSong', on_delete=models.SET_NULL, blank=True, null=True)
+    manually_requested = models.BooleanField()
     votes = models.IntegerField(null=True)
     def __str__(self):
         return 'played ' + self.song.displayname() + ' with ' + str(self.votes) + ' votes'

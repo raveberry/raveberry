@@ -9,10 +9,13 @@ from django.forms.models import model_to_dict
 
 from core.models import QueuedSong
 from core.models import CurrentSong
+from core.models import ArchivedSong
 from core.musiq.song_provider import SongProvider
 from core.musiq.player import Player
 from core.musiq.song_queue import SongQueue
-from core.musiq.downloader import SongTooLargeException
+from core.musiq.youtube import SongTooLargeException
+from core.musiq.youtube import NoPlaylistException
+import core.musiq.song_utils as song_utils
 import core.state_handler as state_handler
 
 import youtube_dl
@@ -38,9 +41,13 @@ class Musiq:
         self.player = Player(self)
         self.player.start()
 
-    def request_song(self, request, query, check_function, get_function, key_or_query):
-        ip, is_routable = ipware.get_client_ip(request)
-        if ip is None:
+    def request_song(self, request, query, check_function, get_function, key_or_query, archive=True, background_download=True):
+        # only get ip on user requests
+        if request is not None:
+            ip, is_routable = ipware.get_client_ip(request)
+            if ip is None:
+                ip = ''
+        else:
             ip = ''
 
         try:
@@ -58,7 +65,7 @@ class Musiq:
             error = None
             location = None
             try:
-                location = get_function(key_or_query, downloader, ip)
+                location = get_function(key_or_query, downloader, ip, archive=archive)
             except youtube_dl.utils.DownloadError as e:
                 error = e
             
@@ -70,29 +77,87 @@ class Musiq:
                 self.update_state()
                 return
 
-            song = self.queue.enqueue(location)
+            # if there is an actual request object, it was initiated by a user
+            manually_requested = request is not None
+            song = self.queue.enqueue(location, manually_requested)
             placeholder['replaced_by'] = song.id
             self.update_state()
             Player.queue_semaphore.release()
         
-        threading.Thread(target=get_song, daemon=True).start()
+        thread = threading.Thread(target=get_song, daemon=True)
+        thread.start()
+        if not background_download:
+            thread.join()
 
         return HttpResponse('Song queued')
 
-    def request_archived_song(self, request):
+    def request_playlist(self, request, get_function, key_or_query):
+        ip, is_routable = ipware.get_client_ip(request)
+        if ip is None:
+            ip = ''
+
+        try:
+            playlist = get_function(key_or_query, ip)
+        except (youtube_dl.utils.DownloadError, NoPlaylistException) as e:
+            self.logger.info('playlist not accessible: ' + str(key_or_query))
+            self.logger.info(e)
+            return HttpResponseBadRequest(e)
+
+        def get_playlist():
+            for index, entry in enumerate(playlist.entries.all()):
+                if index == self.base.settings.max_playlist_items:
+                    break
+                # request every url in the playlist as their own url
+                response = self.request_song(None, entry.url, self.song_provider.check_new_song_accessible, self.song_provider.get_new_song_location, entry.url, archive=False, background_download=False)
+                if settings.DEBUG:
+                    # the sqlite database has problems if songs are pushed very fast while a new song is taken from the queue. Add a delay to mitigate.
+                    time.sleep(1)
+                # after the download finished successfully, the song definitely exists in the database. Now we can update the reference in the playlist entry.
+                # after an error the song was not pushed and there exists no database entry. Then, we skip the update and leave the field empty.
+                if type(response) == HttpResponse:
+                    queryset = ArchivedSong.objects.filter(url=entry.url)
+                    song = queryset.get()
+                    entry.song = song
+                    entry.save()
+        threading.Thread(target=get_playlist, daemon=True).start()
+
+        return HttpResponse('Queuing playlist')
+
+    def request_archived_music(self, request):
         key = request.POST.get('key')
+        playlist = request.POST.get('playlist') == 'true'
         if key is None:
             return HttpResponseBadRequest()
         query = request.POST.get('query')
 
-        return self.request_song(request, query, self.song_provider.check_archived_song_accessible, self.song_provider.get_archived_song_location, key)
+        if playlist:
+            return self.request_playlist(request, self.song_provider.get_archived_playlist, key)
+        else:
+            return self.request_song(request, query, self.song_provider.check_archived_song_accessible, self.song_provider.get_archived_song_location, key)
 
-    def request_new_song(self, request):
+    def request_new_music(self, request):
         query = request.POST.get('query')
+        playlist = request.POST.get('playlist') == 'true'
         if query is None or query == '':
             return HttpResponseBadRequest()
 
-        return self.request_song(request, query, self.song_provider.check_new_song_accessible, self.song_provider.get_new_song_location, query)
+        if playlist:
+            return self.request_playlist(request, self.song_provider.get_new_playlist, query)
+        else:
+            return self.request_song(request, query, self.song_provider.check_new_song_accessible, self.song_provider.get_new_song_location, query)
+
+    def request_radio(self, request):
+        try:
+            current_song = CurrentSong.objects.get()
+        except CurrentSong.DoesNotExist:
+            return HttpResponseBadRequest('Need a song to play the radio')
+        song_id = song_utils.id_from_url(current_song.url)
+        radio_id = 'RD' + song_id
+        response = self.request_playlist(request, self.song_provider.get_new_playlist, radio_id)
+        if type(response) == HttpResponse:
+            return HttpResponse('Queuing radio')
+        else:
+            return response
 
     def index(self, request):
         context = self.base.context(request)

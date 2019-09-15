@@ -5,6 +5,8 @@ Complementing Raveberry's [base functionality](functionality.md), additional fea
 ## Mod
 The `mod` user is able to change the playback. They can change the volume, seek the current song or skip it. They are also allowed to remove songs from the queue regardless of their score. Mods can also control the LEDs.
 
+With mod privileges, playlists can be requested as well. A new icon appears next to the dice that enables playlist mode. Subsequent searches will then lead to each song of the playlist being added after one another. Additionally, a robot icon will appear that can be used to add Youtube's recommendations for the currently playing song.
+
 ## Pad
 The `pad` user has all the privileges the `mod` user has. Additionally, they have access to `/pad`. This page features a simple text area to store plaintext. Useful for sharing links, contact information etc.
 
@@ -20,6 +22,8 @@ The `admin` user has full access to the page. This user is automatically the sup
 * The number of negative votes needed to remove a song can be changed.
 
 * You can set a download limit for new songs. Useful when Raveberry is connected to a metered connection. Users requesting larger songs receive an appropriate error message.
+
+* The number of songs that are downloaded when adding a playlist is customizable.
 
 * The internet connection can be checked.
 
