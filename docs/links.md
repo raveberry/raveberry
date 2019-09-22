@@ -26,3 +26,5 @@ see RFC 2132 and 3397 for dhcp-option information (5: Name Server, 6: Domain Nam
 mpd: https://www.musicpd.org/doc/html/user.html#systemd-user-unit
 
 aacgain aur: https://aur.archlinux.org/packages/aacgain-cvs/
+
+bluetooth on raspbian buster: https://www.raspberrypi.org/forums/viewtopic.php?p=1500848

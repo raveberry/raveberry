@@ -81,6 +81,9 @@ else:
                 path('check_internet/', base.settings.check_internet, name='check_internet'),
                 path('update_user_count/', base.settings.update_user_count, name='update_user_count'),
 
+                path('set_bluetooth_scanning/', base.settings.set_bluetooth_scanning, name='set_bluetooth_scanning'),
+                path('connect_to_bluetooth_device/', base.settings.connect_to_bluetooth_device, name='connect_to_bluetooth_device'),
+
                 path('available_ssids/', base.settings.available_ssids, name='available_ssids'),
                 path('connect_to_wifi/', base.settings.connect_to_wifi, name='connect_to_wifi'),
                 path('enable_homewifi/', base.settings.enable_homewifi, name='enable_homewifi'),

@@ -51,6 +51,9 @@ With `youtube-dl` as a media provider, all of Youtube is available to play.
 * **Graphical Admin Interface**:
 Raveberry features a convenient way of modifying the behavior of the server, like hotspot configuration or download limitation.
 
+* **Bluetooth support**
+Use your bluetooth speakers with Raveberry, removing the need of an aux cable.
+
 * **Audio normalization**:
 Raveberry uses `aacgain` to analyze the volume of songs and prevent sharp volume transitions.
 

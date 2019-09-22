@@ -14,6 +14,9 @@
 	urls['check_internet'] = '{% url 'check_internet' %}';
 	urls['update_user_count'] = '{% url 'update_user_count' %}';
 
+	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
+	urls['connect_to_bluetooth_device'] = '{% url 'connect_to_bluetooth_device' %}';
+
 	urls['available_ssids'] = '{% url 'available_ssids' %}';
 	urls['connect_to_wifi'] = '{% url 'connect_to_wifi' %}';
 	urls['enable_homewifi'] = '{% url 'enable_homewifi' %}';
@@ -85,6 +88,25 @@
 		<div>
 			<i class="fas fa-sync" id="update_user_count"></i>
 		</div>
+	</li>
+</ul>
+
+<ul class="list-group">
+	<li class="list-group-item list_header">
+		Bluetooth
+	</li>
+	<li class="list-group-item list_item" blablabla="blablabla">
+		<span class="description">Scanning</span>
+		<input type="checkbox" id="bluetooth_scanning" autocomplete="off"/>
+	</li>
+	<!--
+	<li class="list-group-item list_item">
+		<label for="bluetooth_device_1">Device 1</label>
+		<input type="radio" name="bluetooth_device" id="12:34:56:78:9A:BD"/>
+	</li>
+	-->
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="connect_to_bluetooth_device">Connect to Device</button>
 	</li>
 </ul>
 

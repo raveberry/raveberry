@@ -62,7 +62,9 @@ def search_playlist(query):
         pickle.dump(session.cookies, f)
 
     initial_data = get_initial_data(r.text)
-    list_id = initial_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistRenderer']['playlistId']
+    search_results = initial_data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents']
+
+    list_id = next(res['playlistRenderer']['playlistId'] for res in search_results if 'playlistRenderer' in res)
     return list_id
 
 class MyLogger(object):

@@ -17,6 +17,9 @@ sudo iwlist wlan1 scan # find out SSID
 sudo scripts/system/connect_to_wifi # interactively create wpa_supplicant entry
 ```
 
+## Managing bluetooth
+Raveberry uses the `bluetoothctl` tool to manage bluetooth connections. It can also be used for manual configuration.
+
 ## The `scripts/` directory
 
 In the `scripts` directory you can find a collection of useful scripts for developing.

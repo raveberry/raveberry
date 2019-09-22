@@ -20,8 +20,11 @@ from datetime import timedelta
 from dateutil import tz
 import urllib.request
 import subprocess
+import threading
+import time
 import math
 import os
+import re
 
 class Settings:
 
@@ -35,6 +38,8 @@ class Settings:
         self.max_download_size = int(Setting.objects.get_or_create(key='max_download_size', defaults={'value': 10})[0].value)
         self.max_playlist_items = int(Setting.objects.get_or_create(key='max_playlist_items', defaults={'value': 10})[0].value)
         self._check_internet()
+        self.bluetoothctl = None
+        self.bluetooth_devices = []
         self.homewifi = Setting.objects.get_or_create(key='homewifi', defaults={'value': ''})[0].value
 
     def state_dict(self):
@@ -47,6 +52,9 @@ class Settings:
         state_dict['max_download_size'] = self.max_download_size
         state_dict['max_playlist_items'] = self.max_playlist_items
         state_dict['has_internet'] = self.has_internet
+
+        state_dict['bluetooth_scanning'] = self.bluetoothctl is not None
+        state_dict['bluetooth_devices'] = self.bluetooth_devices
 
         try:
             with open(os.path.join(settings.BASE_DIR, 'config/homewifi')) as f:
@@ -140,6 +148,124 @@ class Settings:
     @option
     def update_user_count(self, request):
         self.base.user_manager.update_user_count()
+
+    def _get_bluetoothctl_line(self):
+        # Note: this variable is not guarded by a lock. 
+        # But there should only be one admin accessing these bluetooth functions anyway.
+        if self.bluetoothctl is None:
+            return ''
+        line = self.bluetoothctl.stdout.readline().decode()
+        ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+        line = ansi_escape.sub('', line)
+        line = line.strip()
+        return line
+    def _stop_bluetoothctl(self):
+        self.bluetoothctl.stdin.close()
+        self.bluetoothctl.wait()
+        self.bluetoothctl = None
+    @option
+    def set_bluetooth_scanning(self, request):
+        enabled = request.POST.get('value') == 'true'
+        if enabled:
+            if self.bluetoothctl is not None:
+                return HttpResponseBadRequest('Already Scanning')
+            self.bluetooth_devices = []
+            self.bluetoothctl = subprocess.Popen(["bluetoothctl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+            self.bluetoothctl.stdin.write(b'devices\n')
+            self.bluetoothctl.stdin.write(b'scan on\n')
+            self.bluetoothctl.stdin.flush()
+            while True:
+                line = self._get_bluetoothctl_line()
+                if not line:
+                    break
+                # match old devices
+                match = re.match('Device (\S*) (.*)', line)
+                # match newly scanned devices
+                # We need the '.*' at the beginning of the line to account for control sequences 
+                if not match:
+                    match = re.match('.*\[NEW\] Device (\S*) (.*)', line)
+                if match:
+                    address = match.group(1)
+                    name = match.group(2)
+                    # filter unnamed devices
+                    # devices named after their address are no speakers
+                    if re.match('[A-Z0-9][A-Z0-9](-[A-Z0-9][A-Z0-9]){5}', name):
+                        continue
+                    self.bluetooth_devices.append({
+                        'address': address,
+                        'name': name,
+                    })
+                    self.update_state()
+        else:
+            if self.bluetoothctl is None:
+                return HttpResponseBadRequest('Currently not scanning')
+            self._stop_bluetoothctl()
+    @option
+    def connect_to_bluetooth_device(self, request):
+        address = request.POST.get('address')
+        if self.bluetoothctl is not None:
+            return HttpResponseBadRequest('Stop scanning before connecting')
+        if address is None or address is '':
+            return HttpResponseBadRequest('No device selected')
+
+        self.bluetoothctl = subprocess.Popen(["bluetoothctl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        error = ''
+
+        # A Function that acts as a timeout for unexpected errors (or timeouts)
+        def timeout():
+            time.sleep(20)
+            error = 'Timed out'
+            if self.bluetoothctl is not None:
+                self._stop_bluetoothctl()
+        threading.Thread(target=timeout, daemon=True).start()
+
+        self.bluetoothctl.stdin.write(b'pair ' + address.encode() + b'\n')
+        self.bluetoothctl.stdin.flush()
+        while True:
+            line = self._get_bluetoothctl_line()
+            if not line:
+                break
+            if re.match('.*Device ' + address + ' not available', line):
+                error = 'Device unavailable'
+                break
+            elif re.match('.*Failed to pair: org.bluez.Error.AlreadyExists', line):
+                break
+            elif re.match('.*Pairing successful', line):
+                break
+
+        if error:
+            self._stop_bluetoothctl()
+            return HttpResponseBadRequest(error)
+
+        self.bluetoothctl.stdin.write(b'connect ' + address.encode() + b'\n')
+        self.bluetoothctl.stdin.flush()
+        while True:
+            line = self._get_bluetoothctl_line()
+            if not line:
+                break
+            if re.match('.*Device ' + address + ' not available', line):
+                error = 'Device unavailable'
+                break
+            elif re.match('.*Failed to connect: org.bluez.Error.Failed', line):
+                error = 'Connect Failed'
+                break
+            elif re.match('.*Failed to connect: org.bluez.Error.InProgress', line):
+                error = 'Connect in progress'
+                break
+            elif re.match('.*Connection successful', line):
+                break
+        # trust the device to automatically reconnect when it is available again
+        self.bluetoothctl.stdin.write(b'trust ' + address.encode() + b'\n')
+        self.bluetoothctl.stdin.flush()
+
+        self._stop_bluetoothctl()
+        if error:
+            return HttpResponseBadRequest(error)
+
+        # Update mpd's config to output to the bluetooth device
+        subprocess.call(['sudo', '/usr/local/sbin/raveberry/update_bluetooth_device', address])
+        return HttpResponse('Connected')
 
     @option
     def available_ssids(self, request):

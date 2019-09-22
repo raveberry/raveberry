@@ -29,6 +29,8 @@ The `admin` user has full access to the page. This user is automatically the sup
 
 * Usually the count of active users updates at most once every minute, but you can also force an update.
 
+* It is possible to scan for bluetooth devices and subsequently connect to one of them. After the initial connection, Raveberry will automatically connect to this device again.
+
 * You can also connect to WiFi networks from this page. This is especially useful if you have a WiFi dongle, because then you can access the Raveberry's settings page from its own WiFi and connect to available networks.
 
 * You can set a home WiFi network. In this network, Raveberry will not activate its hotspot.

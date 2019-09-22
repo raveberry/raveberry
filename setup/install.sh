@@ -13,6 +13,8 @@ packagelist=(
 	curl #key fetching
 )
 apt-get install -y ${packagelist[@]} || exit 1
+# Install bluetooth backend. Not required, thus as extra command that may fail
+apt-get install -y bluealsa
 
 pip3 install -r requirements.txt || exit 1
 

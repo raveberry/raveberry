@@ -3,4 +3,4 @@ if [ "$EUID" -ne 0 ]
 then echo "Please run as root"
 	exit
 fi
-! iptables -t nat -C POSTROUTING -o eth0 -j MASQUERADE
+! iptables -t nat -C POSTROUTING -o eth0 -j MASQUERADE 2> /dev/null

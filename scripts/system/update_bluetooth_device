@@ -1,0 +1,11 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+if (( $# != 1 )); then
+    echo "usage: $0 <bluetooth_address>"
+	exit 1
+fi
+sed -i -r "s/(bluealsa:.*,DEV=).*(,)/\1$1\2/" /etc/mpd.conf
+systemctl restart mpd.service

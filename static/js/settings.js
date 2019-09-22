@@ -14,6 +14,26 @@ updateState = function (newState) {
 	$('#max_playlist_items').val(newState.max_playlist_items);
 	$('#has_internet').prop("checked", newState.has_internet);
 
+	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
+	$.each(newState.bluetooth_devices, function(index, device) {
+		if (device.address == $('.bluetooth_device').eq(index).children().last().attr('id'))
+			return true;
+		let li = $('<li/>')
+			.addClass('list-group-item')
+			.addClass('list_item')
+			.addClass('bluetooth_device');
+		let label = $('<label/>')
+			.attr('for', 'bluetooth_device_' + index)
+			.text(device.name)
+			.appendTo(li);
+		let input = $('<input/>')
+			.attr('type', 'radio')
+			.attr('name', 'bluetooth_device')
+			.attr('id', device.address)
+			.appendTo(li);
+		li.insertBefore($('#connect_to_bluetooth_device').parent());
+	});
+
 	$('#homewifi_enabled').text(newState.homewifi_enabled);
 	$('#homewifi_ssid').val(newState.homewifi_ssid);
 
@@ -78,6 +98,30 @@ $(document).ready(function() {
 	$('#update_user_count').on('click tap', function() {
 		$.get(urls['update_user_count']).done(function() {
 			successToast('');
+		});
+	});
+
+	$('#bluetooth_scanning').on('click tap', function() {
+		let checked = $(this).is(":checked");
+		if (checked) {
+			$('.bluetooth_device').remove();
+		}
+		$.post(urls['set_bluetooth_scanning'], {
+			value: checked,
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+		if (checked) {
+			infoToast('Started Scanning');
+		}
+	});
+	$('#connect_to_bluetooth_device').on('click tap', function() {
+		$.post(urls['connect_to_bluetooth_device'], {
+			address: $('input[name=bluetooth_device]:checked').attr('id'),
+		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
 		});
 	});
 

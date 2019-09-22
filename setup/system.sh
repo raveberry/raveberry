@@ -28,9 +28,12 @@ fi
 
 echo "*** Granting www-data necessary Privileges ***"
 echo "groups"
+# leds
 adduser www-data spi 2>/dev/null
 adduser www-data gpio 2>/dev/null
 adduser www-data i2c 2>/dev/null
+# bluetoothctl
+adduser www-data bluetooth 2>/dev/null
 echo "/var/www"
 mkdir -p /var/www
 chown www-data:www-data /var/www

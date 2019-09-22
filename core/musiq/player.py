@@ -52,6 +52,8 @@ class Player:
 
     def progress(self):
         # the state is either pause or stop
+        status = {}
+        currentsong = {}
         with self.mpd_command() as allowed:
             if allowed:
                 status = self.player.status()
@@ -174,8 +176,11 @@ class Player:
         while True:
             with self.mpd_command() as allowed:
                 if allowed:
-                    if self.player.status()['state'] == 'stop':
-                        break
+                    try:
+                        if self.player.status()['state'] == 'stop':
+                            break
+                    except mpd.base.ConnectionError:
+                        pass
             time.sleep(0.1) 
 
     def _handle_autoplay(self, url=None):
@@ -213,8 +218,16 @@ class Player:
         if self.player_lock.acquire(timeout=timeout):
             try:
                 self.player.ping()
-            except mpd.base.ConnectionError:
-                self.player.connect('/var/run/mpd/socket', 6600)
+            except (mpd.base.ConnectionError, ConnectionResetError):
+                for _ in range(5):
+                    try:
+                        self.player.connect('/var/run/mpd/socket', 6600)
+                        break
+                    except mpd.base.ConnectionError:
+                        # Already connected
+                        break
+                    except (ConnectionResetError, ConnectionRefusedError):
+                        time.sleep(0.5)
             except mpd.base.ProtocolError as e:
                 print('protocol error during ping, continuing')
                 print(e)
