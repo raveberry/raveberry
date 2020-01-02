@@ -1,5 +1,5 @@
 Adafruit-PCA9685>=1.0.1
-Django>=2.2.4
+Django==2.2.9
 channels-redis>=2.4.0
 channels>=2.2.0
 django-compressor>=2.3

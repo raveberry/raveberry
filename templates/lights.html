@@ -5,10 +5,12 @@
 <script>
 	urls['state'] = '{% url 'lights_state' %}';
 	urls['set_ring_program'] = '{% url 'set_ring_program' %}';
-	urls['set_strip_program'] = '{% url 'set_strip_program' %}';
 	urls['set_ring_brightness'] = '{% url 'set_ring_brightness' %}';
-	urls['set_strip_brightness'] = '{% url 'set_strip_brightness' %}';
 	urls['set_ring_monochrome'] = '{% url 'set_ring_monochrome' %}';
+	urls['set_strip_program'] = '{% url 'set_strip_program' %}';
+	urls['set_strip_brightness'] = '{% url 'set_strip_brightness' %}';
+	urls['adjust_screen'] = '{% url 'adjust_screen' %}';
+	urls['set_screen_program'] = '{% url 'set_screen_program' %}';
 	urls['set_program_speed'] = '{% url 'set_program_speed' %}';
 	urls['set_fixed_color'] = '{% url 'set_fixed_color' %}';
 </script>
@@ -23,7 +25,7 @@
 	<li class="list-group-item list_item">
 		<span class="description">Program</span>
 		<select class="form-control" id="ring_program">
-			{% for program_name in program_names %}
+			{% for program_name in color_program_names %}
 			<option>{{ program_name }}</option>
 			{% endfor %}
 		</select>
@@ -45,7 +47,7 @@
 	<li class="list-group-item list_item">
 		<span class="description">Program</span>
 		<select class="form-control" id="strip_program">
-			{% for program_name in program_names %}
+			{% for program_name in color_program_names %}
 			<option>{{ program_name }}</option>
 			{% endfor %}
 		</select>
@@ -56,9 +58,24 @@
 	</li>
 </ul>
 
+<ul class="list-group" id="screen_options">
+	<li class="list-group-item list_header">
+		Screen
+		<i class="fas fa-sync" id="adjust_screen"></i>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Program</span>
+		<select class="form-control" id="screen_program">
+			{% for program_name in screen_program_names %}
+			<option>{{ program_name }}</option>
+			{% endfor %}
+		</select>
+	</li>
+</ul>
+
 <ul class="list-group" id="program_options">
 	<li class="list-group-item list_header">
-		Programs
+		Program Options
 	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Rainbow Speed</span>

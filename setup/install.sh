@@ -24,8 +24,19 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/
 sudo apt-get update
 sudo apt-get install -y yarn
 
+if [ ! -z "$SCREEN_VISUALIZATION" ]; then
+	echo "*** Installing pi3d and dependencies ***"
+	pip3 install pi3d # OpenGL Framework
+	packagelist=(
+		python3-numpy # heavyer computation; pip installs too new version
+		python3-pil # image texture loading
+		mesa-utils libgles2-mesa-dev # graphics drivers
+		xorg # X is needed for displaying
+	)
+	apt-get install -y ${packagelist[@]} || exit 1
+fi
 
-if [ ! -z "$AUDIO_VISUALIZATION" ]; then
+if [ ! -z "$LED_VISUALIZATION" ]; then
 	echo "*** Installing cava ***"
 	cd /opt
 	git clone https://github.com/karlstav/cava

@@ -1,11 +1,28 @@
-if [ ! -z "$AUDIO_VISUALIZATION" ]; then
+cp --parents /boot/config.txt $BACKUP_DIR/
+if [ ! -z "$SCREEN_VISUALIZATION" ]; then
+	echo "*** Configuring Screen Visualization ***"
+	echo "hdmi..."
+	echo "hdmi_force_hotplug=1" >> /boot/config.txt
+	echo "X11..."
+	# allow non-root users to start an X server
+	sed -i s/console/anybody/ /etc/X11/Xwrapper.config
+	# without access to renderD128 another slow method is used
+	# to access it, add www-data to the 'render' group
+	adduser www-data render 2>/dev/null
+fi
+
+if [ ! -z "$LED_VISUALIZATION" ]; then
 	echo "*** Configuring LEDs ***"
-	cp --parents /boot/config.txt $BACKUP_DIR/
 	echo "i2c..."
 	echo "dtparam=i2c_arm=on" >> /boot/config.txt
 	echo "spi..."
 	echo "dtparam=spi=on" >> /boot/config.txt
-	echo "core_freq=250" >> /boot/config.txt
+	if [[ `cat /proc/device-tree/model` == "Raspberry Pi 4"* ]]; then
+		echo "core_freq=500" >> /boot/config.txt
+		echo "core_freq_min=500" >> /boot/config.txt
+	else
+		echo "core_freq=250" >> /boot/config.txt
+	fi
 fi
 
 echo "*** Configuring MPD ***"

@@ -26,7 +26,8 @@ if [ ! -z "$REMOTE_KEY" ] && [ ! -z "$REMOTE_IP" ] && [ ! -z REMOTE_PORT ] && [ 
 	cp setup/remote.service /etc/systemd/system/remote.service
 	envsubst < setup/connect_to_remote '$REMOTE_IP $REMOTE_PORT $KEY_LOCATION' > /usr/local/sbin/raveberry/connect_to_remote
 	chmod +x /usr/local/sbin/raveberry/connect_to_remote
-	cp --parents ~/.ssh/known_hosts $BACKUP_DIR/
+	cp --parents ~/.ssh/known_hosts $BACKUP_DIR/ 2>/dev/null
+	mkdir -p ~/.ssh
 	ssh-keygen -F $REMOTE_IP > /dev/null || ssh-keyscan -H $REMOTE_IP >> ~/.ssh/known_hosts
 fi
 
