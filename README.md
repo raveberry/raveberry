@@ -10,18 +10,31 @@ It provides an intuitive interface for requesting songs and changing their order
 
 Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. I used a Raspberry Pi 3B for development and testing of the software, but Raveberry should work on any Debian based Linux.
 
-You can customize your installation with the config file at [`config/raveberry.ini`](config/raveberry.ini).
+Raveberry is available on PyPi:
+```
+sudo apt-get install -y python3-pip ffmpeg atomicparsley mpd redis-server
+pip3 install raveberry
+raveberry run
+```
+Depending on your distribution, you may need to write `~/.local/bin/raveberry run` or add that to your PATH.
+Now you can install raveberry system wide, making it fully featured:
+```
+raveberry system-install
+```
 
-Although everything *should* work fine, I recommend taking a backup of your system. On a Raspberry Pi this is easily done by taking a copy of its SD card.
-
-Installing Raveberry is very simple:
+Alternatively, you can also install raveberry from this git:
 ```
 git clone
 cd raveberry
 nano config/raveberry.ini
-sudo ./setup.py
+sudo bin/raveberry system-install
 ```
+
 This assumes you have a working system with root access. If you need help setting up your Raspberry Pi, consider visiting [this guide](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up).
+
+You can customize your installation with the config file at [`config/raveberry.ini`](config/raveberry.ini). (Or at the location the installer tells you)
+
+Although everything *should* work fine, I recommend taking a backup of your system. On a Raspberry Pi this is easily done by taking a copy of its SD card.
 
 During installation you will be asked to provide a password for the admin user. This user is allowed to modify the database and change the system configuration, so choose a sensible password.
 

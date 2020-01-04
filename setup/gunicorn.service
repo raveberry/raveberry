@@ -8,8 +8,8 @@ PIDFile=/run/gunicorn/pid
 User=www-data
 Group=www-data
 WorkingDirectory=$SERVER_ROOT
-Environment="DJANGO_SETTINGS_MODULE=raveberry.settings"
-ExecStart=/usr/local/bin/gunicorn raveberry.wsgi --bind 0.0.0.0:8000 --log-level error --log-file=- --workers 1 --worker-class gthread --threads 5 --preload
+Environment="DJANGO_SETTINGS_MODULE=main.settings"
+ExecStart=/usr/local/bin/gunicorn main.wsgi --bind 0.0.0.0:8000 --log-level error --log-file=- --workers 1 --worker-class gthread --threads 5 --preload
 
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID

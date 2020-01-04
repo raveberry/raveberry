@@ -16,8 +16,8 @@ envsubst < setup/daphne.service '$SERVER_ROOT' > /etc/systemd/system/daphne.serv
 echo "gunicorn..."
 envsubst < setup/gunicorn.service '$SERVER_ROOT' > /etc/systemd/system/gunicorn.service
 
-echo "remote..."
 if [ ! -z "$REMOTE_KEY" ] && [ ! -z "$REMOTE_IP" ] && [ ! -z REMOTE_PORT ] && [ ! -z "$REMOTE_URL" ]; then
+	echo "remote..."
 	if [ "${REMOTE_KEY:0:1}" = "/" ]; then
 		export KEY_LOCATION=$REMOTE_KEY
 	else

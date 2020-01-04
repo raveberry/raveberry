@@ -223,6 +223,13 @@ class Player:
                     try:
                         self.player.connect('/var/run/mpd/socket', 6600)
                         break
+                    except FileNotFoundError:
+                        # system mpd is not running, try user mpd
+                        try:
+                            self.player.connect(os.path.expanduser('~/.mpd/socket'), 6600)
+                        except mpd.base.ConnectionError:
+                            # Already connected
+                            break
                     except mpd.base.ConnectionError:
                         # Already connected
                         break

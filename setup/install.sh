@@ -16,13 +16,14 @@ apt-get install -y ${packagelist[@]} || exit 1
 # Install bluetooth backend. Not required, thus as extra command that may fail
 apt-get install -y bluealsa
 
-pip3 install -r requirements.txt || exit 1
+# force system wide reinstall even if packages are present for the user by using sudo -H
+sudo -H pip3 install -r requirements.txt || exit 1
 
 echo "*** Installing yarn ***"
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-sudo apt-get update
-sudo apt-get install -y yarn
+apt-get update
+apt-get install -y yarn
 
 if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	echo "*** Installing pi3d and dependencies ***"

@@ -112,8 +112,9 @@ void main() {
 	in_texture = in_texture * (1. - step(1., logo_uv.x));
 	in_texture = in_texture * step(0., logo_uv.y);
 	in_texture = in_texture * (1. - step(1., logo_uv.y));
+	float small_circle = circle_polar(polar.t, full_radius * 0.9);
+	in_texture = min(in_texture, small_circle);
 	color += tex_color * in_texture;
 
 	fragColor = color;
-	//fragColor = vec4(in_texture, 0,0, 1);
 }

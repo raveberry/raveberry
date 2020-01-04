@@ -7,6 +7,8 @@ import mutagen.easymp4
 
 def path_from_id(song_id):
     path = os.path.join(settings.SONGS_CACHE_DIR, song_id + '.m4a')
+    path = path.replace('~', os.environ['HOME'])
+    path = os.path.abspath(path)
     if os.path.isfile(path):
         return path
     else:

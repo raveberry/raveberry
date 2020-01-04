@@ -8,8 +8,8 @@ PIDFile=/run/daphne/pid
 User=www-data
 Group=www-data
 WorkingDirectory=$SERVER_ROOT
-Environment="DJANGO_SETTINGS_MODULE=raveberry.settings"
-ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 raveberry.asgi:application
+Environment="DJANGO_SETTINGS_MODULE=main.settings"
+ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 Restart=on-abort

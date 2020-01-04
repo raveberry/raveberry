@@ -32,16 +32,21 @@ amixer -q sset PCM 100%
 systemctl restart mpd
 
 echo "*** Configuring Cache Directory ***"
-mkdir -p "$CACHE_DIR"
-if [[ -z "$CACHE_MEDIUM" ]]; then
-	mkdir "$CACHE_DIR/songs"
-	chown www-data:www-data "$CACHE_DIR/songs"
-else
+if [[ ! -z "$CACHE_DIR" ]]; then
+	mkdir -p "$CACHE_DIR"
+	chown www-data:www-data "$CACHE_DIR"
+fi
+if [[ ! -z "$CACHE_MEDIUM" ]]; then
+	if [[ -z "$CACHE_DIR" ]]; then
+		CACHE_DIR="/mnt/$CACHE_MEDIUM"
+	fi
+	mkdir -p "$CACHE_DIR"
 	eval $(blkid --match-token LABEL="$CACHE_MEDIUM" -o export | grep UUID)
 	cp --parents /etc/fstab $BACKUP_DIR/
-	echo "UUID=$UUID /mnt/Music vfat auto,nofail,noatime,rw,dmask=002,fmask=0113,gid=$(id -g www-data),uid=$(id -u www-data)" >> /etc/fstab
+	echo "UUID=$UUID /mnt/$CACHE_MEDIUM vfat auto,nofail,noatime,rw,dmask=002,fmask=0113,gid=$(id -g www-data),uid=$(id -u www-data)" >> /etc/fstab
 	mount -a
 fi
+echo "$CACHE_DIR" > config/cache_dir
 
 echo "*** Granting www-data necessary Privileges ***"
 echo "groups"
@@ -55,7 +60,7 @@ echo "/var/www"
 mkdir -p /var/www
 chown www-data:www-data /var/www
 echo "$SERVER_ROOT"
-scripts/set_permissions.sh > /dev/null 2>&1
+chown -R www-data:www-data .
 echo "/usr/local/sbin/raveberry/"
 echo 'www-data ALL=NOPASSWD:/usr/local/sbin/raveberry/*' | EDITOR='tee -a' visudo
 if [ ! -z $DEV_USER ]; then

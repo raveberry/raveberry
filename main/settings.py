@@ -1,11 +1,7 @@
 import os
-import configparser
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-config = configparser.ConfigParser()
-config.read(os.path.join(BASE_DIR, 'config/raveberry.ini'))
 
 try:
     with open(os.path.join(BASE_DIR, 'config/secret_key.txt')) as f:
@@ -13,7 +9,7 @@ try:
 except FileNotFoundError:
     from django.core.management.utils import get_random_secret_key
     SECRET_KEY = get_random_secret_key()
-    with open(os.path.join('config', 'secret_key.txt'), 'w') as f:
+    with open(os.path.join(BASE_DIR, 'config/secret_key.txt'), 'w') as f:
         f.write(SECRET_KEY)
     print('created secret key')
 
@@ -51,7 +47,7 @@ MIDDLEWARE = [
     'core.user_manager.SimpleMiddleware',
 ]
 
-ROOT_URLCONF = 'raveberry.urls'
+ROOT_URLCONF = 'main.urls'
 
 TEMPLATES = [
     {
@@ -71,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'raveberry.wsgi.application'
+WSGI_APPLICATION = 'main.wsgi.application'
 
 
 # Database
@@ -160,7 +156,7 @@ STATICFILES_FINDERS = (
 )
 
 # channels
-ASGI_APPLICATION = "raveberry.routing.application"
+ASGI_APPLICATION = "main.routing.application"
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -208,15 +204,21 @@ LOGGING = {
     },
 }
 
-# app settings
-SONGS_CACHE_DIR = config['Song Caching']['cache_dir']
-SONGS_CACHE_DIR = os.path.join(SONGS_CACHE_DIR, 'songs')
-if SONGS_CACHE_DIR == '':
-    print('song caching disabled')
-
 # Security Settings
 #SECURE_CONTENT_TYPE_NOSNIFF = True
 #SECURE_BROWSER_XSS_FILTER = True
 #SESSION_COOKIE_SECURE = True
 #CSRF_COOKIE_SECURE = True
 #X_FRAME_OPTIONS = 'DENY'
+
+# app settings
+try:
+    with open(os.path.join(BASE_DIR, 'config/cache_dir')) as f:
+        SONGS_CACHE_DIR = f.read().strip()
+except FileNotFoundError:
+    SONGS_CACHE_DIR = ''
+if SONGS_CACHE_DIR == '':
+    SONGS_CACHE_DIR = os.path.expanduser('~/Music/raveberry/')
+    with open(os.path.join(BASE_DIR, 'config/cache_dir'), 'w') as f:
+        f.write(SONGS_CACHE_DIR)
+    print('no song caching directory specified, using ~/Music/raveberry/')

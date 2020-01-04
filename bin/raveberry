@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+import os
+import sys
+import time
+import subprocess
+import configparser
+import getpass
+
+try:
+    import raveberry
+    raveberry_directory = os.path.dirname(raveberry.__file__)
+    configfile_path = os.path.join(raveberry_directory, 'config/raveberry.ini')
+except ModuleNotFoundError:
+    # also allow this script to work without installed module in the git folder
+    raveberry_directory = '.'
+    configfile_path = os.path.join(raveberry_directory, 'config/raveberry.ini')
+os.chdir(raveberry_directory)
+
+def main():
+    if len(sys.argv) != 2:
+        usage()
+        sys.exit(1)
+    command = sys.argv[1]
+    if command not in ['run', 'system-install', 'help']:
+        usage()
+        sys.exit(1)
+    if command == 'help':
+        usage()
+    if command == 'run':
+        run_server()
+    if command == 'system-install':
+        system_install()
+
+def usage():
+    print(f'''usage: {sys.argv[0]} [run | system-install | help]
+
+run                     run a basic version of raveberry
+system_install          install raveberry into the system
+help                    show this help and exit
+
+For more info visit https://github.com/raveberry/raveberry''')
+
+def run_server():
+    if not os.path.isfile('db.sqlite3'):
+        print('first time running raveberry, preparing...')
+        user_install()
+    print('This is the basic raveberry version using a debug server.')
+    print('To install with all features run `raveberry system-install`')
+    try:
+        subprocess.check_call(f'pgrep -u {os.getuid()} mpd'.split(), stdout=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        print('mpd not yet running, starting...')
+        subprocess.Popen(['mpd'], stdout=subprocess.DEVNULL)
+        # wait for mpd to initialize
+        time.sleep(5)
+    subprocess.call(['scripts/runserver.sh'])
+
+def read_config():
+    apt_packages = ['python3-pip', 'ffmpeg', 'atomicparsley', 'mpd', 'redis-server']
+    missing_packages = []
+    for package in apt_packages:
+        try:
+            subprocess.check_call(f'dpkg -s {package}'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError:
+            missing_packages.append(package)
+    if missing_packages:
+        print('please install missing packages: sudo apt-get install -y ' + ' '.join(missing_packages))
+        sys.exit(1)
+
+    config = configparser.ConfigParser()
+    config.read(configfile_path)
+    for section_name, section in config.items():
+        for key, value in section.items():
+            try:
+                enabled = config.getboolean(section_name, key)
+            except ValueError:
+                enabled = True
+            if enabled:
+                os.environ[key.upper()] = value
+
+def user_install():
+    read_config()
+    subprocess.call(['/bin/bash', 'setup/user_install.sh'])
+
+def system_install():
+    print('''You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
+Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
+Config-file location: ''' + configfile_path)
+
+    answer = input('Is this the configuration you want to install raveberry with? [Y/n] ')
+    while answer not in ['', 'Y', 'y', 'Yes', 'yes', 'N', 'n', 'No', 'no']:
+        answer = input('Please answers "yes" or "no": ')
+    if answer in ['N', 'n', 'No', 'no']:
+        sys.exit(0)
+
+    if os.geteuid() != 0:
+        print('system-install needs to be run as root')
+        sys.exit(1)
+
+    read_config()
+    while True:
+        admin_password = getpass.getpass('Set admin password: ')
+        admin_password_confirmed = getpass.getpass('Confirm admin password: ')
+        if admin_password == admin_password_confirmed:
+            os.environ['ADMIN_PASSWORD'] = admin_password
+            break
+        print("Passwords didn't match")
+    subprocess.call(['/bin/bash', 'setup/setup.sh'])
+
+if __name__ == '__main__':
+    main()
