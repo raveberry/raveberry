@@ -2,7 +2,7 @@
 
 precision mediump float;
 
-attribute vec3 vertex;
+in vec3 vertex;
 
 uniform mat4 modelviewmatrix[3]; // [0] model movement in real coords, [1] in camera coords, [2] camera at light
 

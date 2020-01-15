@@ -70,9 +70,13 @@ Use your bluetooth speakers with Raveberry, removing the need of an aux cable.
 * **Audio normalization**:
 Raveberry uses `aacgain` to analyze the volume of songs and prevent sharp volume transitions.
 
-* **Audio visualization**:
-With the tool [`cava`](https://github.com/karlstav/cava), the music currently playing is split into its frequencies and mapped to the color spectrum. Connected LEDs then flash to the rhythm of the music. 
+* **Screen visualization**:
+With the tool [`cava`](https://github.com/karlstav/cava), the current music is split into its frequencies and visualized on a connected screen. (See screenshot below)
 
+* **Audio visualization**:
+Using the same tool, Raveberry can also make connected LEDs flash to the rhythm of the music.
+
+![](docs/visualization.png "Visualization")
 
 ## Optional Hardware Additions
 

@@ -1,0 +1,8 @@
+[Unit]
+Description=xinit
+
+[Service]
+ExecStart=/bin/bash -c '! xset q && xinit'
+
+[Install]
+WantedBy=multi-user.target

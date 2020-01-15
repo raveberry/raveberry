@@ -53,23 +53,31 @@ $(document).ready(function() {
 		})
 			.data("ui-autocomplete")._renderItem = function (ul, item) {
 				if (item.type == 'search') {
-				return $('<li class="ui-menu-item-with-icon"></li>')
-					.data("item.autocomplete", item)
-					.append('<div><i class="fas fa-search suggestion_type"></i>' + item.label + '</div>')
-					.appendTo(ul);
+					let suggestion_div = $('<div>')
+						.text(item.label)
+						.prepend('<i class="fas fa-search suggestion_type"></i>');
+					return $('<li class="ui-menu-item-with-icon"></li>')
+						.data("item.autocomplete", item)
+						.append(suggestion_div)
+						.appendTo(ul);
 				}
 
-				let icon = '<i class="fas fa-'
+				let icon = $('<i>')
+					.addClass('fas')
+					.addClass('suggestion_type');
 				if (item.type == 'cached') {
-					icon += 'database';
+					icon.addClass('fa-database');
 				} else if (item.type == 'online') {
-					icon += 'cloud';
+					icon.addClass('fa-cloud');
 				}
-				icon += ' suggestion_type"></i>';
+				let suggestion_div = $('<div>')
+					.text(item.label)
+					.prepend(icon);
 				// modify the suggestions to contain an icon
 				return $('<li class="ui-menu-item-with-icon"></li>')
 					.data("item.autocomplete", item)
-					.append('<div>' + icon + item.label + '</div><div class="autocomplete_info">(' + item.counter + ')<i class="fas fa-reply insert_icon"></i>')
+					.append(suggestion_div)
+					.append('<div class="autocomplete_info">('+ item.counter + ')<i class="fas fa-reply insert_icon"></i>')
 					.appendTo(ul);
 			};
 	});

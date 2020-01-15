@@ -18,7 +18,6 @@ if [ -z "$HOTSPOT" ]; then
 	rm /usr/local/sbin/raveberry/disable_homewifi
 	# Without a seperate hotspot, the internet is available on wlan0
 	sed -i s/wlan1/wlan0/ /usr/local/sbin/raveberry/connect_to_wifi
-	exit 0
 else
 	systemctl stop dnsmasq
 	systemctl stop hostapd

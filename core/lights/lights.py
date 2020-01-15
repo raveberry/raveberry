@@ -24,7 +24,7 @@ import time
 class Lights:
 
     def __init__(self, base):
-        self.UPS = 25
+        self.UPS = 30
         self.seconds_per_frame = 1 / self.UPS
 
         self.base = base
@@ -128,7 +128,7 @@ class Lights:
                         # if the loop has time to spare and a screen program is active, we can increase its quality
                         self.screen_program.increase_resolution()
 
-            #print(f'computation took {computation_time:.2f}s')
+            #print(f'computation took {computation_time:.5f}s')
             try:
                 time.sleep(self.seconds_per_frame - computation_time)
             except ValueError:
@@ -254,7 +254,9 @@ class Lights:
                 return HttpResponseForbidden()
             with self.option_lock:
                 try:
-                    func(self, request, *args, **kwargs)
+                    response = func(self, request, *args, **kwargs)
+                    if response is not None:
+                        return response
                 except (ValueError, IndexError) as e:
                     print('error during lights option: ' + str(e))
                     return HttpResponseBadRequest()
@@ -307,6 +309,8 @@ class Lights:
         self.strip.brightness = value
     @option
     def adjust_screen(self, request):
+        if self.screen_program.name != 'Disabled':
+            return HttpResponseBadRequest('Disable the screen program before readjusting')
         self.screen.adjust()
     @option
     def set_screen_program(self, request):

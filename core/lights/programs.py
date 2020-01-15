@@ -196,13 +196,13 @@ class Cava(VizProgram):
         self.cava_fifo_path = os.path.join(settings.BASE_DIR, 'config/cava_fifo')
 
         # Keep these configurations in sync with config/cava.config
-        self.bars = 128
+        self.bars = 199
         self.bit_format = 8
 
         self.frame_length = self.bars * (self.bit_format // 8)
     
     def start(self):
-        self.current_frame = [0 for led in range(self.lights.ring.LED_COUNT)]
+        self.current_frame = [0 for led in range(self.bars)]
         self.growing_frame = b''
         try:
             # delete old contents of the pipe

@@ -57,13 +57,12 @@ vec2 polar_to_uv(vec2 polar, vec2 p) {
 
 void main() {
 	vec2 iResolution = unif[16].rg;
-	float iScale = unif[16].b;
+	float FFT_HIST = unif[17].r;
 	float iTime = unif[18].r;
 	float bass = unif[19].r;
 	float extra = unif[19].g;
 
     vec2 uvmtp = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
-	uvmtp *= iScale;
 
 	// Shake the bubble
     vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;
@@ -104,7 +103,10 @@ void main() {
 	vec3 specular = vec3(1) * intensity * pow(max(0.0, dot(vec3(0, 0, 1), reflected)), shinyness);
 	vec4 color = vec4(specular, alpha);
 	
-	vec4 tex_color = texture2D(logo, logo_uv).rgba;
+	vec2 texture_uv = logo_uv;
+	texture_uv.y -= 0.5 / 256.;
+	texture_uv.y = texture_uv.y / (256. + FFT_HIST) * 256.;
+	vec4 tex_color = texture(logo, texture_uv).rgba;
 
 	// only add the texture where uv in [0,1]² to prevent artifacts from mipmapping.
 	float in_texture = 1.;

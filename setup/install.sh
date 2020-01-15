@@ -2,7 +2,6 @@ echo "*** Installing apt Dependencies ***"
 apt-get update
 packagelist=(
 	python3-pip #python package management
-	dnsmasq hostapd #wifi access point
 	ffmpeg #audio conversion
 	atomicparsley #thumbnail embedding
 	nginx #webserver
@@ -25,11 +24,16 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/
 apt-get update
 apt-get install -y yarn
 
+if [ ! -z "$HOTSPOT" ]; then
+	apt-get install -y dnsmasq hostapd #wifi access point
+fi
+
 if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	echo "*** Installing pi3d and dependencies ***"
-	pip3 install pi3d # OpenGL Framework
+	sudo -H pip3 install pi3d # OpenGL Framework
 	packagelist=(
-		python3-numpy # heavyer computation; pip installs too new version
+		python3-numpy # heavier computation; pip installs too new version
+		python3-scipy # gaussian filtering
 		python3-pil # image texture loading
 		mesa-utils libgles2-mesa-dev # graphics drivers
 		xorg # X is needed for displaying
@@ -37,7 +41,7 @@ if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	apt-get install -y ${packagelist[@]} || exit 1
 fi
 
-if [ ! -z "$LED_VISUALIZATION" ]; then
+if [[ ( ! -z "$LED_VISUALIZATION" || ! -z "$SCREEN_VISUALIZATION" ) ]] && ! type cava > /dev/null 2>&1; then
 	echo "*** Installing cava ***"
 	cd /opt
 	git clone https://github.com/karlstav/cava
@@ -50,7 +54,7 @@ if [ ! -z "$LED_VISUALIZATION" ]; then
 	cd $SERVER_ROOT
 fi
 
-if [ ! -z "$AUDIO_NORMALIZATION" ]; then
+if [ ! -z "$AUDIO_NORMALIZATION" ] && ! type aacgain > /dev/null 2>&1 ; then
 	echo "*** Installing aacgain ***"
 	apt-get install -y libtool
 

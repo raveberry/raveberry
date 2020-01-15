@@ -5,8 +5,8 @@ echo "*** Compiling Sass Files ***"
 scripts/compilescss.sh
 
 echo "nginx..."
-cp --parents /etc/nginx/sites-enabled/default $BACKUP_DIR/
-rm /etc/nginx/sites-enabled/default
+cp --parents /etc/nginx/sites-enabled/default $BACKUP_DIR/ 2>/dev/null
+rm -f /etc/nginx/sites-enabled/default
 envsubst < setup/raveberry-events '$SERVER_ROOT' > /etc/nginx/sites-available/raveberry-events
 envsubst < setup/raveberry-static '$SERVER_ROOT' > /etc/nginx/sites-available/raveberry-static
 

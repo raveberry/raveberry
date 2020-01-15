@@ -10,5 +10,9 @@ EOF
 echo "Configuring mpd"
 mkdir -p ~/.mpd
 cat setup/user_mpd.conf > ~/.mpd/mpd.conf
+if [[ ! -d static/libs ]]; then
+	echo "Installing frontend libraries"
+	HOME= yarn install
+fi
 echo "Compiling SCSS Files"
 DJANGO_MOCK=1 DJANGO_DEBUG=1 python3 manage.py compilescss

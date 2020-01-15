@@ -27,13 +27,11 @@ vec3 background(vec2 uv, float total_bass, float iTime) {
 
 void main() {
 	vec2 iResolution = unif[16].rg;
-	float iScale = unif[16].b;
 	float iTime = unif[18].r;
 	float alarm_factor = unif[18].b;
 	float extra = unif[19].g;
 
 	vec2 uv = gl_FragCoord.xy / iResolution.xy;
-	uv = uv * iScale - (iScale - 1.)/2.;
 
 	// Shake the background
     vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;

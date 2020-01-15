@@ -7,6 +7,6 @@ rm -f /etc/nginx/sites-enabled/raveberry*
 ln -s /etc/nginx/sites-available/raveberry-events /etc/nginx/sites-enabled/
 systemctl disable gunicorn
 systemctl enable daphne
-systemctl start daphne
+systemctl restart daphne
 systemctl restart nginx
 systemctl stop gunicorn

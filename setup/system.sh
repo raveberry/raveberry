@@ -4,11 +4,21 @@ if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	echo "hdmi..."
 	echo "hdmi_force_hotplug=1" >> /boot/config.txt
 	echo "X11..."
-	# allow non-root users to start an X server
-	sed -i s/console/anybody/ /etc/X11/Xwrapper.config
+
+	if [[ -f /proc/device-tree/model && `cat /proc/device-tree/model` == "Raspberry Pi 4"* ]]; then
+		# start x on boot, but only for raspberry pi 4
+		cp setup/xinit.service /etc/systemd/system/xinit.service
+		systemctl daemon-reload
+		systemctl enable xinit
+	fi
+
 	# without access to renderD128 another slow method is used
 	# to access it, add www-data to the 'render' group
 	adduser www-data render 2>/dev/null
+	if [ ! -z $DEV_USER ]; then
+		echo "Granting $DEV_USER user privileges to $SERVER_ROOT"
+		adduser $DEV_USER render 2>/dev/null
+	fi
 fi
 
 if [ ! -z "$LED_VISUALIZATION" ]; then
@@ -68,8 +78,11 @@ if [ ! -z $DEV_USER ]; then
 	adduser $DEV_USER www-data
 fi
 
+echo "periodic youtube-dl updates..."
+crontab -l > $BACKUP_DIR/crontab
+(crontab -l ; echo "0 6 * * * /usr/bin/sudo -H /usr/bin/pip3 install -U youtube-dl") | crontab -
+
 if [ ! -z "$BACKUP_COMMAND" ]; then
 	echo "*** Activating Backup Cronjob ***"
-	crontab -l > $BACKUP_DIR/crontab
 	(crontab -l ; echo "0 5 * * * $BACKUP_COMMAND") | crontab -
 fi

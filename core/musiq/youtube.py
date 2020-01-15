@@ -140,7 +140,7 @@ class Downloader:
             self.info_dict = self.info_dict['entries'][0]
         size = self.info_dict['filesize']
         max_size = self.musiq.base.settings.max_download_size * 1024 * 1024
-        if max_size != 0 and song_utils.path_from_id(self.info_dict['id']) is None and size > max_size:
+        if max_size != 0 and song_utils.path_from_id(self.info_dict['id']) is None and (size is None or size > max_size):
             raise SongTooLargeException('Song too long')
 
     def fetch(self):

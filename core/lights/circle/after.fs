@@ -8,12 +8,10 @@ out vec4 fragColor;
 
 void main() {
 	vec2 iResolution = unif[16].rg;
-	float iScale = unif[16].b;
 	float iTime = unif[18].r;
 	float bass = unif[19].r;
 
     vec2 uvmtp = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
-	uvmtp *= iScale;
 
     vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;
     uvmtp += shake;
