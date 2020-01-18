@@ -16,33 +16,26 @@ sudo apt-get install -y python3-pip ffmpeg atomicparsley mpd redis-server
 pip3 install raveberry
 raveberry run
 ```
-Depending on your distribution, you may need to write `~/.local/bin/raveberry run` or add that to your PATH.
-Now you can install raveberry system wide, making it fully featured:
+Depending on your distribution, you may need to write `~/.local/bin/raveberry run` or add that to your PATH. `raveberry run` will start a basic version of Raveberry that can be tested on `http://localhost:8000/` (The server is running if you see `Quit the server with CONTROL-C.`).
+
+If you want to install Raveberry system wide and make it fully featured, you can use the following command:
 ```
 raveberry system-install
-```
-
-Alternatively, you can also install raveberry from this git:
-```
-git clone
-cd raveberry
-nano config/raveberry.ini
-sudo bin/raveberry system-install
 ```
 
 This assumes you have a working system with root access. If you need help setting up your Raspberry Pi, consider visiting [this guide](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up).
 
 You can customize your installation with the config file at [`config/raveberry.ini`](config/raveberry.ini). (Or at the location the installer tells you)
 
-Although everything *should* work fine, I recommend taking a backup of your system. On a Raspberry Pi this is easily done by taking a copy of its SD card.
+Although everything *should* work fine, I recommend taking a backup of your system. On a Raspberry Pi this is easily done by creating a copy of its SD card.
 
 During installation you will be asked to provide a password for the admin user. This user is allowed to modify the database and change the system configuration, so choose a sensible password.
 
-After the installation you should login to the admin page (URL `/admin`) and change the passwords of the other users. For more information about privileges take a look at [`docs/privileges.md`](docs/privileges.md).
+The installation will take at most 30 minutes, most of which is spent on installing/updating packages. You might need to reboot afterwards for all changes to take effect.
 
-The installation will take at most 30 minutes, most of which is spent on installing/updating packages. You might need to reboot for all changes to take effect.
+After the installation has finished `http://raveberry/` is up and ready to play music (go ahead and try now!). You can visit `http://raveberry/login/` and log in as the `admin` user with your provided admin password. If you take a look at `http://raveberry/settings` (which is also linked from the dropdown) you can see various configuration possibilities. For more information about these settings and privileges in general refer to [`docs/privileges.md`](docs/privileges.md).
 
-For an introduction to basic functionality refer to [`docs/functionality.md`](docs/functionality.md). Or just visit `http://raveberry/` and find out for yourself ; )
+An introduction to basic functionality can be found in [`docs/functionality.md`](docs/functionality.md). Or just visit `http://raveberry/` and find out for yourself ; )
 
 ## Features
 
