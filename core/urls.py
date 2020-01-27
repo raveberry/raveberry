@@ -109,4 +109,10 @@ else:
                 path('reboot_system/', base.settings.reboot_system, name='reboot_system'),
             ])),
         ])),
+
+        path('api/', include([
+            path('musiq/', include([
+                path('post_song/', base.musiq.post_song, name='post_song'),
+            ])),
+        ])),
     ]

@@ -12,6 +12,7 @@ from core.user_manager import UserManager
 import core.models as models
 import core.state_handler as state_handler
 
+import os
 import random
 import logging
 
@@ -39,6 +40,13 @@ class Base:
         self.update_state()
         return counter.value
 
+    def _get_apk_link(self):
+        local_apk = os.path.join(settings.STATIC_ROOT, 'apk/shareberry.apk')
+        if os.path.isfile(local_apk):
+            return os.path.join(settings.STATIC_URL, 'apk/shareberry.apk')
+        else:
+            return 'https://github.com/raveberry/shareberry/raw/master/app/release/shareberry.apk'
+
     def context(self, request):
         self.increment_counter()
         return {
@@ -47,6 +55,7 @@ class Base:
             'controls_enabled': self.user_manager.has_controls(request.user),
             'pad_enabled': self.user_manager.has_pad(request.user),
             'is_admin': self.user_manager.is_admin(request.user),
+            'apk_link': self._get_apk_link(),
         }
     
     def state_dict(self):

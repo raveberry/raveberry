@@ -42,6 +42,9 @@ An introduction to basic functionality can be found in [`docs/functionality.md`]
 * **Live Updates**:
 Web page content is updated instantly using websockets.
 
+* **Complementary App**:
+[Shareberry](https://github.com/raveberry/shareberry/) lets you share songs directly from your phone to Raveberry.
+
 * **Hotspot**:
 Provides a WiFi network for access in areas without proper infrastructure. Can double as a repeater.
 

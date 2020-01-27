@@ -6,6 +6,7 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 from django.core import serializers
 from django.forms.models import model_to_dict
+from django.views.decorators.csrf import csrf_exempt
 
 from core.models import QueuedSong
 from core.models import CurrentSong
@@ -89,7 +90,7 @@ class Musiq:
         if not background_download:
             thread.join()
 
-        return HttpResponse('Song queued')
+        return HttpResponse('song queued')
 
     def request_playlist(self, request, get_function, key_or_query):
         ip, is_routable = ipware.get_client_ip(request)
@@ -158,6 +159,13 @@ class Musiq:
             return HttpResponse('Queuing radio')
         else:
             return response
+
+    @csrf_exempt
+    def post_song(self, request):
+        query = request.POST.get('query')
+        if query is None or query == '':
+            return HttpResponseBadRequest('query cannot be empty')
+        return self.request_song(request, query, self.song_provider.check_new_song_accessible, self.song_provider.get_new_song_location, query)
 
     def index(self, request):
         context = self.base.context(request)

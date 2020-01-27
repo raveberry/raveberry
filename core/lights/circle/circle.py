@@ -197,7 +197,7 @@ class Circle(VizProgram):
         self.logo.set_shader(logo_shader)
         self.logo.positionZ(0)
 
-        logo_image = Image.open(os.path.join(settings.BASE_DIR, 'static/graphics/raveberry_square.png'))
+        logo_image = Image.open(os.path.join(settings.STATIC_ROOT, 'graphics/raveberry_square.png'))
         self.logo_array = np.frombuffer(logo_image.tobytes(), dtype=np.uint8)
         self.logo_array = self.logo_array.reshape((logo_image.size[1], logo_image.size[0], 3))
         # add space for the spectrum
