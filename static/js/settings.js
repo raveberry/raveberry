@@ -31,7 +31,7 @@ updateState = function (newState) {
 			.attr('name', 'bluetooth_device')
 			.attr('id', device.address)
 			.appendTo(li);
-		li.insertBefore($('#connect_to_bluetooth_device').parent());
+		li.insertBefore($('#connect_bluetooth').parent());
 	});
 
 	$('#homewifi_enabled').text(newState.homewifi_enabled);
@@ -115,10 +115,17 @@ $(document).ready(function() {
 			infoToast('Started Scanning');
 		}
 	});
-	$('#connect_to_bluetooth_device').on('click tap', function() {
-		$.post(urls['connect_to_bluetooth_device'], {
+	$('#connect_bluetooth').on('click tap', function() {
+		$.post(urls['connect_bluetooth'], {
 			address: $('input[name=bluetooth_device]:checked').attr('id'),
 		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+	$('#disconnect_bluetooth').on('click tap', function() {
+		$.post(urls['disconnect_bluetooth']).done(function(response) {
 			successToast(response);
 		}).fail(function(response) {
 			errorToast(response.responseText);

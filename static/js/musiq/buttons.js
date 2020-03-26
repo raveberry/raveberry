@@ -34,7 +34,7 @@ function showPauseButton() {
 	}, 50);
 }
 function request_archived_music(key, query) {
-	$.post(urls['request_archived_music'],
+	$.post(urls['request_music'],
 		{
 			key: key,
 			query: query,
@@ -49,7 +49,7 @@ function request_archived_music(key, query) {
 	disablePlaylistMode();
 }
 function request_new_music(query) {
-	$.post(urls['request_new_music'],
+	$.post(urls['request_music'],
 		{
 			query: $('#music_input').val(),
 			playlist: playlistEnabled(),

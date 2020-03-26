@@ -66,13 +66,7 @@ updateState = function (newState) {
 		} else {
 			showPauseButton();
 
-			// calculate the time left for the song
-			let tokens = state.current_song.duration.split(':'),
-				duration = 0, factor = 1;
-			while (tokens.length > 0) {
-				duration += factor * parseInt(tokens.pop(), 10);
-				factor *= 60;
-			}
+			let duration = state.current_song.duration;
 
 			let played = state.progress / 100 * duration;
 			let left = duration - played;
@@ -137,7 +131,7 @@ updateState = function (newState) {
 				placeholder.find('.queue_index').text(song.votes);
 			}
 			insertDisplayName(placeholder.find('.queue_title'), song);
-			placeholder.find('.queue_info_time').text(song.duration);
+			placeholder.find('.queue_info_time').text(song.duration_formatted);
 			placeholder.removeClass('unconfirmed');
 			placeholder.find('.download_icon').hide();
 			placeholder.find('.queue_index').show();
@@ -154,7 +148,7 @@ updateState = function (newState) {
 				<div class="queue_index"><fa-sort>{{ forloop.counter }}</div>
 				<div class="queue_title">{{ song.artist }} - {{ song.title }}</div>
 				<div class="queue_info">
-					<span class="queue_info_time">{{ song.duration }}</span>
+					<span class="queue_info_time">{{ song.duration_formatted }}</span>
 					<span class="queue_info_controls">
 						{% if voting_system %}
 						<i class="fas fa-chevron-circle-up vote_up"></i>
@@ -185,7 +179,7 @@ function insertDisplayName(element, song) {
 function createQueueItem(song) {
 	if (!song.confirmed) {
 		song.artist = '';
-		song.duration = '--:--';
+		song.duration_formatted = '--:--';
 		song.index = '-';
 	}
 	let li = $('<li/>')
@@ -224,7 +218,7 @@ function createQueueItem(song) {
 		.appendTo(entry_div);
 	let time = $('<span/>')
 		.addClass('queue_info_time')
-		.text(song.duration)
+		.text(song.duration_formatted)
 		.appendTo(info);
 	let controls = $('<span/>')
 		.addClass('queue_info_controls')

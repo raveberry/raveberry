@@ -1,7 +1,6 @@
 [Unit]
 Description=gunicorn
-After=network.target mpd.socket
-Wants=mpd.socket
+After=network.target
 
 [Service]
 PIDFile=/run/gunicorn/pid

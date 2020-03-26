@@ -123,7 +123,7 @@ USE_L10N = True
 USE_TZ = True
 
 # Users
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/logged_in/'
 LOGOUT_REDIRECT_URL = '/'
 # only preserve user sessions for an hour
 #SESSION_COOKIE_AGE = 3600

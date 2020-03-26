@@ -88,6 +88,13 @@ function updateBaseState(newState) {
 		$('#favicon').attr('href', urls['party_icon']);
 		$('#navbar_icon').attr('src', urls['party_icon']);
 		$('#navbar_icon').css('visibility', 'visible');
+		if (newState.alarm) {
+			$('body').addClass('alarm')
+			$('#progress_bar').addClass('alarm')
+		} else {
+			$('body').removeClass('alarm')
+			$('#progress_bar').removeClass('alarm')
+		}
 	} else {
 		$('#favicon').attr('href', urls['dark_icon']);
 		if ($('#light_theme').hasClass('icon_enabled')) {

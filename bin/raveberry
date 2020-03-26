@@ -8,6 +8,7 @@ import getpass
 
 try:
     import raveberry
+
     raveberry_directory = os.path.dirname(raveberry.__file__)
     configfile_path = os.path.join(raveberry_directory, 'config/raveberry.ini')
 except ModuleNotFoundError:
@@ -15,6 +16,7 @@ except ModuleNotFoundError:
     raveberry_directory = '.'
     configfile_path = os.path.join(raveberry_directory, 'config/raveberry.ini')
 os.chdir(raveberry_directory)
+
 
 def main():
     if len(sys.argv) != 2:
@@ -31,6 +33,7 @@ def main():
     if command == 'system-install':
         system_install()
 
+
 def usage():
     print(f'''usage: {sys.argv[0]} [run | system-install | help]
 
@@ -40,6 +43,7 @@ help                    show this help and exit
 
 For more info visit https://github.com/raveberry/raveberry''')
 
+
 def run_server():
     if not os.path.isfile('db.sqlite3'):
         print('first time running raveberry, preparing...')
@@ -47,13 +51,12 @@ def run_server():
     print('This is the basic raveberry version using a debug server.')
     print('To install with all features run `raveberry system-install`')
     try:
-        subprocess.check_call(f'pgrep -u {os.getuid()} mpd'.split(), stdout=subprocess.DEVNULL)
+        subprocess.check_call(f'pgrep mopidy'.split(), stdout=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
-        print('mpd not yet running, starting...')
-        subprocess.Popen(['mpd'], stdout=subprocess.DEVNULL)
-        # wait for mpd to initialize
-        time.sleep(5)
+        print('mopidy not yet running, starting...')
+        subprocess.Popen(['mopidy'], stderr=subprocess.DEVNULL)
     subprocess.call(['scripts/runserver.sh'])
+
 
 def read_config():
     config = configparser.ConfigParser()
@@ -67,8 +70,9 @@ def read_config():
             if enabled:
                 os.environ[key.upper()] = value
 
+
 def user_install():
-    apt_packages = ['python3-pip', 'ffmpeg', 'atomicparsley', 'mpd', 'redis-server']
+    apt_packages = ['python3-pip', 'ffmpeg', 'atomicparsley', 'mopidy', 'redis-server']
     missing_packages = []
     for package in apt_packages:
         try:
@@ -81,6 +85,7 @@ def user_install():
 
     read_config()
     subprocess.call(['/bin/bash', 'setup/user_install.sh'])
+
 
 def system_install():
     print('''You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
@@ -102,6 +107,7 @@ Config-file location: ''' + configfile_path)
             break
         print("Passwords didn't match")
     subprocess.call(['sudo', '-E', '/bin/bash', 'setup/setup.sh'])
+
 
 if __name__ == '__main__':
     main()

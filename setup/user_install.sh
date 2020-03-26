@@ -7,9 +7,6 @@ DJANGO_DEBUG=1 DJANGO_MOCK=1 python3 manage.py shell <<-EOF
 	User.objects.create_user('mod', password='mod')
 	User.objects.create_user('pad', password='pad')
 EOF
-echo "Configuring mpd"
-mkdir -p ~/.mpd
-cat setup/user_mpd.conf > ~/.mpd/mpd.conf
 if [[ ! -d static/libs ]]; then
 	echo "Installing frontend libraries"
 	HOME= yarn install
