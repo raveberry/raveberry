@@ -25,6 +25,16 @@ def id_from_url(url):
 def is_radio(id_or_url):
     return id_or_url.split('&list=')[-1].startswith('RD')
 
+def determine_playlist_type(archived_playlist):
+    # use the url of the first song in the playlist to determine the platform where the playlist is from
+    first_song_url = archived_playlist.entries.first().url
+    if first_song_url.startswith('https://www.youtube.com/'):
+        return 'youtube'
+    elif first_song_url.startswith('https://open.spotify.com/'):
+        return 'spotify'
+    else:
+        return None
+
 def format_seconds(seconds):
     hours, seconds =  seconds // 3600, seconds % 3600
     minutes, seconds = seconds // 60, seconds % 60

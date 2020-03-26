@@ -14,6 +14,9 @@
 	urls['check_internet'] = '{% url 'check_internet' %}';
 	urls['update_user_count'] = '{% url 'update_user_count' %}';
 
+	urls['set_spotify_credentials'] = '{% url 'set_spotify_credentials' %}';
+	urls['check_spotify_credentials'] = '{% url 'check_spotify_credentials' %}';
+
 	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
 	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
 	urls['disconnect_bluetooth'] = '{% url 'disconnect_bluetooth' %}';
@@ -94,9 +97,47 @@
 
 <ul class="list-group">
 	<li class="list-group-item list_header">
+		<span>Spotify <small>(do not change during the party!)</small></span>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Credentials valid</span>
+		<div>
+			<input type="checkbox" id="spotify_credentials_valid">
+			<i class="fas fa-sync" id="check_spotify_credentials"></i>
+		</div>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Username</span>
+		<input id="spotify_username"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Password</span>
+		<input id="spotify_password"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">
+            Client ID
+            <a href="https://mopidy.com/ext/spotify/#authentication" data-toggle="tooltip" target="_blank" rel="noopener noreferrer"
+                title="Click here to get the credentials">
+                <i class="fas fa-question-circle"></i>
+            </a>
+		</span>
+		<input id="spotify_client_id"/>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Client Secret</span>
+		<input id="spotify_client_secret"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="set_spotify_credentials">Set Credentials</button>
+	</li>
+</ul>
+
+<ul class="list-group">
+	<li class="list-group-item list_header">
 		Bluetooth
 	</li>
-	<li class="list-group-item list_item" blablabla="blablabla">
+	<li class="list-group-item list_item">
 		<span class="description">Scanning</span>
 		<input type="checkbox" id="bluetooth_scanning" autocomplete="off"/>
 	</li>

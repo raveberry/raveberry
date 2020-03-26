@@ -1,7 +1,7 @@
 let state = null;
 let animationInProgress = false;
 
-updateState = function (newState) {
+specificState = function (newState) {
 	updateBaseState(newState);
 
 	if (!('current_song' in newState)) {

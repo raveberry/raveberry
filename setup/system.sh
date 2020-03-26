@@ -2,7 +2,9 @@ cp --parents /boot/config.txt $BACKUP_DIR/
 if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	echo "*** Configuring Screen Visualization ***"
 	echo "hdmi..."
-	echo "hdmi_force_hotplug=1" >> /boot/config.txt
+	LINE="hdmi_force_hotplug=1"
+	FILE="/boot/config.txt"
+	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	echo "X11..."
 
 	if [[ -f /proc/device-tree/model && `cat /proc/device-tree/model` == "Raspberry Pi 4"* ]]; then
@@ -28,32 +30,46 @@ if [ ! -z "$LED_VISUALIZATION" ]; then
 	echo "spi..."
 	echo "dtparam=spi=on" >> /boot/config.txt
 	if [[ `cat /proc/device-tree/model` == "Raspberry Pi 4"* ]]; then
-		echo "core_freq=500" >> /boot/config.txt
-		echo "core_freq_min=500" >> /boot/config.txt
+		LINE="core_freq=500"
+		FILE="/boot/config.txt"
+		grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+		LINE="core_freq_min=500"
+		grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	else
-		echo "core_freq=250" >> /boot/config.txt
+		LINE="core_freq=250"
+		FILE="/boot/config.txt"
+		grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	fi
 fi
 
 echo "*** Configuring Sound Output ***"
-echo "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1" >> /etc/pulse/default.pa
+cp setup/pulseaudio.service /etc/systemd/system/pulseaudio.service
+
+cp --parents /etc/pulse/default.pa $BACKUP_DIR/
+LINE="load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1"
+FILE="/etc/pulse/system.pa"
+grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+adduser mopidy www-data
 cp --parents /etc/mopidy/mopidy.conf $BACKUP_DIR/
 
 if [[ ( ! -z "$LED_VISUALIZATION" || ! -z "$SCREEN_VISUALIZATION" ) ]]; then
-	cat >> /etc/pulse/default.pa <<-EOF
+	LINE=$(cat <<-EOF
 		load-module module-null-sink sink_name=cava
 		update-sink-proplist cava device.description="virtual sink for cava"
 		set-default-sink 0
 	EOF
-	cp setup/mopidy.conf /etc/mopidy/mopidy.conf
+	)
+	FILE="/etc/pulse/system.pa"
+	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+	envsubst < setup/mopidy.conf > /etc/mopidy/mopidy.conf
 else
-	cp setup/mopidy_cava.conf /etc/mopidy/mopidy.conf
+	envsubst < setup/mopidy_cava.conf > /etc/mopidy/mopidy.conf
 fi
 
 amixer -q sset PCM 100%
-adduser mopidy www-data
-systemctl restart mopidy
-
+# also set volume of external sound card
+amixer -q -c 1 sset Speaker 100%
 
 echo "*** Configuring Cache Directory ***"
 if [[ ! -z "$CACHE_DIR" ]]; then
@@ -67,7 +83,10 @@ if [[ ! -z "$CACHE_MEDIUM" ]]; then
 	mkdir -p "$CACHE_DIR"
 	eval $(blkid --match-token LABEL="$CACHE_MEDIUM" -o export | grep UUID)
 	cp --parents /etc/fstab $BACKUP_DIR/
-	echo "UUID=$UUID /mnt/$CACHE_MEDIUM vfat auto,nofail,noatime,rw,dmask=002,fmask=0113,gid=$(id -g www-data),uid=$(id -u www-data)" >> /etc/fstab
+
+	LINE="UUID=$UUID /mnt/$CACHE_MEDIUM vfat auto,nofail,noatime,rw,dmask=002,fmask=0113,gid=$(id -g www-data),uid=$(id -u www-data)"
+	FILE="/etc/fstab"
+	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	mount -a
 fi
 echo "$CACHE_DIR" > config/cache_dir
@@ -80,6 +99,8 @@ adduser www-data gpio 2>/dev/null
 adduser www-data i2c 2>/dev/null
 # pulseaudio
 adduser www-data audio 2>/dev/null
+adduser www-data pulse 2>/dev/null
+adduser www-data pulse-access 2>/dev/null
 # bluetoothctl
 adduser www-data bluetooth 2>/dev/null
 echo "/var/www"
@@ -95,11 +116,18 @@ if [ ! -z $DEV_USER ]; then
 	adduser $DEV_USER www-data
 fi
 
+systemctl enable pulseaudio
+systemctl restart pulseaudio
+systemctl enable mopidy
+systemctl restart mopidy
+
 echo "periodic youtube-dl updates..."
 crontab -l > $BACKUP_DIR/crontab
-(crontab -l ; echo "0 6 * * * /usr/bin/sudo -H /usr/bin/pip3 install -U youtube-dl") | crontab -
+LINE="0 6 * * * /usr/bin/sudo -H /usr/bin/pip3 install -U youtube-dl"
+crontab -l | grep -qxF "$LINE" || (crontab -l ; echo "$LINE") | crontab -
 
 if [ ! -z "$BACKUP_COMMAND" ]; then
 	echo "*** Activating Backup Cronjob ***"
-	(crontab -l ; echo "0 5 * * * $BACKUP_COMMAND") | crontab -
+	LINE="0 5 * * * $BACKUP_COMMAND"
+	crontab -l | grep -qxF "$LINE" || (crontab -l ; echo "$LINE") | crontab -
 fi

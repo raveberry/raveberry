@@ -5,6 +5,7 @@ import time
 import subprocess
 import configparser
 import getpass
+import shutil
 
 try:
     import raveberry
@@ -74,14 +75,18 @@ def read_config():
 def user_install():
     apt_packages = ['python3-pip', 'ffmpeg', 'atomicparsley', 'mopidy', 'redis-server']
     missing_packages = []
-    for package in apt_packages:
-        try:
-            subprocess.check_call(f'dpkg -s {package}'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        except subprocess.CalledProcessError:
-            missing_packages.append(package)
-    if missing_packages:
-        print('please install missing packages: sudo apt-get install -y ' + ' '.join(missing_packages))
-        sys.exit(1)
+
+    if shutil.which('dpkg'):
+        for package in apt_packages:
+            try:
+                subprocess.check_call(f'dpkg -s {package}'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError:
+                missing_packages.append(package)
+        if missing_packages:
+            print('please install missing packages: sudo apt-get install -y ' + ' '.join(missing_packages))
+            sys.exit(1)
+    else:
+        print('Warning: dpkg is not installed, could not check if dependencies are installed! Use at your own rist!')
 
     read_config()
     subprocess.call(['/bin/bash', 'setup/user_install.sh'])
@@ -99,13 +104,17 @@ Config-file location: ''' + configfile_path)
         sys.exit(0)
 
     read_config()
-    while True:
-        admin_password = getpass.getpass('Set admin password: ')
-        admin_password_confirmed = getpass.getpass('Confirm admin password: ')
-        if admin_password == admin_password_confirmed:
-            os.environ['ADMIN_PASSWORD'] = admin_password
-            break
-        print("Passwords didn't match")
+    if os.environ['DB_BACKUP']:
+        # Using database backup, not asking for admin password
+        pass
+    else:
+        while True:
+            admin_password = getpass.getpass('Set admin password: ')
+            admin_password_confirmed = getpass.getpass('Confirm admin password: ')
+            if admin_password == admin_password_confirmed:
+                os.environ['ADMIN_PASSWORD'] = admin_password
+                break
+            print("Passwords didn't match")
     subprocess.call(['sudo', '-E', '/bin/bash', 'setup/setup.sh'])
 
 

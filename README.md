@@ -63,9 +63,6 @@ Raveberry features a convenient way of modifying the behavior of the server, lik
 * **Bluetooth support**
 Use your bluetooth speakers with Raveberry, removing the need of an aux cable.
 
-* **Audio normalization**:
-Raveberry uses `aacgain` to analyze the volume of songs and prevent sharp volume transitions.
-
 * **Screen visualization**:
 With the tool [`cava`](https://github.com/karlstav/cava), the current music is split into its frequencies and visualized on a connected screen. (See screenshot below)
 

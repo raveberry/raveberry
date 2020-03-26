@@ -1,0 +1,17 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+if (( $# != 5 )); then
+    echo "usage: $0 <config_tempate> <spotify_username> <spotify_password> <spotify_client_id> <spotify_client_secret>"
+	exit 1
+fi
+
+export SPOTIFY_USERNAME="$2"
+export SPOTIFY_PASSWORD="$3"
+export SPOTIFY_CLIENT_ID="$4"
+export SPOTIFY_CLIENT_SECRET="$5"
+
+envsubst < $1 > /etc/mopidy/mopidy.conf

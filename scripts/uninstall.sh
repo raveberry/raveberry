@@ -7,9 +7,6 @@ if [ -d /opt/cava ]; then
 fi
 rm -rf /opt/cava
 rm -rf /usr/bin/cava
-echo "aacgain"
-rm -rf /opt/aacgain
-rm -rf /usr/bin/aacgain
 echo "system scripts"
 rm -rf /usr/local/sbin/raveberry
 echo "configs"

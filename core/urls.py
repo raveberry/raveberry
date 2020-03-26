@@ -83,6 +83,9 @@ else:
                 path('check_internet/', base.settings.check_internet, name='check_internet'),
                 path('update_user_count/', base.settings.update_user_count, name='update_user_count'),
 
+                path('check_spotify_credentials/', base.settings.check_spotify_credentials, name='check_spotify_credentials'),
+                path('set_spotify_credentials/', base.settings.set_spotify_credentials, name='set_spotify_credentials'),
+
                 path('set_bluetooth_scanning/', base.settings.set_bluetooth_scanning, name='set_bluetooth_scanning'),
                 path('connect_bluetooth/', base.settings.connect_bluetooth, name='connect_bluetooth'),
                 path('disconnect_bluetooth/', base.settings.disconnect_bluetooth, name='disconnect_bluetooth'),

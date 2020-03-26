@@ -144,10 +144,30 @@
 #additional_presence {
 	color: theme-color('normal-text');
 }
-#github_link {
-	margin: 5px;
-}
 
 #content {
 	padding: 8px;
+}
+
+#source_controls {
+	width: 25%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#source_controls > i.icon_enabled#spotify {
+	color: #1ED760 /*spotify green*/;
+}
+
+#source_controls > i.icon_enabled {
+	color: #1ED760 /*spotify green*/;
+}
+
+#source_controls > i.icon_enabled#youtube {
+	color: red /*youtube red*/ !important;
+}
+
+.unlink {
+	color: theme-color("normal-text");
 }
