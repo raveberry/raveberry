@@ -1,0 +1,23 @@
+language: python
+python:
+    - '3.7'
+    - '3.8'
+
+# When actually building raveberry in the future, add a 'pip install'
+install:
+    - yarn install
+# We do not run tests (yet)
+script: ":"
+
+before_deploy:
+    - mkdir raveberry
+    # move all files except the setup.py and the newly created folder
+    - mv `\ls -A1 | grep -v -E '(setup.py|raveberry)'` raveberry
+deploy:
+  provider: pypi
+  user: __token__
+  password:
+    secure: mzwrs9dT4dcXQjoue8G3J/QtjqvyQRvbsRUOLr1Wdap2/dH17flFZ7saZNuqJeWMZghKDXggLcyKw52W4F2DSkyrohZclwcFSH0Trlyuob6Yc4goFYH/xbIPJFdXLAdVmxmVfcx+r4a4ZfAkX/T0L3+fj+Aqwf69zLc1WnS7oQYs8HDUKR8I4b97t1faHqzos2KvnhXWDX6x72udW5Tf3mxC0ZIyVsU+rOmVwvfgbxvxxbSCcPz1OatuiHJsp0PkUIgTlqDns1HrFuxZxZtlEsvzZAgOtbFlBLwnof0yY+lqNNqXSckX+QbIgsX4/W0N9DP5oq2TK+rgqIWwEzqOTmviF/m6FsAXq0WYV7io5Iw+2hbHqVB04o5C0wBlTe0CmfYhGCqXFi7CFcWgbcNRcItFhGGT3EXYlDj3Ecqteb20cENuBGTeSPnGN0Tt28VGwH54zqwWkKuUxJlGc6yOPG23qPNbGXTrdpMXVwohQiYOPH+Uh4Uq5/rcvZ6y5zvWtYZg+npW7yHA5HuwTpaC7hQNkooG6zu+eoHoKlYQAgb2D23sRDaQDxVV0eo27WZWZ0OcMGYkLn49aFzdJuIKlyczI2m8A0I1NSzbFAOKSX5RQhV0CAOhGQCzWAeN42kxkebbUXEEy80qhOKYfNk89tlfwixWyCydLlE+cbdEu+4=
+  skip_cleanup: true
+  distributions: "sdist bdist_wheel"
+  skip_existing: true
