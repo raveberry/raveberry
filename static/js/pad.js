@@ -1,4 +1,4 @@
-updateState = function (newState) {
+specificState = function (newState) {
 	updateBaseState(newState);
 	if (!('pad_version' in newState)) {
 		// this state is not meant for a pad update

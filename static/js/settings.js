@@ -1,4 +1,4 @@
-updateState = function (newState) {
+specificState = function (newState) {
 	updateBaseState(newState);
 	if (!('voting_system' in newState)) {
 		// this state is not meant for a settings update
@@ -13,6 +13,8 @@ updateState = function (newState) {
 	$('#max_download_size').val(newState.max_download_size);
 	$('#max_playlist_items').val(newState.max_playlist_items);
 	$('#has_internet').prop("checked", newState.has_internet);
+
+	$('#spotify_credentials_valid').prop("checked", newState.spotify_credentials_valid);
 
 	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
 	$.each(newState.bluetooth_devices, function(index, device) {
@@ -98,6 +100,26 @@ $(document).ready(function() {
 	$('#update_user_count').on('click tap', function() {
 		$.get(urls['update_user_count']).done(function() {
 			successToast('');
+		});
+	});
+
+	$('#check_spotify_credentials').on('click tap', function() {
+		$.get(urls['check_spotify_credentials']).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+	$('#set_spotify_credentials').on('click tap', function() {
+		$.post(urls['set_spotify_credentials'], {
+			username: $('#spotify_username').val(),
+			password: $('#spotify_password').val(),
+			client_id: $('#spotify_client_id').val(),
+			client_secret: $('#spotify_client_secret').val(),
+		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
 		});
 	});
 

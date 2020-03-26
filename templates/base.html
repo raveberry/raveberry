@@ -34,8 +34,8 @@
 				'normal_icon': '{% static "graphics/raveberry_normal.png" %}',
 				'normal_light_icon': '{% static "graphics/raveberry_normal_light.png" %}',
 				'party_icon': '{% static "graphics/raveberry_rainbow.gif" %}',
-				'github_light_icon': '{% static "graphics/github_light.png" %}',
-				'github_dark_icon': '{% static "graphics/github_dark.png" %}',
+				'shareberry_light_icon': '{% static "graphics/shareberry_dark.png" %}',
+				'shareberry_dark_icon': '{% static "graphics/shareberry_normal.png" %}',
 			};
 			{% if voting_system %}
 			let VOTING_SYSTEM = true;
@@ -78,7 +78,7 @@
 		</div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
-				<img id="navbar_icon" src="" height="30" alt="" onerror="this.style.visibility='hidden'">
+				<img id="navbar_icon" height="30" alt="" onerror="this.style.visibility='hidden'" src="{% static "graphics/raveberry_normal.png" %}">
 			</a>
 			<div id="hashtag_container">
 				<input id="hashtag_input" class="hidden">
@@ -120,11 +120,15 @@
 					</a>
 				</div>
 				<div class="menu_row">
-					<a id="github_link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry">
-						<img id="github_icon" height="30" src="{% static "graphics/github_dark.png" %}">
+					<a id="github_link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry" class="unlink">
+						<i class="fab fa-github"></i>
 					</a>
+					<div id="source_controls" {%if not spotify_enabled%} style="visibility: hidden"{%endif%}>
+						<i id="spotify" class="fab fa-spotify icon_disabled"></i>
+						<i id="youtube" class="fab fa-youtube icon_disabled"></i>
+					</div>
 					<a href="{{ apk_link }}" download>
-						<i class="fas fa-mobile-alt"></i>
+						<img id="shareberry_icon" height="30" alt="" onerror="this.style.visibility='hidden'" src="{% static "graphics/shareberry_normal.png" %}">
 					</a>
 				</div>
 			<div id="presence">

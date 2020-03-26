@@ -63,12 +63,14 @@ $(document).ready(function() {
 				}
 
 				let icon = $('<i>')
-					.addClass('fas')
-					.addClass('suggestion_type');
-				if (item.type == 'cached') {
-					icon.addClass('fa-database');
-				} else if (item.type == 'online') {
-					icon.addClass('fa-cloud');
+					.addClass('suggestion_type')
+					.addClass(item.type);
+				if (item.type == 'youtube') {
+					icon.addClass('fab')
+					    .addClass('fa-youtube');
+				} else if (item.type == 'spotify') {
+					icon.addClass('fab')
+					    .addClass('fa-spotify');
 				}
 				let suggestion_div = $('<div>')
 					.text(item.label)

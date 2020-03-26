@@ -9,7 +9,6 @@ from django.conf import settings
 from core.models import Setting
 import core.models as models
 import core.musiq.song_utils as song_utils
-import core.musiq.youtube2 as youtube
 
 from threading import Semaphore
 from threading import Lock
@@ -28,7 +27,7 @@ import mopidy.backend
 from mopidyapi import MopidyAPI
 from mopidyapi.exceptions import MopidyError
 
-from core.musiq.music_provider import MusicProvider
+from core.musiq.music_provider import SongProvider
 
 
 class Player:
@@ -39,9 +38,6 @@ class Player:
         self.shuffle = Setting.objects.get_or_create(key='shuffle', defaults={'value': 'False'})[0].value == 'True'
         self.repeat = Setting.objects.get_or_create(key='repeat', defaults={'value': 'False'})[0].value == 'True'
         self.autoplay = Setting.objects.get_or_create(key='autoplay', defaults={'value': 'False'})[0].value == 'True'
-
-        if subprocess.call('pactl info'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
-            subprocess.call('pulseaudio -D'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         self.musiq = musiq
         self.queue = models.QueuedSong.objects
@@ -92,7 +88,7 @@ class Player:
                 current_song = models.CurrentSong.objects.get()
 
                 # continue with the current song (approximately) where we last left
-                song_provider = MusicProvider.createProvider(self.musiq, internal_url=current_song.internal_url)
+                song_provider = SongProvider.create(self.musiq, internal_url=current_song.internal_url)
                 duration = song_provider.get_metadata()['duration']
                 catch_up = round((timezone.now() - current_song.created).total_seconds() * 1000)
                 if catch_up > duration * 1000:
@@ -155,6 +151,9 @@ class Player:
                 playing.set()
 
             with self.mopidy_command(important=True):
+                # after a restart consume may be set to False again, so make sure it is on
+                self.player.tracklist.clear()
+                self.player.tracklist.set_consume(True)
                 self.player.tracklist.add(uris=[current_song.internal_url])
                 self.player.playback.play()
                 # mopidy can only seek when the song is playing
@@ -173,7 +172,7 @@ class Player:
             current_song.delete()
 
             if self.repeat:
-                song_provider = MusicProvider.createProvider(self.musiq, internal_url=current_song.internal_url)
+                song_provider = SongProvider.create(self.musiq, internal_url=current_song.internal_url)
                 self.queue.enqueue(song_provider.get_metadata(), False)
                 self.queue_semaphore.release()
             else:
@@ -229,14 +228,14 @@ class Player:
                 except (models.CurrentSong.DoesNotExist, models.CurrentSong.MultipleObjectsReturned):
                     return
 
-            provider = MusicProvider.createProvider(self.musiq, external_url=url)
+            provider = SongProvider.create(self.musiq, external_url=url)
             try:
                 suggestion = provider.get_suggestion()
             except Exception as e:
                 self.musiq.base.logger.error('error during suggestions for ' + url)
                 self.musiq.base.logger.error(e)
             else:
-                self.musiq._request_music('', suggestion, None, False, archive=False, manually_requested=False)
+                self.musiq._request_music('', suggestion, None, False, provider.type, archive=False, manually_requested=False)
 
 
     # wrapper method for our mopidy client that pings the mopidy server before any command and reconnects if necessary.

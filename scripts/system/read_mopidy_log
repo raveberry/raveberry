@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+# www-data is not allowed to read syslog
+journalctl -o cat -n 100 -u mopidy

@@ -11,11 +11,12 @@ from django.views.decorators.csrf import csrf_exempt
 from core.models import QueuedSong
 from core.models import CurrentSong
 from core.models import ArchivedSong
-from core.musiq.music_provider import MusicProvider
+from core.musiq.music_provider import SongProvider, PlaylistProvider
 from core.musiq.suggestions import Suggestions
 from core.musiq.player import Player
 from core.musiq.song_queue import SongQueue
-from core.musiq.youtube import YoutubeProvider, NoPlaylistException, YoutubePlaylistProvider
+from core.musiq.youtube import YoutubeSongProvider, NoPlaylistException, YoutubePlaylistProvider
+from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
 import core.musiq.song_utils as song_utils
 import core.state_handler as state_handler
 
@@ -42,25 +43,66 @@ class Musiq:
         self.player = Player(self)
         self.player.start()
 
-    def _request_music(self, ip, query, key, playlist, archive=True, manually_requested=True):
-        if playlist:
-            provider = YoutubePlaylistProvider(self, query, key)
-        else:
-            provider = YoutubeProvider(self, query, key)
+    def _request_music(self, ip, query, key, playlist, platform, archive=True, manually_requested=True):
+        providers = []
 
-        if not provider.check_cached():
-            if not provider.check_downloadable():
-                return HttpResponseBadRequest(provider.error)
-            if not provider.download(ip, archive=archive, manually_requested=manually_requested):
-                return HttpResponseBadRequest(provider.error)
+        if playlist:
+            if key is not None:
+                # an archived song was requested. The key determines the SongProvider (Youtube or Spotify)
+                provider = PlaylistProvider.create(self, query, key)
+                if provider is None:
+                    return HttpResponseBadRequest('No provider found for requested playlist')
+                providers.append(provider)
+            else:
+                # try to use spotify if the user did not specifically request youtube
+                if platform is None or platform == 'spotify':
+                    if self.base.settings.spotify_enabled:
+                        providers.append(SpotifyPlaylistProvider(self, query, key))
+                # use Youtube as a fallback
+                providers.append(YoutubePlaylistProvider(self, query, key))
         else:
-            provider.enqueue(ip, archive=archive, manually_requested=manually_requested)
-        return HttpResponse(provider.ok_response)
+            if key is not None:
+                # an archived song was requested. The key determines the SongProvider (Youtube or Spotify)
+                provider = SongProvider.create(self, query, key)
+                if provider is None:
+                    return HttpResponseBadRequest('No provider found for requested song')
+                providers.append(provider)
+            else:
+                # try to use spotify if the user did not specifically request youtube
+                if platform is None or platform == 'spotify':
+                    if self.base.settings.spotify_enabled:
+                        providers.append(SpotifySongProvider(self, query, key))
+                # use Youtube as a fallback
+                providers.append(YoutubeSongProvider(self, query, key))
+
+        fallback = False
+        used_provider = None
+        for i, provider in enumerate(providers):
+            if not provider.check_cached():
+                if not provider.check_downloadable():
+                    # this provider cannot provide this song, use the next provider
+                    # if this was the last provider, show its error
+                    if i == len(providers) - 1:
+                        return HttpResponseBadRequest(provider.error)
+                    fallback = True
+                    continue
+                if not provider.download(ip, archive=archive, manually_requested=manually_requested):
+                    return HttpResponseBadRequest(provider.error)
+            else:
+                provider.enqueue(ip, archive=archive, manually_requested=manually_requested)
+            # the current provider could provide the song, don't try the other ones
+            used_provider = provider
+            break
+        message = used_provider.ok_message
+        if fallback:
+            message = message + ' (used fallback)'
+        return HttpResponse(message)
 
     def request_music(self, request):
         key = request.POST.get('key')
         playlist = request.POST.get('playlist') == 'true'
         query = request.POST.get('query')
+        platform = request.POST.get('platform')
 
         # only get ip on user requests
         if self.base.settings.logging_enabled:
@@ -70,7 +112,7 @@ class Musiq:
         else:
             ip = ''
 
-        return self._request_music(ip, query, key, playlist)
+        return self._request_music(ip, query, key, playlist, platform)
 
     def request_radio(self, request):
         # only get ip on user requests
@@ -85,7 +127,7 @@ class Musiq:
             current_song = CurrentSong.objects.get()
         except CurrentSong.DoesNotExist:
             return HttpResponseBadRequest('Need a song to play the radio')
-        provider = MusicProvider.createProvider(self, external_url=current_song.external_url)
+        provider = SongProvider.create(self, external_url=current_song.external_url)
         return provider.request_radio(ip)
 
     @csrf_exempt

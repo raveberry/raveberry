@@ -6,7 +6,7 @@ from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
 
 from core.models import ArchivedPlaylist, ArchivedSong
 import core.musiq.song_utils as song_utils
-from core.musiq.music_provider import MusicProvider
+from core.musiq.music_provider import SongProvider
 
 
 class Suggestions:
@@ -58,11 +58,12 @@ class Suggestions:
 
             for playlist in remaining_playlists:
                 cached = False
+                archived_playlist = ArchivedPlaylist.objects.get(id=playlist['id'])
                 result_dict = {
                     'key': playlist['id'],
                     'value': playlist['title'],
                     'counter': playlist['counter'],
-                    'type': 'cached' if cached else 'online',
+                    'type': song_utils.determine_playlist_type(archived_playlist),
                 }
                 results.append(result_dict)
         else:
@@ -78,17 +79,18 @@ class Suggestions:
                 [:20]
 
             for song in remaining_songs:
-                provider = MusicProvider.createProvider(self.musiq, external_url=song['url'])
+                provider = SongProvider.create(self.musiq, external_url=song['url'])
                 cached = provider.check_cached()
                 # don't suggest online songs when we don't have internet
-                if not self.musiq.base.settings.has_internet:
-                    if not cached:
-                        continue
+                if not self.musiq.base.settings.has_internet and not cached:
+                    continue
+                if not self.musiq.base.settings.spotify_enabled and provider.type == 'spotify':
+                    continue
                 result_dict = {
                     'key': song['id'],
                     'value': song_utils.displayname(song['artist'], song['title']),
                     'counter': song['counter'],
-                    'type': 'cached' if cached else 'online',
+                    'type': provider.type
                 }
                 results.append(result_dict)
 
