@@ -16,7 +16,7 @@ if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	# to access it, add www-data to the 'render' group
 	adduser www-data render 2>/dev/null
 	if [ ! -z $DEV_USER ]; then
-		echo "Granting $DEV_USER user privileges to $SERVER_ROOT"
+		echo "Granting $DEV_USER rendering privileges"
 		adduser $DEV_USER render 2>/dev/null
 	fi
 fi
@@ -35,11 +35,25 @@ if [ ! -z "$LED_VISUALIZATION" ]; then
 	fi
 fi
 
-echo "*** Configuring MPD ***"
-cp --parents /etc/mpd.conf $BACKUP_DIR/
-envsubst < setup/mpd.conf > /etc/mpd.conf
+echo "*** Configuring Sound Output ***"
+echo "load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1" >> /etc/pulse/default.pa
+cp --parents /etc/mopidy/mopidy.conf $BACKUP_DIR/
+
+if [[ ( ! -z "$LED_VISUALIZATION" || ! -z "$SCREEN_VISUALIZATION" ) ]]; then
+	cat >> /etc/pulse/default.pa <<-EOF
+		load-module module-null-sink sink_name=cava
+		update-sink-proplist cava device.description="virtual sink for cava"
+		set-default-sink 0
+	EOF
+	cp setup/mopidy.conf /etc/mopidy/mopidy.conf
+else
+	cp setup/mopidy_cava.conf /etc/mopidy/mopidy.conf
+fi
+
 amixer -q sset PCM 100%
-systemctl restart mpd
+adduser mopidy www-data
+systemctl restart mopidy
+
 
 echo "*** Configuring Cache Directory ***"
 if [[ ! -z "$CACHE_DIR" ]]; then
@@ -64,6 +78,8 @@ echo "groups"
 adduser www-data spi 2>/dev/null
 adduser www-data gpio 2>/dev/null
 adduser www-data i2c 2>/dev/null
+# pulseaudio
+adduser www-data audio 2>/dev/null
 # bluetoothctl
 adduser www-data bluetooth 2>/dev/null
 echo "/var/www"
@@ -74,7 +90,8 @@ chown -R www-data:www-data .
 echo "/usr/local/sbin/raveberry/"
 echo 'www-data ALL=NOPASSWD:/usr/local/sbin/raveberry/*' | EDITOR='tee -a' visudo
 if [ ! -z $DEV_USER ]; then
-	echo "Granting $DEV_USER user privileges to $SERVER_ROOT"
+	echo "Granting $DEV_USER user privileges"
+	adduser $DEV_USER bluetooth
 	adduser $DEV_USER www-data
 fi
 

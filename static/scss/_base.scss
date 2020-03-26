@@ -10,6 +10,22 @@
 	border-color: theme-color("list-border");
 }
 
+.alarm {
+	animation: fade 2.5s linear 4;
+}
+
+@keyframes fade {
+	  0% {background-color: theme-color("background");}
+	/*
+	 18% {background-color: theme-color("red");}
+	 48% {background-color: theme-color("red");}
+	 */
+	 18% {background-color: red;}
+	 48% {background-color: red;}
+	 80% {background-color: theme-color("background");}
+	100% {background-color: theme-color("background");}
+}
+
 #hashtag_container {
 	width: 60%;
 	text-align: center;

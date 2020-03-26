@@ -2,7 +2,9 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.http import HttpResponseBadRequest
+from django.http import HttpResponseRedirect
 from django.db import transaction
+from django.urls import reverse
 
 from core.settings import Settings
 from core.musiq.musiq import Musiq
@@ -66,6 +68,7 @@ class Base:
             'users': self.user_manager.get_count(),
             'visitors': models.Counter.objects.get_or_create(id=1, defaults={'value': 0})[0].value,
             'lights_enabled': self.lights.loop_active.is_set(),
+            'alarm': self.musiq.player.alarm_playing.is_set(),
         }
 
     def get_state(self, request):
@@ -85,3 +88,9 @@ class Base:
         models.Tag.objects.create(text=hashtag)
 
         return HttpResponse()
+
+    def logged_in(self, request):
+        if request.user.username == 'admin':
+            return HttpResponseRedirect(reverse('settings'))
+        else:
+            return HttpResponseRedirect(reverse('musiq'))

@@ -23,6 +23,7 @@ else:
         path('settings/', base.settings.index, name='settings'),
         path('accounts/', include('django.contrib.auth.urls')),
         path('login/', RedirectView.as_view(pattern_name='login', permanent=False)),
+        path('logged_in/', base.logged_in, name='logged_in'),
         path('logout/', RedirectView.as_view(pattern_name='logout', permanent=False)),
 
         path('ajax/', include([
@@ -30,10 +31,9 @@ else:
             path('submit_hashtag/', base.submit_hashtag, name='submit_hashtag'),
             path('musiq/', include([
                 path('state/', base.musiq.get_state, name='musiq_state'),
-                path('random_suggestion/', base.musiq.song_provider.random_suggestion, name='random_suggestion'),
-                path('request_archived_music/', base.musiq.request_archived_music, name='request_archived_music'),
-                path('request_new_music/', base.musiq.request_new_music, name='request_new_music'),
-                path('suggestions/', base.musiq.song_provider.get_suggestions, name='suggestions'),
+                path('random_suggestion/', base.musiq.suggestions.random_suggestion, name='random_suggestion'),
+                path('request_music/', base.musiq.request_music, name='request_music'),
+                path('suggestions/', base.musiq.suggestions.get_suggestions, name='suggestions'),
 
                 path('restart/', base.musiq.player.restart, name='restart_song'),
                 path('seek_backward/', base.musiq.player.seek_backward, name='seek_backward'),
@@ -84,7 +84,8 @@ else:
                 path('update_user_count/', base.settings.update_user_count, name='update_user_count'),
 
                 path('set_bluetooth_scanning/', base.settings.set_bluetooth_scanning, name='set_bluetooth_scanning'),
-                path('connect_to_bluetooth_device/', base.settings.connect_to_bluetooth_device, name='connect_to_bluetooth_device'),
+                path('connect_bluetooth/', base.settings.connect_bluetooth, name='connect_bluetooth'),
+                path('disconnect_bluetooth/', base.settings.disconnect_bluetooth, name='disconnect_bluetooth'),
 
                 path('available_ssids/', base.settings.available_ssids, name='available_ssids'),
                 path('connect_to_wifi/', base.settings.connect_to_wifi, name='connect_to_wifi'),

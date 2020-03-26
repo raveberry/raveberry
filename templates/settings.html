@@ -15,7 +15,8 @@
 	urls['update_user_count'] = '{% url 'update_user_count' %}';
 
 	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
-	urls['connect_to_bluetooth_device'] = '{% url 'connect_to_bluetooth_device' %}';
+	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
+	urls['disconnect_bluetooth'] = '{% url 'disconnect_bluetooth' %}';
 
 	urls['available_ssids'] = '{% url 'available_ssids' %}';
 	urls['connect_to_wifi'] = '{% url 'connect_to_wifi' %}';
@@ -105,8 +106,9 @@
 		<input type="radio" name="bluetooth_device" id="12:34:56:78:9A:BD"/>
 	</li>
 	-->
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="connect_to_bluetooth_device">Connect to Device</button>
+	<li class="list-group-item list_item">
+		<button class="btn" id="disconnect_bluetooth">Disconnect</button>
+		<button class="btn" id="connect_bluetooth">Connect to Bluetooth Device</button>
 	</li>
 </ul>
 
@@ -120,7 +122,7 @@
 	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Password</span>
-		<input id="wifi_password"/>
+		<input type="password" id="wifi_password"/>
 	</li>
 	<li class="list-group-item list_item centered">
 		<button class="btn" id="connect_to_wifi">Connect to Wifi</button>

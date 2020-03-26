@@ -5,8 +5,9 @@ packagelist=(
 	ffmpeg #audio conversion
 	atomicparsley #thumbnail embedding
 	nginx #webserver
-	mpd #player
-	postgresql libpq-dev #postgresql-contrib #database
+	mopidy pulseaudio #player
+	gstreamer1.0-plugins-bad # m4a playback
+	postgresql libpq-dev #database
 	redis-server #channel layer
 	autossh #remote connection
 	curl #key fetching

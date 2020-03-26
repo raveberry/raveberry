@@ -40,27 +40,7 @@ def get_duration(location):
     return parsed.info.length
 
 def gather_metadata(location):
-    '''gathers the metadata for the song at the given location.
-    'title' and 'duration' is read from tags, the 'url' is built from the location'''
-
-    parsed = mutagen.easymp4.EasyMP4(location)
-    metadata = {}
-    metadata['url'] = 'https://www.youtube.com/watch?v=' + os.path.splitext(os.path.basename(location))[0]
-    if parsed.tags is not None:
-        if 'artist' in parsed.tags:
-            metadata['artist'] = parsed.tags['artist'][0]
-        if 'title' in parsed.tags:
-            metadata['title'] = parsed.tags['title'][0]
-    if 'artist' not in metadata:
-        metadata['artist'] = ''
-    if 'title' not in metadata:
-        metadata['title'] = metadata['url']
-    if parsed.info is not None and parsed.info.length is not None:
-        metadata['duration'] = format_seconds(parsed.info.length)
-    else:
-        metadata['duration'] = '??:??'
-    
-    return metadata
+    pass
 
 def decide_deletion(location):
     return
@@ -74,3 +54,14 @@ def displayname(artist, title):
         return title
     else:
         return artist + ' – ' + title
+
+def format_seconds(seconds):
+    hours, seconds = seconds // 3600, seconds % 3600
+    minutes, seconds = seconds // 60, seconds % 60
+
+    formatted = ''
+    if hours > 0:
+        formatted += '{:02d}:'.format(int(hours))
+    formatted += '{0:02d}:{1:02d}'.format(int(minutes), int(seconds))
+    return formatted
+
