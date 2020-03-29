@@ -2,13 +2,13 @@
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
-It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made.
+It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made. It supports Youtube and Spotify as sources for music.
 
 ![](docs/showcase.gif "Showcase Gif")
 
 ## Installation
 
-Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. I used a Raspberry Pi 3B for development and testing of the software, but Raveberry should work on any Debian based Linux.
+Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. I use a Raspberry Pi 4B for development and testing of the software, but Raveberry should work on any Debian based Linux.
 
 Raveberry is available on PyPi:
 ```
@@ -54,8 +54,11 @@ Specify a domain to make your Raveberry accessible from the world wide web.
 * **Privilege Levels**:
 Grant users additional permissions like playback control.
 
-* **Youtube as a Database**:
+* **Youtube Support **:
 With `youtube-dl` as a media provider, all of Youtube is available to play.
+
+* **Spotify Support **:
+Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account.
 
 * **Graphical Admin Interface**:
 Raveberry features a convenient way of modifying the behavior of the server, like hotspot configuration or download limitation.
