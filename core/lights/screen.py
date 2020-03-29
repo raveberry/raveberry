@@ -10,6 +10,11 @@ class Screen:
         self.adjust()
 
     def adjust(self):
+        # require pi3d to be installed
+        spec = importlib.util.find_spec("pi3d")
+        if spec is None:
+            return
+
         # pi3d needs X to work, so we check if it is running
         # set the DISPLAY environment variable so pi3d uses the correct X Display
         os.environ['DISPLAY'] = ':0'
@@ -40,10 +45,6 @@ class Screen:
             except subprocess.CalledProcessError:
                 # Cannot connect to X
                 return
-        # require pi3d to be installed
-        spec = importlib.util.find_spec("pi3d")
-        if spec is None:
-            return
 
         # this method should additionally check whether hdmi is connected
         # however, I found no way to do that
