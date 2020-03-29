@@ -62,9 +62,9 @@ if [[ ( ! -z "$LED_VISUALIZATION" || ! -z "$SCREEN_VISUALIZATION" ) ]]; then
 	)
 	FILE="/etc/pulse/system.pa"
 	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
-	envsubst < setup/mopidy.conf > /etc/mopidy/mopidy.conf
-else
 	envsubst < setup/mopidy_cava.conf > /etc/mopidy/mopidy.conf
+else
+	envsubst < setup/mopidy.conf > /etc/mopidy/mopidy.conf
 fi
 
 amixer -q sset PCM 100%
