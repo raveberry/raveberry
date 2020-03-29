@@ -61,10 +61,10 @@ Specify a domain to make your Raveberry accessible from the world wide web.
 * **Privilege Levels**:
 Grant users additional permissions like playback control.
 
-* **Youtube Support **:
+* **Youtube Support**:
 With `youtube-dl` as a media provider, all of Youtube is available to play.
 
-* **Spotify Support **:
+* **Spotify Support**:
 Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account.
 
 * **Graphical Admin Interface**:
