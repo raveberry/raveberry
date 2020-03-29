@@ -12,7 +12,11 @@ Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portabl
 
 Raveberry is available on PyPi:
 ```
-sudo apt-get install -y python3-pip ffmpeg atomicparsley mpd redis-server
+wget -q -O - https://apt.mopidy.com/mopidy.gpg | sudo apt-key add -
+sudo wget -q -O /etc/apt/sources.list.d/mopidy.list https://apt.mopidy.com/buster.list
+sudo apt-get update
+sudo apt-get install -y python3-pip ffmpeg atomicparsley mopidy redis-server libspotify-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev gstreamer1.0-plugins-bad
+
 pip3 install raveberry
 raveberry run
 ```
@@ -36,6 +40,9 @@ The installation will take at most 30 minutes, most of which is spent on install
 After the installation has finished `http://raveberry/` is up and ready to play music (go ahead and try now!). You can visit `http://raveberry/login/` and log in as the `admin` user with your provided admin password. If you take a look at `http://raveberry/settings` (which is also linked from the dropdown) you can see various configuration possibilities. For more information about these settings and privileges in general refer to [`docs/privileges.md`](docs/privileges.md).
 
 An introduction to basic functionality can be found in [`docs/functionality.md`](docs/functionality.md). Or just visit `http://raveberry/` and find out for yourself ; )
+
+### A Note about Ubuntu 18.04
+Mopidy 3.0 requires Python 3.7, while Ubuntu 18.04 ships with Python 3.6. It is possible to install it nevertheless, but it is not trivial. Refer to [this guide](https://mopidy.com/blog/2019/12/27/mopidy-3-faq/#what-about-mopidy-3-on-ubuntu-1804-lts) for instructions.
 
 ## Features
 
