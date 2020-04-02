@@ -28,7 +28,9 @@ def is_radio(id_or_url):
 def determine_playlist_type(archived_playlist):
     # use the url of the first song in the playlist to determine the platform where the playlist is from
     first_song_url = archived_playlist.entries.first().url
-    if first_song_url.startswith('https://www.youtube.com/'):
+    if first_song_url.startswith('local_library/'):
+        return 'local'
+    elif first_song_url.startswith('https://www.youtube.com/'):
         return 'youtube'
     elif first_song_url.startswith('https://open.spotify.com/'):
         return 'spotify'
@@ -75,3 +77,27 @@ def format_seconds(seconds):
     formatted += '{0:02d}:{1:02d}'.format(int(minutes), int(seconds))
     return formatted
 
+def get_metadata(path):
+    '''gathers the metadata for the song at the given location.
+    'title' and 'duration' is read from tags, the 'url' is built from the location'''
+
+    parsed = mutagen.File(path, easy=True)
+    if parsed is None:
+        raise ValueError
+    metadata = dict()
+
+    if parsed.tags is not None:
+        if 'artist' in parsed.tags:
+            metadata['artist'] = parsed.tags['artist'][0]
+        if 'title' in parsed.tags:
+            metadata['title'] = parsed.tags['title'][0]
+    if 'artist' not in metadata:
+        metadata['artist'] = ''
+    if 'title' not in metadata:
+        metadata['title'] = os.path.split(path)[1]
+    if parsed.info is not None and parsed.info.length is not None:
+        metadata['duration'] = parsed.info.length
+    else:
+        metadata['duration'] = -1
+
+    return metadata

@@ -28,6 +28,10 @@
 	urls['stored_ssids'] = '{% url 'stored_ssids' %}';
 	urls['set_homewifi_ssid'] = '{% url 'set_homewifi_ssid' %}';
 
+    urls['list_subdirectories'] = '{% url 'list_subdirectories' %}';
+    urls['scan_library'] = '{% url 'scan_library' %}';
+    urls['create_playlists'] = '{% url 'create_playlists' %}';
+
 	urls['analyse'] = '{% url 'analyse' %}';
 
 	urls['disable_events'] = '{% url 'disable_events' %}';
@@ -97,7 +101,7 @@
 
 <ul class="list-group">
 	<li class="list-group-item list_header">
-		<span>Spotify <small>(do not change during the party!)</small></span>
+		Spotify
 	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Credentials valid</span>
@@ -183,6 +187,32 @@
 	<li class="list-group-item list_item centered">
 		<button class="btn" id="set_homewifi_ssid">Set Home Wifi</button>
 	</li>
+</ul>
+
+<ul class="list-group">
+	<li class="list-group-item list_header">
+		Local Library
+	</li>
+	<li class="list-group-item">
+		Note: There can only be one library folder. Make sure that all local music you want to import is inside the given directory. If you change the folder, music from previous libraries will become unavailable. Check your permissions if it doesn't work.
+	</li>
+    <li class="list-group-item list_item">
+        <span class="description">Files Found / Files Processed / Files Added</span>
+        <span id="scan_progress">0 / 0 / 0</span>
+    </li>
+	<li class="list-group-item list_item">
+		<span class="description">Local Library Absolute Path</span>
+		<input id="library_path" value="/"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="scan_library">Scan Folder</button>
+	</li>
+    <li class="list-group-item">
+        You can also automatically create a playlist for each folder after scanning a library. Wait until the library scan completed!
+    </li>
+    <li class="list-group-item list_item centered">
+        <button class="btn" id="create_playlists">Create Playlists</button>
+    </li>
 </ul>
 
 <ul class="list-group" id="settings">

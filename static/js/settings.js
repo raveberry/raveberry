@@ -39,6 +39,8 @@ specificState = function (newState) {
 	$('#homewifi_enabled').text(newState.homewifi_enabled);
 	$('#homewifi_ssid').val(newState.homewifi_ssid);
 
+	$('#scan_progress').text(newState.scan_progress);
+
 	$('#events_enabled').text(newState.events_enabled);
 	$('#hotspot_enabled').text(newState.hotspot_enabled);
 	$('#wifi_protected').text(newState.wifi_protected);
@@ -201,6 +203,53 @@ $(document).ready(function() {
 			homewifi_ssid: $('#homewifi_ssid').val(),
 		}).done(function(response) {
 			successToast('');
+		});
+	});
+
+	let keepSubdirsOpen = true;
+	$('#library_path').autocomplete({
+		source: function(request, response) {
+			$.get(urls['list_subdirectories'], {
+				'path': request.term,
+			}).done(function(subdirectories) {
+				let done_entry = {
+					'value': 'done',
+				};
+				subdirectories.unshift(done_entry);
+				response(subdirectories);
+			});
+		},
+		select: function(event, ui) {
+			if (ui.item.value == 'done') {
+				keepSubdirsOpen = false;
+				return false;
+			}
+		},
+		close: function () {
+			if (keepSubdirsOpen) {
+				$('.ui-autocomplete').show();
+				$('#library_path').autocomplete("search");
+			}
+		}
+	});
+	$('#library_path').on('click tap', function () {
+		keepSubdirsOpen = true;
+		$('#library_path').autocomplete("search");
+	});
+	$('#scan_library').on('click tap', function() {
+		$.post(urls['scan_library'], {
+			library_path: $('#library_path').val(),
+		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+	$('#create_playlists').on('click tap', function() {
+		$.post(urls['create_playlists']).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
 		});
 	});
 

@@ -65,13 +65,17 @@ $(document).ready(function() {
 				let icon = $('<i>')
 					.addClass('suggestion_type')
 					.addClass(item.type);
-				if (item.type == 'youtube') {
+				if (item.type == 'local') {
+					icon.addClass('fas')
+						.addClass('fa-hdd');
+				} else if (item.type == 'youtube') {
 					icon.addClass('fab')
 					    .addClass('fa-youtube');
 				} else if (item.type == 'spotify') {
 					icon.addClass('fab')
 					    .addClass('fa-spotify');
 				}
+
 				let suggestion_div = $('<div>')
 					.text(item.label)
 					.prepend(icon);

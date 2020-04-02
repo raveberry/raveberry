@@ -33,10 +33,10 @@ if [[ -z "$DB_BACKUP" ]]; then
 	fi
 else
 	echo "Restoring Backup"
-	# TODO: test the following three lines during setup
-	#sudo -u postgres pg_dump raveberry > $BACKUP_DIR/dbbackup
-	#sudo -u postgres psql -c "DROP DATABASE raveberry;"
-	#sudo -u postgres psql -c "CREATE DATABASE raveberry;"
+	systemctl stop daphne
+	sudo -u postgres pg_dump raveberry > $BACKUP_DIR/dbbackup
+	sudo -u postgres psql -c "DROP DATABASE raveberry;"
+	sudo -u postgres psql -c "CREATE DATABASE raveberry;"
 	sudo -u postgres psql raveberry < $DB_BACKUP
 fi
 

@@ -44,6 +44,15 @@ An introduction to basic functionality can be found in [`docs/functionality.md`]
 ### A Note about Ubuntu 18.04
 Mopidy 3.0 requires Python 3.7, while Ubuntu 18.04 ships with Python 3.6. It is possible to install it nevertheless, but it is not trivial. Refer to [this guide](https://mopidy.com/blog/2019/12/27/mopidy-3-faq/#what-about-mopidy-3-on-ubuntu-1804-lts) for instructions.
 
+## Updating
+
+Updating an existing installation is easy. Just update the PyPi package and rerun the system installation.
+```
+pip3 install -U raveberry
+raveberry run
+```
+Your database will be preserved, unless you specify a database backup in your config file.
+
 ## Features
 
 * **Live Updates**:

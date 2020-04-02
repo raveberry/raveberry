@@ -88,7 +88,7 @@ class Player:
                 current_song = models.CurrentSong.objects.get()
 
                 # continue with the current song (approximately) where we last left
-                song_provider = SongProvider.create(self.musiq, internal_url=current_song.internal_url)
+                song_provider = SongProvider.create(self.musiq, external_url=current_song.external_url)
                 duration = song_provider.get_metadata()['duration']
                 catch_up = round((timezone.now() - current_song.created).total_seconds() * 1000)
                 if catch_up > duration * 1000:
@@ -172,7 +172,7 @@ class Player:
             current_song.delete()
 
             if self.repeat:
-                song_provider = SongProvider.create(self.musiq, internal_url=current_song.internal_url)
+                song_provider = SongProvider.create(self.musiq, external_url=current_song.external_url)
                 self.queue.enqueue(song_provider.get_metadata(), False)
                 self.queue_semaphore.release()
             else:

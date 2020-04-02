@@ -81,9 +81,13 @@ class Suggestions:
             for song in remaining_songs:
                 provider = SongProvider.create(self.musiq, external_url=song['url'])
                 cached = provider.check_cached()
+                # don't suggest local songs if they are not cached (=not at expected location)
+                if not cached and provider.type == 'local':
+                    continue
                 # don't suggest online songs when we don't have internet
                 if not self.musiq.base.settings.has_internet and not cached:
                     continue
+                # don't suggest spotify songs if we are not logged in
                 if not self.musiq.base.settings.spotify_enabled and provider.type == 'spotify':
                     continue
                 result_dict = {

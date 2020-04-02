@@ -42,7 +42,7 @@ class MusicProvider:
 class SongProvider(MusicProvider):
 
     @staticmethod
-    def create(musiq, query=None, key=None, internal_url=None, external_url=None):
+    def create(musiq, query=None, key=None, external_url=None):
         if key is not None:
             if query is None:
                 musiq.base.logger.error('archived song requested but no query given')
@@ -53,21 +53,19 @@ class SongProvider(MusicProvider):
                 musiq.base.logger.error('archived song requested for nonexistent key')
                 return None
             external_url = archived_song.url
-        if (internal_url is not None and internal_url.startswith('file://')) \
-                or (external_url is not None and external_url.startswith('https://www.youtube.com/')):
+        if external_url.startswith('local_library/'):
+            from core.musiq.localdrive import LocalSongProvider
+            provider_class = LocalSongProvider
+        elif external_url.startswith('https://www.youtube.com/'):
             from core.musiq.youtube import YoutubeSongProvider
             provider_class = YoutubeSongProvider
-        elif (internal_url is not None and internal_url.startswith('spotify:')) \
-                or (external_url is not None and external_url.startswith('https://open.spotify.com/')):
+        elif external_url.startswith('https://open.spotify.com/'):
             from core.musiq.spotify import SpotifySongProvider
             provider_class = SpotifySongProvider
         else:
-            raise NotImplemented(f'No provider for given song: {internal_url}, {external_url}')
+            raise NotImplemented(f'No provider for given song: {external_url}')
         provider = provider_class(musiq, query, key)
-        if internal_url is not None:
-            provider.id = provider_class.get_id_from_internal_url(internal_url)
-        elif external_url is not None:
-            provider.id = provider_class.get_id_from_external_url(external_url)
+        provider.id = provider_class.get_id_from_external_url(external_url)
         return provider
 
     def __init__(self, musiq, query, key):
@@ -146,14 +144,17 @@ class PlaylistProvider(MusicProvider):
             return None
 
         type = song_utils.determine_playlist_type(archived_playlist)
-        if type == 'youtube':
+        if type == 'local':
+            from core.musiq.localdrive import LocalPlaylistProvider
+            provider_class = LocalPlaylistProvider
+        elif type == 'youtube':
             from core.musiq.youtube import YoutubePlaylistProvider
             provider_class = YoutubePlaylistProvider
         elif type == 'spotify':
             from core.musiq.spotify import SpotifyPlaylistProvider
             provider_class = SpotifyPlaylistProvider
         else:
-            raise NotImplemented(f'No provider for given playlist: {query}, {key}')
+            raise NotImplementedError(f'No provider for given playlist: {query}, {key}')
         provider = provider_class(musiq, query, key)
         return provider
 

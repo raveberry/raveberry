@@ -10,7 +10,7 @@ required_packages = [package for package in required_packages if not package.sta
 
 setuptools.setup(
     name='raveberry',
-    version='0.3.4',
+    version='0.4.0',
     author='Jonathan Hacker',
     author_email='raveberry@jhacker.de',
     description='A multi-user music server with a focus on participation',

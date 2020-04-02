@@ -8,8 +8,10 @@ from django.utils import dateparse
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
+from mutagen import MutagenError
 
-from core.models import Setting
+from main import settings
+from core.models import Setting, ArchivedSong, ArchivedPlaylist, PlaylistEntry
 from core.models import PlayLog
 from core.models import RequestLog
 import core.state_handler as state_handler
@@ -50,6 +52,7 @@ class Settings:
         self.bluetoothctl = None
         self.bluetooth_devices = []
         self.homewifi = Setting.objects.get_or_create(key='homewifi', defaults={'value': ''})[0].value
+        self.scan_progress = '0 / 0 / 0'
 
     def state_dict(self):
         state_dict = self.base.state_dict()
@@ -72,6 +75,8 @@ class Settings:
                 state_dict['homewifi_ssid'] = f.read()
         except FileNotFoundError:
             state_dict['homewifi_ssid'] = ''
+
+        state_dict['scan_progress'] = self.scan_progress
 
         try:
             state_dict['homewifi_enabled'] = subprocess.call(['/usr/local/sbin/raveberry/homewifi_enabled']) != 0
@@ -281,7 +286,6 @@ class Settings:
             self.bluetoothctl.stdin.flush()
             while True:
                 line = self._get_bluetoothctl_line()
-                print(line)
                 if not line:
                     break
                 # match old devices
@@ -426,6 +430,165 @@ class Settings:
             f.write(homewifi_ssid)
 
     @option
+    def list_subdirectories(self, request):
+        path = request.GET.get('path')
+        basedir, subdirpart = os.path.split(path)
+        if path == '':
+            suggestions = ['/']
+        elif os.path.isdir(basedir):
+            suggestions = [os.path.join(basedir, subdir+'/') for subdir in next(os.walk(basedir))[1] if subdir.lower().startswith(subdirpart.lower())]
+            suggestions.sort()
+        else:
+            suggestions = ['not a valid directory']
+        if not suggestions:
+            suggestions = ['not a valid directory']
+        return JsonResponse(suggestions, safe=False)
+    @option
+    def scan_library(self, request):
+        library_path = request.POST.get('library_path')
+
+        if not os.path.isdir(library_path):
+            return HttpResponseBadRequest('not a directory')
+        library_path = os.path.abspath(library_path)
+
+        threading.Thread(target=self._scan_library, args=(library_path,), daemon=True).start()
+
+        return HttpResponse(f'started scanning in {library_path}. This could take a while')
+    def _scan_library(self, library_path):
+        self.scan_progress = '0 / 0 / 0'
+        self.update_state()
+
+        scan_start = time.time()
+        last_update = scan_start
+        update_frequency = 0.5
+        filecount = 0
+        for (dirpath, _, filenames) in os.walk(library_path):
+            now = time.time()
+            if now - last_update > update_frequency:
+                last_update = now
+                self.scan_progress = f'{filecount} / 0 / 0'
+                self.update_state()
+            if os.path.abspath(dirpath) == os.path.abspath(settings.SONGS_CACHE_DIR):
+                # do not add files handled by raveberry as local files
+                continue
+            filecount += len(filenames)
+
+        library_link = os.path.join(settings.SONGS_CACHE_DIR, 'local_library')
+        try:
+            os.remove(library_link)
+        except FileNotFoundError:
+            pass
+        os.symlink(library_path, library_link)
+
+        self.base.logger.info(f'started scanning in {library_path}')
+
+        self.scan_progress = f'{filecount} / 0 / 0'
+        self.update_state()
+
+        files_scanned = 0
+        files_added = 0
+        for (dirpath, _, filenames) in os.walk(library_path):
+            if os.path.abspath(dirpath) == os.path.abspath(settings.SONGS_CACHE_DIR):
+                # do not add files handled by raveberry as local files
+                continue
+            now = time.time()
+            if now - last_update > update_frequency:
+                last_update = now
+                self.scan_progress = f'{filecount} / {files_scanned} / {files_added}'
+                self.update_state()
+            for filename in filenames:
+                files_scanned += 1
+                path = os.path.join(dirpath, filename)
+                try:
+                    metadata = song_utils.get_metadata(path)
+                except (ValueError, MutagenError):
+                    # the given file could not be parsed and will not be added to the database
+                    pass
+                else:
+                    library_relative_path = path[len(library_path)+1:]
+                    external_url = os.path.join('local_library', library_relative_path)
+                    if not ArchivedSong.objects.filter(url=external_url).exists():
+                        files_added += 1
+                        ArchivedSong.objects.create(url=external_url,
+                                                    artist=metadata['artist'],
+                                                    title=metadata['title'],
+                                                    counter=0)
+
+        assert files_scanned == filecount
+        self.scan_progress = f'{filecount} / {files_scanned} / {files_added}'
+        self.update_state()
+
+        self.base.logger.info(f'done scanning in {library_path}')
+    @option
+    def create_playlists(self, request):
+        library_link = os.path.join(settings.SONGS_CACHE_DIR, 'local_library')
+        if not os.path.islink(library_link):
+            return HttpResponseBadRequest('No library set')
+
+        threading.Thread(target=self._create_playlists, daemon=True).start()
+
+        return HttpResponse(f'started creating playlsts. This could take a while')
+    def _create_playlists(self):
+        local_files = ArchivedSong.objects.filter(url__startswith='local_library').count()
+
+        library_link = os.path.join(settings.SONGS_CACHE_DIR, 'local_library')
+        library_path = os.path.abspath(library_link)
+
+        self.base.logger.info(f'started creating playlists in {library_path}')
+
+        self.scan_progress = f'{local_files} / 0 / 0'
+        self.update_state()
+
+        scan_start = time.time()
+        last_update = scan_start
+        update_frequency = 0.5
+        files_processed = 0
+        files_added = 0
+        for (dirpath, _, filenames) in os.walk(library_path):
+            now = time.time()
+            if now - last_update > update_frequency:
+                last_update = now
+                self.scan_progress = f'{local_files} / {files_processed} / {files_added}'
+                self.update_state()
+
+            song_urls = []
+            # unfortunately there is no way to access track numbers accross different file types
+            # so we have to add songs to playlists alphabetically
+            for filename in sorted(filenames):
+                path = os.path.join(dirpath, filename)
+                library_relative_path = path[len(library_path) + 1:]
+                external_url = os.path.join('local_library', library_relative_path)
+                if ArchivedSong.objects.filter(url=external_url).exists():
+                    files_processed += 1
+                    song_urls.append(external_url)
+
+            if not song_urls:
+                continue
+
+            playlist_id = os.path.join('local_library', dirpath[len(library_path) + 1:])
+            playlist_title = os.path.split(dirpath)[1]
+            playlist, created = ArchivedPlaylist.objects.get_or_create(list_id=playlist_id,
+                                                                       title=playlist_title,
+                                                                       counter=0)
+            if not created:
+                # this playlist already exists, skip
+                continue
+
+            song_index = 0
+            for external_url in song_urls:
+                PlaylistEntry.objects.create(
+                    playlist=playlist,
+                    index=song_index,
+                    url=external_url,
+                )
+                files_added += 1
+                song_index += 1
+        self.scan_progress = f'{local_files} / {files_processed} / {files_added}'
+        self.update_state()
+
+        self.base.logger.info(f'finished creating playlists in {library_path}')
+
+    @option
     def analyse(self, request):
         startdate = request.POST.get('startdate')
         starttime = request.POST.get('starttime')
@@ -453,9 +616,9 @@ class Settings:
         played_count = played.values('song__url', 'song__artist', 'song__title').values('song__url', 'song__artist', 'song__title', count=models.Count('song__url')).order_by('-count')
         played_votes = PlayLog.objects.all().filter(created__gte=start).filter(created__lt=end).order_by('-votes')
         devices = requested.values('address').values('address', count=models.Count('address'))
-        
+
         response = {}
-        response['songs_played'] = len(played);
+        response['songs_played'] = len(played)
         response['most_played_song'] = song_utils.displayname(
                 played_count[0]['song__artist'],
                 played_count[0]['song__title']) + ' (' + str(played_count[0]['count']) + ')'
@@ -485,7 +648,7 @@ class Settings:
         current_index = 0
         response['request_activity'] = ''
         while current_time < end:
-            response['request_activity'] += current_time.strftime('%H:%M') 
+            response['request_activity'] += current_time.strftime('%H:%M')
             response['request_activity'] += ':\t' + str(request_bins[current_index])
             response['request_activity'] += '\n'
             current_time += timedelta(seconds=binsize)

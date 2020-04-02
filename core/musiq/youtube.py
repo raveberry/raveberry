@@ -157,28 +157,12 @@ class YoutubeSongProvider(SongProvider):
         return True
 
     def get_metadata(self):
-        '''gathers the metadata for the song at the given location.
-        'title' and 'duration' is read from tags, the 'url' is built from the location'''
-
-        parsed = mutagen.easymp4.EasyMP4(self.get_path())
-        metadata = dict()
+        metadata = song_utils.get_metadata(self.get_path())
 
         metadata['internal_url'] = self.get_internal_url()
         metadata['external_url'] = 'https://www.youtube.com/watch?v=' + self.id
-
-        if parsed.tags is not None:
-            if 'artist' in parsed.tags:
-                metadata['artist'] = parsed.tags['artist'][0]
-            if 'title' in parsed.tags:
-                metadata['title'] = parsed.tags['title'][0]
-        if 'artist' not in metadata:
-            metadata['artist'] = ''
-        if 'title' not in metadata:
+        if not metadata['title']:
             metadata['title'] = metadata['external_url']
-        if parsed.info is not None and parsed.info.length is not None:
-            metadata['duration'] = parsed.info.length
-        else:
-            metadata['duration'] = -1
 
         return metadata
 

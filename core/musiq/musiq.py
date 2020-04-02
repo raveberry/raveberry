@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from core.models import QueuedSong
 from core.models import CurrentSong
 from core.models import ArchivedSong
+from core.musiq.localdrive import LocalSongProvider
 from core.musiq.music_provider import SongProvider, PlaylistProvider
 from core.musiq.suggestions import Suggestions
 from core.musiq.player import Player
@@ -68,12 +69,16 @@ class Musiq:
                     return HttpResponseBadRequest('No provider found for requested song')
                 providers.append(provider)
             else:
-                # try to use spotify if the user did not specifically request youtube
-                if platform is None or platform == 'spotify':
-                    if self.base.settings.spotify_enabled:
-                        providers.append(SpotifySongProvider(self, query, key))
-                # use Youtube as a fallback
-                providers.append(YoutubeSongProvider(self, query, key))
+                if platform == 'local':
+                    # if a local provider was requested, use only this one as it can only come from the database -> it will probably exist
+                    providers.append(LocalSongProvider(self, query, key))
+                else:
+                    # try to use spotify if the user did not specifically request youtube
+                    if platform is None or platform == 'spotify':
+                        if self.base.settings.spotify_enabled:
+                            providers.append(SpotifySongProvider(self, query, key))
+                    # use Youtube as a fallback
+                    providers.append(YoutubeSongProvider(self, query, key))
 
         fallback = False
         used_provider = None

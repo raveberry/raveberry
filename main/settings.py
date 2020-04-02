@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -222,3 +223,4 @@ if SONGS_CACHE_DIR == '':
     with open(os.path.join(BASE_DIR, 'config/cache_dir'), 'w') as f:
         f.write(SONGS_CACHE_DIR)
     print('no song caching directory specified, using ~/Music/raveberry/')
+pathlib.Path(SONGS_CACHE_DIR).mkdir(parents=True, exist_ok=True)

@@ -97,6 +97,10 @@ else:
                 path('stored_ssids/', base.settings.stored_ssids, name='stored_ssids'),
                 path('set_homewifi_ssid/', base.settings.set_homewifi_ssid, name='set_homewifi_ssid'),
 
+                path('list_subdirectories/', base.settings.list_subdirectories, name='list_subdirectories'),
+                path('scan_library/', base.settings.scan_library, name='scan_library'),
+                path('create_playlists/', base.settings.create_playlists, name='create_playlists'),
+
                 path('analyse/', base.settings.analyse, name='analyse'),
 
                 path('disable_events/', base.settings.disable_events, name='disable_events'),
