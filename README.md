@@ -70,6 +70,9 @@ Specify a domain to make your Raveberry accessible from the world wide web.
 * **Privilege Levels**:
 Grant users additional permissions like playback control.
 
+* **Local Files Support**:
+Play all the files you already have in your local filesystem. Various filetypes supported.
+
 * **Youtube Support**:
 With `youtube-dl` as a media provider, all of Youtube is available to play.
 
