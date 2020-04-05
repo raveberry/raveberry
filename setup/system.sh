@@ -84,7 +84,7 @@ if [[ ! -z "$CACHE_MEDIUM" ]]; then
 	eval $(blkid --match-token LABEL="$CACHE_MEDIUM" -o export | grep UUID)
 	cp --parents /etc/fstab $BACKUP_DIR/
 
-	LINE="UUID=$UUID /mnt/$CACHE_MEDIUM vfat auto,nofail,noatime,rw,dmask=002,fmask=0113,gid=$(id -g www-data),uid=$(id -u www-data)"
+	LINE="UUID=$UUID /mnt/$CACHE_MEDIUM ntfs auto,nofail,noatime,rw,dmask=002,fmask=0113,gid=$(id -g www-data),uid=$(id -u www-data)"
 	FILE="/etc/fstab"
 	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	mount -a
