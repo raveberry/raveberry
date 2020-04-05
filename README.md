@@ -120,6 +120,12 @@ To remove files created during the setup run
 sudo scripts/uninstall.sh
 ```
 
+## FAQ
+
+### There is an error during installation while `building wheel for cryptography`.
+
+You are probably missing some build dependencies on your system. This has been reported to happen on the Raspberry Pi Zero. Install them using `sudo apt-get install build-essential libssl-dev libffi-dev python-dev`.
+
 ## More Information
 
 Feel free to visit [`docs/`](docs/) for more information about usage, resources etc.
