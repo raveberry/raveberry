@@ -13,7 +13,6 @@ import core.musiq.song_utils as song_utils
 from threading import Semaphore
 from threading import Lock
 from threading import Event
-from threading import Thread
 from datetime import datetime
 from functools import wraps
 from contextlib import contextmanager
@@ -28,6 +27,7 @@ from mopidyapi import MopidyAPI
 from mopidyapi.exceptions import MopidyError
 
 from core.musiq.music_provider import SongProvider
+from core.util import background_thread
 
 
 class Player:
@@ -43,6 +43,7 @@ class Player:
         self.queue = models.QueuedSong.objects
         Player.queue_semaphore = Semaphore(self.queue.count())
         self.alarm_playing = Event()
+        self.running = True
 
         self.player = MopidyAPI()
         self.player_lock = Lock()
@@ -57,7 +58,7 @@ class Player:
             self.volume = self.player.mixer.get_volume() / 100
 
     def start(self):
-        Thread(target=self._loop, daemon=True).start()
+        self._loop()
 
     def progress(self):
         # the state is either pause or stop
@@ -79,6 +80,7 @@ class Player:
                 paused = self.player.playback.get_state() != mopidy.core.PlaybackState.PLAYING
         return paused
 
+    @background_thread
     def _loop(self):
         while True:
 
@@ -95,6 +97,8 @@ class Player:
                     catch_up = -1
             else:
                 self.queue_semaphore.acquire()
+                if not self.running:
+                    break
 
                 # select the next song depending on settings
                 if self.musiq.base.settings.voting_system:
@@ -428,6 +432,23 @@ class Player:
         if removed is not None:
             self.queue_semaphore.acquire(blocking=False)
             if not removed.manually_requested:
-                self._handle_autoplay(removed.url)
+                self._handle_autoplay(removed.external_url)
             else:
                 self._handle_autoplay()
+
+    @control
+    def start_loop(self, request):
+        if not self.musiq.base.user_manager.is_admin(request.user):
+            return HttpResponseForbidden()
+        if self.running:
+            return HttpResponse()
+        # start the main loop, only used for tests
+        self.running = True
+        self.start()
+    @control
+    def stop_loop(self, request):
+        if not self.musiq.base.user_manager.is_admin(request.user):
+            return HttpResponseForbidden()
+        # stop the main loop, only used for tests
+        self.running = False
+        self.queue_semaphore.release()

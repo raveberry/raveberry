@@ -9,6 +9,7 @@ import threading
 import time
 
 import core.musiq.song_utils as song_utils
+from core.util import background_thread
 
 
 class MusicProvider:
@@ -208,6 +209,7 @@ class PlaylistProvider(MusicProvider):
         self.enqueue(ip)
         return True
 
+    @background_thread
     def _queue_songs(self, ip, archived_playlist):
         for index, entry in enumerate(archived_playlist.entries.all()):
             if index == self.musiq.base.settings.max_playlist_items:
@@ -255,5 +257,4 @@ class PlaylistProvider(MusicProvider):
         if self.musiq.base.settings.logging_enabled:
             RequestLog.objects.create(playlist=archived_playlist, address=ip)
 
-        thread = threading.Thread(target=self._queue_songs, args=(ip, archived_playlist), daemon=True)
-        thread.start()
+        self._queue_songs(ip, archived_playlist)

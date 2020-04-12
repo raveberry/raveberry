@@ -1,15 +1,18 @@
 language: python
 python: "3.7"
 
-# When actually building raveberry in the future, add a 'pip install'
+services:
+    - docker
+
 install:
-    - yarn install
-# We do not run tests (yet)
-script: ":"
+    - docker build -f tests/Dockerfile -t raveberry_test .
+script:
+    - docker run raveberry_test "python3 manage.py test tests"
 
 before_deploy:
+    - yarn install
     - mkdir raveberry
-    # move all files except the setup.py and the newly created folder
+    # move all files except those needed for packaging
     - mv `\ls -A1 | grep -v -E '(setup.py|MANIFEST.in|raveberry)'` raveberry
 deploy:
   provider: pypi
