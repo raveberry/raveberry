@@ -8,7 +8,7 @@ It provides an intuitive interface for requesting songs and changing their order
 
 ## Installation
 
-Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. I use a Raspberry Pi 4B for development and testing of the software, but Raveberry should work on any Debian based Linux.
+Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. I use a Raspberry Pi 4 for development and testing of the software, but Raveberry should work on any Debian based Linux. See also tested hardware [below](#tested_hardware).
 
 Raveberry is available on PyPi:
 ```
@@ -108,6 +108,17 @@ The quality of the internal Raspberry Pi sound card varies from model to model. 
 
 * **USB Stick**:
 If you don't want to use the Raspberry Pi's internal filesystem, you can insert an external medium like a USB stick. Its label can be specified in the config file and is then used to cache the songs.
+
+## <a name="tested_hardware"></a> Tested Hardware
+
+Raveberry is known to work on the following Hardware:
+* Raspberry Pi 4
+* Raspberry Pi 3B+
+* Raspberry Pi Zero W
+
+If you have something to add to the list, please let me know!
+
+Although it is possible to install and run Raveberry on the original Raspberry Pi (after a very long installation), the hardware is just to weak for audio decoding and can not provide a pleasant experience at all.
 
 ## Uninstall
 
