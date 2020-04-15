@@ -19,7 +19,7 @@ class LocaldriveTests(MusicTest):
         self._setup_test_library()
 
     def test_suggested_song(self):
-        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'sk8board', 'playlist': 'false'}).content)[0]
+        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'sk8board', 'playlist': 'false'}).content)[-1]
         self.client.post(reverse('request_music'), {'key': suggestion['key'], 'query': '', 'playlist': 'false', 'platform': 'local'})
         state = self._poll_musiq_state(lambda state: state['current_song'])
         current_song = state['current_song']
@@ -36,7 +36,7 @@ class LocaldriveTests(MusicTest):
         self.assertEqual(state['song_queue'][2]['external_url'], 'local_library/Hard Rock/LongLiveDeath.mp3')
 
     def test_autoplay(self):
-        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'checks', 'playlist': 'false'}).content)[0]
+        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'checks', 'playlist': 'false'}).content)[-1]
         self.client.post(reverse('request_music'), {'key': suggestion['key'], 'query': '', 'playlist': 'false', 'platform': 'local'})
         self._poll_current_song()
         self.client.post(reverse('set_autoplay'), {'value': 'true'})
@@ -49,7 +49,7 @@ class LocaldriveTests(MusicTest):
         self._poll_musiq_state(lambda state: len(state['song_queue']) == 1 and state['song_queue'][0]['confirmed'] and state['song_queue'][0]['id'] != old_id)
 
     def test_radio(self):
-        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'checks', 'playlist': 'false'}).content)[0]
+        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'checks', 'playlist': 'false'}).content)[-1]
         self.client.post(reverse('request_music'), {'key': suggestion['key'], 'query': '', 'playlist': 'false', 'platform': 'local'})
         self._poll_current_song()
         self.client.post(reverse('request_radio'))

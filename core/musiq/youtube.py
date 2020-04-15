@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -63,6 +65,40 @@ def get_initial_data(html):
             initial_data = line[len(prefix):-1]
             initial_data = json.loads(initial_data)
             return initial_data
+
+# a context that opens a session and loads the cookies file
+@contextmanager
+def youtube_session():
+    session = requests.session()
+    try:
+        with open(os.path.join(settings.BASE_DIR, 'config/youtube_cookies.pickle'), 'rb') as f:
+            session.cookies.update(pickle.load(f))
+    except FileNotFoundError:
+        pass
+
+    headers = {
+        'User-Agent': youtube_dl.utils.random_user_agent(),
+    }
+    session.headers.update(headers)
+    yield session
+
+    with open(os.path.join(settings.BASE_DIR, 'config/youtube_cookies.pickle'), 'wb') as f:
+        pickle.dump(session.cookies, f)
+
+def get_search_suggestions(query):
+    with youtube_session() as session:
+        params = {
+            'client': 'youtube',
+            'q': query,
+            'xhr': 't', # this makes the response be a json file
+        }
+        r = session.get('https://clients1.google.com/complete/search', params=params)
+    suggestions = json.loads(r.text)
+    # first entry is the query, the second one contains the suggestions
+    suggestions = suggestions[1]
+    # suggestions are given as tuples; extract the string and skip the query if it occurs identically
+    suggestions = [entry[0] for entry in suggestions if entry[0] != query]
+    return suggestions
 
 class NoPlaylistException(Exception):
     pass
@@ -181,20 +217,8 @@ class YoutubeSongProvider(SongProvider):
         return 'https://www.youtube.com/watch?v=' + self.id
 
     def get_suggestion(self):
-        session = requests.session()
-        try:
-            with open(os.path.join(settings.BASE_DIR, 'config/youtube_cookies.pickle'), 'rb') as f:
-                session.cookies.update(pickle.load(f))
-        except FileNotFoundError:
-            pass
-
-        headers = {
-            'User-Agent': youtube_dl.utils.random_user_agent(),
-        }
-        r = session.get(self.get_external_url(), headers=headers)
-
-        with open(os.path.join(settings.BASE_DIR, 'config/youtube_cookies.pickle'), 'wb') as f:
-            pickle.dump(session.cookies, f)
+        with youtube_session() as session:
+            r = session.get(self.get_external_url())
 
         initial_data = get_initial_data(r.text)
         url = initial_data['contents']['twoColumnWatchNextResults']['secondaryResults'][
@@ -233,25 +257,13 @@ class YoutubePlaylistProvider(PlaylistProvider):
         return self.id.startswith('RD')
 
     def search_id(self):
-        session = requests.session()
-        try:
-            with open(os.path.join(settings.BASE_DIR, 'config/youtube_cookies.pickle'), 'rb') as f:
-                session.cookies.update(pickle.load(f))
-        except FileNotFoundError:
-            pass
-
-        headers = {
-            'User-Agent': youtube_dl.utils.random_user_agent(),
-        }
-        params = {
-            'search_query': self.query,
-            # this is the value that youtube uses to filter for playlists only
-            'sp': 'EgQQA1AD'
-        }
-        r = session.get('https://www.youtube.com/results', headers=headers, params=params)
-
-        with open(os.path.join(settings.BASE_DIR, 'config/youtube_cookies.pickle'), 'wb') as f:
-            pickle.dump(session.cookies, f)
+        with youtube_session() as session:
+            params = {
+                'search_query': self.query,
+                # this is the value that youtube uses to filter for playlists only
+                'sp': 'EgQQA1AD'
+            }
+            r = session.get('https://www.youtube.com/results', params=params)
 
         initial_data = get_initial_data(r.text)
         section_renderers = \

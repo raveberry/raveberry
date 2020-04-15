@@ -47,7 +47,7 @@ class Settings:
         self.spotify_client_id = Setting.objects.get_or_create(key='spotify_client_id', defaults={'value': ''})[0].value
         self.spotify_client_secret = Setting.objects.get_or_create(key='spotify_client_secret', defaults={'value': ''})[0].value
 
-        self.spotify_enabled = (self.spotify_client_id != '' and self.spotify_client_secret != '')
+        self.spotify_enabled = False
         self._check_spotify()
         self._check_internet()
         self.bluetoothctl = None
@@ -105,6 +105,9 @@ class Settings:
         return render(request, 'settings.html', context)
 
     def _check_spotify(self, credentials_changed=False):
+        if not self.spotify_client_id or not self.spotify_client_secret:
+            self.spotify_enabled = False
+            return HttpResponseBadRequest('Not all credentials provided')
         if subprocess.run(['systemctl', 'is-active', 'mopidy'],  stdout=subprocess.DEVNULL).returncode:
             return self._check_spotify_user(credentials_changed=credentials_changed)
         else:

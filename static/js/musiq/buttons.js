@@ -34,13 +34,13 @@ function showPauseButton() {
 		$('#play_button_container').addClass('morphed');
 	}, 50);
 }
-function request_archived_music(key, query) {
+function request_archived_music(key, query, platform=Cookies.get('platform')) {
 	$.post(urls['request_music'],
 		{
 			key: key,
 			query: query,
 			playlist: playlistEnabled(),
-			platform: Cookies.get('platform'),
+			platform: platform,
 		}).done(function(response) {
 			successToast(response, '"' + query + '"');
 		}).fail(function(response) {
@@ -51,12 +51,12 @@ function request_archived_music(key, query) {
 	disablePlaylistMode();
 }
 
-function request_new_music(query) {
+function request_new_music(query, platform=Cookies.get('platform')) {
 	$.post(urls['request_music'],
 		{
 			query: $('#music_input').val(),
 			playlist: playlistEnabled(),
-			platform: Cookies.get('platform'),
+			platform: platform,
 		}).done(function(response) {
 			successToast(response, '"' + query + '"');
 		}).fail(function(response) {

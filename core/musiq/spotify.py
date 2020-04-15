@@ -1,5 +1,7 @@
+import mopidy_spotify
 from django.http import HttpResponse
 
+from core.musiq import song_utils
 from core.musiq.music_provider import SongProvider, PlaylistProvider
 from core.models import ArchivedSong, Setting
 from mopidy_spotify.web import OAuthClient
@@ -20,6 +22,44 @@ def get_web_client():
             client_id=client_id,
             client_secret=client_secret)
     return _web_client
+
+def get_search_suggestions(query, playlist):
+    web_client = get_web_client()
+    result = web_client.get(
+        "search",
+        params={
+            'q': query,
+            'limit': '10',
+            'market': 'from_token',
+            'type': 'playlist' if playlist else 'track',
+        },
+    )
+
+    if playlist:
+        items = result['playlists']['items']
+    else:
+        items = result['tracks']['items']
+
+    suggestions = []
+    for item in items:
+        external_url = item['external_urls']['spotify']
+        title = item['name']
+        if playlist:
+            displayname = title
+        else:
+            artist = item['artists'][0]['name']
+            displayname = song_utils.displayname(artist, title)
+        suggestions.append((displayname, external_url))
+
+    # remove duplicates
+    chosen_displaynames = set()
+    unique_suggestions = []
+    for suggestion in suggestions:
+        if suggestion[0] in chosen_displaynames:
+            continue
+        unique_suggestions.append(suggestion)
+        chosen_displaynames.add(suggestion[0])
+    return unique_suggestions
 
 class SpotifySongProvider(SongProvider):
     @staticmethod
@@ -129,7 +169,7 @@ class SpotifyPlaylistProvider(PlaylistProvider):
 
     @staticmethod
     def get_id_from_external_url(url):
-        if not url.startswith('spotify:playlist:'):
+        if not url.startswith('https://open.spotify.com/playlist/'):
             return None
         return urlparse(url).path.split('/')[-1]
 
@@ -164,6 +204,16 @@ class SpotifyPlaylistProvider(PlaylistProvider):
         return False
 
     def fetch_metadata(self):
+        if self.title is None:
+            result = self.web_client.get(
+                f"playlists/{self.id}",
+                params={
+                    'fields': 'name',
+                    'limit': '50',
+                },
+            )
+            self.title = result['name']
+
         # download at most 50 tracks for a playlist (spotifys maximum)
         # for more tracks paging would need to be implemented
         result = self.web_client.get(

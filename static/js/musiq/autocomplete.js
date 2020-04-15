@@ -42,6 +42,10 @@ $(document).ready(function() {
 				// the text was clicked, push the song and clear the input box
 				if (ui.item.type == 'search') {
 					request_new_music(ui.item.label);
+				} else if (ui.item.type == 'youtube-online') {
+					request_new_music(ui.item.label, 'youtube');
+				} else if (ui.item.type == 'spotify-online') {
+					request_new_music(ui.item.key, 'spotify');
 				} else {
 					request_archived_music(ui.item.key, ui.item.label);
 				}
@@ -65,25 +69,31 @@ $(document).ready(function() {
 				let icon = $('<i>')
 					.addClass('suggestion_type')
 					.addClass(item.type);
-				if (item.type == 'local') {
+				if (item.type.startsWith('local')) {
 					icon.addClass('fas')
 						.addClass('fa-hdd');
-				} else if (item.type == 'youtube') {
+				} else if (item.type.startsWith('youtube')) {
 					icon.addClass('fab')
 					    .addClass('fa-youtube');
-				} else if (item.type == 'spotify') {
+				} else if (item.type.startsWith('spotify')) {
 					icon.addClass('fab')
 					    .addClass('fa-spotify');
+				}
+
+				let counter = '(' + item.counter + ')';
+				if (item.type.endsWith('online')) {
+					counter = '';
 				}
 
 				let suggestion_div = $('<div>')
 					.text(item.label)
 					.prepend(icon);
+
 				// modify the suggestions to contain an icon
 				return $('<li class="ui-menu-item-with-icon"></li>')
 					.data("item.autocomplete", item)
 					.append(suggestion_div)
-					.append('<div class="autocomplete_info">('+ item.counter + ')<i class="fas fa-reply insert_icon"></i>')
+					.append('<div class="autocomplete_info">' + counter + '<i class="fas fa-reply insert_icon"></i>')
 					.appendTo(ul);
 			};
 	});

@@ -71,7 +71,7 @@ class MusicTest(TransactionTestCase):
         return current_song
 
     def _add_local_playlist(self):
-        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'hard rock', 'playlist': 'true'}).content)[0]
+        suggestion = json.loads(self.client.get(reverse('suggestions'), {'term': 'hard rock', 'playlist': 'true'}).content)[-1]
         self.client.post(reverse('request_music'), {'key': suggestion['key'], 'query': '', 'playlist': 'true', 'platform': 'local'})
         state = self._poll_musiq_state(lambda state: len(state['song_queue']) == 3 and all(song['confirmed'] for song in state['song_queue']), timeout=3)
         return state

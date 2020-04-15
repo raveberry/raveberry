@@ -7,8 +7,6 @@ from core.models import Tag
 from bs4 import BeautifulSoup
 
 
-# Due to python's resolution order, the ConnectionHandlerMixin needs to come first,
-# so its setUpClass is being used
 class HashtagTests(TestCase):
 
     def setUp(self):

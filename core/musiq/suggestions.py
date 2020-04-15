@@ -7,7 +7,7 @@ from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
 from core.models import ArchivedPlaylist, ArchivedSong
 import core.musiq.song_utils as song_utils
 from core.musiq.music_provider import SongProvider
-
+from core.musiq import youtube, spotify
 
 class Suggestions:
 
@@ -42,6 +42,28 @@ class Suggestions:
         suggest_playlist = request.GET['playlist'] == 'true'
 
         results = []
+
+        if self.musiq.base.settings.has_internet:
+            if self.musiq.base.settings.spotify_enabled:
+                spotify_suggestions = spotify.get_search_suggestions(' '.join(terms), suggest_playlist)
+                spotify_suggestions = spotify_suggestions[:2]
+                for suggestion, external_url in spotify_suggestions:
+                    results.append({
+                        'key': external_url,
+                        'value': suggestion,
+                        'type': 'spotify-online'
+                    })
+
+            youtube_suggestions = youtube.get_search_suggestions(' '.join(terms))
+            # limit to the first three online suggestions
+            youtube_suggestions = youtube_suggestions[:2]
+            for suggestion in youtube_suggestions:
+                results.append({
+                    'key': -1,
+                    'value': suggestion,
+                    'type': 'youtube-online',
+                })
+
         if suggest_playlist:
             remaining_playlists = ArchivedPlaylist.objects.prefetch_related('queries')
             # exclude radios from suggestions
