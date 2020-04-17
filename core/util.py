@@ -8,7 +8,9 @@ def background_thread(function):
         def run_and_close_connection():
             function(*args, **kwargs)
             connection.close()
+
         t = Thread(target=run_and_close_connection, daemon=True)
         t.start()
         return t
+
     return decorator

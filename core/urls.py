@@ -5,15 +5,18 @@ from django.views.generic import RedirectView
 
 import os
 
-if os.environ.get('DJANGO_MOCK'):
+if os.environ.get("DJANGO_MOCK"):
     import core.mock
+
     urlpatterns = [
-        path('', core.mock.index),
+        path("", core.mock.index),
     ]
 else:
     from core.base import Base
+
     base = Base()
 
+    # fmt: off
     urlpatterns = [
         path('', RedirectView.as_view(pattern_name='musiq', permanent=False), name='base'),
 
@@ -127,3 +130,4 @@ else:
             ])),
         ])),
     ]
+    # fmt: on

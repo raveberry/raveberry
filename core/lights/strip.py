@@ -1,7 +1,7 @@
 import Adafruit_PCA9685
 
-class Strip:
 
+class Strip:
     def __init__(self):
         try:
             self.controller = Adafruit_PCA9685.PCA9685()

@@ -8,14 +8,14 @@ from django.http import HttpResponseBadRequest
 from core import models
 import core.state_handler as state_handler
 
-class Pad:
 
+class Pad:
     def __init__(self, base):
         self.base = base
 
     def state_dict(self):
         state_dict = self.base.state_dict()
-        state_dict['pad_version'] = models.Pad.objects.get(id=1).version
+        state_dict["pad_version"] = models.Pad.objects.get(id=1).version
         return state_dict
 
     def get_state(self, request):
@@ -30,20 +30,22 @@ class Pad:
             raise PermissionDenied
         context = self.base.context(request)
 
-        pad = models.Pad.objects.get_or_create(id=1, defaults={'content': '', 'version': 0})[0]
-        context['pad_version'] = pad.version
-        context['pad_content'] = pad.content
-        return render(request, 'pad.html', context)
+        pad = models.Pad.objects.get_or_create(
+            id=1, defaults={"content": "", "version": 0}
+        )[0]
+        context["pad_version"] = pad.version
+        context["pad_content"] = pad.content
+        return render(request, "pad.html", context)
 
     def submit(self, request):
-        version = request.POST.get('version')
-        content = request.POST.get('content')
-        if version is None or version == '' or content is None:
-            return HttpResponseBadRequest('No version or content supplied')
+        version = request.POST.get("version")
+        content = request.POST.get("content")
+        if version is None or version == "" or content is None:
+            return HttpResponseBadRequest("No version or content supplied")
         try:
             version = int(version)
         except ValueError:
-            return HttpResponseBadRequest('version is not a number')
+            return HttpResponseBadRequest("version is not a number")
 
         version_valid = True
         with transaction.atomic():
@@ -59,6 +61,8 @@ class Pad:
 
         if version_valid:
             self.update_state()
-            return HttpResponse('Updated Pad')
+            return HttpResponse("Updated Pad")
         else:
-            return HttpResponseBadRequest('The content was changed in the meantime, please reload')
+            return HttpResponseBadRequest(
+                "The content was changed in the meantime, please reload"
+            )

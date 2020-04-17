@@ -3,8 +3,8 @@ import subprocess
 import time
 import os
 
-class Screen:
 
+class Screen:
     def __init__(self):
         self.initialized = False
         self.adjust()
@@ -17,21 +17,25 @@ class Screen:
 
         # pi3d needs X to work, so we check if it is running
         # set the DISPLAY environment variable so pi3d uses the correct X Display
-        os.environ['DISPLAY'] = ':0'
+        os.environ["DISPLAY"] = ":0"
 
         # don't offer this feature on raspberry pi 3
         try:
-            with open('/proc/device-tree/model') as f:
+            with open("/proc/device-tree/model") as f:
                 model = f.read()
-                if model.startswith('Raspberry Pi 3'):
+                if model.startswith("Raspberry Pi 3"):
                     return
-                elif model.startswith('Raspberry Pi 4'):
+                elif model.startswith("Raspberry Pi 4"):
                     # restart X to increase resolution if the cable was plugged in after boot
-                    subprocess.call(['sudo','/usr/local/sbin/raveberry/restart_x'])
+                    subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_x"])
 
                     for _ in range(20):
                         try:
-                            subprocess.check_call('xset q'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                            subprocess.check_call(
+                                "xset q".split(),
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL,
+                            )
                             break
                         except subprocess.CalledProcessError:
                             time.sleep(0.1)
@@ -41,7 +45,11 @@ class Screen:
         except FileNotFoundError:
             # we are not running on a raspberry pi
             try:
-                subprocess.check_call('xset q'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.check_call(
+                    "xset q".split(),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             except subprocess.CalledProcessError:
                 # Cannot connect to X
                 return

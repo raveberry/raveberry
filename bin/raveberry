@@ -12,11 +12,11 @@ try:
     import raveberry
 
     raveberry_directory = os.path.dirname(raveberry.__file__)
-    configfile_path = os.path.join(raveberry_directory, 'config/raveberry.ini')
+    configfile_path = os.path.join(raveberry_directory, "config/raveberry.ini")
 except ModuleNotFoundError:
     # also allow this script to work without installed module in the git folder
-    raveberry_directory = '.'
-    configfile_path = os.path.join(raveberry_directory, 'config/raveberry.ini')
+    raveberry_directory = "."
+    configfile_path = os.path.join(raveberry_directory, "config/raveberry.ini")
 os.chdir(raveberry_directory)
 
 
@@ -25,13 +25,13 @@ def main():
         usage()
         sys.exit(1)
     command = sys.argv[1]
-    if command == 'help':
+    if command == "help":
         usage()
-    elif command == 'run':
+    elif command == "run":
         run_server()
-    elif command == 'system-install':
+    elif command == "system-install":
         system_install()
-    elif command.lstrip('-') == 'version':
+    elif command.lstrip("-") == "version":
         version()
     else:
         usage()
@@ -39,34 +39,38 @@ def main():
 
 
 def usage():
-    print(f'''usage: {sys.argv[0]} [run | system-install | system-upgrade | help | version]
+    print(
+        f"""usage: {sys.argv[0]} [run | system-install | system-upgrade | help | version]
 
 run                     run a basic version of raveberry
 system-install          install raveberry into the system
 version                 print the version of this module
 help                    show this help and exit
 
-For more info visit https://github.com/raveberry/raveberry''')
+For more info visit https://github.com/raveberry/raveberry"""
+    )
+
 
 def version():
     try:
-        print(pkg_resources.require('raveberry')[0].version)
+        print(pkg_resources.require("raveberry")[0].version)
     except pkg_resources.DistributionNotFound:
-        print('raveberry is not currently installed')
+        print("raveberry is not currently installed")
         sys.exit(1)
 
+
 def run_server():
-    if not os.path.isfile('db.sqlite3'):
-        print('first time running raveberry, preparing...')
+    if not os.path.isfile("db.sqlite3"):
+        print("first time running raveberry, preparing...")
         user_install()
-    print('This is the basic raveberry version using a debug server.')
-    print('To install with all features run `raveberry system-install`')
+    print("This is the basic raveberry version using a debug server.")
+    print("To install with all features run `raveberry system-install`")
     try:
-        subprocess.check_call(f'pgrep mopidy'.split(), stdout=subprocess.DEVNULL)
+        subprocess.check_call(f"pgrep mopidy".split(), stdout=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
-        print('mopidy not yet running, starting...')
-        subprocess.Popen(['mopidy'], stderr=subprocess.DEVNULL)
-    subprocess.call(['scripts/runserver.sh'])
+        print("mopidy not yet running, starting...")
+        subprocess.Popen(["mopidy"], stderr=subprocess.DEVNULL)
+    subprocess.call(["scripts/runserver.sh"])
 
 
 def read_config():
@@ -83,52 +87,69 @@ def read_config():
 
 
 def user_install():
-    apt_packages = ['python3-pip', 'ffmpeg', 'atomicparsley', 'mopidy', 'redis-server']
+    apt_packages = ["python3-pip", "ffmpeg", "atomicparsley", "mopidy", "redis-server"]
     missing_packages = []
 
-    if shutil.which('dpkg'):
+    if shutil.which("dpkg"):
         for package in apt_packages:
             try:
-                subprocess.check_call(f'dpkg -s {package}'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.check_call(
+                    f"dpkg -s {package}".split(),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             except subprocess.CalledProcessError:
                 missing_packages.append(package)
         if missing_packages:
-            print('please install missing packages: sudo apt-get install -y ' + ' '.join(missing_packages))
+            print(
+                "please install missing packages: sudo apt-get install -y "
+                + " ".join(missing_packages)
+            )
             sys.exit(1)
     else:
-        print('Warning: dpkg is not installed, could not check if dependencies are installed! Use at your own risk!')
+        print(
+            "Warning: dpkg is not installed, could not check if dependencies are installed! Use at your own risk!"
+        )
 
     read_config()
-    subprocess.call(['/bin/bash', 'setup/user_install.sh'])
+    subprocess.call(["/bin/bash", "setup/user_install.sh"])
 
 
 def system_install():
-    print('''You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
+    print(
+        """You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
 Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
-Config-file location: ''' + configfile_path)
+Config-file location: """
+        + configfile_path
+    )
 
-    answer = input('Is this the configuration you want to install raveberry with? [Y/n] ')
-    while answer not in ['', 'Y', 'y', 'Yes', 'yes', 'N', 'n', 'No', 'no']:
+    answer = input(
+        "Is this the configuration you want to install raveberry with? [Y/n] "
+    )
+    while answer not in ["", "Y", "y", "Yes", "yes", "N", "n", "No", "no"]:
         answer = input('Please answers "yes" or "no": ')
-    if answer in ['N', 'n', 'No', 'no']:
+    if answer in ["N", "n", "No", "no"]:
         sys.exit(0)
 
     read_config()
 
-    db_exists = not subprocess.call('sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw "raveberry"', shell=True)
-    if os.environ['DB_BACKUP'] or db_exists:
+    db_exists = not subprocess.call(
+        'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw "raveberry"',
+        shell=True,
+    )
+    if os.environ["DB_BACKUP"] or db_exists:
         # another database is already present, do not ask for a new admin password
         pass
     else:
         while True:
-            admin_password = getpass.getpass('Set admin password: ')
-            admin_password_confirmed = getpass.getpass('Confirm admin password: ')
+            admin_password = getpass.getpass("Set admin password: ")
+            admin_password_confirmed = getpass.getpass("Confirm admin password: ")
             if admin_password == admin_password_confirmed:
-                os.environ['ADMIN_PASSWORD'] = admin_password
+                os.environ["ADMIN_PASSWORD"] = admin_password
                 break
             print("Passwords didn't match")
-    subprocess.call(['sudo', '-E', '/bin/bash', 'setup/setup.sh'])
+    subprocess.call(["sudo", "-E", "/bin/bash", "setup/setup.sh"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -6,25 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='currentsong',
-            name='manually_requested',
+            model_name="currentsong",
+            name="manually_requested",
             field=models.BooleanField(default=True),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='playlog',
-            name='manually_requested',
+            model_name="playlog",
+            name="manually_requested",
             field=models.BooleanField(default=True),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='queuedsong',
-            name='manually_requested',
+            model_name="queuedsong",
+            name="manually_requested",
             field=models.BooleanField(default=True),
             preserve_default=False,
         ),

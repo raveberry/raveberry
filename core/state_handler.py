@@ -7,24 +7,23 @@ import time
 
 from threading import Thread
 
+
 def update_state(state):
     data = {
-        'type': 'state_update',
-        'state': state,
+        "type": "state_update",
+        "state": state,
     }
     channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        'state',
-        data
-    )
+    async_to_sync(channel_layer.group_send)("state", data)
+
 
 class StateConsumer(WebsocketConsumer):
     def connect(self):
-        async_to_sync(self.channel_layer.group_add)('state', self.channel_name)
+        async_to_sync(self.channel_layer.group_add)("state", self.channel_name)
         self.accept()
 
     def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)('state', self.channel_name)
+        async_to_sync(self.channel_layer.group_discard)("state", self.channel_name)
 
     def receive(self, text_data):
         pass
@@ -32,4 +31,4 @@ class StateConsumer(WebsocketConsumer):
     # Receive message from room group
     def state_update(self, event):
         # Send message to WebSocket
-        self.send(text_data=json.dumps(event['state']))
+        self.send(text_data=json.dumps(event["state"]))

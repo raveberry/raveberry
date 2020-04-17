@@ -23,11 +23,11 @@ class LocalSongProvider(SongProvider):
 
     @staticmethod
     def get_id_from_external_url(url):
-        return url[len('local_library/'):]
+        return url[len("local_library/") :]
 
     def __init__(self, musiq, query, key):
         super().__init__(musiq, query, key)
-        self.type = 'local'
+        self.type = "local"
 
     def check_cached(self):
         if not self._check_cached():
@@ -36,30 +36,30 @@ class LocalSongProvider(SongProvider):
 
     def check_downloadable(self):
         # Local files can not be downloaded from the internet
-        self.error = 'Local file missing'
+        self.error = "Local file missing"
         return False
 
     def get_metadata(self):
         metadata = song_utils.get_metadata(self.get_path())
 
-        metadata['internal_url'] = self.get_internal_url()
-        metadata['external_url'] = self.get_external_url()
-        if not metadata['title']:
-            metadata['title'] = metadata['external_url']
+        metadata["internal_url"] = self.get_internal_url()
+        metadata["external_url"] = self.get_external_url()
+        if not metadata["title"]:
+            metadata["title"] = metadata["external_url"]
 
         return metadata
 
     def get_path(self):
         path = os.path.join(settings.SONGS_CACHE_DIR, self.get_external_url())
-        path = path.replace('~', os.environ['HOME'])
+        path = path.replace("~", os.environ["HOME"])
         path = os.path.abspath(path)
         return path
 
     def get_internal_url(self):
-        return 'file://' + self.get_path()
+        return "file://" + self.get_path()
 
     def get_external_url(self):
-        return 'local_library/' + self.id
+        return "local_library/" + self.id
 
     def _get_corresponding_playlist(self):
         entries = PlaylistEntry.objects.filter(url=self.get_external_url())
@@ -80,20 +80,28 @@ class LocalSongProvider(SongProvider):
 
     def request_radio(self, ip):
         playlist = self._get_corresponding_playlist()
-        return self.musiq._request_music(ip, playlist.title, playlist.id, True, 'local', archive=False, manually_requested=False)
+        return self.musiq._request_music(
+            ip,
+            playlist.title,
+            playlist.id,
+            True,
+            "local",
+            archive=False,
+            manually_requested=False,
+        )
+
 
 class LocalPlaylistProvider(PlaylistProvider):
-
     @staticmethod
     def get_id_from_external_url(url):
-        return url[len('local_library/'):]
+        return url[len("local_library/") :]
 
     def __init__(self, musiq, query, key):
         super().__init__(musiq, query, key)
-        self.type = 'local'
+        self.type = "local"
 
     def search_id(self):
-        self.error = 'local playlists can not be downloaded'
+        self.error = "local playlists can not be downloaded"
         return None
 
     def is_radio(self):
