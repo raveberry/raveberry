@@ -12,7 +12,7 @@ required_packages = [
 
 setuptools.setup(
     name="raveberry",
-    version="0.4.3",
+    version="0.4.4",
     author="Jonathan Hacker",
     author_email="raveberry@jhacker.de",
     description="A multi-user music server with a focus on participation",
