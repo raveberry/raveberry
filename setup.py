@@ -8,7 +8,7 @@ with open("raveberry/requirements/common.txt") as f:
 
 setuptools.setup(
     name="raveberry",
-    version="0.4.4",
+    version="0.4.5",
     author="Jonathan Hacker",
     author_email="raveberry@jhacker.de",
     description="A multi-user music server with a focus on participation",
