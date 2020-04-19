@@ -3,12 +3,8 @@ import setuptools
 with open("raveberry/README.md", "r") as f:
     long_description = f.read()
 
-with open("raveberry/requirements.txt") as f:
+with open("raveberry/requirements/common.txt") as f:
     required_packages = f.read().splitlines()
-# psycopg2 is not needed for the basic version
-required_packages = [
-    package for package in required_packages if not package.startswith("psycopg2")
-]
 
 setuptools.setup(
     name="raveberry",
