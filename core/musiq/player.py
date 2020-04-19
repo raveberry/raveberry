@@ -557,22 +557,16 @@ class Player:
                 self._handle_autoplay()
         return HttpResponse()
 
-    @control
-    def start_loop(self, request):
+    def start_loop(self):
         """Starts the playback main loop, only used for tests."""
-        if not self.musiq.base.user_manager.is_admin(request.user):
-            return HttpResponseForbidden()
         if self.running:
-            return HttpResponse()
+            return
         self.running = True
         self.start()
-        return HttpResponse()
 
-    @control
-    def stop_loop(self, request):
+    def stop_loop(self):
         """Stops the playback main loop, only used for tests."""
-        if not self.musiq.base.user_manager.is_admin(request.user):
-            return HttpResponseForbidden()
+        if not self.running:
+            return
         self.running = False
         self.queue_semaphore.release()
-        return HttpResponse()

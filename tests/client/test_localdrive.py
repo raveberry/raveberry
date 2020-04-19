@@ -1,14 +1,7 @@
 import json
-import os
-import pathlib
-import sys
-import urllib.request
 
-from django.conf import settings
-from django.test import TransactionTestCase, Client
 from django.urls import reverse
 
-from tests import util
 from tests.music_test import MusicTest
 
 

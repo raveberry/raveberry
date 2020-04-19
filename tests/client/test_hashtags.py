@@ -1,16 +1,11 @@
-from django.test import TransactionTestCase, TestCase
-from django.test import Client
+from bs4 import BeautifulSoup
 from django.urls import reverse
 
 from core.models import Tag
+from tests.raveberry_test import RaveberryTest
 
-from bs4 import BeautifulSoup
 
-
-class HashtagTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-
+class HashtagTests(RaveberryTest):
     def test_empty(self):
         self.assertFalse(Tag.objects.exists())
 

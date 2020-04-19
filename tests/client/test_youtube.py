@@ -1,16 +1,8 @@
 import os
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.urls import reverse
 
-from django.test import TransactionTestCase
-from django.test import Client
-
-import json
-import time
-
-from tests import util
 from tests.music_test import MusicTest
 
 

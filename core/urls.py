@@ -45,8 +45,6 @@ else:
         path("reorder/", BASE.musiq.player.reorder, name="reorder_song"),
         path("vote_up/", BASE.musiq.player.vote_up, name="vote_up_song"),
         path("vote_down/", BASE.musiq.player.vote_down, name="vote_down_song"),
-        path("start_loop/", BASE.musiq.player.start_loop, name="start_player_loop"),
-        path("stop_loop/", BASE.musiq.player.stop_loop, name="stop_player_loop"),
     ]
 
     LIGHTS_URLS = [

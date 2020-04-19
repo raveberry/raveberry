@@ -2,29 +2,24 @@ import json
 import os
 import time
 
-import django
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.test import Client, TestCase, TransactionTestCase
 from django.urls import reverse
 
 from tests import util
+from tests.raveberry_test import RaveberryTest
 
-from core.models import ArchivedSong, ArchivedPlaylist, CurrentSong, QueuedSong
 
-
-class MusicTest(TransactionTestCase):
+class MusicTest(RaveberryTest):
     def setUp(self):
-        self.client = Client()
-        util.admin_login(self.client)
+        super().setUp()
 
+        # mute player for testing
+        self.client.post(reverse("set_volume"), {"value": "0"})
         # reduce number of downloaded songs for the test
         self.client.post(reverse("set_max_playlist_items"), {"value": "5"})
 
-        self.client.post(reverse("start_player_loop"))
-
     def tearDown(self):
-        self.client.login(username="admin", password="admin")
+        util.admin_login(self.client)
 
         # restore player state
         self.client.post(reverse("set_autoplay"), {"value": "false"})
@@ -36,7 +31,7 @@ class MusicTest(TransactionTestCase):
         self.client.post(reverse("skip_song"))
         self._poll_musiq_state(lambda state: not state["current_song"])
 
-        self.client.post(reverse("stop_player_loop"))
+        super().tearDown()
 
     def _setup_test_library(self):
         util.download_test_library()
@@ -57,22 +52,6 @@ class MusicTest(TransactionTestCase):
                 "6 / 6 / "
             ),
         )
-
-    def _poll_state(self, state_url, break_condition, timeout=1):
-        timeout *= 10
-        counter = 0
-        while counter < timeout:
-            state = json.loads(self.client.get(reverse(state_url)).content)
-            if break_condition(state):
-                break
-            time.sleep(0.1)
-            counter += 1
-        else:
-            self.fail(f"enqueue timeout. state: {state}")
-        return state
-
-    def _poll_musiq_state(self, break_condition, timeout=1):
-        return self._poll_state("musiq_state", break_condition, timeout=timeout)
 
     def _poll_current_song(self):
         state = self._poll_musiq_state(lambda state: state["current_song"], timeout=10)

@@ -1,15 +1,7 @@
 import json
-import os
-import random
 
-import django
-from django.conf import settings
-from django.test import TestCase, TransactionTestCase
-from django.test import Client
 from django.urls import reverse
 
-from core.models import QueuedSong, CurrentSong
-from tests import util
 from tests.music_test import MusicTest
 
 
