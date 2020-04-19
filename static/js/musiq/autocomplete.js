@@ -5,8 +5,7 @@ $(document).ready(function() {
 				$.get(urls['suggestions'], {
 					'term': request.term,
 					'playlist': playlistEnabled(),
-				}).done(function(data) {
-					let suggestions = JSON.parse(data);
+				}).done(function(suggestions) {
 
 					let search_entry = {
 						'value': request.term,

@@ -1,3 +1,5 @@
+"""This module configures django."""
+
 import os
 import sys
 import pathlib
@@ -16,10 +18,7 @@ except FileNotFoundError:
         f.write(SECRET_KEY)
     print("created secret key")
 
-if os.environ.get("DJANGO_DEBUG"):
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = bool(os.environ.get("DJANGO_DEBUG"))
 
 ALLOWED_HOSTS = ["*"]
 
@@ -55,7 +54,7 @@ ROOT_URLCONF = "main.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates/"),],
+        "DIRS": [os.path.join(BASE_DIR, "templates/")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -78,7 +77,7 @@ if DEBUG:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-            "OPTIONS": {"timeout": 20,},
+            "OPTIONS": {"timeout": 20},
         }
     }
 else:
@@ -98,9 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 
@@ -132,10 +131,10 @@ STATIC_URL = "/static/"
 if not os.path.islink(os.path.join(BASE_DIR, "static/admin")):
     import django
 
-    django_path = os.path.dirname(django.__file__)
-    static_admin = os.path.join(django_path, "contrib/admin/static/admin")
+    DJANGO_PATH = os.path.dirname(django.__file__)
+    STATIC_ADMIN = os.path.join(DJANGO_PATH, "contrib/admin/static/admin")
     os.symlink(
-        static_admin, os.path.join(BASE_DIR, "static/admin"), target_is_directory=True
+        STATIC_ADMIN, os.path.join(BASE_DIR, "static/admin"), target_is_directory=True
     )
     print("linked static admin files")
 
@@ -152,11 +151,11 @@ STATICFILES_FINDERS = (
 )
 
 # channels
-ASGI_APPLICATION = "main.routing.application"
+ASGI_APPLICATION = "main.routing.APPLICATION"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("127.0.0.1", 6379)],},
+        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
     },
 }
 
@@ -180,7 +179,7 @@ LOGGING = {
             "maxBytes": 1024 * 1024 * 15,  # 15MB
             "backupCount": 10,
         },
-        "console": {"class": "logging.StreamHandler",},
+        "console": {"class": "logging.StreamHandler"},
     },
     "loggers": {
         "raveberry": {

@@ -1,0 +1,9 @@
+[MASTER]
+disable=
+    E203, # whitespace before ':' https://github.com/PyCQA/pycodestyle/issues/373
+    bad-continuation, # https://github.com/psf/black/issues/48
+    unsubscriptable-object, # https://github.com/PyCQA/pylint/issues/3139
+    import-outside-toplevel, # resolves circular imports
+ignore=core.migrations
+[FORMAT]
+good-names=e,f,i,id,x,y,z

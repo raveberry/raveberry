@@ -1,3 +1,12 @@
+"""This module contains the base classes for all music providers."""
+import os
+import time
+
+from django.conf import settings
+from django.db import transaction
+from django.db.models import F
+
+import core.musiq.song_utils as song_utils
 from core.models import (
     ArchivedSong,
     ArchivedQuery,
@@ -6,19 +15,13 @@ from core.models import (
     PlaylistEntry,
 )
 from core.models import RequestLog
-
-from django.conf import settings
-from django.db import transaction
-from django.db.models import F
-
-import threading
-import time
-
-import core.musiq.song_utils as song_utils
 from core.util import background_thread
 
 
 class MusicProvider:
+    """The base class for all music providers.
+    Provides abstract function declarations."""
+
     def __init__(self, musiq, query, key):
         self.musiq = musiq
         self.query = query
@@ -29,27 +32,38 @@ class MusicProvider:
         self.error = "error"
 
     def check_cached(self):
+        """Returns whether this resource is available on disk.
+        Also sets the id of this resource."""
         raise NotImplementedError()
 
     def check_downloadable(self):
+        """Returns whether this resource is available for download online."""
         raise NotImplementedError()
 
-    def download(self, ip, background=True, archive=True, manually_requested=True):
+    def download(
+        self, request_ip, background=True, archive=True, manually_requested=True
+    ):
+        """Downloads this resource and enqueues it afterwards."""
         raise NotImplementedError()
 
-    def enqueue(self, ip, archive=True, manually_requested=True):
-        raise NotImplementedError()
-
-    def get_internal_url(self):
-        raise NotImplementedError()
-
-    def get_external_url(self):
+    def enqueue(self, request_ip, archive=True, manually_requested=True):
+        """Adds the resource to the song queue."""
         raise NotImplementedError()
 
 
 class SongProvider(MusicProvider):
+    """The base class for all single song providers."""
+
+    @staticmethod
+    def get_id_from_external_url(url):
+        """Constructs and returns the external id based on the given url."""
+        raise NotImplementedError()
+
     @staticmethod
     def create(musiq, query=None, key=None, external_url=None):
+        """Factory method to create a song provider.
+        Either (query and key) or external url need to be specified.
+        Detects the type of provider needed and returns one of corresponding type."""
         if key is not None:
             if query is None:
                 musiq.base.logger.error("archived song requested but no query given")
@@ -73,7 +87,7 @@ class SongProvider(MusicProvider):
 
             provider_class = SpotifySongProvider
         else:
-            raise NotImplemented(f"No provider for given song: {external_url}")
+            raise NotImplementedError(f"No provider for given song: {external_url}")
         provider = provider_class(musiq, query, key)
         provider.id = provider_class.get_id_from_external_url(external_url)
         return provider
@@ -86,6 +100,17 @@ class SongProvider(MusicProvider):
             self.archived = False
         else:
             self.archived = True
+
+    def _get_path(self):
+        raise NotImplementedError()
+
+    def get_internal_url(self):
+        """Returns the internal url based on this object's id."""
+        raise NotImplementedError()
+
+    def get_external_url(self):
+        """Returns the external url based on this object's id."""
+        raise NotImplementedError()
 
     def _check_cached(self):
         if self.id is not None:
@@ -103,7 +128,15 @@ class SongProvider(MusicProvider):
         self.id = self.__class__.get_id_from_external_url(archived_song.url)
         return True
 
-    def enqueue(self, ip, archive=True, manually_requested=True):
+    def check_cached(self):
+        if not self._check_cached():
+            return False
+        return os.path.isfile(self._get_path())
+
+    def check_downloadable(self):
+        raise NotImplementedError()
+
+    def enqueue(self, request_ip, archive=True, manually_requested=True):
         from core.musiq.player import Player
 
         metadata = self.get_metadata()
@@ -129,8 +162,8 @@ class SongProvider(MusicProvider):
                     song=archived_song, query=self.query
                 )
 
-        if archive and ip:
-            RequestLog.objects.create(song=archived_song, address=ip)
+        if archive and request_ip:
+            RequestLog.objects.create(song=archived_song, address=request_ip)
 
         song = self.musiq.queue.enqueue(metadata, manually_requested)
         if self.placeholder:
@@ -138,19 +171,32 @@ class SongProvider(MusicProvider):
         self.musiq.update_state()
         Player.queue_semaphore.release()
 
-    def download(self, ip, background=True, archive=True, manually_requested=True):
-        self.enqueue(ip, archive=archive, manually_requested=manually_requested)
+    def download(
+        self, request_ip, background=True, archive=True, manually_requested=True
+    ):
+        self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
 
     def get_suggestion(self):
+        """Returns the external url of a suggested song based on this one."""
         raise NotImplementedError()
 
     def get_metadata(self):
+        """Returns a dictionary of this song's metadata."""
+        raise NotImplementedError()
+
+    def request_radio(self, request_ip):
+        """Enqueues a playlist of songs based on this one."""
         raise NotImplementedError()
 
 
 class PlaylistProvider(MusicProvider):
+    """The base class for playlist providers."""
+
     @staticmethod
     def create(musiq, query=None, key=None):
+        """Factory method to create a playlist provider.
+        Both query and key need to be specified.
+        Detects the type of provider needed and returns one of corresponding type."""
         if query is None:
             musiq.base.logger.error("archived playlist requested but no query given")
             return None
@@ -160,16 +206,16 @@ class PlaylistProvider(MusicProvider):
             musiq.base.logger.error("archived song requested for nonexistent key")
             return None
 
-        type = song_utils.determine_playlist_type(archived_playlist)
-        if type == "local":
+        playlist_type = song_utils.determine_playlist_type(archived_playlist)
+        if playlist_type == "local":
             from core.musiq.localdrive import LocalPlaylistProvider
 
             provider_class = LocalPlaylistProvider
-        elif type == "youtube":
+        elif playlist_type == "youtube":
             from core.musiq.youtube import YoutubePlaylistProvider
 
             provider_class = YoutubePlaylistProvider
-        elif type == "spotify":
+        elif playlist_type == "spotify":
             from core.musiq.spotify import SpotifyPlaylistProvider
 
             provider_class = SpotifyPlaylistProvider
@@ -180,6 +226,7 @@ class PlaylistProvider(MusicProvider):
 
     @staticmethod
     def get_id_from_external_url(url):
+        """Constructs and returns the external id based on the given url."""
         raise NotImplementedError()
 
     def __init__(self, musiq, query, key):
@@ -202,6 +249,7 @@ class PlaylistProvider(MusicProvider):
         return True
 
     def search_id(self):
+        """this a docstring."""
         raise NotImplementedError()
 
     def check_downloadable(self):
@@ -214,22 +262,28 @@ class PlaylistProvider(MusicProvider):
         return True
 
     def is_radio(self):
+        """Returns whether this playlist is a radio.
+        A radio as a playlist that was created for a given song.
+        The result can be different if called another time for the same song."""
         raise NotImplementedError()
 
     def fetch_metadata(self):
+        """Fetches the title and list of songs for this playlist from the internet."""
         raise NotImplementedError()
 
-    def download(self, ip, background=True, archive=True, manually_requested=True):
+    def download(
+        self, request_ip, background=True, archive=True, manually_requested=True
+    ):
         queryset = ArchivedPlaylist.objects.filter(list_id=self.id)
         if not self.is_radio() and queryset.exists():
             self.key = queryset.get().id
         else:
             self.fetch_metadata()
-        self.enqueue(ip)
+        self.enqueue(request_ip)
         return True
 
     @background_thread
-    def _queue_songs(self, ip, archived_playlist):
+    def _queue_songs(self, request_ip, archived_playlist):
         for index, entry in enumerate(archived_playlist.entries.all()):
             if index == self.musiq.base.settings.max_playlist_items:
                 break
@@ -242,7 +296,10 @@ class PlaylistProvider(MusicProvider):
                     # song is not downloadable, continue with next song in playlist
                     continue
                 if not song_provider.download(
-                    ip, background=False, archive=False, manually_requested=False
+                    request_ip,
+                    background=False,
+                    archive=False,
+                    manually_requested=False,
                 ):
                     # error during song download, continue with next song in playlist
                     continue
@@ -250,10 +307,11 @@ class PlaylistProvider(MusicProvider):
                 song_provider.enqueue("", archive=False, manually_requested=False)
 
             if settings.DEBUG:
-                # the sqlite database has problems if songs are pushed very fast while a new song is taken from the queue. Add a delay to mitigate.
+                # the sqlite database has problems if songs are pushed very fast
+                # while a new song is taken from the queue. Add a delay to mitigate.
                 time.sleep(1)
 
-    def enqueue(self, ip, archive=True, manually_requested=True):
+    def enqueue(self, request_ip, archive=True, manually_requested=True):
         if self.key is None:
             with transaction.atomic():
 
@@ -277,6 +335,6 @@ class PlaylistProvider(MusicProvider):
         )
 
         if self.musiq.base.settings.logging_enabled:
-            RequestLog.objects.create(playlist=archived_playlist, address=ip)
+            RequestLog.objects.create(playlist=archived_playlist, address=request_ip)
 
-        self._queue_songs(ip, archived_playlist)
+        self._queue_songs(request_ip, archived_playlist)

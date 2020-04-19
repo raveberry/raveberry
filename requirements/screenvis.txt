@@ -1,0 +1,5 @@
+-r common.txt
+numpy>=1.18.2
+pi3d>=2.36
+Pillow>=7.1.1
+scipy>=1.4.1

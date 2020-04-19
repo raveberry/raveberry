@@ -1,0 +1,17 @@
+Adafruit-PCA9685>=1.0.1
+channels>=2.2.0
+channels-redis>=2.4.0
+Django==2.2.10
+django-compressor>=2.3
+django-ipware>=2.1.0
+django-sass-processor>=0.7.3
+libsass>=0.19.2
+Mopidy>=3.0.1
+mopidyapi>=1.0.0
+Mopidy-Spotify==4.0.1
+mutagen>=1.42.0
+PyGObject>=3.34.0
+python-dateutil>=2.8.0
+requests>=2.22.0
+rpi-ws281x>=4.2.2
+youtube-dl>=2019.8.2

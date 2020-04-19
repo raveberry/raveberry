@@ -1,7 +1,9 @@
+"""This module registers the core apps websocket patterns."""
+
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 import core.routing
 
-application = ProtocolTypeRouter(
-    {"websocket": AuthMiddlewareStack(URLRouter(core.routing.websocket_urlpatterns)),}
+APPLICATION = ProtocolTypeRouter(
+    {"websocket": AuthMiddlewareStack(URLRouter(core.routing.WEBSOCKET_URLPATTERNS))}
 )

@@ -1,15 +1,19 @@
-from django.conf import settings
+"""This module contains manages the song queue in the database."""
+
 from django.db import models
 from django.db import transaction
 from django.db.models import F
 
-import core.musiq.song_utils as song_utils
 import core.models
 
 
 class SongQueue(models.Manager):
+    """This is the manager for the QueuedSong model.
+    Handles all operations on the queue."""
+
     @transaction.atomic
     def enqueue(self, metadata, manually_requested):
+        """Creates a new song at the end of the queue and returns it."""
         last = self.last()
         index = 1 if last is None else last.index + 1
         song = self.create(
@@ -25,6 +29,7 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def dequeue(self):
+        """Removes the first song from the queue and returns its id and the object."""
         first = self.first()
         first_id = first.id
         if first is not None:
@@ -34,6 +39,7 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def prioritize(self, key):
+        """Moves the song specified by :param key: to the front of the queue."""
         to_prioritize = self.get(id=key)
         first = self.first()
         if to_prioritize == first:
@@ -45,6 +51,7 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def remove(self, key):
+        """Removes the song specified by :param key: from the queue and returns it."""
         to_remove = self.get(id=key)
         to_remove.delete()
         if next is not None:
@@ -53,6 +60,8 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def reorder(self, new_prev_id, element_id, new_next_id):
+        """Moves the song specified by :param element_id:
+        between the two songs :param new_prev_id: and :param new_next_id:."""
 
         try:
             new_prev = self.get(id=new_prev_id)
@@ -97,16 +106,16 @@ class SongQueue(models.Manager):
             old_next = None
 
         # update indices
-        up = True
+        moving_up = True
         if new_prev is not None:
             if new_prev.index > to_reorder.index:
-                up = False
+                moving_up = False
         elif new_next is not None:
             if new_next.index > to_reorder.index:
-                up = False
+                moving_up = False
 
         to_update = self.all()
-        if up:
+        if moving_up:
             if old_prev is not None:
                 to_update = to_update.filter(index__lte=old_prev.index)
             new_index = 1
@@ -128,10 +137,13 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def vote_up(self, key):
+        """Increase the vote-count of the song specified by :param key:."""
         self.filter(id=key).update(votes=F("votes") + 1)
 
     @transaction.atomic
     def vote_down(self, key, threshold):
+        """Decrease the vote-count of the song specified by :param key:
+        If the song is now below the threshold, remove and return it."""
         self.filter(id=key).update(votes=F("votes") - 1)
         try:
             song = self.get(id=key)

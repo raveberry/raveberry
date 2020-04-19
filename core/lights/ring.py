@@ -1,30 +1,34 @@
+"""This module handles the Neopixel led ring."""
+
 import rpi_ws281x
 
 
 class Ring:
-    def __init__(self):
-        # LED ring configuration:
-        LED_COUNT = 16  # Number of LED pixels.
-        LED_PIN = 10  # GPIO pin used. 10: SPI, 18: PWM (used for sound)
-        LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-        LED_DMA = 10  # DMA channel to use for generating signal (try 10)
-        LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-        LED_INVERT = False  # True inverts the signal (when using NPN level shift)
-        LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
+    """This class provides an interface to control the led ring."""
 
-        self.LED_COUNT = LED_COUNT
-        self.LED_OFFSET = 12
+    # LED ring configuration:
+    LED_COUNT = 16  # Number of LED pixels.
+    LED_PIN = 10  # GPIO pin used. 10: SPI, 18: PWM (used for sound)
+    LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
+    LED_DMA = 10  # DMA channel to use for generating signal (try 10)
+    LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
+    LED_INVERT = False  # True inverts the signal (when using NPN level shift)
+    LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
+
+    LED_OFFSET = 12  # at which index the zeroth pixel is located.
+
+    def __init__(self):
         self.brightness = 1
         self.monochrome = False
 
         self.controller = rpi_ws281x.Adafruit_NeoPixel(
-            LED_COUNT,
-            LED_PIN,
-            LED_FREQ_HZ,
-            LED_DMA,
-            LED_INVERT,
-            LED_BRIGHTNESS,
-            LED_CHANNEL,
+            self.LED_COUNT,
+            self.LED_PIN,
+            self.LED_FREQ_HZ,
+            self.LED_DMA,
+            self.LED_INVERT,
+            self.LED_BRIGHTNESS,
+            self.LED_CHANNEL,
         )
         try:
             self.controller.begin()
@@ -34,6 +38,7 @@ class Ring:
             self.initialized = False
 
     def set_colors(self, colors):
+        """Sets the colors of the ring to the given list of triples."""
         if not self.initialized:
             return
         for led in range(self.LED_COUNT):
@@ -45,6 +50,7 @@ class Ring:
         self.controller.show()
 
     def clear(self):
+        """Turns of all pixels by setting their color to black."""
         if not self.initialized:
             return
         for led in range(self.LED_COUNT):

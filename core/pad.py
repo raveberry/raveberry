@@ -1,15 +1,18 @@
-from django.db import transaction
-from django.shortcuts import render
+"""This module contains the pad."""
+
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.http import HttpResponseBadRequest
+from django.shortcuts import render
 
 from core import models
-import core.state_handler as state_handler
+from core.state_handler import Stateful
 
 
-class Pad:
+class Pad(Stateful):
+    """This class handles requests on the /pad page."""
+
     def __init__(self, base):
         self.base = base
 
@@ -18,14 +21,8 @@ class Pad:
         state_dict["pad_version"] = models.Pad.objects.get(id=1).version
         return state_dict
 
-    def get_state(self, request):
-        state = self.state_dict()
-        return JsonResponse(state)
-
-    def update_state(self):
-        state_handler.update_state(self.state_dict())
-
     def index(self, request):
+        """Renders the /pad page."""
         if not self.base.user_manager.has_pad(request.user):
             raise PermissionDenied
         context = self.base.context(request)
@@ -38,6 +35,8 @@ class Pad:
         return render(request, "pad.html", context)
 
     def submit(self, request):
+        """Stores a new version of the pad content.
+        Makes sure that no conflicts occur."""
         version = request.POST.get("version")
         content = request.POST.get("content")
         if version is None or version == "" or content is None:
@@ -47,7 +46,6 @@ class Pad:
         except ValueError:
             return HttpResponseBadRequest("version is not a number")
 
-        version_valid = True
         with transaction.atomic():
             pad = models.Pad.objects.get(id=1)
             current_version = pad.version
@@ -59,10 +57,9 @@ class Pad:
             else:
                 version_valid = False
 
-        if version_valid:
-            self.update_state()
-            return HttpResponse("Updated Pad")
-        else:
+        if not version_valid:
             return HttpResponseBadRequest(
                 "The content was changed in the meantime, please reload"
             )
+        self.update_state()
+        return HttpResponse("Updated Pad")

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-import os
-import sys
-import time
-import subprocess
 import configparser
-import pkg_resources
 import getpass
+import os
 import shutil
+import subprocess
+import sys
+
+import pkg_resources
 
 try:
     import raveberry

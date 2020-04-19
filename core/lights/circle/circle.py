@@ -1,23 +1,44 @@
+"""Handles the rendering of the circle visualization."""
+
 # hack to allow direct calling of this script
+# pylint: disable=wrong-import-position
+# we need to access non-public pi3d members
+# pylint: disable=protected-access
 if __name__ == "__main__":
     import sys
 
     sys.path.insert(0, "../../../")
 
+import ctypes
+import math
+import os
+import random
+import subprocess
+import time
+
 from django.conf import settings
 
-from core.lights.programs import VizProgram
-
-import os
-import sys
-import time
-import math
-import random
-import ctypes
-import subprocess
+from core.lights.programs import ScreenProgram
 
 
-class Circle(VizProgram):
+class Circle(ScreenProgram):
+    """This class is responsible for rendering the circle screen visualization."""
+
+    # The number of ffts that are kept in history
+    FFT_HIST = 32
+    # The part of the spectrum that is used to detect loud bass, making the circle bigger
+    BASS_MAX = 0.05
+    # The number of bins we cut after smoothing on both sides
+    SPECTRUM_CUT = 2
+    # The amount of particles
+    NUM_PARTICLES = 400
+    # Size of the particles
+    PARTICLE_SIZE = 0.01
+    # How far away to spawn particles
+    PARTICLE_SPAWN_Z = 2.0
+    # The size of dynamic modifications to the scale
+    SCALE_STEP = 0.5
+
     def __init__(self, lights):
         super().__init__(lights)
         self.name = "Circular"
@@ -31,37 +52,52 @@ class Circle(VizProgram):
         # https://www.shadertoy.com/view/llycWD
 
         # The width and height of the displayed visualizer in pixels
-        self.WIDTH = 640
-        self.HEIGHT = 480
-
-        # The number of ffts that are kept in history
-        self.FFT_HIST = 32
-        # The part of the spectrum that is used to detect loud bass, making the circle bigger
-        self.BASS_MAX = 0.05
-        # The number of bins we cut after smoothing on both sides
-        self.SPECTRUM_CUT = 2
-        # The amount of particles
-        self.NUM_PARTICLES = 400
-        # Size of the particles
-        self.PARTICLE_SIZE = 0.01
-        # How far away to spawn particles
-        self.PARTICLE_SPAWN_Z = 2.0
+        self.width = 640
+        self.height = 480
+        self.scale = 0
 
         self.should_prepare = False
+        self.resolution_increases = {}
+        self.history_toggle = True
+
+        self.total_bass = 0
+        self.last_loop = 0
+        self.time_elapsed = 0
+        self.alarm_factor = 0
+        self.bass_fraction = 0
+        self.time_delta = 0
+        self.bass_value = 0
+        self.uniform_values = {}
+
+        self.fft = None
+
+        self.display = None
+        self.background = None
+        self.particle_shader = None
+        self.particle_sprite = None
+        self.instance_vbo = None
+        self.spectrum = None
+        self.logo = None
+        self.logo_array = None
+        self.dynamic_texture = None
+        self.after = None
+        self.post = None
+        self.post_sprite = None
 
         # https://stackoverflow.com/questions/48472285/create-core-context-with-glut-freeglut
         # In order to use newer OpenGL versions (e.g. for Instancing), use the following line:
         # glutInitContextVersion( 3, 3 );
 
-    def set_resolution(self, width, height):
-        self.WIDTH, self.HEIGHT = width, height
-        # this scale value determines how many times bigger the actual display is in comparison to the actually computed buffer. Higher values equal lower computation but also lower resolution.
+    def _set_resolution(self, width, height):
+        self.width, self.height = width, height
+        # this scale value determines how many times bigger the actual display is
+        # in comparison to the actually computed buffer.
+        # Higher values equal lower computation but also lower resolution.
         # 1366x768 works alright, use it to compute a starting SCALE (in multiples of SCALE_STEP)
-        self.SCALE_STEP = 0.5
-        self.SCALE = round(width * height / (1366 * 768) * 1 / self.SCALE_STEP) / (
+        self.scale = round(width * height / (1366 * 768) * 1 / self.SCALE_STEP) / (
             1 / self.SCALE_STEP
         )
-        self.SCALE = max(self.SCALE, 1)
+        self.scale = max(self.scale, 1)
 
     def start(self):
         self.cava.use()
@@ -73,7 +109,8 @@ class Circle(VizProgram):
         subprocess.call("xset s noblank".split())
         subprocess.call("xset -dpms".split())
 
-        # read the resolution from the X window and set our dimensions accordingly. Uses the DISPLAY environ variable
+        # read the resolution from the X window and set our dimensions accordingly.
+        # Uses the DISPLAY environ variable
         # alternative without X would be tvserice -d edid.dat && edidparser edid.dat
         xwininfo = (
             subprocess.check_output("xwininfo -root".split()).decode().splitlines()
@@ -86,31 +123,29 @@ class Circle(VizProgram):
             if line.startswith("Height:"):
                 height = int(line.split()[1])
         # width, height = 640, 360
-        self.set_resolution(width, height)
-
+        self._set_resolution(width, height)
         self.resolution_increases = {}
-
         self.should_prepare = True
-
         self.history_toggle = True
 
     def increase_resolution(self):
-        if self.SCALE == 1:
+        if self.scale == 1:
             # do not render more than one pixel per pixel
             return
 
-        # if we get told to increase at a specific resolution a lot of times, we got probably caught in an oscillation. Don't increase resolution then
-        scale_key = round(self.SCALE, 1)
+        # if we get told to increase at a specific resolution a lot of times,
+        # we got probably caught in an oscillation. Don't increase resolution then
+        scale_key = round(self.scale, 1)
         if scale_key not in self.resolution_increases:
             self.resolution_increases[scale_key] = 0
         if self.resolution_increases[scale_key] >= 2:
             return
         self.resolution_increases[scale_key] += 1
 
-        self.SCALE = max(1, self.SCALE - self.SCALE_STEP)
+        self.scale = max(1, self.scale - self.SCALE_STEP)
 
     def decrease_resolution(self):
-        self.SCALE = self.SCALE + self.SCALE_STEP
+        self.scale += self.SCALE_STEP
 
     def _prepare(self):
         self.should_prepare = False
@@ -124,9 +159,6 @@ class Circle(VizProgram):
             opengles,
             GL_CLAMP_TO_EDGE,
             GL_ALWAYS,
-            GL_NEVER,
-            GL_DEPTH_TEST,
-            GL_VERSION,
         )
 
         # used for reimplementing the draw call with instancing
@@ -135,21 +167,19 @@ class Circle(VizProgram):
             GLint,
             GLboolean,
             GL_FLOAT,
-            GL_UNSIGNED_SHORT,
             GLuint,
             GL_ARRAY_BUFFER,
             GL_STATIC_DRAW,
-            GLsizeiptr,
             GLfloat,
         )
         from PIL import Image
 
         # Setup display and initialise pi3d
         self.display = pi3d.Display.create(
-            w=self.WIDTH, h=self.HEIGHT, window_title="Raveberry"
+            w=self.width, h=self.height, window_title="Raveberry"
         )
         # error 0x500 after Display create
-        error = opengles.glGetError()
+        # error = opengles.glGetError()
         # Set a pink background color so mistakes are clearly visible
         # self.display.set_background(1, 0, 1, 1)
         self.display.set_background(0, 0, 0, 1)
@@ -168,17 +198,19 @@ class Circle(VizProgram):
         #    sys.stdout.write('\n')
         # print_char_p(opengles.glGetString(GL_VERSION))
 
-        """
-        Visualization is split into five parts:
-        The background, the particles, the spectrum, the logo and after effects.
-        * The background is a vertical gradient that cycles through HSV color space, speeding up with strong bass.
-        * Particles are multiple sprites that are created at a specified x,y-coordinate and fly towards the camera.
-          Due to the projection into screenspace they seem to move away from the center.
-        * The spectrum is a white circle that represents the fft-transformation of the currently played audio. It is smoothed to avoid strong spikes.
-        * The logo is a black circle on top of the spectrum containing the logo.
-        * After effects add a vignette.
-        Each of these parts is represented with pi3d Shapes. They have their own shader and are ordered on the z-axis to ensure correct overlapping.
-        """
+        # Visualization is split into five parts:
+        # The background, the particles, the spectrum, the logo and after effects.
+        # * The background is a vertical gradient that cycles through HSV color space,
+        #     speeding up with strong bass.
+        # * Particles are multiple sprites that are created at a specified x,y-coordinate
+        #     and fly towards the camera.
+        #     Due to the projection into screenspace they seem to move away from the center.
+        # * The spectrum is a white circle that represents the fft-transformation of the
+        #     currently played audio. It is smoothed to avoid strong spikes.
+        # * The logo is a black circle on top of the spectrum containing the logo.
+        # * After effects add a vignette.
+        # Each of these parts is represented with pi3d Shapes.
+        # They have their own shader and are ordered on the z-axis to ensure correct overlapping.
 
         background_shader = pi3d.Shader(
             os.path.join(settings.BASE_DIR, "core/lights/circle/background")
@@ -191,10 +223,11 @@ class Circle(VizProgram):
             os.path.join(settings.BASE_DIR, "core/lights/circle/particle")
         )
 
-        # create one sprite for all particles and an array containing the position and speed for all of them
+        # create one sprite for all particles
         self.particle_sprite = pi3d.Sprite(w=self.PARTICLE_SIZE, h=self.PARTICLE_SIZE)
         self.particle_sprite.set_shader(self.particle_shader)
         self.particle_sprite.positionZ(0)
+        # this array containes the position and speed for all particles
         particles = self._initial_particles()
 
         # This part was modified from https://learnopengl.com/Advanced-OpenGL/Instancing
@@ -223,7 +256,7 @@ class Circle(VizProgram):
         )
 
         # use the ratio to compute small sizes for the sprites
-        ratio = self.WIDTH / self.HEIGHT
+        ratio = self.width / self.height
         self.spectrum = pi3d.Sprite(w=2 / ratio, h=2)
         self.spectrum.set_shader(spectrum_shader)
         self.spectrum.positionZ(0)
@@ -267,8 +300,10 @@ class Circle(VizProgram):
             axis=2,
         )
 
-        # In order to save memory, the logo and the spectrum share one texture. The upper 256x256 pixels are the raveberry logo.
-        # Below are 256xFFT_HIST pixels for the spectrum. The lower part is periodically updated every frame while the logo stays static.
+        # In order to save memory, the logo and the spectrum share one texture.
+        # The upper 256x256 pixels are the raveberry logo.
+        # Below are 256xFFT_HIST pixels for the spectrum.
+        # The lower part is periodically updated every frame while the logo stays static.
         self.dynamic_texture = pi3d.Texture(self.logo_array)
         # Prevent interpolation from opposite edge
         self.dynamic_texture.m_repeat = GL_CLAMP_TO_EDGE
@@ -282,7 +317,9 @@ class Circle(VizProgram):
         self.after.set_shader(after_shader)
         self.after.positionZ(0)
 
-        # create an OffscreenTexture to allow scaling. By first rendering into a smaller Texture a lot of computation is saved. This OffscreenTexture is then drawn at the end of the draw loop.
+        # create an OffscreenTexture to allow scaling.
+        # By first rendering into a smaller Texture a lot of computation is saved.
+        # This OffscreenTexture is then drawn at the end of the draw loop.
         self.post = pi3d.util.OffScreenTexture.OffScreenTexture("scale")
         self.post_sprite = pi3d.Sprite(w=2, h=2)
         post_shader = pi3d.Shader(
@@ -297,15 +334,16 @@ class Circle(VizProgram):
 
         opengles.glDepthFunc(GL_ALWAYS)
 
+    def _set_unif(self, sprite, uniforms):
+        for uniform in uniforms:
+            sprite.unif[uniform] = self.uniform_values[uniform]
+
     def draw(self):
         import numpy as np
         from scipy.ndimage.filters import gaussian_filter
-        import pi3d
         from pi3d.Camera import Camera
         from pi3d.constants import (
             opengles,
-            GL_LESS,
-            GL_ALWAYS,
             GL_SRC_ALPHA,
             GL_ONE_MINUS_SRC_ALPHA,
             GLsizei,
@@ -324,17 +362,17 @@ class Circle(VizProgram):
             self._prepare()
 
         if self.lights.alarm_program.factor != -1:
-            alarm_factor = max(0.001, self.lights.alarm_program.factor)
+            self.alarm_factor = max(0.001, self.lights.alarm_program.factor)
         else:
-            alarm_factor = 0
+            self.alarm_factor = 0
 
         then = time.time()
 
         self.display.loop_running()
         now = self.display.time
-        time_delta = now - self.last_loop
+        self.time_delta = now - self.last_loop
         self.last_loop = now
-        self.time_elapsed += time_delta
+        self.time_elapsed += self.time_delta
 
         if time_logging:
             print(f"{time.time() - then} main loop")
@@ -343,7 +381,7 @@ class Circle(VizProgram):
         # use a sliding window to smooth the spectrum with a gauss function
         # truncating does not save significant time (~3% for this step)
 
-        new_frame = np.array(self.cava.current_frame, dtype="float32")
+        # new_frame = np.array(self.cava.current_frame, dtype="float32")
         new_frame = gaussian_filter(self.cava.current_frame, sigma=1.5, mode="nearest")
         new_frame = new_frame[self.SPECTRUM_CUT : -self.SPECTRUM_CUT]
         new_frame = -0.5 * new_frame ** 3 + 1.5 * new_frame
@@ -357,32 +395,43 @@ class Circle(VizProgram):
         # Value used for circle shake and background color cycle
         # select the first few values and compute their average
         bass_elements = math.ceil(self.BASS_MAX * self.cava.bars)
-        bass_value = sum(current_frame[0:bass_elements]) / bass_elements / 255
-        bass_value = max(bass_value, alarm_factor)
-        self.total_bass = self.total_bass + bass_value
+        self.bass_value = sum(current_frame[0:bass_elements]) / bass_elements / 255
+        self.bass_value = max(self.bass_value, self.alarm_factor)
+        self.total_bass = self.total_bass + self.bass_value
         # the fraction of time that there was bass
-        bass_fraction = self.total_bass / self.time_elapsed / self.lights.UPS
+        self.bass_fraction = self.total_bass / self.time_elapsed / self.lights.UPS
+
+        self.uniform_values = {
+            48: self.width / self.scale,
+            49: self.height / self.scale,
+            50: self.scale,
+            51: self.FFT_HIST,
+            52: self.NUM_PARTICLES,
+            53: self.PARTICLE_SPAWN_Z,
+            54: self.time_elapsed,
+            55: self.time_delta,
+            56: self.alarm_factor,
+            57: self.bass_value,
+            58: self.total_bass,
+            59: self.bass_fraction,
+        }
 
         # start rendering to the smaller OffscreenTexture
         # we decrease the size of the texture so it only allocates that much memory
         # otherwise it would use as much as the displays size, negating its positive effect
-        self.post.ix = int(self.post.ix / self.SCALE)
-        self.post.iy = int(self.post.iy / self.SCALE)
+        self.post.ix = int(self.post.ix / self.scale)
+        self.post.iy = int(self.post.iy / self.scale)
         opengles.glViewport(
             GLint(0),
             GLint(0),
-            GLsizei(int(self.WIDTH / self.SCALE)),
-            GLsizei(int(self.HEIGHT / self.SCALE)),
+            GLsizei(int(self.width / self.scale)),
+            GLsizei(int(self.height / self.scale)),
         )
         self.post._start()
-        self.post.ix = self.WIDTH
-        self.post.iy = self.HEIGHT
+        self.post.ix = self.width
+        self.post.iy = self.height
 
-        self.background.unif[48] = self.WIDTH / self.SCALE
-        self.background.unif[49] = self.HEIGHT / self.SCALE
-        self.background.unif[54] = self.time_elapsed
-        self.background.unif[56] = alarm_factor
-        self.background.unif[58] = self.total_bass
+        self._set_unif(self.background, [48, 49, 54, 56, 58])
         self.background.draw()
 
         if time_logging:
@@ -392,9 +441,7 @@ class Circle(VizProgram):
         # enable additive blending so the draw order of overlapping particles does not matter
         opengles.glBlendFunc(1, 1)
 
-        self.particle_sprite.unif[53] = self.PARTICLE_SPAWN_Z
-        self.particle_sprite.unif[54] = self.time_elapsed
-        self.particle_sprite.unif[59] = bass_fraction
+        self._set_unif(self.particle_sprite, [53, 54, 59])
 
         # copied code from pi3d.Shape.draw()
         # we don't need modelmatrices, normals ord textures and always blend
@@ -484,37 +531,21 @@ class Circle(VizProgram):
             print(f"{time.time() - then} glTexImage2D")
             then = time.time()
 
-        self.spectrum.unif[48] = self.WIDTH / self.SCALE
-        self.spectrum.unif[49] = self.HEIGHT / self.SCALE
-        self.spectrum.unif[51] = self.FFT_HIST
-        self.spectrum.unif[52] = self.NUM_PARTICLES
-        self.spectrum.unif[53] = self.PARTICLE_SPAWN_Z
-        self.spectrum.unif[54] = self.time_elapsed
-        self.spectrum.unif[55] = time_delta
-        self.spectrum.unif[57] = bass_value
-        self.spectrum.unif[58] = self.total_bass
+        self._set_unif(self.spectrum, [48, 49, 51, 52, 53, 54, 55, 57, 58])
         self.spectrum.draw()
 
         if time_logging:
             print(f"{time.time() - then} spectrum draw")
             then = time.time()
 
-        self.logo.unif[48] = self.WIDTH / self.SCALE
-        self.logo.unif[49] = self.HEIGHT / self.SCALE
-        self.logo.unif[51] = self.FFT_HIST
-        self.logo.unif[54] = self.time_elapsed
-        self.logo.unif[57] = bass_value
-        self.logo.unif[58] = self.total_bass
+        self._set_unif(self.logo, [48, 49, 51, 54, 57, 58])
         self.logo.draw()
 
         if time_logging:
             print(f"{time.time() - then} logo draw")
             then = time.time()
 
-        self.after.unif[48] = self.WIDTH / self.SCALE
-        self.after.unif[49] = self.HEIGHT / self.SCALE
-        self.after.unif[54] = self.time_elapsed
-        self.after.unif[57] = bass_value
+        self._set_unif(self.after, [48, 49, 54, 57])
         self.after.draw()
 
         if time_logging:
@@ -524,15 +555,14 @@ class Circle(VizProgram):
         self.post._end()
 
         opengles.glViewport(
-            GLint(0), GLint(0), GLsizei(self.WIDTH), GLsizei(self.HEIGHT)
+            GLint(0), GLint(0), GLsizei(self.width), GLsizei(self.height)
         )
-        self.post_sprite.unif[50] = self.SCALE
+        self._set_unif(self.post_sprite, [50])
         self.post_sprite.draw()
 
         if time_logging:
             print(f"{time.time() - then} post draw")
-            then = time.time()
-            print(f"scale: {self.SCALE}")
+            print(f"scale: {self.scale}")
             print("=====")
 
     def _initial_particles(self):
@@ -548,7 +578,7 @@ class Circle(VizProgram):
             y = math.sin(phi) * (0.15 + radius_diff * 0.05)
             z = self.PARTICLE_SPAWN_Z
             speed = 0.15 * (random.random() * 0.75 + 0.3)
-            offset = random.random() * self.PARTICLE_SPAWN_Z
+            offset = random.random() * z
 
             particles[index] = [x, y, speed, offset]
         return particles
@@ -561,8 +591,9 @@ class Circle(VizProgram):
         self.cava.release()
 
 
-if __name__ == "__main__":
-    cava = type(
+def main():
+    """Runs this visualization without the need of the server running."""
+    MockCava = type(
         "obj",
         (object,),
         {
@@ -572,34 +603,33 @@ if __name__ == "__main__":
             "release": lambda: ...,
         },
     )
-    lights = type(
+    MockLights = type(
         "obj",
         (object,),
         {
             "UPS": 25,
-            "cava_program": cava,
+            "cava_program": MockCava,
             "alarm_program": type("obj", (object,), {"factor": -1}),
         },
     )
-    settings = type("obj", (object,), {"BASE_DIR": "../../.."})
-    circle = Circle(lights)
+    circle = Circle(MockLights)
     circle.start()
-    seconds_per_frame = 1 / lights.UPS
+    seconds_per_frame = 1 / MockLights.UPS
 
     while True:
         computation_start = time.time()
         circle.draw()
-        cava.current_frame = [
+        MockCava.current_frame = [
             0.5 * (1 + math.sin(-4 * circle.time_elapsed + 0.5 * i))
-            for i in range(len(cava.current_frame))
+            for i in range(len(MockCava.current_frame))
         ]
-        cava.current_frame = [
+        MockCava.current_frame = [
             0.8
             * 0.5
             * (1 + math.sin(4 * circle.time_elapsed))
             * 0.5
             * (1 + math.sin(-4 * circle.time_elapsed + 0.2 * i))
-            for i in range(len(cava.current_frame))
+            for i in range(len(MockCava.current_frame))
         ]
         computation_time = time.time() - computation_start
         # print(f'time needed / avaliable: {computation_time / seconds_per_frame:0.2f}')
@@ -607,3 +637,11 @@ if __name__ == "__main__":
             time.sleep(seconds_per_frame - computation_time)
         except ValueError:
             pass
+
+
+if __name__ == "__main__":
+    # overwrite the settings to have it point to the correct directories
+    settings = type(  # pylint: disable=invalid-name
+        "obj", (object,), {"BASE_DIR": "../../..", "STATIC_ROOT": "../../../static"}
+    )
+    main()

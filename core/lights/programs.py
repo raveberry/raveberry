@@ -1,67 +1,94 @@
-from django.conf import settings
+"""This module contains all programs used for visualization (except complex screen programs)."""
 
-import os
-import math
-import errno
 import colorsys
+import errno
+import math
+import os
 import subprocess
+
+from django.conf import settings
 
 
 class VizProgram:
+    """The base class for all programs."""
+
     def __init__(self, lights):
         self.lights = lights
         self.consumers = 0
 
     def start(self):
-        """ initializes the program, allocates resources """
-        pass
+        """Initializes the program, allocates resources."""
 
     def use(self):
-        """ tells the program that it is used by another consumer
-        starts the program if this was the first one """
+        """Tells the program that it is used by another consumer.
+        Starts the program if this is the first usage."""
         if self.consumers == 0:
             self.start()
         self.consumers += 1
 
-    def compute(self):
-        """ is called once per led frame. computation should happen here, 
-        results are only returned in color functions"""
-        pass
-
     def stop(self):
-        """ stops the program, releases resources """
-        pass
+        """Stops the program, releases resources."""
 
     def release(self):
-        """ tells the program that one consumer does not use it anymore
-        stops the program if this was the last one """
+        """Tells the program that one consumer does not use it anymore.
+        Stops the program if this was the last one."""
         self.consumers -= 1
         if self.consumers == 0:
             self.stop()
 
 
-class Disabled(VizProgram):
+class ScreenProgram(VizProgram):
+    """The base class for all screen visualization programs."""
+
+    def draw(self):
+        """Called every frame. Updates the screen."""
+        raise NotImplementedError()
+
+    def increase_resolution(self):
+        """Called if there is time in the loop to spare.
+        Increases the system load, but also increases quality."""
+
+    def decrease_resolution(self):
+        """Called if rendering takes too long.
+        Decreases the quality and speeds up the draw call."""
+
+
+class LedProgram(VizProgram):
+    """The base class for all led visualization programs."""
+
+    def compute(self):
+        """Is called once per update. Computation should happen here,
+        so they can be reused in the returning functions"""
+
+    def ring_colors(self):
+        """Returns the colors for the ring, one rgb tuple for each led."""
+        raise NotImplementedError()
+
+    def strip_color(self):
+        """Returns the rgb values for the strip."""
+        raise NotImplementedError()
+
+
+class Disabled(LedProgram, ScreenProgram):
+    """A null class to represent inactivity."""
+
     def __init__(self, lights):
         super().__init__(lights)
         self.name = "Disabled"
 
+    def draw(self):
+        print("called draw on disabled program!")
+
     def ring_colors(self):
-        print("requested disabled ring_colors!")
+        print("called ring_colors on disabled program!")
 
     def strip_color(self):
-        print("requested disabled strip_color!")
-
-    def draw(self):
-        print("requested disabled draw!")
-
-    def increase_resolution(self):
-        pass
-
-    def decrease_resolution(self):
-        pass
+        print("called strip_colors on disabled program!")
 
 
-class Fixed(VizProgram):
+class Fixed(LedProgram):
+    """Show one fixed color only. The color is controlled in the lights module."""
+
     def __init__(self, lights):
         super().__init__(lights)
         self.name = "Fixed"
@@ -74,17 +101,21 @@ class Fixed(VizProgram):
             self.color = (alarm_factor, 0, 0)
 
     def ring_colors(self):
-        return [self.color for led in range(self.lights.ring.LED_COUNT)]
+        return [self.color for _ in range(self.lights.ring.LED_COUNT)]
 
     def strip_color(self):
         return self.color
 
 
-class Rainbow(VizProgram):
+class Rainbow(LedProgram):
+    """Continuously cycles through all colors. Affected by the speed setting."""
+
     def __init__(self, lights):
         super().__init__(lights)
         self.name = "Rainbow"
         self.program_duration = 1
+        self.time_passed = 0
+        self.current_fraction = 0
 
     def start(self):
         self.time_passed = 0
@@ -106,14 +137,18 @@ class Rainbow(VizProgram):
         return colorsys.hsv_to_rgb(self.current_fraction, 1, 1)
 
 
-class Adaptive(VizProgram):
+class Adaptive(LedProgram):
+    """Dynamically reacts to the currently played music.
+    Low frequencies are represented by red, high ones by blue."""
+
     def __init__(self, lights):
         super().__init__(lights)
         self.name = "Rave"
         self.cava = self.lights.cava_program
 
         # RING
-        # map the leds to rainbow colors from red over green to blue (without pink-> hue values in [0, ⅔]
+        # map the leds to rainbow colors from red over green to blue
+        # (without pink-> hue values in [0, ⅔]
         # stretch the outer regions (red and blue) and compress the inner region (green)
         self.led_count = self.lights.ring.LED_COUNT
         hues = [
@@ -141,11 +176,14 @@ class Adaptive(VizProgram):
             for led in range(0, self.led_count)
         ]
 
+        self.current_frame = []
+
     def start(self):
         self.cava.use()
 
     def compute(self):
-        # aggregate the length of cavas frame into a list the length of the number of leds we have. This reduces computation
+        # aggregate the length of cavas frame into a list the length of the number of leds we have.
+        # This reduces computation time.
         values_per_led = len(self.cava.current_frame) // self.led_count
         self.current_frame = []
         for led in range(self.led_count):
@@ -185,13 +223,16 @@ class Adaptive(VizProgram):
         red = min(1, red)
         green = min(1, green)
         blue = min(1, blue)
-        return (red, green, blue)
+        return red, green, blue
 
     def stop(self):
         self.cava.release()
 
 
 class Alarm(VizProgram):
+    """This program makes the leds flash red in sync to the played sound.
+    Only computes the brightness, does not display it."""
+
     def __init__(self, lights):
         super().__init__(lights)
         self.name = "Alarm"
@@ -209,6 +250,8 @@ class Alarm(VizProgram):
         self.factor = 0
 
     def compute(self):
+        """If active, compute the brightness for the red color,
+        depending on the time that has passed since starting the sound."""
         # do not compute if the alarm is not active
         if self.consumers == 0:
             return
@@ -238,6 +281,9 @@ class Alarm(VizProgram):
 
 
 class Cava(VizProgram):
+    """This Program manages the interaction with cava.
+    It provides the current frequencies for other programs to use."""
+
     def __init__(self, lights):
         super().__init__(lights)
 
@@ -249,18 +295,23 @@ class Cava(VizProgram):
 
         self.frame_length = self.bars * (self.bit_format // 8)
 
+        self.current_frame = []
+        self.growing_frame = b""
+        self.cava_process = None
+        self.cava_fifo = None
+
     def start(self):
-        self.current_frame = [0 for led in range(self.bars)]
+        self.current_frame = [0 for _ in range(self.bars)]
         self.growing_frame = b""
         try:
             # delete old contents of the pipe
             os.remove(self.cava_fifo_path)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             # the file does not exist
             pass
         try:
             os.mkfifo(self.cava_fifo_path)
-        except FileExistsError as e:
+        except FileExistsError:
             # the file already exists
             print(self.cava_fifo_path + " already exists while starting")
 
@@ -272,6 +323,9 @@ class Cava(VizProgram):
         self.cava_fifo = os.open(self.cava_fifo_path, os.O_RDONLY | os.O_NONBLOCK)
 
     def compute(self):
+        """If active, read output from the cava program.
+        Make sure that the most recent frame is always fully available,
+        Stores incomplete frames for the next update."""
         # do not compute if no program uses cava
         if self.consumers == 0:
             return
@@ -288,8 +342,6 @@ class Cava(VizProgram):
                 if e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK:
                     # there were not enough bytes for a whole frame, keep the old frame
                     return
-                else:
-                    raise
 
             # we read a whole frame, update the factors
             if len(self.growing_frame) == self.frame_length:

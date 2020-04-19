@@ -1,41 +1,52 @@
-import json
+"""This module handles the suggestions when starting to
+type into the input field on the musiq page."""
+
 import random
 
 from django.db.models import Q
-from django.http import HttpResponseBadRequest, JsonResponse, HttpResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 
-from core.models import ArchivedPlaylist, ArchivedSong
 import core.musiq.song_utils as song_utils
+from core.models import ArchivedPlaylist, ArchivedSong
 from core.musiq.music_provider import SongProvider
-from core.musiq import youtube, spotify
+from core.musiq.spotify import Spotify
+from core.musiq.youtube import Youtube
 
 
 class Suggestions:
+    """This class provides endpoints that serve suggestions."""
+
     def __init__(self, musiq):
         self.musiq = musiq
 
-    def random_suggestion(self, request):
+    @classmethod
+    def random_suggestion(cls, request):
+        """This method returns a random suggestion from the database.
+        Depending on the value of :param playlist:,
+        either a previously pushed playlist or song is returned."""
         suggest_playlist = request.GET["playlist"] == "true"
-        if suggest_playlist:
-            # exclude radios from suggestions
-            remaining_playlists = (
-                ArchivedPlaylist.objects.all()
-                .exclude(list_id__startswith="RD")
-                .exclude(list_id__contains="&list=RD")
-            )
-            if remaining_playlists.count() == 0:
-                return HttpResponseBadRequest("No playlists to suggest from")
-            index = random.randint(0, remaining_playlists.count() - 1)
-            playlist = remaining_playlists.all()[index]
-            return JsonResponse({"suggestion": playlist.title, "key": playlist.id,})
-        else:
+        if not suggest_playlist:
             if ArchivedSong.objects.count() == 0:
                 return HttpResponseBadRequest("No songs to suggest from")
             index = random.randint(0, ArchivedSong.objects.count() - 1)
             song = ArchivedSong.objects.all()[index]
-            return JsonResponse({"suggestion": song.displayname(), "key": song.id,})
+            return JsonResponse({"suggestion": song.displayname(), "key": song.id})
+
+        # exclude radios from suggestions
+        remaining_playlists = (
+            ArchivedPlaylist.objects.all()
+            .exclude(list_id__startswith="RD")
+            .exclude(list_id__contains="&list=RD")
+        )
+        if remaining_playlists.count() == 0:
+            return HttpResponseBadRequest("No playlists to suggest from")
+        index = random.randint(0, remaining_playlists.count() - 1)
+        playlist = remaining_playlists.all()[index]
+        return JsonResponse({"suggestion": playlist.title, "key": playlist.id})
 
     def get_suggestions(self, request):
+        """Returns suggestions for a given query.
+        Combines online and offline suggestions."""
         terms = request.GET["term"].split()
         suggest_playlist = request.GET["playlist"] == "true"
 
@@ -43,7 +54,7 @@ class Suggestions:
 
         if self.musiq.base.settings.has_internet:
             if self.musiq.base.settings.spotify_enabled:
-                spotify_suggestions = spotify.get_search_suggestions(
+                spotify_suggestions = Spotify().get_search_suggestions(
                     " ".join(terms), suggest_playlist
                 )
                 spotify_suggestions = spotify_suggestions[:2]
@@ -56,14 +67,19 @@ class Suggestions:
                         }
                     )
 
-            youtube_suggestions = youtube.get_search_suggestions(" ".join(terms))
+            youtube_suggestions = Youtube().get_search_suggestions(" ".join(terms))
             # limit to the first three online suggestions
             youtube_suggestions = youtube_suggestions[:2]
             for suggestion in youtube_suggestions:
                 results.append(
-                    {"key": -1, "value": suggestion, "type": "youtube-online",}
+                    {"key": -1, "value": suggestion, "type": "youtube-online"}
                 )
 
+        # The following query is roughly equivalent to the following SQL code:
+        # SELECT DISTINCT id, title, artist, counter
+        # FROM core_archivedsong s LEFT JOIN core_archivedquery q ON q.song
+        # WHERE forall term in terms: term in q.query or term in s.artist or term in s.title
+        # ORDER BY -counter
         if suggest_playlist:
             remaining_playlists = ArchivedPlaylist.objects.prefetch_related("queries")
             # exclude radios from suggestions
@@ -83,7 +99,6 @@ class Suggestions:
             )
 
             for playlist in remaining_playlists:
-                cached = False
                 archived_playlist = ArchivedPlaylist.objects.get(id=playlist["id"])
                 result_dict = {
                     "key": playlist["id"],
@@ -131,11 +146,4 @@ class Suggestions:
                 }
                 results.append(result_dict)
 
-        return HttpResponse(json.dumps(results))
-
-        """ query for the suggestions
-        SELECT DISTINCT id, title, artist, counter
-        FROM core_archivedsong s LEFT JOIN core_archivedquery q ON q.song
-        WHERE forall term in terms: term in q.query or term in s.artist or term in s.title
-        ORDER BY -counter
-        """
+        return JsonResponse(results, safe=False)

@@ -1,86 +1,96 @@
-import mopidy_spotify
-from django.http import HttpResponse
-
-from core.musiq import song_utils
-from core.musiq.music_provider import SongProvider, PlaylistProvider
-from core.models import ArchivedSong, Setting
-from mopidy_spotify.web import OAuthClient
+"""This module contains all Spotify related code."""
 
 from urllib.parse import urlparse
 
-from core.models import ArchivedSong, ArchivedPlaylist
+from django.http import HttpResponse
+from mopidy_spotify.web import OAuthClient
 
-_web_client = None
+from core.models import Setting
+from core.musiq import song_utils
+from core.musiq.music_provider import SongProvider, PlaylistProvider
 
 
-def get_web_client():
-    global _web_client
-    if _web_client is None:
-        client_id = Setting.objects.get(key="spotify_client_id").value
-        client_secret = Setting.objects.get(key="spotify_client_secret").value
-        _web_client = OAuthClient(
-            base_url="https://api.spotify.com/v1",
-            refresh_url="https://auth.mopidy.com/spotify/token",
-            client_id=client_id,
-            client_secret=client_secret,
+class Spotify:
+    """This class contains code for both the song and playlist provider"""
+
+    _web_client = None
+
+    @property
+    def web_client(self):
+        """Returns the web client if it was already created.
+        If not, it is created using the spotify credentials from the database."""
+        if Spotify._web_client is None:
+            client_id = Setting.objects.get(key="spotify_client_id").value
+            client_secret = Setting.objects.get(key="spotify_client_secret").value
+            Spotify._web_client = OAuthClient(
+                base_url="https://api.spotify.com/v1",
+                refresh_url="https://auth.mopidy.com/spotify/token",
+                client_id=client_id,
+                client_secret=client_secret,
+            )
+        return Spotify._web_client
+
+    def get_search_suggestions(self, query, playlist):
+        """Returns a list of suggested items for the given query.
+        Returns playlists if :param playlist: is True, songs otherwise."""
+        result = self.web_client.get(
+            "search",
+            params={
+                "q": query,
+                "limit": "10",
+                "market": "from_token",
+                "type": "playlist" if playlist else "track",
+            },
         )
-    return _web_client
 
-
-def get_search_suggestions(query, playlist):
-    web_client = get_web_client()
-    result = web_client.get(
-        "search",
-        params={
-            "q": query,
-            "limit": "10",
-            "market": "from_token",
-            "type": "playlist" if playlist else "track",
-        },
-    )
-
-    if playlist:
-        items = result["playlists"]["items"]
-    else:
-        items = result["tracks"]["items"]
-
-    suggestions = []
-    for item in items:
-        external_url = item["external_urls"]["spotify"]
-        title = item["name"]
         if playlist:
-            displayname = title
+            items = result["playlists"]["items"]
         else:
-            artist = item["artists"][0]["name"]
-            displayname = song_utils.displayname(artist, title)
-        suggestions.append((displayname, external_url))
+            items = result["tracks"]["items"]
 
-    # remove duplicates
-    chosen_displaynames = set()
-    unique_suggestions = []
-    for suggestion in suggestions:
-        if suggestion[0] in chosen_displaynames:
-            continue
-        unique_suggestions.append(suggestion)
-        chosen_displaynames.add(suggestion[0])
-    return unique_suggestions
+        suggestions = []
+        for item in items:
+            external_url = item["external_urls"]["spotify"]
+            title = item["name"]
+            if playlist:
+                displayname = title
+            else:
+                artist = item["artists"][0]["name"]
+                displayname = song_utils.displayname(artist, title)
+            suggestions.append((displayname, external_url))
+
+        # remove duplicates
+        chosen_displaynames = set()
+        unique_suggestions = []
+        for suggestion in suggestions:
+            if suggestion[0] in chosen_displaynames:
+                continue
+            unique_suggestions.append(suggestion)
+            chosen_displaynames.add(suggestion[0])
+        return unique_suggestions
 
 
-class SpotifySongProvider(SongProvider):
+class SpotifySongProvider(SongProvider, Spotify):
+    """This class handles songs from Spotify."""
+
     @staticmethod
     def get_id_from_external_url(url):
         return urlparse(url).path.split("/")[-1]
 
     @staticmethod
     def get_id_from_internal_url(url):
+        """Constructs and returns the internal id based on the given url."""
         return url.split(":")[-1]
 
     def __init__(self, musiq, query, key):
         super().__init__(musiq, query, key)
+
+        if query and query.startswith("https://www.youtube.com/watch?v="):
+            raise ValueError("Tried to create a Spotify provider using a Youtube Url")
+
         self.type = "spotify"
         self.spotify_library = musiq.player.player.library
         self.metadata = dict()
-        self.web_client = get_web_client()
 
     def check_cached(self):
         if self.query is not None and self.query.startswith(
@@ -90,7 +100,7 @@ class SpotifySongProvider(SongProvider):
             if extracted_id is not None:
                 self.id = extracted_id
 
-        if not self._check_cached():
+        if not super()._check_cached():
             return False
         # Spotify songs cannot be cached and have to be streamed everytime
         return False
@@ -111,12 +121,15 @@ class SpotifySongProvider(SongProvider):
 
         return True
 
-    def download(self, ip, background=True, archive=True, manually_requested=True):
-        self.enqueue(ip, archive=archive, manually_requested=manually_requested)
+    def download(
+        self, request_ip, background=True, archive=True, manually_requested=True
+    ):
+        self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
         # spotify need to be streamed, no download possible
         return True
 
     def gather_metadata(self, track_info=None):
+        """Fetches metadata for this song's uri from Spotify."""
         if not track_info:
             results = self.spotify_library.search({"uri": [self.get_internal_url()]})
             track_info = results[0].tracks[0]
@@ -132,6 +145,10 @@ class SpotifySongProvider(SongProvider):
             self.gather_metadata()
         return self.metadata
 
+    def _get_path(self):
+        # spotify is not cached in the cache directory
+        return None
+
     def get_internal_url(self):
         return "spotify:track:" + self.id
 
@@ -141,7 +158,7 @@ class SpotifySongProvider(SongProvider):
     def get_suggestion(self):
         result = self.web_client.get(
             "recommendations",
-            params={"limit": "1", "market": "from_token", "seed_tracks": self.id,},
+            params={"limit": "1", "market": "from_token", "seed_tracks": self.id},
         )
 
         try:
@@ -152,7 +169,7 @@ class SpotifySongProvider(SongProvider):
 
         return external_url
 
-    def request_radio(self, ip):
+    def request_radio(self, request_ip):
         result = self.web_client.get(
             "recommendations",
             params={
@@ -164,7 +181,7 @@ class SpotifySongProvider(SongProvider):
 
         for track in result["tracks"]:
             external_url = track["external_urls"]["spotify"]
-            self.musiq._request_music(
+            self.musiq.do_request_music(
                 "",
                 external_url,
                 None,
@@ -177,7 +194,9 @@ class SpotifySongProvider(SongProvider):
         return HttpResponse("queueing radio")
 
 
-class SpotifyPlaylistProvider(PlaylistProvider):
+class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
+    """This class handles Spotify Playlists."""
+
     @staticmethod
     def get_id_from_external_url(url):
         if not url.startswith("https://open.spotify.com/playlist/"):
@@ -187,7 +206,6 @@ class SpotifyPlaylistProvider(PlaylistProvider):
     def __init__(self, musiq, query, key):
         super().__init__(musiq, query, key)
         self.type = "spotify"
-        self.web_client = get_web_client()
 
     def search_id(self):
         result = self.web_client.get(
@@ -217,7 +235,7 @@ class SpotifyPlaylistProvider(PlaylistProvider):
     def fetch_metadata(self):
         if self.title is None:
             result = self.web_client.get(
-                f"playlists/{self.id}", params={"fields": "name", "limit": "50",},
+                f"playlists/{self.id}", params={"fields": "name", "limit": "50"},
             )
             self.title = result["name"]
 

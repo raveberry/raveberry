@@ -1,7 +1,11 @@
+"""This module handles the led strip."""
+
 import Adafruit_PCA9685
 
 
 class Strip:
+    """This class provides an interface to control the led strip."""
+
     def __init__(self):
         try:
             self.controller = Adafruit_PCA9685.PCA9685()
@@ -13,6 +17,7 @@ class Strip:
         self.brightness = 1
 
     def set_color(self, color):
+        """Sets the color of the strip to the given rgb triple."""
         if not self.initialized:
             return
 
@@ -23,6 +28,7 @@ class Strip:
             self.controller.set_pwm(channel, 0, scaled_val)
 
     def clear(self):
+        """Turns off the strip by setting its color to black."""
         if not self.initialized:
             return
 

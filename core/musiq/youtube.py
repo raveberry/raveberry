@@ -1,85 +1,25 @@
-from contextlib import contextmanager
+"""This module contains all Youtube related code."""
 
+import json
+import os
+import pickle
+from contextlib import contextmanager
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
+
+import requests
+import youtube_dl
 from django.conf import settings
-from django.db import transaction
-from django.db.models import F
 from django.http import HttpResponse, HttpResponseBadRequest
 
 import core.musiq.song_utils as song_utils
-
-import youtube_dl
-import subprocess
-import requests
-import pickle
-import errno
-import time
-import json
-import os
-import threading
-import mutagen.easymp4
-
-from urllib.parse import urlparse
-from urllib.parse import parse_qs
-
-from core.models import (
-    ArchivedSong,
-    ArchivedPlaylist,
-    PlaylistEntry,
-    ArchivedPlaylistQuery,
-    RequestLog,
-)
 from core.musiq.music_provider import SongProvider, PlaylistProvider
 from core.util import background_thread
 
 
-class MyLogger(object):
-    def debug(self, msg):
-        if settings.DEBUG:
-            print(msg)
-
-    def warning(self, msg):
-        if settings.DEBUG:
-            print(msg)
-
-    def error(self, msg):
-        print(msg)
-
-
-# youtube-dl --format bestaudio[ext=m4a]/best[ext=m4a] --output '%(id)s.%(ext)s --no-playlist --write-thumbnail --default-search auto --add-metadata --embed-thumbnail
-def get_ydl_opts():
-    return {
-        "format": "bestaudio[ext=m4a]/best[ext=m4a]",
-        "outtmpl": os.path.join(settings.SONGS_CACHE_DIR, "%(id)s.%(ext)s"),
-        "noplaylist": True,
-        "no_color": True,
-        "writethumbnail": True,
-        "default_search": "auto",
-        "postprocessors": [
-            {"key": "FFmpegMetadata",},
-            {
-                "key": "EmbedThumbnail",
-                # overwrite any thumbnails already present
-                "already_have_thumbnail": True,
-            },
-        ],
-        "logger": MyLogger(),
-    }
-
-
-def get_initial_data(html):
-    for line in html.split("\n"):
-        line = line.strip()
-        prefix = 'window["ytInitialData"] = '
-        if line.startswith(prefix):
-            # strip assignment and semicolon
-            initial_data = line[len(prefix) : -1]
-            initial_data = json.loads(initial_data)
-            return initial_data
-
-
-# a context that opens a session and loads the cookies file
 @contextmanager
 def youtube_session():
+    """This context opens a requests session and loads the youtube cookies file."""
     session = requests.session()
     try:
         with open(
@@ -101,52 +41,100 @@ def youtube_session():
         pickle.dump(session.cookies, f)
 
 
-def get_search_suggestions(query):
-    with youtube_session() as session:
-        params = {
-            "client": "youtube",
-            "q": query,
-            "xhr": "t",  # this makes the response be a json file
+class YoutubeDLLogger:
+    """This logger class is used to log process of youtube-dl downloads."""
+
+    @classmethod
+    def debug(cls, msg):
+        """This method is called if youtube-dl does debug level logging."""
+        if settings.DEBUG:
+            print(msg)
+
+    @classmethod
+    def warning(cls, msg):
+        """This method is called if youtube-dl does warning level logging."""
+        if settings.DEBUG:
+            print(msg)
+
+    @classmethod
+    def error(cls, msg):
+        """This method is called if youtube-dl does error level logging."""
+        print(msg)
+
+
+class Youtube:
+    """This class contains code for both the song and playlist provider"""
+
+    @staticmethod
+    def get_ydl_opts():
+        """This method returns a dictionary containing sensible defaults for youtube-dl options.
+        It is roughly equivalent to the following command:
+        youtube-dl --format bestaudio[ext=m4a]/best[ext=m4a] --output '%(id)s.%(ext)s \
+            --no-playlist --write-thumbnail --default-search auto --add-metadata --embed-thumbnail
+        """
+        return {
+            "format": "bestaudio[ext=m4a]/best[ext=m4a]",
+            "outtmpl": os.path.join(settings.SONGS_CACHE_DIR, "%(id)s.%(ext)s"),
+            "noplaylist": True,
+            "no_color": True,
+            "writethumbnail": True,
+            "default_search": "auto",
+            "postprocessors": [
+                {"key": "FFmpegMetadata"},
+                {
+                    "key": "EmbedThumbnail",
+                    # overwrite any thumbnails already present
+                    "already_have_thumbnail": True,
+                },
+            ],
+            "logger": YoutubeDLLogger(),
         }
-        r = session.get("https://clients1.google.com/complete/search", params=params)
-    suggestions = json.loads(r.text)
-    # first entry is the query, the second one contains the suggestions
-    suggestions = suggestions[1]
-    # suggestions are given as tuples; extract the string and skip the query if it occurs identically
-    suggestions = [entry[0] for entry in suggestions if entry[0] != query]
-    return suggestions
+
+    @staticmethod
+    def _get_initial_data(html):
+        for line in html.split("\n"):
+            line = line.strip()
+            prefix = 'window["ytInitialData"] = '
+            if line.startswith(prefix):
+                # strip assignment and semicolon
+                initial_data = line[len(prefix) : -1]
+                initial_data = json.loads(initial_data)
+                return initial_data
+        return None
+
+    @staticmethod
+    def get_search_suggestions(query):
+        """Returns a list of suggestions for the given query from Youtube."""
+        with youtube_session() as session:
+            params = {
+                "client": "youtube",
+                "q": query,
+                "xhr": "t",  # this makes the response be a json file
+            }
+            response = session.get(
+                "https://clients1.google.com/complete/search", params=params
+            )
+        suggestions = json.loads(response.text)
+        # first entry is the query, the second one contains the suggestions
+        suggestions = suggestions[1]
+        # suggestions are given as tuples
+        # extract the string and skip the query if it occurs identically
+        suggestions = [entry[0] for entry in suggestions if entry[0] != query]
+        return suggestions
 
 
-class NoPlaylistException(Exception):
-    pass
+class YoutubeSongProvider(SongProvider, Youtube):
+    """This class handles songs from Youtube."""
 
-
-class Downloader:
-    def get_playlist_info(self):
-        self.ydl_opts = get_ydl_opts()
-
-
-class YoutubeSongProvider(SongProvider):
     @staticmethod
     def get_id_from_external_url(url):
         return parse_qs(urlparse(url).query)["v"][0]
-
-    @staticmethod
-    def get_id_from_internal_url(url):
-        return os.path.splitext(os.path.basename(url[len("file://") :]))[0]
 
     def __init__(self, musiq, query, key):
         super().__init__(musiq, query, key)
         self.type = "youtube"
         self.info_dict = None
-        self.ydl_opts = get_ydl_opts()
-
-    def check_cached(self):
-        # TODO: in case query is set but key and id is not, try to extract the id from the query
-        # example: https://youtu.be/<id>
-        if not self._check_cached():
-            return False
-        return os.path.isfile(self.get_path())
+        self.ydl_opts = Youtube.get_ydl_opts()
 
     def check_downloadable(self):
         try:
@@ -166,7 +154,7 @@ class YoutubeSongProvider(SongProvider):
         max_size = self.musiq.base.settings.max_download_size * 1024 * 1024
         if (
             max_size != 0
-            and song_utils.path_from_id(self.info_dict["id"]) is None
+            and self.check_cached() is None
             and (size is not None and size > max_size)
         ):
             self.error = "Song too long"
@@ -174,7 +162,7 @@ class YoutubeSongProvider(SongProvider):
         return True
 
     @background_thread
-    def _download(self, ip, archive, manually_requested):
+    def _download(self, request_ip, archive, manually_requested):
         error = None
         location = None
 
@@ -186,7 +174,7 @@ class YoutubeSongProvider(SongProvider):
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
                 ydl.download([self.get_external_url()])
 
-            location = self.get_path()
+            location = self._get_path()
             base = os.path.splitext(location)[0]
             thumbnail = base + ".jpg"
             try:
@@ -208,20 +196,24 @@ class YoutubeSongProvider(SongProvider):
             self.musiq.placeholders.remove(self.placeholder)
             self.musiq.update_state()
             return
-        self.enqueue(ip, archive=archive, manually_requested=manually_requested)
+        self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
 
-    def download(self, ip, background=True, archive=True, manually_requested=True):
+    def download(
+        self, request_ip, background=True, archive=True, manually_requested=True
+    ):
         # check if file was already downloaded and only download if necessary
-        if os.path.isfile(self.get_path()):
-            self.enqueue(ip, archive=archive, manually_requested=manually_requested)
+        if os.path.isfile(self._get_path()):
+            self.enqueue(
+                request_ip, archive=archive, manually_requested=manually_requested
+            )
         else:
-            thread = self._download(ip, archive, manually_requested)
+            thread = self._download(request_ip, archive, manually_requested)
             if not background:
                 thread.join()
         return True
 
     def get_metadata(self):
-        metadata = song_utils.get_metadata(self.get_path())
+        metadata = song_utils.get_metadata(self._get_path())
 
         metadata["internal_url"] = self.get_internal_url()
         metadata["external_url"] = "https://www.youtube.com/watch?v=" + self.id
@@ -230,42 +222,55 @@ class YoutubeSongProvider(SongProvider):
 
         return metadata
 
-    def get_path(self):
-        path = os.path.join(settings.SONGS_CACHE_DIR, self.id + ".m4a")
-        path = path.replace("~", os.environ["HOME"])
-        path = os.path.abspath(path)
-        return path
+    def _get_path(self):
+        return song_utils.get_path(self.id + ".m4a")
 
     def get_internal_url(self):
-        return "file://" + self.get_path()
+        return "file://" + self._get_path()
 
     def get_external_url(self):
         return "https://www.youtube.com/watch?v=" + self.id
 
     def get_suggestion(self):
         with youtube_session() as session:
-            r = session.get(self.get_external_url())
+            response = session.get(self.get_external_url())
 
-        initial_data = get_initial_data(r.text)
-        # fmt: off
-        url = initial_data["contents"]["twoColumnWatchNextResults"]["secondaryResults"] \
-            ["secondaryResults"]["results"][0]["compactAutoplayRenderer"]["contents"][0] \
-            ["compactVideoRenderer"]["navigationEndpoint"]["commandMetadata"] \
-            ["webCommandMetadata"]["url"]
-        # fmt: on
+        initial_data = Youtube._get_initial_data(response.text)
+
+        path = [
+            "contents",
+            "twoColumnWatchNextResults",
+            "secondaryResults",
+            "secondaryResults",
+            "results",
+            0,
+            "compactAutoplayRenderer",
+            "contents",
+            0,
+            "compactVideoRenderer",
+            "navigationEndpoint",
+            "commandMetadata",
+            "webCommandMetadata",
+            "url",
+        ]
+        url = initial_data
+        for step in path:
+            url = url[step]
         return "https://www.youtube.com" + url
 
-    def request_radio(self, ip):
+    def request_radio(self, request_ip):
         radio_id = "RD" + self.id
 
         provider = YoutubePlaylistProvider(self.musiq, "radio for " + self.id, None)
         provider.id = radio_id
-        if not provider.download(ip):
+        if not provider.download(request_ip):
             return HttpResponseBadRequest(provider.error)
         return HttpResponse("queueing radio")
 
 
-class YoutubePlaylistProvider(PlaylistProvider):
+class YoutubePlaylistProvider(PlaylistProvider, Youtube):
+    """This class handles Youtube Playlists."""
+
     @staticmethod
     def get_id_from_external_url(url):
         try:
@@ -277,7 +282,7 @@ class YoutubePlaylistProvider(PlaylistProvider):
     def __init__(self, musiq, query, key):
         super().__init__(musiq, query, key)
         self.type = "youtube"
-        self.ydl_opts = get_ydl_opts()
+        self.ydl_opts = Youtube.get_ydl_opts()
         del self.ydl_opts["noplaylist"]
         self.ydl_opts["extract_flat"] = True
 
@@ -291,13 +296,20 @@ class YoutubePlaylistProvider(PlaylistProvider):
                 # this is the value that youtube uses to filter for playlists only
                 "sp": "EgQQA1AD",
             }
-            r = session.get("https://www.youtube.com/results", params=params)
+            response = session.get("https://www.youtube.com/results", params=params)
 
-        initial_data = get_initial_data(r.text)
-        # fmt: off
-        section_renderers = initial_data["contents"]["twoColumnSearchResultsRenderer"]\
-            ["primaryContents"]["sectionListRenderer"]["contents"]
-        # fmt: on
+        initial_data = Youtube._get_initial_data(response.text)
+
+        path = [
+            "contents",
+            "twoColumnSearchResultsRenderer",
+            "primaryContents",
+            "sectionListRenderer",
+            "contents",
+        ]
+        section_renderers = initial_data
+        for step in path:
+            section_renderers = section_renderers[step]
 
         list_id = None
         for section_renderer in section_renderers:

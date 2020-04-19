@@ -1,10 +1,15 @@
+"""Contains all database models."""
+
 from django.db import models
-from django.contrib import admin
+
 import core.musiq.song_queue
 import core.musiq.song_utils as song_utils
 
+
 # Create your models here.
 class Tag(models.Model):
+    """Stores hashtags."""
+
     text = models.CharField(max_length=100)
 
     def __str__(self):
@@ -12,6 +17,8 @@ class Tag(models.Model):
 
 
 class Counter(models.Model):
+    """Stores the visitors counter. Only has one elment."""
+
     value = models.IntegerField()
 
     def __str__(self):
@@ -19,6 +26,9 @@ class Counter(models.Model):
 
 
 class ArchivedSong(models.Model):
+    """Stores an archived song.
+    url identifies the song uniquely in the database and on the internet (if applicable)."""
+
     url = models.CharField(max_length=200, unique=True)
     artist = models.CharField(max_length=1000)
     title = models.CharField(max_length=1000)
@@ -28,10 +38,14 @@ class ArchivedSong(models.Model):
         return self.title + " (" + self.url + "): " + str(self.counter)
 
     def displayname(self):
+        """Formats the song using the utility method."""
         return song_utils.displayname(self.artist, self.title)
 
 
 class ArchivedPlaylist(models.Model):
+    """Stores an archived playlist.
+    url identifies the playlist uniquely in the database and on the internet (if applicable)."""
+
     list_id = models.CharField(max_length=200)
     title = models.CharField(max_length=1000)
     created = models.DateTimeField(auto_now_add=True)
@@ -42,6 +56,8 @@ class ArchivedPlaylist(models.Model):
 
 
 class PlaylistEntry(models.Model):
+    """Stores an entry to a playlist. Connects ArchivedSong and ArchivedPlaylist."""
+
     playlist = models.ForeignKey(
         "ArchivedPlaylist", on_delete=models.CASCADE, related_name="entries"
     )
@@ -56,6 +72,8 @@ class PlaylistEntry(models.Model):
 
 
 class ArchivedQuery(models.Model):
+    """Stores the queries from the musiq page and the ArchivedSong it lead to."""
+
     song = models.ForeignKey(
         "ArchivedSong", on_delete=models.CASCADE, related_name="queries"
     )
@@ -66,6 +84,8 @@ class ArchivedQuery(models.Model):
 
 
 class ArchivedPlaylistQuery(models.Model):
+    """Stores the queries from the musiq page and the ArchivedPlaylist it lead to."""
+
     playlist = models.ForeignKey(
         "ArchivedPlaylist", on_delete=models.CASCADE, related_name="queries"
     )
@@ -76,6 +96,8 @@ class ArchivedPlaylistQuery(models.Model):
 
 
 class QueuedSong(models.Model):
+    """Stores a song in the song queue so the queue is not lost on server restart."""
+
     index = models.IntegerField()
     manually_requested = models.BooleanField()
     votes = models.IntegerField(default=0)
@@ -90,6 +112,7 @@ class QueuedSong(models.Model):
         return str(self.index) + ": " + self.title + " (" + self.internal_url + ")"
 
     def displayname(self):
+        """Formats the song using the utility method."""
         return song_utils.displayname(self.artist, self.title)
 
     class Meta:
@@ -97,6 +120,8 @@ class QueuedSong(models.Model):
 
 
 class CurrentSong(models.Model):
+    """Stores the currently playing song. Only has one element."""
+
     queue_key = models.IntegerField()
     manually_requested = models.BooleanField()
     votes = models.IntegerField()
@@ -111,10 +136,13 @@ class CurrentSong(models.Model):
         return self.title + " (" + self.internal_url + ")"
 
     def displayname(self):
+        """Formats the song using the utility method."""
         return song_utils.displayname(self.artist, self.title)
 
 
 class RequestLog(models.Model):
+    """Stores the request of a client and its result."""
+
     created = models.DateTimeField(auto_now_add=True)
     song = models.ForeignKey(
         "ArchivedSong", on_delete=models.SET_NULL, blank=True, null=True
@@ -127,13 +155,14 @@ class RequestLog(models.Model):
     def __str__(self):
         if self.song is not None:
             return self.address + ": " + self.song.displayname()
-        elif self.playlist is not None:
+        if self.playlist is not None:
             return self.address + ": " + self.playlist.title
-        else:
-            return self.address + ": <None>"
+        return self.address + ": <None>"
 
 
 class PlayLog(models.Model):
+    """Stores the log of a played song."""
+
     created = models.DateTimeField(auto_now_add=True)
     song = models.ForeignKey(
         "ArchivedSong", on_delete=models.SET_NULL, blank=True, null=True
@@ -148,6 +177,8 @@ class PlayLog(models.Model):
 
 
 class Setting(models.Model):
+    """key value storage for persistent settings."""
+
     key = models.CharField(max_length=200, unique=True)
     value = models.CharField(max_length=200)
 
@@ -156,6 +187,8 @@ class Setting(models.Model):
 
 
 class Pad(models.Model):
+    """Stores the text in the pad."""
+
     version = models.IntegerField(default=0)
     content = models.CharField(max_length=100000)
 

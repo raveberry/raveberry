@@ -1,38 +1,65 @@
-from django.shortcuts import render
+"""This module contains everything related to the settings and configuration of the server."""
+# pylint: disable=no-self-use  # self is used in decorator
+
+import configparser
+import math
+import os
+import re
+import shutil
+import subprocess
+import time
+from datetime import timedelta
+from functools import wraps
+
+from dateutil import tz
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.db import models
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.utils import dateparse
 from django.utils import timezone
-from django.db import models
-from django.conf import settings
 from mutagen import MutagenError
 
-from core.util import background_thread
-from main import settings
-from core.models import Setting, ArchivedSong, ArchivedPlaylist, PlaylistEntry
+import core.musiq.song_utils as song_utils
 from core.models import PlayLog
 from core.models import RequestLog
-import core.state_handler as state_handler
-import core.musiq.song_utils as song_utils
-
-from functools import wraps
-from datetime import timedelta
-from dateutil import tz
-import urllib.request
-import configparser
-import subprocess
-import threading
-import shutil
-import time
-import math
-import os
-import re
+from core.models import Setting, ArchivedSong, ArchivedPlaylist, PlaylistEntry
+from core.state_handler import Stateful
+from core.util import background_thread
 
 
-class Settings:
+# settings can only be changed by admin
+def option(func):
+    """A decorator that makes sure that only the admin changes a setting."""
+
+    def _decorator(self, request, *args, **kwargs):
+        # don't allow option changes during alarm
+        if request.user.username != "admin":
+            return HttpResponseForbidden()
+        response = func(self, request, *args, **kwargs)
+        self.update_state()
+        if response is not None:
+            return response
+        return HttpResponse()
+
+    return wraps(func)(_decorator)
+
+
+class Settings(Stateful):
+    """This class is responsible for handling requests from the /settings page."""
+
+    @staticmethod
+    def get_setting(key, default):
+        """This method returns the value for the given :param key:.
+        Vaules of non-existing keys are set to :param default:"""
+        return Setting.objects.get_or_create(key=key, defaults={"value": default})[
+            0
+        ].value
+
     def __init__(self, base):
         self.base = base
         self.voting_system = self.get_setting("voting_system", "False") == "True"
@@ -54,11 +81,6 @@ class Settings:
         self.bluetooth_devices = []
         self.homewifi = self.get_setting("homewifi", "")
         self.scan_progress = "0 / 0 / 0"
-
-    def get_setting(self, key, default):
-        return Setting.objects.get_or_create(key=key, defaults={"value": default})[
-            0
-        ].value
 
     def state_dict(self):
         state_dict = self.base.state_dict()
@@ -109,14 +131,8 @@ class Settings:
 
         return state_dict
 
-    def get_state(self, request):
-        state = self.state_dict()
-        return JsonResponse(state)
-
-    def update_state(self):
-        state_handler.update_state(self.state_dict())
-
     def index(self, request):
+        """Renders the /settings page. Only admin is allowed to see this page."""
         if not self.base.user_manager.is_admin(request.user):
             raise PermissionDenied
         context = self.base.context(request)
@@ -126,18 +142,21 @@ class Settings:
         if not self.spotify_client_id or not self.spotify_client_secret:
             self.spotify_enabled = False
             return HttpResponseBadRequest("Not all credentials provided")
-        if subprocess.run(
-            ["systemctl", "is-active", "mopidy"], stdout=subprocess.DEVNULL
-        ).returncode:
-            return self._check_spotify_user(credentials_changed=credentials_changed)
-        else:
-            return self._check_spotify_service(credentials_changed=credentials_changed)
+        try:
+            subprocess.check_call(
+                ["systemctl", "is-active", "mopidy"], stdout=subprocess.DEVNULL
+            )
+        except subprocess.CalledProcessError:
+            return self._check_spotify_user()
+        return self._check_spotify_service(credentials_changed=credentials_changed)
 
-    def _check_spotify_user(self, credentials_changed=False):
+    def _check_spotify_user(self):
         self.spotify_enabled = False
-        # TODO use credentials from settings
         config = subprocess.run(
-            ["mopidy", "config"], stdout=subprocess.PIPE, universal_newlines=True
+            ["mopidy", "config"],
+            stdout=subprocess.PIPE,
+            universal_newlines=True,
+            check=True,
         ).stdout
         parser = configparser.ConfigParser()
         parser.read_string(config)
@@ -179,13 +198,12 @@ class Settings:
             universal_newlines=True,
         )
         login_error = False
-        response = None
         for line in log.split("\n")[::-1]:
             if line.startswith("ERROR") and "spotify.session" in line:
                 login_error = True
                 response = HttpResponseBadRequest("User or Password are wrong")
                 break
-            elif line.startswith("ERROR") and "mopidy_spotify.web" in line:
+            if line.startswith("ERROR") and "mopidy_spotify.web" in line:
                 login_error = True
                 response = HttpResponseBadRequest(
                     "Client ID or Client Secret are wrong or expired"
@@ -198,7 +216,7 @@ class Settings:
                 login_error = True
                 response = HttpResponseBadRequest("Configuration Error")
                 break
-            elif line.startswith("Started Mopidy music server."):
+            if line.startswith("Started Mopidy music server."):
                 response = HttpResponse("Login successful")
                 break
         else:
@@ -221,91 +239,79 @@ class Settings:
         else:
             self.has_internet = False
 
-    # settings can only be changed by admin
-    def option(func):
-        def _decorator(self, request, *args, **kwargs):
-            # don't allow option changes during alarm
-            if request.user.username != "admin":
-                return HttpResponseForbidden()
-            response = func(self, request, *args, **kwargs)
-            self.update_state()
-            if response is not None:
-                return response
-            return HttpResponse()
-
-        return wraps(func)(_decorator)
-
     @option
     def set_voting_system(self, request):
+        """Enables or disables the voting system based on the given value."""
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="voting_system").update(value=enabled)
         self.voting_system = enabled
 
     @option
     def set_logging_enabled(self, request):
+        """Enables or disables logging of requests and play logs based on the given value."""
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="logging_enabled").update(value=enabled)
         self.logging_enabled = enabled
 
     @option
     def set_people_to_party(self, request):
+        """Sets the amount of active clients needed to enable partymode."""
         value = int(request.POST.get("value"))
         Setting.objects.filter(key="people_to_party").update(value=value)
         self.people_to_party = value
 
     @option
     def set_alarm_probability(self, request):
+        """Sets the probability with which an alarm is triggered after each song."""
         value = float(request.POST.get("value"))
         Setting.objects.filter(key="alarm_probability").update(value=value)
         self.alarm_probability = value
 
     @option
     def set_downvotes_to_kick(self, request):
+        """Sets the number of downvotes that are needed to remove a song from the queue."""
         value = int(request.POST.get("value"))
         Setting.objects.filter(key="downvotes_to_kick").update(value=value)
         self.downvotes_to_kick = value
 
     @option
     def set_max_download_size(self, request):
+        """Sets the maximum amount of MB that are allowed for a song that needs to be downloaded."""
         value = int(request.POST.get("value"))
         Setting.objects.filter(key="max_download_size").update(value=value)
         self.max_download_size = value
 
     @option
     def set_max_playlist_items(self, request):
+        """Sets the maximum number of songs that are downloaded from a playlist."""
         value = int(request.POST.get("value"))
         Setting.objects.filter(key="max_playlist_items").update(value=value)
         self.max_playlist_items = value
 
     @option
-    def check_internet(self, request):
+    def check_internet(self, _request):
+        """Checks whether an internet connection exists and updates the internal state."""
         self._check_internet()
 
     @option
-    def update_user_count(self, request):
+    def update_user_count(self, _request):
+        """Force an update on the active user count."""
         self.base.user_manager.update_user_count()
 
     @option
-    def check_spotify_credentials(self, request):
+    def check_spotify_credentials(self, _request):
+        """Check whether the provided credentials are valid."""
         return self._check_spotify()
 
     @option
     def set_spotify_credentials(self, request):
+        """Update spotify credentials."""
         username = request.POST.get("username")
         password = request.POST.get("password")
         client_id = request.POST.get("client_id")
         client_secret = request.POST.get("client_secret")
 
-        if (
-            username is None
-            or username == ""
-            or password is None
-            or password == ""
-            or client_id is None
-            or client_id == ""
-            or client_secret is None
-            or client_secret == ""
-        ):
+        if not username or not password or not client_id or not client_secret:
             return HttpResponseBadRequest("All fields are required")
 
         self.spotify_username = username
@@ -346,6 +352,7 @@ class Settings:
 
     @option
     def set_bluetooth_scanning(self, request):
+        """Enables scanning of bluetooth devices."""
         enabled = request.POST.get("value") == "true"
         if enabled:
             if self.bluetoothctl is not None:
@@ -363,11 +370,11 @@ class Settings:
                 if not line:
                     break
                 # match old devices
-                match = re.match("Device (\S*) (.*)", line)
+                match = re.match(r"Device (\S*) (.*)", line)
                 # match newly scanned devices
                 # We need the '.*' at the beginning of the line to account for control sequences
                 if not match:
-                    match = re.match(".*\[NEW\] Device (\S*) (.*)", line)
+                    match = re.match(r".*\[NEW\] Device (\S*) (.*)", line)
                 if match:
                     address = match.group(1)
                     name = match.group(2)
@@ -375,17 +382,17 @@ class Settings:
                     # devices named after their address are no speakers
                     if re.match("[A-Z0-9][A-Z0-9](-[A-Z0-9][A-Z0-9]){5}", name):
                         continue
-                    self.bluetooth_devices.append(
-                        {"address": address, "name": name,}
-                    )
+                    self.bluetooth_devices.append({"address": address, "name": name})
                     self.update_state()
         else:
             if self.bluetoothctl is None:
                 return HttpResponseBadRequest("Currently not scanning")
             self._stop_bluetoothctl()
+        return HttpResponse()
 
     @option
     def connect_bluetooth(self, request):
+        """Connect to a given bluetooth device."""
         address = request.POST.get("address")
         if self.bluetoothctl is not None:
             return HttpResponseBadRequest("Stop scanning before connecting")
@@ -399,7 +406,8 @@ class Settings:
 
         # A Function that acts as a timeout for unexpected errors (or timeouts)
         @background_thread
-        def timeout():
+        def _timeout():
+            nonlocal error
             time.sleep(20)
             error = "Timed out"
             if self.bluetoothctl is not None:
@@ -414,9 +422,9 @@ class Settings:
             if re.match(".*Device " + address + " not available", line):
                 error = "Device unavailable"
                 break
-            elif re.match(".*Failed to pair: org.bluez.Error.AlreadyExists", line):
+            if re.match(".*Failed to pair: org.bluez.Error.AlreadyExists", line):
                 break
-            elif re.match(".*Pairing successful", line):
+            if re.match(".*Pairing successful", line):
                 break
 
         if error:
@@ -432,13 +440,13 @@ class Settings:
             if re.match(".*Device " + address + " not available", line):
                 error = "Device unavailable"
                 break
-            elif re.match(".*Failed to connect: org.bluez.Error.Failed", line):
+            if re.match(".*Failed to connect: org.bluez.Error.Failed", line):
                 error = "Connect Failed"
                 break
-            elif re.match(".*Failed to connect: org.bluez.Error.InProgress", line):
+            if re.match(".*Failed to connect: org.bluez.Error.InProgress", line):
                 error = "Connect in progress"
                 break
-            elif re.match(".*Connection successful", line):
+            if re.match(".*Connection successful", line):
                 break
         # trust the device to automatically reconnect when it is available again
         self.bluetoothctl.stdin.write(b"trust " + address.encode() + b"\n")
@@ -467,14 +475,16 @@ class Settings:
         return HttpResponse("Connected")
 
     @option
-    def disconnect_bluetooth(self, request):
+    def disconnect_bluetooth(self, _request):
+        """Disconnect from the current bluetooth device."""
         subprocess.call("pactl set-default-sink 0".split(), stdout=subprocess.DEVNULL)
         # restart mopidy to apply audio device change
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
         return HttpResponse("Disconnected")
 
     @option
-    def available_ssids(self, request):
+    def available_ssids(self, _request):
+        """List all ssids that can currently be seen."""
         output = subprocess.check_output(
             ["sudo", "/usr/local/sbin/raveberry/list_available_ssids"]
         )
@@ -484,6 +494,7 @@ class Settings:
 
     @option
     def connect_to_wifi(self, request):
+        """Connect to a given ssid with the given password."""
         ssid = request.POST.get("ssid")
         password = request.POST.get("password")
         if ssid is None or password is None or ssid == "" or password == "":
@@ -499,15 +510,18 @@ class Settings:
             return HttpResponseBadRequest(output)
 
     @option
-    def disable_homewifi(self, request):
+    def disable_homewifi(self, _request):
+        """Disable homewifi function."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_homewifi"])
 
     @option
-    def enable_homewifi(self, request):
+    def enable_homewifi(self, _request):
+        """Enable homewifi function."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_homewifi"])
 
     @option
-    def stored_ssids(self, request):
+    def stored_ssids(self, _request):
+        """Return the list of ssids that this Raspberry Pi was connected to in the past."""
         output = subprocess.check_output(
             ["sudo", "/usr/local/sbin/raveberry/list_stored_ssids"]
         )
@@ -517,12 +531,15 @@ class Settings:
 
     @option
     def set_homewifi_ssid(self, request):
+        """Set the home network.
+        The hotspot will not be created if connected to this wifi."""
         homewifi_ssid = request.POST.get("homewifi_ssid")
         with open(os.path.join(settings.BASE_DIR, "config/homewifi"), "w+") as f:
             f.write(homewifi_ssid)
 
     @option
     def list_subdirectories(self, request):
+        """Returns a list of all subdirectories for the given path."""
         path = request.GET.get("path")
         basedir, subdirpart = os.path.split(path)
         if path == "":
@@ -542,6 +559,7 @@ class Settings:
 
     @option
     def scan_library(self, request):
+        """Scan the folder at the given path and add all its sound files to the database."""
         library_path = request.POST.get("library_path")
 
         if not os.path.isdir(library_path):
@@ -624,7 +642,8 @@ class Settings:
         self.base.logger.info(f"done scanning in {library_path}")
 
     @option
-    def create_playlists(self, request):
+    def create_playlists(self, _request):
+        """Create a playlist for every folder in the library."""
         library_link = os.path.join(settings.SONGS_CACHE_DIR, "local_library")
         if not os.path.islink(library_link):
             return HttpResponseBadRequest("No library set")
@@ -704,20 +723,12 @@ class Settings:
 
     @option
     def analyse(self, request):
+        """Perform an analysis of the database in the given timeframe."""
         startdate = request.POST.get("startdate")
         starttime = request.POST.get("starttime")
         enddate = request.POST.get("enddate")
         endtime = request.POST.get("endtime")
-        if (
-            startdate is None
-            or startdate == ""
-            or starttime is None
-            or starttime == ""
-            or enddate is None
-            or enddate == ""
-            or endtime is None
-            or endtime == ""
-        ):
+        if not startdate or not starttime or not enddate or not endtime:
             return HttpResponseBadRequest("All fields are required")
 
         start = dateparse.parse_datetime(startdate + "T" + starttime)
@@ -757,22 +768,19 @@ class Settings:
             "address", count=models.Count("address")
         )
 
-        response = {}
-        response["songs_played"] = len(played)
-        response["most_played_song"] = (
-            song_utils.displayname(
-                played_count[0]["song__artist"], played_count[0]["song__title"]
-            )
-            + " ("
-            + str(played_count[0]["count"])
-            + ")"
-        )
-        response["highest_voted_song"] = (
-            played_votes[0].song.displayname() + " (" + str(played_votes[0].votes) + ")"
-        )
-        response["most_active_device"] = (
-            devices[0]["address"] + " (" + str(devices[0]["count"]) + ")"
-        )
+        response = {
+            "songs_played": len(played),
+            "most_played_song": (
+                song_utils.displayname(
+                    played_count[0]["song__artist"], played_count[0]["song__title"]
+                )
+                + f" ({played_count[0]['count']})"
+            ),
+            "highest_voted_song": (
+                played_votes[0].song.displayname() + f" ({played_votes[0].votes})"
+            ),
+            "most_active_device": (devices[0]["address"] + f" ({devices[0]['count']})"),
+        }
         requested_by_ip = requested.filter(address=devices[0]["address"])
         for i in range(6):
             if i >= len(requested_by_ip):
@@ -787,8 +795,8 @@ class Settings:
         number_of_bins = math.ceil((end - start).total_seconds() / binsize)
         request_bins = [0 for _ in range(number_of_bins)]
 
-        for r in requested:
-            seconds = (r.created - start).total_seconds()
+        for log in requested:
+            seconds = (log.created - start).total_seconds()
             index = int(seconds / binsize)
             request_bins[index] += 1
 
@@ -814,49 +822,65 @@ class Settings:
         return JsonResponse(response)
 
     @option
-    def disable_events(self, request):
+    def disable_events(self, _request):
+        """Disable websocket support."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_events"])
 
     @option
-    def enable_events(self, request):
+    def enable_events(self, _request):
+        """Enable websocket support."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_events"])
 
     @option
-    def disable_hotspot(self, request):
+    def disable_hotspot(self, _request):
+        """Disable the wifi created by Raveberry."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_hotspot"])
 
     @option
-    def enable_hotspot(self, request):
+    def enable_hotspot(self, _request):
+        """Enable the wifi created by Raveberry."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_hotspot"])
 
     @option
-    def unprotect_wifi(self, request):
+    def unprotect_wifi(self, _request):
+        """Disable password protection of the hotspot, making it public."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/unprotect_wifi"])
 
     @option
-    def protect_wifi(self, request):
+    def protect_wifi(self, _request):
+        """Enable password protection of the hotspot.
+        The password was defined during setup."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/protect_wifi"])
 
     @option
-    def disable_tunneling(self, request):
+    def disable_tunneling(self, _request):
+        """Disable forwarding of packets to the other network (probably the internet)."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_tunneling"])
 
     @option
-    def enable_tunneling(self, request):
+    def enable_tunneling(self, _request):
+        """Enable forwarding of packets to the other network.
+        Enables clients connected to the hotspot to browse the internet (if available)."""
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_tunneling"])
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_tunneling"])
 
     @option
-    def disable_remote(self, request):
+    def disable_remote(self, _request):
+        """Disables the connection to an external server."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_remote"])
 
     @option
-    def enable_remote(self, request):
+    def enable_remote(self, _request):
+        """Enables the connection to an external server.
+        Allows this instance to be reachable from a public domain."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_remote"])
 
     @option
-    def reboot_server(self, request):
+    def reboot_server(self, _request):
+        """Restarts the server."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/reboot_server"])
 
     @option
-    def reboot_system(self, request):
+    def reboot_system(self, _request):
+        """Reboots the system."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/reboot_system"])

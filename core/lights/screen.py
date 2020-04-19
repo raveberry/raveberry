@@ -1,3 +1,5 @@
+"""This module handles the screen configuration."""
+
 import importlib
 import subprocess
 import time
@@ -5,11 +7,16 @@ import os
 
 
 class Screen:
+    """This class provides an interface to control the screen."""
+
     def __init__(self):
         self.initialized = False
         self.adjust()
 
     def adjust(self):
+        """Check whether the system is set up to run screen visualization.
+        Resets the resolution, needed after hotplugging Raspberry Pis for higher resolution."""
+
         # require pi3d to be installed
         spec = importlib.util.find_spec("pi3d")
         if spec is None:
@@ -25,7 +32,7 @@ class Screen:
                 model = f.read()
                 if model.startswith("Raspberry Pi 3"):
                     return
-                elif model.startswith("Raspberry Pi 4"):
+                if model.startswith("Raspberry Pi 4"):
                     # restart X to increase resolution if the cable was plugged in after boot
                     subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_x"])
 
