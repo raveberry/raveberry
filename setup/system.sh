@@ -103,6 +103,7 @@ adduser www-data pulse 2>/dev/null
 adduser www-data pulse-access 2>/dev/null
 # bluetoothctl
 adduser www-data bluetooth 2>/dev/null
+adduser pulse bluetooth 2>/dev/null
 echo "/var/www"
 mkdir -p /var/www
 chown www-data:www-data /var/www

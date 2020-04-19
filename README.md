@@ -140,6 +140,11 @@ sudo scripts/uninstall.sh
 
 You are probably missing some build dependencies on your system. This has been reported to happen on the Raspberry Pi Zero. Install them using `sudo apt-get install build-essential libssl-dev libffi-dev python-dev`.
 
+### "Connect Failed" when trying to connect to a bluetooth device.
+
+After switching to pulseaudio I did apparently not test the bluetooth connection...  
+Run `sudo adduser pulse bluetooth` or upgrade Raveberry. Afterwards reboot and it should work again.
+
 ## More Information
 
 Feel free to visit [`docs/`](docs/) for more information about usage, resources etc.
