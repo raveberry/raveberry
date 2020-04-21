@@ -1,4 +1,5 @@
 """Contains the forms used across all pages."""
+from typing import Any
 
 from django import forms
 from core.models import Pad
@@ -22,7 +23,7 @@ class PadForm(forms.Form):
     )
 
     # everytime a new form is generated, it should look up the content from the database
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(PadForm, self).__init__(*args, **kwargs)
         # now we can add fields using a dictionary!
         self.initial["pad_field"] = Pad.objects.all()[0].content

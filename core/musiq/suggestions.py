@@ -1,7 +1,10 @@
 """This module handles the suggestions when starting to
 type into the input field on the musiq page."""
 
+from __future__ import annotations
+
 import random
+from typing import TYPE_CHECKING, Dict, Union, List
 
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, JsonResponse
@@ -11,16 +14,21 @@ from core.models import ArchivedPlaylist, ArchivedSong
 from core.musiq.music_provider import SongProvider
 from core.musiq.spotify import Spotify
 from core.musiq.youtube import Youtube
+from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import JsonResponse, HttpResponse
+
+if TYPE_CHECKING:
+    from core.musiq.musiq import Musiq
 
 
 class Suggestions:
     """This class provides endpoints that serve suggestions."""
 
-    def __init__(self, musiq):
+    def __init__(self, musiq: "Musiq") -> None:
         self.musiq = musiq
 
     @classmethod
-    def random_suggestion(cls, request):
+    def random_suggestion(cls, request: WSGIRequest) -> HttpResponse:
         """This method returns a random suggestion from the database.
         Depending on the value of :param playlist:,
         either a previously pushed playlist or song is returned."""
@@ -44,13 +52,13 @@ class Suggestions:
         playlist = remaining_playlists.all()[index]
         return JsonResponse({"suggestion": playlist.title, "key": playlist.id})
 
-    def get_suggestions(self, request):
+    def get_suggestions(self, request: WSGIRequest) -> JsonResponse:
         """Returns suggestions for a given query.
         Combines online and offline suggestions."""
         terms = request.GET["term"].split()
         suggest_playlist = request.GET["playlist"] == "true"
 
-        results = []
+        results: List[Dict[str, Union[str, int]]] = []
 
         if self.musiq.base.settings.has_internet:
             if self.musiq.base.settings.spotify_enabled:
@@ -92,15 +100,15 @@ class Suggestions:
                     Q(title__icontains=term) | Q(queries__query__icontains=term)
                 )
 
-            remaining_playlists = (
+            playlist_suggestions = (
                 remaining_playlists.values("id", "title", "counter")
                 .distinct()
                 .order_by("-counter")[:20]
             )
 
-            for playlist in remaining_playlists:
+            for playlist in playlist_suggestions:
                 archived_playlist = ArchivedPlaylist.objects.get(id=playlist["id"])
-                result_dict = {
+                result_dict: Dict[str, Union[str, int]] = {
                     "key": playlist["id"],
                     "value": playlist["title"],
                     "counter": playlist["counter"],
@@ -117,13 +125,13 @@ class Suggestions:
                     | Q(queries__query__icontains=term)
                 )
 
-            remaining_songs = (
+            song_suggestions = (
                 remaining_songs.values("id", "title", "url", "artist", "counter")
                 .distinct()
                 .order_by("-counter")[:20]
             )
 
-            for song in remaining_songs:
+            for song in song_suggestions:
                 provider = SongProvider.create(self.musiq, external_url=song["url"])
                 cached = provider.check_cached()
                 # don't suggest local songs if they are not cached (=not at expected location)

@@ -1,6 +1,6 @@
 """This module handles the screen configuration."""
 
-import importlib
+import importlib.util
 import subprocess
 import time
 import os
@@ -9,11 +9,11 @@ import os
 class Screen:
     """This class provides an interface to control the screen."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.initialized = False
         self.adjust()
 
-    def adjust(self):
+    def adjust(self) -> None:
         """Check whether the system is set up to run screen visualization.
         Resets the resolution, needed after hotplugging Raspberry Pis for higher resolution."""
 

@@ -1,5 +1,7 @@
 """This module contains all Youtube related code."""
 
+from __future__ import annotations
+
 import json
 import os
 import pickle
@@ -15,10 +17,24 @@ from django.http import HttpResponse, HttpResponseBadRequest
 import core.musiq.song_utils as song_utils
 from core.musiq.music_provider import SongProvider, PlaylistProvider
 from core.util import background_thread
+from django.http.response import HttpResponse
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    TYPE_CHECKING,
+    Iterator,
+    cast,
+)
+
+if TYPE_CHECKING:
+    from core.musiq.musiq import Musiq
+    from core.musiq.song_utils import Metadata
 
 
 @contextmanager
-def youtube_session():
+def youtube_session() -> Iterator[requests.Session]:
     """This context opens a requests session and loads the youtube cookies file."""
     session = requests.session()
     try:
@@ -45,19 +61,19 @@ class YoutubeDLLogger:
     """This logger class is used to log process of youtube-dl downloads."""
 
     @classmethod
-    def debug(cls, msg):
+    def debug(cls, msg: str) -> None:
         """This method is called if youtube-dl does debug level logging."""
         if settings.DEBUG:
             print(msg)
 
     @classmethod
-    def warning(cls, msg):
+    def warning(cls, msg: str) -> None:
         """This method is called if youtube-dl does warning level logging."""
         if settings.DEBUG:
             print(msg)
 
     @classmethod
-    def error(cls, msg):
+    def error(cls, msg: str) -> None:
         """This method is called if youtube-dl does error level logging."""
         print(msg)
 
@@ -66,7 +82,7 @@ class Youtube:
     """This class contains code for both the song and playlist provider"""
 
     @staticmethod
-    def get_ydl_opts():
+    def get_ydl_opts() -> Dict[str, Any]:
         """This method returns a dictionary containing sensible defaults for youtube-dl options.
         It is roughly equivalent to the following command:
         youtube-dl --format bestaudio[ext=m4a]/best[ext=m4a] --output '%(id)s.%(ext)s \
@@ -91,19 +107,18 @@ class Youtube:
         }
 
     @staticmethod
-    def _get_initial_data(html):
+    def _get_initial_data(html: str) -> Dict[str, Any]:
         for line in html.split("\n"):
             line = line.strip()
             prefix = 'window["ytInitialData"] = '
             if line.startswith(prefix):
                 # strip assignment and semicolon
                 initial_data = line[len(prefix) : -1]
-                initial_data = json.loads(initial_data)
-                return initial_data
-        return None
+                return json.loads(initial_data)
+        raise ValueError("Could not parse initial data from html")
 
     @staticmethod
-    def get_search_suggestions(query):
+    def get_search_suggestions(query: str) -> List[str]:
         """Returns a list of suggestions for the given query from Youtube."""
         with youtube_session() as session:
             params = {
@@ -127,16 +142,18 @@ class YoutubeSongProvider(SongProvider, Youtube):
     """This class handles songs from Youtube."""
 
     @staticmethod
-    def get_id_from_external_url(url):
+    def get_id_from_external_url(url: str) -> str:
         return parse_qs(urlparse(url).query)["v"][0]
 
-    def __init__(self, musiq, query, key):
+    def __init__(
+        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
+    ) -> None:
         super().__init__(musiq, query, key)
         self.type = "youtube"
-        self.info_dict = None
+        self.info_dict: Dict[str, Any] = {}
         self.ydl_opts = Youtube.get_ydl_opts()
 
-    def check_downloadable(self):
+    def check_downloadable(self) -> bool:
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
                 self.info_dict = ydl.extract_info(self.query, download=False)
@@ -162,7 +179,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
         return True
 
     @background_thread
-    def _download(self, request_ip, archive, manually_requested):
+    def _download(
+        self, request_ip: str, archive: bool, manually_requested: bool
+    ) -> None:
         error = None
         location = None
 
@@ -199,8 +218,12 @@ class YoutubeSongProvider(SongProvider, Youtube):
         self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
 
     def download(
-        self, request_ip, background=True, archive=True, manually_requested=True
-    ):
+        self,
+        request_ip: str,
+        background: bool = True,
+        archive: bool = True,
+        manually_requested: bool = True,
+    ) -> bool:
         # check if file was already downloaded and only download if necessary
         if os.path.isfile(self._get_path()):
             self.enqueue(
@@ -212,7 +235,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
                 thread.join()
         return True
 
-    def get_metadata(self):
+    def get_metadata(self) -> "Metadata":
+        if not self.id:
+            raise ValueError()
         metadata = song_utils.get_metadata(self._get_path())
 
         metadata["internal_url"] = self.get_internal_url()
@@ -222,16 +247,20 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
         return metadata
 
-    def _get_path(self):
+    def _get_path(self) -> str:
+        if not self.id:
+            raise ValueError()
         return song_utils.get_path(self.id + ".m4a")
 
-    def get_internal_url(self):
+    def get_internal_url(self) -> str:
         return "file://" + self._get_path()
 
-    def get_external_url(self):
+    def get_external_url(self) -> str:
+        if not self.id:
+            raise ValueError()
         return "https://www.youtube.com/watch?v=" + self.id
 
-    def get_suggestion(self):
+    def get_suggestion(self) -> str:
         with youtube_session() as session:
             response = session.get(self.get_external_url())
 
@@ -255,10 +284,12 @@ class YoutubeSongProvider(SongProvider, Youtube):
         ]
         url = initial_data
         for step in path:
-            url = url[step]
-        return "https://www.youtube.com" + url
+            url = url[cast(str, step)]
+        return "https://www.youtube.com" + cast(str, url)
 
-    def request_radio(self, request_ip):
+    def request_radio(self, request_ip: str) -> HttpResponse:
+        if not self.id:
+            raise ValueError()
         radio_id = "RD" + self.id
 
         provider = YoutubePlaylistProvider(self.musiq, "radio for " + self.id, None)
@@ -272,24 +303,28 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
     """This class handles Youtube Playlists."""
 
     @staticmethod
-    def get_id_from_external_url(url):
+    def get_id_from_external_url(url: str) -> Optional[str]:
         try:
             list_id = parse_qs(urlparse(url).query)["list"][0]
         except KeyError:
             return None
         return list_id
 
-    def __init__(self, musiq, query, key):
+    def __init__(
+        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
+    ) -> None:
         super().__init__(musiq, query, key)
         self.type = "youtube"
         self.ydl_opts = Youtube.get_ydl_opts()
         del self.ydl_opts["noplaylist"]
         self.ydl_opts["extract_flat"] = True
 
-    def is_radio(self):
+    def is_radio(self) -> bool:
+        if not self.id:
+            raise ValueError()
         return self.id.startswith("RD")
 
-    def search_id(self):
+    def search_id(self) -> Optional[str]:
         with youtube_session() as session:
             params = {
                 "search_query": self.query,
@@ -312,7 +347,7 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
             section_renderers = section_renderers[step]
 
         list_id = None
-        for section_renderer in section_renderers:
+        for section_renderer in cast(List[Dict[str, Any]], section_renderers):
             search_results = section_renderer["itemSectionRenderer"]["contents"]
 
             try:
@@ -328,7 +363,7 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
 
         return list_id
 
-    def fetch_metadata(self):
+    def fetch_metadata(self) -> None:
         # in case of a radio playist, restrict the number of songs that are downloaded
         if self.is_radio():
             self.ydl_opts["playlistend"] = self.musiq.base.settings.max_playlist_items

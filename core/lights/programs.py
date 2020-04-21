@@ -1,35 +1,42 @@
 """This module contains all programs used for visualization (except complex screen programs)."""
 
+from __future__ import annotations
+
 import colorsys
 import errno
 import math
 import os
 import subprocess
+from typing import Tuple, List, TYPE_CHECKING, cast, Optional
 
 from django.conf import settings
+
+if TYPE_CHECKING:
+    from core.lights.lights import Lights
 
 
 class VizProgram:
     """The base class for all programs."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         self.lights = lights
         self.consumers = 0
+        self.name = "Unknown"
 
-    def start(self):
+    def start(self) -> None:
         """Initializes the program, allocates resources."""
 
-    def use(self):
+    def use(self) -> None:
         """Tells the program that it is used by another consumer.
         Starts the program if this is the first usage."""
         if self.consumers == 0:
             self.start()
         self.consumers += 1
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops the program, releases resources."""
 
-    def release(self):
+    def release(self) -> None:
         """Tells the program that one consumer does not use it anymore.
         Stops the program if this was the last one."""
         self.consumers -= 1
@@ -40,15 +47,15 @@ class VizProgram:
 class ScreenProgram(VizProgram):
     """The base class for all screen visualization programs."""
 
-    def draw(self):
+    def draw(self) -> None:
         """Called every frame. Updates the screen."""
         raise NotImplementedError()
 
-    def increase_resolution(self):
+    def increase_resolution(self) -> None:
         """Called if there is time in the loop to spare.
         Increases the system load, but also increases quality."""
 
-    def decrease_resolution(self):
+    def decrease_resolution(self) -> None:
         """Called if rendering takes too long.
         Decreases the quality and speeds up the draw call."""
 
@@ -56,15 +63,15 @@ class ScreenProgram(VizProgram):
 class LedProgram(VizProgram):
     """The base class for all led visualization programs."""
 
-    def compute(self):
+    def compute(self) -> None:
         """Is called once per update. Computation should happen here,
         so they can be reused in the returning functions"""
 
-    def ring_colors(self):
+    def ring_colors(self) -> List[Tuple[float, float, float]]:
         """Returns the colors for the ring, one rgb tuple for each led."""
         raise NotImplementedError()
 
-    def strip_color(self):
+    def strip_color(self) -> Tuple[float, float, float]:
         """Returns the rgb values for the strip."""
         raise NotImplementedError()
 
@@ -72,60 +79,59 @@ class LedProgram(VizProgram):
 class Disabled(LedProgram, ScreenProgram):
     """A null class to represent inactivity."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
         self.name = "Disabled"
 
-    def draw(self):
-        print("called draw on disabled program!")
+    def draw(self) -> None:
+        raise NotImplementedError()
 
-    def ring_colors(self):
-        print("called ring_colors on disabled program!")
+    def ring_colors(self) -> List[Tuple[float, float, float]]:
+        raise NotImplementedError()
 
-    def strip_color(self):
-        print("called strip_colors on disabled program!")
+    def strip_color(self) -> Tuple[float, float, float]:
+        raise NotImplementedError()
 
 
 class Fixed(LedProgram):
     """Show one fixed color only. The color is controlled in the lights module."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
         self.name = "Fixed"
-        self.color = (0, 0, 0)
 
-    def compute(self):
+    def compute(self) -> None:
         # show a red color if the alarm is active
         alarm_factor = self.lights.alarm_program.factor
-        if alarm_factor != -1:
-            self.color = (alarm_factor, 0, 0)
+        if alarm_factor != -1.0:
+            self.lights.fixed_color = (alarm_factor, 0, 0)
 
-    def ring_colors(self):
-        return [self.color for _ in range(self.lights.ring.LED_COUNT)]
+    def ring_colors(self) -> List[Tuple[float, float, float]]:
+        return [self.lights.fixed_color for _ in range(self.lights.ring.LED_COUNT)]
 
-    def strip_color(self):
-        return self.color
+    def strip_color(self) -> Tuple[float, float, float]:
+        return self.lights.fixed_color
 
 
 class Rainbow(LedProgram):
     """Continuously cycles through all colors. Affected by the speed setting."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
         self.name = "Rainbow"
         self.program_duration = 1
-        self.time_passed = 0
-        self.current_fraction = 0
+        self.time_passed = 0.0
+        self.current_fraction = 0.0
 
-    def start(self):
-        self.time_passed = 0
+    def start(self) -> None:
+        self.time_passed = 0.0
 
-    def compute(self):
+    def compute(self) -> None:
         self.time_passed += self.lights.seconds_per_frame * self.lights.program_speed
         self.time_passed %= self.program_duration
         self.current_fraction = self.time_passed / self.program_duration
 
-    def ring_colors(self):
+    def ring_colors(self) -> List[Tuple[float, float, float]]:
         return [
             colorsys.hsv_to_rgb(
                 (self.current_fraction + led / self.lights.ring.LED_COUNT) % 1, 1, 1
@@ -133,7 +139,7 @@ class Rainbow(LedProgram):
             for led in range(self.lights.ring.LED_COUNT)
         ]
 
-    def strip_color(self):
+    def strip_color(self) -> Tuple[float, float, float]:
         return colorsys.hsv_to_rgb(self.current_fraction, 1, 1)
 
 
@@ -141,7 +147,7 @@ class Adaptive(LedProgram):
     """Dynamically reacts to the currently played music.
     Low frequencies are represented by red, high ones by blue."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
         self.name = "Rave"
         self.cava = self.lights.cava_program
@@ -176,12 +182,12 @@ class Adaptive(LedProgram):
             for led in range(0, self.led_count)
         ]
 
-        self.current_frame = []
+        self.current_frame: List[float] = []
 
-    def start(self):
+    def start(self) -> None:
         self.cava.use()
 
-    def compute(self):
+    def compute(self) -> None:
         # aggregate the length of cavas frame into a list the length of the number of leds we have.
         # This reduces computation time.
         values_per_led = len(self.cava.current_frame) // self.led_count
@@ -196,13 +202,15 @@ class Adaptive(LedProgram):
                 / values_per_led
             )
 
-    def ring_colors(self):
-        return [
+    def ring_colors(self) -> List[Tuple[float, float, float]]:
+        colors = [
             tuple(factor * val for val in color)
             for factor, color in zip(self.current_frame, self.base_colors)
         ]
+        # https://github.com/python/mypy/issues/5068
+        return cast(List[Tuple[float, float, float]], colors)
 
-    def strip_color(self):
+    def strip_color(self) -> Tuple[float, float, float]:
         red = (
             sum(coeff * val for coeff, val in zip(self.red_coeffs, self.current_frame))
             * 3
@@ -225,7 +233,7 @@ class Adaptive(LedProgram):
         blue = min(1, blue)
         return red, green, blue
 
-    def stop(self):
+    def stop(self) -> None:
         self.cava.release()
 
 
@@ -233,23 +241,23 @@ class Alarm(VizProgram):
     """This program makes the leds flash red in sync to the played sound.
     Only computes the brightness, does not display it."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
         self.name = "Alarm"
-        self.time_passed = 0
+        self.time_passed = 0.0
         self.sound_count = 0
         self.increasing_duration = 0.45
         self.decreasing_duration = 0.8
         self.sound_duration = 2.1
         self.sound_repetition = 2.5
-        self.factor = -1
+        self.factor = -1.0
 
-    def start(self):
-        self.time_passed = 0
+    def start(self) -> None:
+        self.time_passed = 0.0
         self.sound_count = 0
         self.factor = 0
 
-    def compute(self):
+    def compute(self) -> None:
         """If active, compute the brightness for the red color,
         depending on the time that has passed since starting the sound."""
         # do not compute if the alarm is not active
@@ -276,15 +284,15 @@ class Alarm(VizProgram):
         else:
             self.factor = 0
 
-    def stop(self):
-        self.factor = -1
+    def stop(self) -> None:
+        self.factor = -1.0
 
 
 class Cava(VizProgram):
     """This Program manages the interaction with cava.
     It provides the current frequencies for other programs to use."""
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
 
         self.cava_fifo_path = os.path.join(settings.BASE_DIR, "config/cava_fifo")
@@ -295,12 +303,12 @@ class Cava(VizProgram):
 
         self.frame_length = self.bars * (self.bit_format // 8)
 
-        self.current_frame = []
+        self.current_frame: List[float] = []
         self.growing_frame = b""
-        self.cava_process = None
-        self.cava_fifo = None
+        self.cava_process: Optional[subprocess.Popen[bytes]] = None
+        self.cava_fifo = -1
 
-    def start(self):
+    def start(self) -> None:
         self.current_frame = [0 for _ in range(self.bars)]
         self.growing_frame = b""
         try:
@@ -322,7 +330,7 @@ class Cava(VizProgram):
         # cava_fifo = open(cava_fifo_path, 'r')
         self.cava_fifo = os.open(self.cava_fifo_path, os.O_RDONLY | os.O_NONBLOCK)
 
-    def compute(self):
+    def compute(self) -> None:
         """If active, read output from the cava program.
         Make sure that the most recent frame is always fully available,
         Stores incomplete frames for the next update."""
@@ -350,7 +358,7 @@ class Cava(VizProgram):
                 self.current_frame = [int(b) / 255 for b in self.growing_frame]
                 self.growing_frame = b""
 
-    def stop(self):
+    def stop(self) -> None:
         try:
             os.close(self.cava_fifo)
         except OSError as e:
@@ -358,7 +366,8 @@ class Cava(VizProgram):
         except TypeError as e:
             print("cava fifo does not exist: " + str(e))
 
-        self.cava_process.terminate()
+        if self.cava_process:
+            self.cava_process.terminate()
 
         try:
             os.remove(self.cava_fifo_path)

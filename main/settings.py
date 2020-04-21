@@ -5,6 +5,8 @@ import sys
 import pathlib
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from typing import List
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 try:
@@ -122,7 +124,7 @@ LOGOUT_REDIRECT_URL = "/"
 
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
-STATICFILES_DIRS = [
+STATICFILES_DIRS: List[str] = [
     # os.path.join(BASE_DIR, "staticfiles/"),
 ]
 STATIC_URL = "/static/"

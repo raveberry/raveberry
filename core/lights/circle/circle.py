@@ -4,6 +4,10 @@
 # pylint: disable=wrong-import-position
 # we need to access non-public pi3d members
 # pylint: disable=protected-access
+from __future__ import annotations
+
+from typing import List, TYPE_CHECKING, Dict, no_type_check
+
 if __name__ == "__main__":
     import sys
 
@@ -19,6 +23,11 @@ import time
 from django.conf import settings
 
 from core.lights.programs import ScreenProgram
+
+if TYPE_CHECKING:
+    from core.lights.lights import Lights
+    import pi3d
+    import numpy as np
 
 
 class Circle(ScreenProgram):
@@ -39,7 +48,7 @@ class Circle(ScreenProgram):
     # The size of dynamic modifications to the scale
     SCALE_STEP = 0.5
 
-    def __init__(self, lights):
+    def __init__(self, lights: "Lights") -> None:
         super().__init__(lights)
         self.name = "Circular"
         self.cava = lights.cava_program
@@ -54,41 +63,42 @@ class Circle(ScreenProgram):
         # The width and height of the displayed visualizer in pixels
         self.width = 640
         self.height = 480
-        self.scale = 0
+        self.scale = 0.0
 
         self.should_prepare = False
-        self.resolution_increases = {}
+        self.resolution_increases: Dict[float, int] = {}
         self.history_toggle = True
 
-        self.total_bass = 0
-        self.last_loop = 0
-        self.time_elapsed = 0
-        self.alarm_factor = 0
-        self.bass_fraction = 0
-        self.time_delta = 0
-        self.bass_value = 0
-        self.uniform_values = {}
+        self.total_bass = 0.0
+        self.last_loop = 0.0
+        self.time_elapsed = 0.0
+        self.alarm_factor = 0.0
+        self.bass_fraction = 0.0
+        self.time_delta = 0.0
+        self.bass_value = 0.0
+        self.uniform_values: Dict[int, float] = {}
 
-        self.fft = None
-
-        self.display = None
-        self.background = None
-        self.particle_shader = None
-        self.particle_sprite = None
-        self.instance_vbo = None
-        self.spectrum = None
-        self.logo = None
-        self.logo_array = None
-        self.dynamic_texture = None
-        self.after = None
-        self.post = None
-        self.post_sprite = None
+        # These initialisations are deferred into the _prepare function
+        # that is called during the first draw(). Thus, ignore their type.
+        self.fft: np.ndarray = None  # type: ignore
+        self.display: pi3d.Display.Display = None  # type: ignore
+        self.background: pi3d.Sprite = None  # type: ignore
+        self.particle_shader: pi3d.Shader = None  # type: ignore
+        self.particle_sprite: pi3d.Sprite = None  # type: ignore
+        self.instance_vbo: ctypes._CData = None  # type: ignore
+        self.spectrum: pi3d.Sprite = None  # type: ignore
+        self.logo: pi3d.Sprite = None  # type: ignore
+        self.logo_array: np.ndarray = None  # type: ignore
+        self.dynamic_texture: pi3d.Texture = None  # type: ignore
+        self.after: pi3d.Sprite = None  # type: ignore
+        self.post: pi3d.util.OffscreenTexture.OffscreenTexture = None  # type: ignore
+        self.post_sprite: pi3d.Sprite = None  # type: ignore
 
         # https://stackoverflow.com/questions/48472285/create-core-context-with-glut-freeglut
         # In order to use newer OpenGL versions (e.g. for Instancing), use the following line:
         # glutInitContextVersion( 3, 3 );
 
-    def _set_resolution(self, width, height):
+    def _set_resolution(self, width: int, height: int) -> None:
         self.width, self.height = width, height
         # this scale value determines how many times bigger the actual display is
         # in comparison to the actually computed buffer.
@@ -99,7 +109,7 @@ class Circle(ScreenProgram):
         )
         self.scale = max(self.scale, 1)
 
-    def start(self):
+    def start(self) -> None:
         self.cava.use()
 
         os.environ["DISPLAY"] = ":0"
@@ -128,7 +138,7 @@ class Circle(ScreenProgram):
         self.should_prepare = True
         self.history_toggle = True
 
-    def increase_resolution(self):
+    def increase_resolution(self) -> None:
         if self.scale == 1:
             # do not render more than one pixel per pixel
             return
@@ -144,10 +154,10 @@ class Circle(ScreenProgram):
 
         self.scale = max(1, self.scale - self.SCALE_STEP)
 
-    def decrease_resolution(self):
+    def decrease_resolution(self) -> None:
         self.scale += self.SCALE_STEP
 
-    def _prepare(self):
+    def _prepare(self) -> None:
         self.should_prepare = False
 
         import numpy as np
@@ -155,6 +165,7 @@ class Circle(ScreenProgram):
         # pi3d has to be imported in the same thread that it will draw in
         # Thus, import it here instead of at the top of the file
         import pi3d
+        from pi3d.util.OffScreenTexture import OffScreenTexture
         from pi3d.constants import (
             opengles,
             GL_CLAMP_TO_EDGE,
@@ -320,7 +331,7 @@ class Circle(ScreenProgram):
         # create an OffscreenTexture to allow scaling.
         # By first rendering into a smaller Texture a lot of computation is saved.
         # This OffscreenTexture is then drawn at the end of the draw loop.
-        self.post = pi3d.util.OffScreenTexture.OffScreenTexture("scale")
+        self.post = OffScreenTexture("scale")
         self.post_sprite = pi3d.Sprite(w=2, h=2)
         post_shader = pi3d.Shader(
             os.path.join(settings.BASE_DIR, "core/lights/circle/scale")
@@ -334,11 +345,11 @@ class Circle(ScreenProgram):
 
         opengles.glDepthFunc(GL_ALWAYS)
 
-    def _set_unif(self, sprite, uniforms):
+    def _set_unif(self, sprite: "pi3d.Sprite", uniforms: List[int]) -> None:
         for uniform in uniforms:
             sprite.unif[uniform] = self.uniform_values[uniform]
 
-    def draw(self):
+    def draw(self) -> None:
         import numpy as np
         from scipy.ndimage.filters import gaussian_filter
         from pi3d.Camera import Camera
@@ -565,7 +576,7 @@ class Circle(ScreenProgram):
             print(f"scale: {self.scale}")
             print("=====")
 
-    def _initial_particles(self):
+    def _initial_particles(self) -> np.ndarray:
         """ constructs an array of particles containing x, y and speed value for each particle """
         import numpy as np
 
@@ -583,7 +594,7 @@ class Circle(ScreenProgram):
             particles[index] = [x, y, speed, offset]
         return particles
 
-    def stop(self):
+    def stop(self) -> None:
         # clean up the display. after stopping the main loop has to be called once more
         self.display.stop()
         self.display.loop_running()
@@ -591,45 +602,46 @@ class Circle(ScreenProgram):
         self.cava.release()
 
 
-def main():
+@no_type_check  # don't make mypy deal with dynamic classes
+def main() -> None:
     """Runs this visualization without the need of the server running."""
-    MockCava = type(
+    mock_cava = type(
         "obj",
         (object,),
         {
             "bars": 199,
-            "current_frame": [0 for i in range(199)],
+            "current_frame": [0 for _ in range(199)],
             "use": lambda: ...,
             "release": lambda: ...,
         },
     )
-    MockLights = type(
+    mock_lights = type(
         "obj",
         (object,),
         {
             "UPS": 25,
-            "cava_program": MockCava,
+            "cava_program": mock_cava,
             "alarm_program": type("obj", (object,), {"factor": -1}),
         },
     )
-    circle = Circle(MockLights)
+    circle = Circle(mock_lights)
     circle.start()
-    seconds_per_frame = 1 / MockLights.UPS
+    seconds_per_frame = 1 / mock_lights.UPS
 
     while True:
         computation_start = time.time()
         circle.draw()
-        MockCava.current_frame = [
+        mock_cava.current_frame = [
             0.5 * (1 + math.sin(-4 * circle.time_elapsed + 0.5 * i))
-            for i in range(len(MockCava.current_frame))
+            for i in range(len(mock_cava.current_frame))
         ]
-        MockCava.current_frame = [
+        mock_cava.current_frame = [
             0.8
             * 0.5
             * (1 + math.sin(4 * circle.time_elapsed))
             * 0.5
             * (1 + math.sin(-4 * circle.time_elapsed + 0.2 * i))
-            for i in range(len(MockCava.current_frame))
+            for i in range(len(mock_cava.current_frame))
         ]
         computation_time = time.time() - computation_start
         # print(f'time needed / avaliable: {computation_time / seconds_per_frame:0.2f}')
@@ -641,7 +653,7 @@ def main():
 
 if __name__ == "__main__":
     # overwrite the settings to have it point to the correct directories
-    settings = type(  # pylint: disable=invalid-name
+    settings = type(  # type: ignore # pylint: disable=invalid-name
         "obj", (object,), {"BASE_DIR": "../../..", "STATIC_ROOT": "../../../static"}
     )
     main()

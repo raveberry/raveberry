@@ -1,5 +1,7 @@
 """This module contains the player, handling playback of music."""
 
+from __future__ import annotations
+
 import os
 import random
 import time
@@ -26,13 +28,26 @@ import core.models as models
 from core.models import Setting
 from core.musiq.music_provider import SongProvider
 from core.util import background_thread
+from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import HttpResponse, HttpResponseBadRequest
+from typing import (
+    Callable,
+    Iterator,
+    Optional,
+    TYPE_CHECKING,
+)
+
+if TYPE_CHECKING:
+    from core.musiq.musiq import Musiq
 
 
-def control(func):
+def control(func: Callable) -> Callable:
     """A decorator for functions that control the playback.
     Every control changes the views state and returns an empty response."""
 
-    def _decorator(self, request, *args, **kwargs):
+    def _decorator(
+        self: "Player", request: WSGIRequest, *args, **kwargs
+    ) -> HttpResponse:
         # don't allow controls during alarm
         if self.alarm_playing.is_set():
             return HttpResponseBadRequest()
@@ -43,12 +58,13 @@ def control(func):
     return wraps(func)(_decorator)
 
 
-# in the voting system only the admin can control the player
-def disabled_when_voting(func):
+def disabled_when_voting(func: Callable) -> Callable:
     """A decorator for controls that are disabled during voting.
     Only users with appropriate privileges are still able to perform this action."""
 
-    def _decorator(self, request, *args, **kwargs):
+    def _decorator(
+        self: "Player", request: WSGIRequest, *args, **kwargs
+    ) -> HttpResponse:
         if (
             self.musiq.base.settings.voting_system
             and not self.musiq.base.user_manager.has_controls(request.user)
@@ -66,11 +82,11 @@ class Player:
 
     # this has to be a class variable
     # so the manager of the queue can access it without a player object
-    queue_semaphore = None
+    queue_semaphore: Semaphore = None  # type: ignore
 
     SEEK_DISTANCE = 10 * 1000
 
-    def __init__(self, musiq):
+    def __init__(self, musiq: "Musiq") -> None:
         self.musiq = musiq
 
         self.shuffle = (
@@ -83,10 +99,10 @@ class Player:
 
         self.queue = models.QueuedSong.objects
         Player.queue_semaphore = Semaphore(self.queue.count())
-        self.alarm_playing = Event()
+        self.alarm_playing: Event = Event()
         self.running = True
 
-        self.player = MopidyAPI()
+        self.player: MopidyAPI = MopidyAPI()
         self.player_lock = Lock()
         with self.mopidy_command(important=True):
             self.player.playback.stop()
@@ -98,11 +114,11 @@ class Player:
             # currentsong = self.player.currentsong()
             self.volume = self.player.mixer.get_volume() / 100
 
-    def start(self):
+    def start(self) -> None:
         """Starts the loop of the player."""
         self._loop()
 
-    def progress(self):
+    def progress(self) -> float:
         """Returns how far into the current song the playback is, in percent."""
         # the state is either pause or stop
         current_position = 0
@@ -116,7 +132,7 @@ class Player:
                 duration = current_track.length
         return 100 * current_position / duration
 
-    def paused(self):
+    def paused(self) -> bool:
         """Returns whether playback is currently paused."""
         # the state is either pause or stop
         paused = False
@@ -129,7 +145,7 @@ class Player:
         return paused
 
     @background_thread
-    def _loop(self):
+    def _loop(self) -> None:
         """The main loop of the player.
         Takes a song from the queue and plays it until it is finished."""
         while True:
@@ -143,7 +159,7 @@ class Player:
                 song_provider = SongProvider.create(
                     self.musiq, external_url=current_song.external_url
                 )
-                duration = song_provider.get_metadata()["duration"]
+                duration = int(song_provider.get_metadata()["duration"])
                 catch_up = round(
                     (timezone.now() - current_song.created).total_seconds() * 1000
                 )
@@ -155,6 +171,7 @@ class Player:
                     break
 
                 # select the next song depending on settings
+                song: Optional[models.QueuedSong]
                 if self.musiq.base.settings.voting_system:
                     with transaction.atomic():
                         song = self.queue.all().order_by("-votes", "index")[0]
@@ -191,6 +208,7 @@ class Player:
                     archived_song = models.ArchivedSong.objects.get(
                         url=current_song.external_url
                     )
+                    votes: Optional[int]
                     if self.musiq.base.settings.voting_system:
                         votes = current_song.votes
                     else:
@@ -270,7 +288,7 @@ class Player:
                 self.musiq.update_state()
                 self.alarm_playing.clear()
 
-    def _wait_until_song_end(self):
+    def _wait_until_song_end(self) -> bool:
         """Wait until the song is over.
         Returns True when finished without errors, False otherwise."""
         # This is the event based approach. Unfortunately to error-prone.
@@ -295,7 +313,7 @@ class Player:
             time.sleep(0.1)
         return not error
 
-    def _handle_autoplay(self, url=None):
+    def _handle_autoplay(self, url: Optional[str] = None) -> None:
         if self.autoplay and models.QueuedSong.objects.count() == 0:
             if url is None:
                 # if no url was specified, use the one of the current song
@@ -329,7 +347,7 @@ class Player:
                 )
 
     @contextmanager
-    def mopidy_command(self, important=False):
+    def mopidy_command(self, important: bool = False) -> Iterator[bool]:
         """A context that should be used around every mopidy command used.
         Makes sure that commands occur sequentially, as mopidy can not handle parallel inputs.
         Use it like this:
@@ -350,7 +368,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def restart(self, _request):
+    def restart(self, _request: WSGIRequest) -> None:
         """Restarts the current song from the beginning."""
         with self.mopidy_command() as allowed:
             if allowed:
@@ -358,7 +376,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def seek_backward(self, _request):
+    def seek_backward(self, _request: WSGIRequest) -> None:
         """Jumps back in the current song."""
         with self.mopidy_command() as allowed:
             if allowed:
@@ -367,7 +385,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def play(self, _request):
+    def play(self, _request: WSGIRequest) -> None:
         """Resumes the current song if it is paused.
         No-op if already playing."""
         with self.mopidy_command() as allowed:
@@ -376,7 +394,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def pause(self, _request):
+    def pause(self, _request: WSGIRequest) -> None:
         """Pauses the current song if it is playing.
         No-op if already paused."""
         with self.mopidy_command() as allowed:
@@ -385,7 +403,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def seek_forward(self, _request):
+    def seek_forward(self, _request: WSGIRequest) -> None:
         """Jumps forward in the current song."""
         with self.mopidy_command() as allowed:
             if allowed:
@@ -394,7 +412,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def skip(self, _request):
+    def skip(self, _request: WSGIRequest) -> None:
         """Skips the current song and continues with the next one."""
         with self.mopidy_command() as allowed:
             if allowed:
@@ -402,7 +420,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def set_shuffle(self, request):
+    def set_shuffle(self, request: WSGIRequest) -> None:
         """Enables or disables shuffle depending on the given value.
         If enabled, a random song in the queue is chosen as the next one.
         If not, the first one is chosen."""
@@ -412,7 +430,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def set_repeat(self, request):
+    def set_repeat(self, request: WSGIRequest) -> None:
         """Enables or disables repeat depending on the given value.
         If enabled, a song is enqueued again after it finished playing."""
         enabled = request.POST.get("value") == "true"
@@ -421,7 +439,7 @@ class Player:
 
     @disabled_when_voting
     @control
-    def set_autoplay(self, request):
+    def set_autoplay(self, request: WSGIRequest) -> None:
         """Enables or disables autoplay depending on the given value.
         If enabled and the current song is the last one,
         a new song is enqueued, based on the current one."""
@@ -432,17 +450,17 @@ class Player:
 
     @disabled_when_voting
     @control
-    def set_volume(self, request):
+    def set_volume(self, request: WSGIRequest) -> None:
         """Sets the playback volume.
         value has to be a float between 0 and 1."""
-        self.volume = float(request.POST.get("value"))
+        self.volume = float(request.POST.get("value"))  # type: ignore
         with self.mopidy_command() as allowed:
             if allowed:
                 self.player.mixer.set_volume(round(self.volume * 100))
 
     @disabled_when_voting
     @control
-    def remove_all(self, request):
+    def remove_all(self, request: WSGIRequest) -> HttpResponse:
         """Empties the queue. Only admin is permitted to do this."""
         if not self.musiq.base.user_manager.is_admin(request.user):
             return HttpResponseForbidden()
@@ -457,25 +475,25 @@ class Player:
 
     @disabled_when_voting
     @control
-    def prioritize(self, request):
+    def prioritize(self, request: WSGIRequest) -> HttpResponse:
         """Prioritizes song by making it the first one in the queue."""
         key = request.POST.get("key")
         if key is None:
             return HttpResponseBadRequest()
-        key = int(key)
-        self.queue.prioritize(key)
+        ikey = int(key)
+        self.queue.prioritize(ikey)
         return HttpResponse()
 
     @disabled_when_voting
     @control
-    def remove(self, request):
+    def remove(self, request: WSGIRequest) -> HttpResponse:
         """Removes a song identified by the given key from the queue."""
         key = request.POST.get("key")
         if key is None:
             return HttpResponseBadRequest()
-        key = int(key)
+        ikey = int(key)
         try:
-            removed = self.queue.remove(key)
+            removed = self.queue.remove(ikey)
             self.queue_semaphore.acquire(blocking=False)
             # if we removed a song and it was added by autoplay,
             # we want it to be the new basis for autoplay
@@ -489,55 +507,55 @@ class Player:
 
     @disabled_when_voting
     @control
-    def reorder(self, request):
+    def reorder(self, request: WSGIRequest) -> HttpResponse:
         """Reorders the queue.
         The song specified by element is inserted between prev and next."""
         prev_key = request.POST.get("prev")
         cur_key = request.POST.get("element")
         next_key = request.POST.get("next")
-        if cur_key is None or len(cur_key) == 0:
+        if not cur_key:
             return HttpResponseBadRequest()
-        if prev_key is None or len(prev_key) == 0:
-            prev_key = None
+        if not prev_key:
+            iprev_key = None
         else:
-            prev_key = int(prev_key)
-        cur_key = int(cur_key)
-        if next_key is None or len(next_key) == 0:
-            next_key = None
+            iprev_key = int(prev_key)
+        icur_key = int(cur_key)
+        if not next_key:
+            inext_key = None
         else:
-            next_key = int(next_key)
+            inext_key = int(next_key)
         try:
-            self.queue.reorder(prev_key, cur_key, next_key)
+            self.queue.reorder(iprev_key, icur_key, inext_key)
         except ValueError:
             return HttpResponseBadRequest("request on old state")
         return HttpResponse()
 
     @control
-    def vote_up(self, request):
+    def vote_up(self, request: WSGIRequest) -> HttpResponse:
         """Increases the vote-count of the given song by one."""
         key = request.POST.get("key")
         if key is None:
             return HttpResponseBadRequest()
-        key = int(key)
+        ikey = int(key)
 
-        models.CurrentSong.objects.filter(queue_key=key).update(votes=F("votes") + 1)
-        self.queue.vote_up(key)
+        models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") + 1)
+        self.queue.vote_up(ikey)
         return HttpResponse()
 
     @control
-    def vote_down(self, request):
+    def vote_down(self, request: WSGIRequest) -> HttpResponse:
         """Decreases the vote-count of the given song by one.
         If a song receives too many downvotes, it is removed."""
         key = request.POST.get("key")
         if key is None:
             return HttpResponseBadRequest()
-        key = int(key)
+        ikey = int(key)
 
-        models.CurrentSong.objects.filter(queue_key=key).update(votes=F("votes") - 1)
+        models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") - 1)
         try:
             current_song = models.CurrentSong.objects.get()
             if (
-                current_song.queue_key == key
+                current_song.queue_key == ikey
                 and current_song.votes <= -self.musiq.base.settings.downvotes_to_kick
             ):
                 with self.mopidy_command() as allowed:
@@ -546,7 +564,9 @@ class Player:
         except models.CurrentSong.DoesNotExist:
             pass
 
-        removed = self.queue.vote_down(key, -self.musiq.base.settings.downvotes_to_kick)
+        removed = self.queue.vote_down(
+            ikey, -self.musiq.base.settings.downvotes_to_kick
+        )
         # if we removed a song by voting, and it was added by autoplay,
         # we want it to be the new basis for autoplay
         if removed is not None:
@@ -557,14 +577,14 @@ class Player:
                 self._handle_autoplay()
         return HttpResponse()
 
-    def start_loop(self):
+    def start_loop(self) -> None:
         """Starts the playback main loop, only used for tests."""
         if self.running:
             return
         self.running = True
         self.start()
 
-    def stop_loop(self):
+    def stop_loop(self) -> None:
         """Stops the playback main loop, only used for tests."""
         if not self.running:
             return

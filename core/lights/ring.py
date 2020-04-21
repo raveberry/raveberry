@@ -1,4 +1,5 @@
 """This module handles the Neopixel led ring."""
+from typing import List, Tuple
 
 import rpi_ws281x
 
@@ -17,8 +18,8 @@ class Ring:
 
     LED_OFFSET = 12  # at which index the zeroth pixel is located.
 
-    def __init__(self):
-        self.brightness = 1
+    def __init__(self) -> None:
+        self.brightness = 1.0
         self.monochrome = False
 
         self.controller = rpi_ws281x.Adafruit_NeoPixel(
@@ -37,7 +38,7 @@ class Ring:
             # could not connect to led ring
             self.initialized = False
 
-    def set_colors(self, colors):
+    def set_colors(self, colors: List[Tuple[float, float, float]]) -> None:
         """Sets the colors of the ring to the given list of triples."""
         if not self.initialized:
             return
@@ -49,7 +50,7 @@ class Ring:
             )
         self.controller.show()
 
-    def clear(self):
+    def clear(self) -> None:
         """Turns of all pixels by setting their color to black."""
         if not self.initialized:
             return

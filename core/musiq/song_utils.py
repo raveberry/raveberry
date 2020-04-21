@@ -5,9 +5,26 @@ import os
 import mutagen.easymp4
 
 from main import settings
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import TypedDict
+    from core.musiq.music_provider import ArchivedPlaylist
+
+    Metadata = TypedDict(
+        "Metadata",
+        {
+            "artist": str,
+            "title": str,
+            "duration": float,
+            "internal_url": str,
+            "external_url": str,
+        },
+        total=False,
+    )
 
 
-def get_path(basename):
+def get_path(basename: str) -> str:
     """Returns the absolute path for a basename of a file in the cache directory."""
     path = os.path.join(settings.SONGS_CACHE_DIR, basename)
     path = path.replace("~", os.environ["HOME"])
@@ -15,20 +32,23 @@ def get_path(basename):
     return path
 
 
-def determine_playlist_type(archived_playlist):
+def determine_playlist_type(archived_playlist: "ArchivedPlaylist") -> str:
     """Uses the url of the first song in the playlist
     to determine the platform where the playlist is from."""
-    first_song_url = archived_playlist.entries.first().url
+    first_song = archived_playlist.entries.first()
+    if not first_song:
+        raise ValueError("Playlist contains no songs.")
+    first_song_url = first_song.url
     if first_song_url.startswith("local_library/"):
         return "local"
     if first_song_url.startswith("https://www.youtube.com/"):
         return "youtube"
     if first_song_url.startswith("https://open.spotify.com/"):
         return "spotify"
-    return None
+    raise ValueError()
 
 
-def format_seconds(seconds):
+def format_seconds(seconds: int) -> str:
     """Takes seconds and formats them as [hh:]mm:ss."""
     hours, seconds = seconds // 3600, seconds % 3600
     minutes, seconds = seconds // 60, seconds % 60
@@ -40,21 +60,21 @@ def format_seconds(seconds):
     return formatted
 
 
-def displayname(artist, title):
+def displayname(artist: str, title: str) -> str:
     """Formats the given artist and title as a presentable display name."""
     if artist == "":
         return title
     return artist + " – " + title
 
 
-def get_metadata(path):
+def get_metadata(path: str) -> "Metadata":
     """gathers the metadata for the song at the given location.
     'title' and 'duration' is read from tags, the 'url' is built from the location"""
 
     parsed = mutagen.File(path, easy=True)
     if parsed is None:
         raise ValueError
-    metadata = dict()
+    metadata: "Metadata" = {}
 
     if parsed.tags is not None:
         if "artist" in parsed.tags:

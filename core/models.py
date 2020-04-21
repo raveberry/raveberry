@@ -1,6 +1,7 @@
 """Contains all database models."""
 
 from django.db import models
+from django.db.models import QuerySet
 
 import core.musiq.song_queue
 import core.musiq.song_utils as song_utils
@@ -12,7 +13,7 @@ class Tag(models.Model):
 
     text = models.CharField(max_length=100)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.text
 
 
@@ -21,7 +22,7 @@ class Counter(models.Model):
 
     value = models.IntegerField()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
 
@@ -34,10 +35,10 @@ class ArchivedSong(models.Model):
     title = models.CharField(max_length=1000)
     counter = models.IntegerField()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title + " (" + self.url + "): " + str(self.counter)
 
-    def displayname(self):
+    def displayname(self) -> str:
         """Formats the song using the utility method."""
         return song_utils.displayname(self.artist, self.title)
 
@@ -46,12 +47,14 @@ class ArchivedPlaylist(models.Model):
     """Stores an archived playlist.
     url identifies the playlist uniquely in the database and on the internet (if applicable)."""
 
+    id: int
+    entries: QuerySet
     list_id = models.CharField(max_length=200)
     title = models.CharField(max_length=1000)
     created = models.DateTimeField(auto_now_add=True)
     counter = models.IntegerField()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title + ": " + str(self.counter)
 
 
@@ -64,7 +67,7 @@ class PlaylistEntry(models.Model):
     index = models.IntegerField()
     url = models.CharField(max_length=200)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.playlist.title + "[" + str(self.index) + "]: " + self.url
 
     class Meta:
@@ -79,7 +82,7 @@ class ArchivedQuery(models.Model):
     )
     query = models.CharField(max_length=1000)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.query
 
 
@@ -91,13 +94,14 @@ class ArchivedPlaylistQuery(models.Model):
     )
     query = models.CharField(max_length=1000)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.query
 
 
 class QueuedSong(models.Model):
     """Stores a song in the song queue so the queue is not lost on server restart."""
 
+    id: int
     index = models.IntegerField()
     manually_requested = models.BooleanField()
     votes = models.IntegerField(default=0)
@@ -108,10 +112,10 @@ class QueuedSong(models.Model):
     duration = models.IntegerField()
     objects = core.musiq.song_queue.SongQueue()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.index) + ": " + self.title + " (" + self.internal_url + ")"
 
-    def displayname(self):
+    def displayname(self) -> str:
         """Formats the song using the utility method."""
         return song_utils.displayname(self.artist, self.title)
 
@@ -132,10 +136,10 @@ class CurrentSong(models.Model):
     duration = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title + " (" + self.internal_url + ")"
 
-    def displayname(self):
+    def displayname(self) -> str:
         """Formats the song using the utility method."""
         return song_utils.displayname(self.artist, self.title)
 
@@ -152,7 +156,14 @@ class RequestLog(models.Model):
     )
     address = models.CharField(max_length=50)
 
-    def __str__(self):
+    def item_displayname(self) -> str:
+        if self.song is not None:
+            return self.song.displayname()
+        if self.playlist is not None:
+            return self.playlist.title
+        return "Unknown"
+
+    def __str__(self) -> str:
         if self.song is not None:
             return self.address + ": " + self.song.displayname()
         if self.playlist is not None:
@@ -170,9 +181,15 @@ class PlayLog(models.Model):
     manually_requested = models.BooleanField()
     votes = models.IntegerField(null=True)
 
-    def __str__(self):
+    def song_displayname(self) -> str:
+        if not self.song:
+            return "Unknown"
+        else:
+            return self.song.displayname()
+
+    def __str__(self) -> str:
         return (
-            "played " + self.song.displayname() + " with " + str(self.votes) + " votes"
+            "played " + self.song_displayname() + " with " + str(self.votes) + " votes"
         )
 
 
@@ -182,7 +199,7 @@ class Setting(models.Model):
     key = models.CharField(max_length=200, unique=True)
     value = models.CharField(max_length=200)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.key + ": " + ("None" if self.value is None else self.value)
 
 
@@ -192,5 +209,5 @@ class Pad(models.Model):
     version = models.IntegerField(default=0)
     content = models.CharField(max_length=100000)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{" + str(self.version) + "}: " + self.content[:20] + "..."

@@ -8,3 +8,7 @@
 
 /test_cache
 /test_library
+
+# mypy
+.mypy_cache/
+.dmypy.json

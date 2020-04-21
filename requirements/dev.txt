@@ -1,3 +1,8 @@
 -r common.txt
 -r screenvis.txt
 bs4>=0.0.1
+pylint
+pylint-django
+mypy
+typing-extensions
+django-stubs

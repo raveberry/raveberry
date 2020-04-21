@@ -1,4 +1,4 @@
-"""This moudle provides common functionality for all pages on the site."""
+"""This module provides common functionality for all pages on the site."""
 
 import logging
 import os
@@ -6,7 +6,6 @@ import random
 
 from django.conf import settings
 from django.db import transaction
-from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -18,12 +17,15 @@ from core.pad import Pad
 from core.settings import Settings
 from core.state_handler import Stateful
 from core.user_manager import UserManager
+from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import HttpResponse
+from typing import Dict, Union, Any
 
 
 class Base(Stateful):
     """This class contains methods that are needed by all pages."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger("raveberry")
         self.settings = Settings(self)
         self.user_manager = UserManager(self)
@@ -32,7 +34,7 @@ class Base(Stateful):
         self.musiq = Musiq(self)
 
     @classmethod
-    def _get_random_hashtag(cls):
+    def _get_random_hashtag(cls) -> str:
         if models.Tag.objects.count() == 0:
             return "no hashtags present :("
         index = random.randint(0, models.Tag.objects.count() - 1)
@@ -40,13 +42,13 @@ class Base(Stateful):
         return hashtag.text
 
     @classmethod
-    def _get_apk_link(cls):
+    def _get_apk_link(cls) -> str:
         local_apk = os.path.join(settings.STATIC_ROOT, "apk/shareberry.apk")
         if os.path.isfile(local_apk):
             return os.path.join(settings.STATIC_URL, "apk/shareberry.apk")
         return "https://github.com/raveberry/shareberry/raw/master/app/release/shareberry.apk"
 
-    def _increment_counter(self):
+    def _increment_counter(self) -> int:
         with transaction.atomic():
             counter = models.Counter.objects.get_or_create(id=1, defaults={"value": 0})[
                 0
@@ -56,7 +58,7 @@ class Base(Stateful):
         self.update_state()
         return counter.value
 
-    def context(self, request):
+    def context(self, request: WSGIRequest) -> Dict[str, Any]:
         """Returns the base context that is needed on every page.
         Increments the visitors counter."""
         self._increment_counter()
@@ -70,7 +72,7 @@ class Base(Stateful):
             "spotify_enabled": self.settings.spotify_enabled,
         }
 
-    def state_dict(self):
+    def state_dict(self) -> Dict[str, Any]:
         # this function constructs a base state dictionary with website wide state
         # pages sending states extend this state dictionary
         return {
@@ -87,7 +89,7 @@ class Base(Stateful):
         }
 
     @classmethod
-    def submit_hashtag(cls, request):
+    def submit_hashtag(cls, request: WSGIRequest) -> HttpResponse:
         """Add the given hashtag to the database."""
         hashtag = request.POST.get("hashtag")
         if hashtag is None or len(hashtag) == 0:
@@ -100,7 +102,7 @@ class Base(Stateful):
         return HttpResponse()
 
     @classmethod
-    def logged_in(cls, request):
+    def logged_in(cls, request: WSGIRequest) -> HttpResponse:
         """This endpoint is visited after every login.
         Redirect the admin to the settings and everybody else to the musiq page."""
         if request.user.username == "admin":
