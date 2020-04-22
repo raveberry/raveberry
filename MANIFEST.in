@@ -2,6 +2,7 @@ graft raveberry/core/
 graft raveberry/config/
 graft raveberry/logs/
 graft raveberry/main/
+graft raveberry/requirements/
 graft raveberry/scripts/
 graft raveberry/setup/
 graft raveberry/static/
