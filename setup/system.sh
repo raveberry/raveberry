@@ -6,6 +6,7 @@ if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 	FILE="/boot/config.txt"
 	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	echo "X11..."
+	xhost +si:localuser:www-data
 
 	if [[ -f /proc/device-tree/model && `cat /proc/device-tree/model` == "Raspberry Pi 4"* ]]; then
 		# start x on boot, but only for raspberry pi 4
