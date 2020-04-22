@@ -6,6 +6,11 @@ with open("raveberry/README.md", "r") as f:
 with open("raveberry/requirements/common.txt") as f:
     required_packages = f.read().splitlines()
 
+with open("raveberry/requirements/screenvis.txt") as f:
+    screenvis_packages = [
+        line for line in f.read().splitlines() if not line.startswith("-r")
+    ]
+
 setuptools.setup(
     name="raveberry",
     version="0.4.5",
@@ -25,5 +30,6 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.7",
     install_requires=required_packages,
+    extras_require={"screenvis": screenvis_packages},
     scripts=["raveberry/bin/raveberry"],
 )
