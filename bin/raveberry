@@ -136,6 +136,7 @@ Config-file location: """
     db_exists = not subprocess.call(
         'sudo -u postgres psql -lqt | cut -d \\| -f 1 | grep -qw "raveberry"',
         shell=True,
+        stderr=subprocess.DEVNULL,
     )
     if os.environ["DB_BACKUP"] or db_exists:
         # another database is already present, do not ask for a new admin password
