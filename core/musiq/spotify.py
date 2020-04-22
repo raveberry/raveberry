@@ -256,7 +256,7 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
     def is_radio(self) -> bool:
         return False
 
-    def fetch_metadata(self) -> None:
+    def fetch_metadata(self) -> bool:
         if self.title is None:
             result = self.web_client.get(
                 f"playlists/{self.id}", params={"fields": "name", "limit": "50"},
@@ -277,3 +277,5 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
         track_infos = result["items"]
         for track_info in track_infos:
             self.urls.append(track_info["track"]["external_urls"]["spotify"])
+
+        return True

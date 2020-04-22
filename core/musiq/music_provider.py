@@ -314,7 +314,7 @@ class PlaylistProvider(MusicProvider):
         The result can be different if called another time for the same song."""
         raise NotImplementedError()
 
-    def fetch_metadata(self) -> None:
+    def fetch_metadata(self) -> bool:
         """Fetches the title and list of songs for this playlist from the internet."""
         raise NotImplementedError()
 
@@ -329,7 +329,8 @@ class PlaylistProvider(MusicProvider):
         if not self.is_radio() and queryset.exists():
             self.key = queryset.get().id
         else:
-            self.fetch_metadata()
+            if not self.fetch_metadata():
+                return False
         self.enqueue(request_ip)
         return True
 

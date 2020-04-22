@@ -113,5 +113,5 @@ class LocalPlaylistProvider(PlaylistProvider):
     def is_radio(self) -> bool:
         return False
 
-    def fetch_metadata(self) -> None:
-        pass
+    def fetch_metadata(self) -> bool:
+        return True

@@ -17,31 +17,41 @@ class YoutubeTests(MusicTest):
                 if os.path.isfile(member_path):
                     os.remove(member_path)
 
+    def _post_request(self, url, query=None, playlist=False):
+        if not query:
+            response = self.client.post(reverse(url))
+        else:
+            response = self.client.post(
+                reverse(url),
+                {
+                    "query": query,
+                    "playlist": "true" if playlist else "false",
+                    "platform": "youtube",
+                },
+            )
+        if (
+            response.status_code == 400
+            and b"429" in response.content
+            or b"403" in response.content
+        ):
+            self.skipTest("This IP sent too many requests to Youtube does not like it.")
+
     def test_query(self):
-        self.client.post(
-            reverse("request_music"),
-            {
-                "query": "Eskimo Callboy MC Thunder",
-                "playlist": "false",
-                "platform": "youtube",
-            },
-        )
+        self._post_request("request_music", "Eskimo Callboy MC Thunder")
         current_song = self._poll_current_song()
         self.assertEqual(
             current_song["external_url"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
-        self.assertEqual(current_song["artist"], "Eskimo Callboy")
-        self.assertEqual(current_song["title"], "MC Thunder")
+        print(current_song)
+        self.assertEqual(current_song["artist"], "Century Media Records")
+        self.assertEqual(
+            current_song["title"], "ESKIMO CALLBOY - MC Thunder (OFFICIAL VIDEO)"
+        )
         self.assertEqual(current_song["duration"], 267)
 
     def test_url(self):
-        self.client.post(
-            reverse("request_music"),
-            {
-                "query": "https://www.youtube.com/watch?v=UNaYpBpRJOY",
-                "playlist": "false",
-                "platform": "youtube",
-            },
+        self._post_request(
+            "request_music", "https://www.youtube.com/watch?v=UNaYpBpRJOY"
         )
         current_song = self._poll_current_song()
         self.assertEqual(
@@ -52,13 +62,10 @@ class YoutubeTests(MusicTest):
         self.assertEqual(current_song["duration"], 275)
 
     def test_playlist_url(self):
-        self.client.post(
-            reverse("request_music"),
-            {
-                "query": "https://www.youtube.com/playlist?list=PLiS9Gj9LFFFxFrsk9vKmMWAd4TCrOgYd3",
-                "playlist": "true",
-                "platform": "youtube",
-            },
+        self._post_request(
+            "request_music",
+            "https://www.youtube.com/playlist?list=PLiS9Gj9LFFFxFrsk9vKmMWAd4TCrOgYd3",
+            playlist=True,
         )
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 2
@@ -79,14 +86,7 @@ class YoutubeTests(MusicTest):
         )
 
     def test_playlist_query(self):
-        self.client.post(
-            reverse("request_music"),
-            {
-                "query": "Muse Resistance Album",
-                "playlist": "true",
-                "platform": "youtube",
-            },
-        )
+        self._post_request("request_music", "Muse Resistance Album", playlist=True)
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 4
             and all(song["confirmed"] for song in state["song_queue"]),
@@ -114,13 +114,8 @@ class YoutubeTests(MusicTest):
         )
 
     def test_autoplay(self):
-        self.client.post(
-            reverse("request_music"),
-            {
-                "query": "https://www.youtube.com/watch?v=w8KQmps-Sog",
-                "playlist": "false",
-                "platform": "youtube",
-            },
+        self._post_request(
+            "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
         )
         self._poll_current_song()
         self.client.post(reverse("set_autoplay"), {"value": "true"})
@@ -142,16 +137,11 @@ class YoutubeTests(MusicTest):
         )
 
     def test_radio(self):
-        self.client.post(
-            reverse("request_music"),
-            {
-                "query": "https://www.youtube.com/watch?v=w8KQmps-Sog",
-                "playlist": "false",
-                "platform": "youtube",
-            },
+        self._post_request(
+            "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
         )
         self._poll_current_song()
-        self.client.post(reverse("request_radio"))
+        self._post_request("request_radio")
         # ensure that 5 songs are enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 5

@@ -85,7 +85,7 @@ class Youtube:
     def get_ydl_opts() -> Dict[str, Any]:
         """This method returns a dictionary containing sensible defaults for youtube-dl options.
         It is roughly equivalent to the following command:
-        youtube-dl --format bestaudio[ext=m4a]/best[ext=m4a] --output '%(id)s.%(ext)s \
+        youtube-dl --format bestaudio[ext=m4a]/best[ext=m4a] --output '%(id)s.%(ext)s' \
             --no-playlist --write-thumbnail --default-search auto --add-metadata --embed-thumbnail
         """
         return {
@@ -157,7 +157,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
                 self.info_dict = ydl.extract_info(self.query, download=False)
-        except youtube_dl.utils.DownloadError as e:
+        except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.error = e
             return False
 
@@ -363,13 +363,17 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
 
         return list_id
 
-    def fetch_metadata(self) -> None:
+    def fetch_metadata(self) -> bool:
         # in case of a radio playist, restrict the number of songs that are downloaded
         if self.is_radio():
             self.ydl_opts["playlistend"] = self.musiq.base.settings.max_playlist_items
 
-        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            info_dict = ydl.extract_info(self.id, download=False)
+        try:
+            with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+                info_dict = ydl.extract_info(self.id, download=False)
+        except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
+            self.error = e
+            return False
 
         if info_dict["_type"] != "playlist" or "entries" not in info_dict:
             # query was not a playlist url -> search for the query
@@ -381,3 +385,5 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
         for entry in info_dict["entries"]:
             self.urls.append("https://www.youtube.com/watch?v=" + entry["id"])
         assert self.key is None
+
+        return True
