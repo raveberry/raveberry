@@ -90,7 +90,7 @@ Raveberry features a convenient way of modifying the behavior of the server, lik
 Use your bluetooth speakers with Raveberry, removing the need of an aux cable.
 
 * **Screen visualization**:
-With the tool [`cava`](https://github.com/karlstav/cava), the current music is split into its frequencies and visualized on a connected screen. (See screenshot below)
+With the tool [`cava`](https://github.com/karlstav/cava), the current music is split into its frequencies and visualized on a connected screen. Can also be configured to run in [user mode](#user_visualization). (See screenshot below)
 
 * **Audio visualization**:
 Using the same tool, Raveberry can also make connected LEDs flash to the rhythm of the music.
@@ -136,6 +136,29 @@ sudo scripts/uninstall.sh
 ```
 
 ## FAQ
+
+### <a name="user_visualization"></a> I want to use the visualization without doing a system install.
+
+Install the required python packages
+```
+pip3 install raveberry[screenvis]
+```
+Install cava (Instructions from [the repository](https://github.com/karlstav/cava))
+```
+sudo apt-get install git libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool automake libiniparser-dev
+export CPPFLAGS=-I/usr/include/iniparser
+git clone https://github.com/karlstav/cava
+cd cava
+./autogen.sh
+./configure
+make
+cp cava ~/.local/bin  # or add the binary to your PATH
+```
+comment out the following line in the used cava config (probably something like `nano ~/.local/lib/python3.7/site-packages/raveberry/config/cava.config`) (add the `#`:
+```
+# source = cava.monitor
+```
+Now you should be able to start the server with `raveberry run`, login with admin:admin at `localhost:8000/login` and enable the visualization at `localhost:8000/lights`.
 
 ### There is an error during installation while `building wheel for cryptography`.
 
