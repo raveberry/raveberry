@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Performing Migrations"
 DJANGO_DEBUG=1 DJANGO_MOCK=1 python3 manage.py migrate
 echo "Creating Users"

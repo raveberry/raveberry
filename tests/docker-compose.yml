@@ -1,0 +1,33 @@
+version: '3'
+
+volumes:
+  static-files:
+  songs-cache:
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=raveberry
+      - POSTGRES_USER=raveberry
+      - POSTGRES_PASSWORD=raveberry
+  redis:
+    image: redis
+  mopidy:
+    image: wernight/mopidy
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - songs-cache:/Music/raveberry
+      - "/run/user/${UID:-1000}/pulse:/run/user/105/pulse"
+  daphne:
+    image: raveberry-test
+    environment:
+      PYTHONUNBUFFERED: 1
+      DOCKER: 1
+    command: bash -c "python manage.py test tests --noinput"
+    volumes:
+      - static-files:/opt/raveberry/static
+      - songs-cache:/Music/raveberry
+    depends_on:
+      - db
+      - redis
+      - mopidy

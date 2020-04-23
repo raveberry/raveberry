@@ -1,6 +1,7 @@
 """This module contains all url endpoints and maps them to their corresponding functions."""
 
 import os
+import re
 
 from django.urls import include
 from django.urls import path
@@ -9,9 +10,14 @@ from django.views.generic import RedirectView
 if os.environ.get("DJANGO_MOCK"):
     import core.mock
 
-    urlpatterns = [
-        path("", core.mock.index),
-    ]
+    # Mock all url names so they can be reversed.
+    url_names = []
+    with open(__file__) as urls:
+        for line in urls:
+            match = re.search(r'name="(\w+)"', line)
+            if match:
+                url_names.append(match.groups()[0])
+    urlpatterns = [path("", core.mock.index, name=url_name) for url_name in url_names]
 else:
     from core.base import Base
 

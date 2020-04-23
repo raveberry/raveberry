@@ -2,19 +2,19 @@ language: python
 python: "3.7"
 
 services:
-    - docker
+  - docker
 
 install:
-    - docker build -f tests/Dockerfile -t raveberry_test .
+  - docker build -f docker/tests.Dockerfile -t raveberry-test .
 script:
-    - docker run raveberry_test "python3 manage.py test tests"
+  - docker-compose -f tests/docker-compose.yml up --exit-code-from daphne
 
 before_deploy:
-    - yarn install
-    - scripts/clean_libs.sh
-    - mkdir raveberry
-    # move all files except those needed for packaging
-    - mv `\ls -A1 | grep -v -E '(setup.py|MANIFEST.in|raveberry)'` raveberry
+  - yarn install
+  - scripts/clean_libs.sh
+  - mkdir raveberry
+  # move all files except those needed for packaging
+  - mv `\ls -A1 | grep -v -E '(setup.py|MANIFEST.in|raveberry)'` raveberry
 deploy:
   provider: pypi
   user: __token__

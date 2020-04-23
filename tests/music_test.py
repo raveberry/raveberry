@@ -36,7 +36,7 @@ class MusicTest(RaveberryTest):
     def _setup_test_library(self):
         util.download_test_library()
 
-        test_library = os.path.join(settings.BASE_DIR, "test_library")
+        test_library = os.path.join(settings.TEST_CACHE_DIR, "test_library")
         self.client.post(reverse("scan_library"), {"library_path": test_library})
         # need to split the scan_progress as it contains no-break spaces
         self._poll_state(

@@ -23,6 +23,8 @@
 		<script src="{% static "libs/jquerykeyframes/dist/jquery.keyframes.js" %}"></script>
 		<script src="{% static "libs/js-cookie/src/js.cookie.js" %}"></script>
 		<script src="{% static "libs/reconnecting-websocket/dist/reconnecting-websocket-iife.min.js" %}"></script>
+		{% endcompress %}
+		{% compress js inline %}
 		<script>
 			CSRF_TOKEN = "{{ csrf_token }}";
 			urls = {

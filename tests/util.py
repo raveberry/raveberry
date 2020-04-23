@@ -14,7 +14,7 @@ def admin_login(client):
 
 
 def download_test_library():
-    test_library = os.path.join(os.path.join(settings.BASE_DIR, "test_library"))
+    test_library = os.path.join(settings.TEST_CACHE_DIR, "test_library")
     pathlib.Path(test_library).mkdir(parents=True, exist_ok=True)
     pathlib.Path(os.path.join(test_library, "Hard Rock")).mkdir(
         parents=True, exist_ok=True

@@ -1,0 +1,56 @@
+version: '3'
+
+volumes:
+  static-files:
+  songs-cache:
+    # If you want to access downloaded files on your host system,
+    # uncomment the following lines and choose a folder.
+    #driver_opts:
+    #  type: 'none'
+    #  o: 'bind'
+    #  device: '/path/to/folder/'
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=raveberry
+      - POSTGRES_USER=raveberry
+      - POSTGRES_PASSWORD=raveberry
+    restart: always
+  redis:
+    image: redis
+    restart: always
+  mopidy:
+    image: wernight/mopidy
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - songs-cache:/Music/raveberry
+      - "/run/user/${UID:-1000}/pulse:/run/user/105/pulse"
+    restart: always
+  daphne:
+    image: raveberry/raveberry
+    environment:
+      ADMIN_PASSWORD: "admin"
+      MOD_PASSWORD: "mod"
+      PAD_PASSWORD: "pad"
+      DOCKER: 1
+    command: bash -c "DJANGO_MOCK=1 python manage.py compilescss && DJANGO_MOCK=1 python manage.py migrate --noinput && scripts/create_users.sh && /usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application"
+    expose:
+      - 9000
+    volumes:
+      - static-files:/opt/raveberry/static
+      - songs-cache:/Music/raveberry
+    depends_on:
+      - db
+      - redis
+      - mopidy
+    restart: always
+  nginx:
+    image: raveberry/raveberry-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - static-files:/usr/share/nginx/static
+    depends_on:
+      - daphne
+    restart: always

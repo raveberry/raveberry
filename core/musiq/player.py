@@ -102,7 +102,7 @@ class Player:
         self.alarm_playing: Event = Event()
         self.running = True
 
-        self.player: MopidyAPI = MopidyAPI()
+        self.player: MopidyAPI = MopidyAPI(host=settings.MOPIDY_HOST)
         self.player_lock = Lock()
         with self.mopidy_command(important=True):
             self.player.playback.stop()

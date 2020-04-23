@@ -42,10 +42,8 @@ class YoutubeTests(MusicTest):
         self.assertEqual(
             current_song["external_url"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
-        self.assertEqual(current_song["artist"], "Century Media Records")
-        self.assertEqual(
-            current_song["title"], "ESKIMO CALLBOY - MC Thunder (OFFICIAL VIDEO)"
-        )
+        self.assertEqual(current_song["artist"], "Eskimo Callboy")
+        self.assertEqual(current_song["title"], "MC Thunder")
         self.assertEqual(current_song["duration"], 267)
 
     def test_url(self):
