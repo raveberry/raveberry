@@ -17,7 +17,7 @@ It provides an intuitive interface for requesting songs and changing their order
 If you just want it to work, you can use [docker-compose](https://docs.docker.com/compose/install/):
 ```
 wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker-compose.yml
-docker-compose up
+docker-compose up -d
 ```
 
 Raveberry is now accessible at `http://localhost/` or `http://<your hostname>/` for other devices in the network. To use a different password for the `admin` user than the default password `admin`, set an environment variable `ADMIN_PASSWORD`.
