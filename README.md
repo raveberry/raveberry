@@ -6,15 +6,35 @@
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
-It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made. It supports Youtube and Spotify as sources for music.
+It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made. It supports Youtube, Spotify and local files as sources for music.
 
 ![](docs/showcase.gif "Showcase Gif")
 
 ## Installation
 
-Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. I use a Raspberry Pi 4 for development and testing of the software, but Raveberry should work on any Debian based Linux. See also tested hardware [below](#tested_hardware).
+### Docker
 
-Raveberry is available on PyPi:
+If you just want it to work, you can use [docker-compose](https://docs.docker.com/compose/install/):
+```
+wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker-compose.yml
+docker-compose up
+```
+
+Raveberry is now accessible at `http://localhost/` or `http://<your hostname>/` for other devices in the network. To use a different password for the `admin` user than the default password `admin`, set an environment variable `ADMIN_PASSWORD`.
+
+If there is no sound, you might need to provide your UID an GID for pulse to work: `UID=$(id -u) GID=$(id -g) docker-compose up -d`
+
+To use local files from your system, specify the path to the desired folder in the volumes section of the file. The folder will be visible in as `/Music/raveberry`, which is the path you need to use when scanning the library.
+
+In order to use Spotify, you need to provide your credentials to Raveberry via the `/settings` page and to mopidy with a config file. Copy the file from `docker/mopidy.conf` and fill in your credentials. Then uncomment the corresponding line in the mopidy section of the .yml file.
+
+Note: Playback and voting should work as expected, but additional features like visualization or the hotspot are not supported (yet).
+
+### Manual
+
+Raveberry is meant to be installed on a Raspberry Pi. Then it works as a portable music server which you can take with you wherever you are. To gain access to all features of Raveberry you need to perform a manual system installation.
+
+Install the dependencies and download Raveberry from PyPi:
 ```
 wget -q -O - https://apt.mopidy.com/mopidy.gpg | sudo apt-key add -
 sudo wget -q -O /etc/apt/sources.list.d/mopidy.list https://apt.mopidy.com/buster.list
@@ -41,12 +61,11 @@ During installation you will be asked to provide a password for the admin user. 
 
 The installation will take at most 30 minutes, most of which is spent on installing/updating packages. You might need to reboot afterwards for all changes to take effect.
 
+## First Steps
+
 After the installation has finished `http://raveberry/` is up and ready to play music (go ahead and try now!). You can visit `http://raveberry/login/` and log in as the `admin` user with your provided admin password. If you take a look at `http://raveberry/settings` (which is also linked from the dropdown) you can see various configuration possibilities. For more information about these settings and privileges in general refer to [`docs/privileges.md`](docs/privileges.md).
 
 An introduction to basic functionality can be found in [`docs/functionality.md`](docs/functionality.md). Or just visit `http://raveberry/` and find out for yourself ; )
-
-### A Note about Ubuntu 18.04
-Mopidy 3.0 requires Python 3.7, while Ubuntu 18.04 ships with Python 3.6. It is possible to install it nevertheless, but it is not trivial. Refer to [this guide](https://mopidy.com/blog/2019/12/27/mopidy-3-faq/#what-about-mopidy-3-on-ubuntu-1804-lts) for instructions.
 
 ## Updating
 
@@ -123,6 +142,9 @@ Raveberry is known to work on the following Hardware:
 If you have something to add to the list, please let me know!
 
 Although it is possible to install and run Raveberry on the original Raspberry Pi (after a very long installation), the hardware is just to weak for audio decoding and can not provide a pleasant experience at all.
+
+### A Note about Ubuntu 18.04
+Mopidy 3.0 requires Python 3.7, while Ubuntu 18.04 ships with Python 3.6. It is possible to install it nevertheless, but it is not trivial. Refer to [this guide](https://mopidy.com/blog/2019/12/27/mopidy-3-faq/#what-about-mopidy-3-on-ubuntu-1804-lts) for instructions.
 
 ## Uninstall
 
