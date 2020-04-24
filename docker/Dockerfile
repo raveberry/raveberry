@@ -1,9 +1,7 @@
 FROM raveberry/raveberry-dependencies
 
-RUN pip3 install psycopg2 &&\
+RUN pip install psycopg2 &&\
+	pip install raveberry --no-deps --target /opt &&\
 	rm -rf ~/.cache/pip
 
-# persist raveberry (build context) in container
-# TODO: change with pip
-COPY . /opt/raveberry
 WORKDIR /opt/raveberry
