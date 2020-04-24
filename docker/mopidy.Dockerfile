@@ -1,10 +1,6 @@
-FROM python:3
+FROM raveberry/raveberry-dependencies
 
-RUN apt-get install -y wget gnupg &&\
-	wget -q -O - https://apt.mopidy.com/mopidy.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn apt-key add - &&\
-	wget -q -O /etc/apt/sources.list.d/mopidy.list https://apt.mopidy.com/buster.list &&\
-	apt-get update &&\
-	apt-get install -y mopidy mopidy-spotify gstreamer1.0-plugins-bad dumb-init &&\
+RUN apt-get install -y mopidy-spotify dumb-init &&\
 	apt-get clean
 
 # Start helper script.
