@@ -120,19 +120,21 @@ class SpotifySongProvider(SongProvider, Spotify):
         return False
 
     def check_downloadable(self) -> bool:
-        if self.id is None:
-            results = self.spotify_library.search({"any": [self.query]})
+        if self.id is not None:
+            return self.gather_metadata()
 
-            try:
-                track_info = results[0].tracks[0]
-            except AttributeError:
-                self.error = "Song not found"
-                return False
-            self.id = SpotifySongProvider.get_id_from_internal_url(track_info.uri)
-            self.gather_metadata(track_info=track_info)
-        else:
-            self.gather_metadata()
+        results = self.spotify_library.search({"any": [self.query]})
 
+        try:
+            track_info = results[0].tracks[0]
+        except IndexError:
+            self.error = "Spotify not enabled in Mopidy"
+            return False
+        except AttributeError:
+            self.error = "Song not found"
+            return False
+        self.id = SpotifySongProvider.get_id_from_internal_url(track_info.uri)
+        self.gather_metadata(track_info=track_info)
         return True
 
     def download(
@@ -146,17 +148,22 @@ class SpotifySongProvider(SongProvider, Spotify):
         # spotify need to be streamed, no download possible
         return True
 
-    def gather_metadata(self, track_info: Optional["Track"] = None) -> None:
+    def gather_metadata(self, track_info: Optional["Track"] = None) -> bool:
         """Fetches metadata for this song's uri from Spotify."""
         if not track_info:
             results = self.spotify_library.search({"uri": [self.get_internal_url()]})
-            track_info = results[0].tracks[0]
+            try:
+                track_info = results[0].tracks[0]
+            except IndexError:
+                self.error = "Spotify not enabled in Mopidy"
+                return False
 
         self.metadata["internal_url"] = track_info.uri
         self.metadata["external_url"] = self.get_external_url()
         self.metadata["artist"] = track_info.artists[0].name
         self.metadata["title"] = track_info.name
         self.metadata["duration"] = track_info.length / 1000
+        return True
 
     def get_metadata(self) -> "Metadata":
         if not self.metadata:

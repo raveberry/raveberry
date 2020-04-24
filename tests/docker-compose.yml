@@ -13,7 +13,7 @@ services:
   redis:
     image: redis
   mopidy:
-    image: wernight/mopidy
+    image: raveberry/raveberry-mopidy
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - songs-cache:/Music/raveberry

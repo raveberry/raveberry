@@ -21,11 +21,14 @@ services:
     image: redis
     restart: always
   mopidy:
-    image: wernight/mopidy
+    image: raveberry/raveberry-mopidy
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - songs-cache:/Music/raveberry
       - "/run/user/${UID:-1000}/pulse:/run/user/105/pulse"
+      # If you want to use spotify, 
+      # uncomment this line with a path to a config file containing the spotify credentials
+      # - /path/to/mopidy.conf:/config/mopidy.conf
     restart: always
   daphne:
     image: raveberry/raveberry

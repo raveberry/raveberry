@@ -150,6 +150,11 @@ class Settings(Stateful):
         if not self.spotify_client_id or not self.spotify_client_secret:
             self.spotify_enabled = False
             return HttpResponseBadRequest("Not all credentials provided")
+        if settings.DOCKER:
+            self.spotify_enabled = True
+            return HttpResponse(
+                "Make sure to set mopidy config with spotify credentials."
+            )
         try:
             subprocess.check_call(
                 ["systemctl", "is-active", "mopidy"], stdout=subprocess.DEVNULL
