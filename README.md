@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/raveberry/raveberry.svg?branch=master)](https://travis-ci.org/raveberry/raveberry)
 [![PyPI](https://img.shields.io/pypi/v/raveberry)](https://pypi.org/project/raveberry/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/raveberry?style=social)](https://www.reddit.com/r/raveberry/)
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
