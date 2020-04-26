@@ -1,0 +1,8 @@
+.venv
+.git
+.mypy_cache
+test_library
+test_cache
+
+# don't have the container inherit our cache path
+config/cache_dir
