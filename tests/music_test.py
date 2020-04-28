@@ -34,7 +34,8 @@ class MusicTest(RaveberryTest):
         super().tearDown()
 
     def _setup_test_library(self):
-        util.download_test_library()
+        if not util.download_test_library():
+            self.skipTest("could not download test library")
 
         test_library = os.path.join(settings.TEST_CACHE_DIR, "test_library")
         self.client.post(reverse("scan_library"), {"library_path": test_library})

@@ -1,6 +1,7 @@
 import os
 import pathlib
 import urllib.request
+import urllib.error
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -37,14 +38,21 @@ def download_test_library():
         )
         if os.path.isfile(target_filename):
             continue
-        urllib.request.urlretrieve(
-            "https://audionautix.com/Music/" + filename, target_filename
-        )
+        try:
+            urllib.request.urlretrieve(
+                "https://audionautix.com/Music/" + filename, target_filename
+            )
+        except urllib.error.URLError:
+            return False
 
     for filename in techno_filenames:
         target_filename = os.path.join(os.path.join(test_library, "Techno"), filename)
         if os.path.isfile(target_filename):
             continue
-        urllib.request.urlretrieve(
-            "https://audionautix.com/Music/" + filename, target_filename
-        )
+        try:
+            urllib.request.urlretrieve(
+                "https://audionautix.com/Music/" + filename, target_filename
+            )
+        except urllib.error.URLError:
+            return False
+    return True
