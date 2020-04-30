@@ -54,7 +54,7 @@ function request_archived_music(key, query, platform=Cookies.get('platform')) {
 function request_new_music(query, platform=Cookies.get('platform')) {
 	$.post(urls['request_music'],
 		{
-			query: $('#music_input').val(),
+			query: query,
 			playlist: playlistEnabled(),
 			platform: platform,
 		}).done(function(response) {
