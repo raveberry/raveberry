@@ -16,8 +16,8 @@ class YoutubeTests(MusicTest):
             # try to find out whether youtube is happy with us this time
             # send a request and skip the test if there is an error
             with youtube_dl.YoutubeDL(Youtube.get_ydl_opts()) as ydl:
-                self.info_dict = ydl.extract_info(
-                    "https://www.youtube.com/watch?v=wobbf3lb2nk", download=False
+                self.info_dict = ydl.download(
+                    "https://www.youtube.com/watch?v=wobbf3lb2nk"
                 )
         except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
