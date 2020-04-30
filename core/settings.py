@@ -8,6 +8,7 @@ import math
 import os
 import re
 import shutil
+import socket
 import subprocess
 import time
 from datetime import timedelta
@@ -125,12 +126,8 @@ class Settings(Stateful):
 
         # icecast reports as active even if it is internally disabled.
         # check if its port is used to determine if it's running
-        streaming_enabled = False
-        for line in subprocess.check_output(
-            "netstat -lnt".split(), universal_newlines=True
-        ).splitlines():
-            if "8000" in line:
-                streaming_enabled = True
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            streaming_enabled = s.connect_ex(("localhost", 8000)) == 0
         state_dict["streaming_enabled"] = streaming_enabled
 
         try:
