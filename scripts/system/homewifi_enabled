@@ -2,5 +2,5 @@
 if [ $(systemctl list-units --full --all | grep -q homewifi.service) ]; then
         exit 0
 else
-        ! systemctl is-enabled --quiet homewifi
+        ! systemctl is-enabled --quiet homewifi 2>/dev/null
 fi
