@@ -1,6 +1,9 @@
 import setuptools
 
-with open("raveberry/README.md", "r") as f:
+with open("raveberry/VERSION") as f:
+    version = f.read().strip()
+
+with open("raveberry/README.md") as f:
     long_description = f.read()
 
 with open("raveberry/requirements/common.txt") as f:
@@ -13,7 +16,7 @@ with open("raveberry/requirements/screenvis.txt") as f:
 
 setuptools.setup(
     name="raveberry",
-    version="0.5.0",
+    version=version,
     author="Jonathan Hacker",
     author_email="raveberry@jhacker.de",
     description="A multi-user music server with a focus on participation",
