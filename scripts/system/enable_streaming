@@ -1,0 +1,53 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+if [ -f /etc/default/icecast2 ]; then
+	sed -i.bak 's/ENABLE=false/ENABLE=true/' /etc/default/icecast2
+fi
+
+if [ ! -f /usr/share/icecast2/web/silence.mp3 ]; then
+	# create silence file for fallback
+	ffmpeg -f lavfi -i anullsrc -t 10 /usr/share/icecast2/web/silence.mp3
+fi
+
+if [ ! -f /usr/share/icecast2/.htaccess ]; then
+	USER=raveberry
+	PASS=raveberry
+	HASH=$(echo -n $PASS | md5sum | awk '{ print $1 }')
+	ENTRY="$USER:$HASH"
+	echo "$ENTRY" > /usr/share/icecast2/.htaccess
+
+	chown icecast2:icecast /usr/share/icecast2/.htaccess
+fi
+
+# Add our mount config if not already present
+LINE="<mount-name>/stream</mount-name>"
+FILE="/etc/icecast2/icecast.xml"
+if ! grep -qxF -- "$LINE" "$FILE"; then
+	NODE=$(cat <<-EOF
+
+		<mount>
+			<mount-name>/stream</mount-name>
+			<stream-name>Raveberry Stream</stream-name>
+			<stream-description>Vote for the music you want to hear!</stream-description>
+			<fallback-mount>/silence.mp3</fallback-mount>
+			<fallback-override>1</fallback-override>
+			<authentication type="htpasswd">
+				<option name="filename" value="/usr/share/icecast2/.htaccess"/>
+				<option name="allow_duplicate_users" value="1"/>
+			</authentication>
+		</mount>
+	EOF
+	)
+	# substitute newlines by literal '\n'
+	NODE=$(echo "$NODE" | sed -z 's/\n/\\n/g')
+	# escape slashes
+	NODE=$(echo $NODE | sed 's/\//\\\//g')
+	sed -i.bak "/<\/icecast>/ s/.*/${NODE}\n&/" "$FILE"
+fi
+
+systemctl enable icecast2
+systemctl restart icecast2

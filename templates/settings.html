@@ -34,6 +34,8 @@
 
 	urls['analyse'] = '{% url 'analyse' %}';
 
+    urls['disable_streaming'] = '{% url 'disable_streaming' %}';
+    urls['enable_streaming'] = '{% url 'enable_streaming' %}';
 	urls['disable_events'] = '{% url 'disable_events' %}';
 	urls['enable_events'] = '{% url 'enable_events' %}';
 	urls['disable_hotspot'] = '{% url 'disable_hotspot' %}';
@@ -274,6 +276,16 @@
 	</li>
 </ul>
 
+<ul class="list-group">
+    <li class="list-group-item list_item">
+        <span class="description">Streaming Enabled:</span>
+        <div id="streaming_enabled"></div>
+    </li>
+    <li class="list-group-item list_item">
+        <button class="btn" id="disable_streaming">Disable Streaming</button>
+        <button class="btn" id="enable_streaming">Enable Streaming</button>
+    </li>
+</ul>
 <ul class="list-group">
 	<li class="list-group-item list_item">
 		<span class="description">Events Enabled:</span>

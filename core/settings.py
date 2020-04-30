@@ -68,6 +68,15 @@ class Settings(Stateful):
             0
         ].value
 
+    @staticmethod
+    def _get_mopidy_config() -> str:
+        if shutil.which("cava"):
+            # if cava is installed, use the visualization config for mopidy
+            config_file = os.path.join(settings.BASE_DIR, "setup/mopidy_cava.conf")
+        else:
+            config_file = os.path.join(settings.BASE_DIR, "setup/mopidy.conf")
+        return config_file
+
     def __init__(self, base: "Base") -> None:
         self.base = base
         self.voting_system = self.get_setting("voting_system", "False") == "True"
@@ -114,6 +123,16 @@ class Settings(Stateful):
 
         state_dict["scan_progress"] = self.scan_progress
 
+        # icecast reports as active even if it is internally disabled.
+        # check if its port is used to determine if it's running
+        streaming_enabled = False
+        for line in subprocess.check_output(
+            "netstat -lnt".split(), universal_newlines=True
+        ).splitlines():
+            if "8000" in line:
+                streaming_enabled = True
+        state_dict["streaming_enabled"] = streaming_enabled
+
         try:
             state_dict["homewifi_enabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/homewifi_enabled"]) != 0
@@ -145,6 +164,20 @@ class Settings(Stateful):
             raise PermissionDenied
         context = self.base.context(request)
         return render(request, "settings.html", context)
+
+    def _update_mopidy_config(self, config_file) -> None:
+        subprocess.call(
+            [
+                "sudo",
+                "/usr/local/sbin/raveberry/update_mopidy_config",
+                config_file,
+                self.spotify_username,
+                self.spotify_password,
+                self.spotify_client_id,
+                self.spotify_client_secret,
+            ]
+        )
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
 
     def _check_spotify(self, credentials_changed: bool = False) -> HttpResponse:
         if not self.spotify_client_id or not self.spotify_client_secret:
@@ -183,24 +216,8 @@ class Settings(Stateful):
 
     def _check_spotify_service(self, credentials_changed: bool = False) -> HttpResponse:
         if credentials_changed:
-            if shutil.which("cava"):
-                # if cava is installed, use the visualization config for mopidy
-                config_file = os.path.join(settings.BASE_DIR, "setup/mopidy_cava.conf")
-            else:
-                config_file = os.path.join(settings.BASE_DIR, "setup/mopidy.conf")
-
-            subprocess.call(
-                [
-                    "sudo",
-                    "/usr/local/sbin/raveberry/update_mopidy_config",
-                    config_file,
-                    self.spotify_username,
-                    self.spotify_password,
-                    self.spotify_client_id,
-                    self.spotify_client_secret,
-                ]
-            )
-            subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
+            config_file = self._get_mopidy_config()
+            self._update_mopidy_config(config_file)
 
             # wait for mopidy to try spotify login
             time.sleep(5)
@@ -843,6 +860,32 @@ class Settings(Stateful):
         response["playlist"] = playlist
 
         return JsonResponse(response)
+
+    @option
+    def enable_streaming(self, _request: WSGIRequest) -> HttpResponse:
+        """Enable icecast streaming."""
+        icecast_exists = False
+        for line in subprocess.check_output(
+            "systemctl list-unit-files --full --all".split(), universal_newlines=True
+        ).splitlines():
+            if "icecast2.service" in line:
+                icecast_exists = True
+                break
+
+        if not icecast_exists:
+            return HttpResponseBadRequest("Please install icecast2")
+
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_streaming"])
+        config_file = os.path.join(settings.BASE_DIR, "setup/mopidy_icecast.conf")
+        self._update_mopidy_config(config_file)
+        return HttpResponse()
+
+    @option
+    def disable_streaming(self, _request: WSGIRequest) -> None:
+        """Disable icecast streaming."""
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_streaming"])
+        config_file = self._get_mopidy_config()
+        self._update_mopidy_config(config_file)
 
     @option
     def disable_events(self, _request: WSGIRequest) -> None:

@@ -23,8 +23,16 @@ Access Point without an additional Wifi dongle (untested): https://wiki.archlinu
 Dnsmasq: https://www.raspberrypi.org/learning/networking-lessons/lesson-4/plan/
 see RFC 2132 and 3397 for dhcp-option information (5: Name Server, 6: Domain Name Server, 15: Domain Name, 119: Domain Search Option)
 
-mpd: https://www.musicpd.org/doc/html/user.html#systemd-user-unit
-
-aacgain aur: https://aur.archlinux.org/packages/aacgain-cvs/
-
 bluetooth on raspbian buster: https://www.raspberrypi.org/forums/viewtopic.php?p=1500848
+
+playback delay in gstreamer: https://stackoverflow.com/questions/16977233/pipeline-gstremer-video-streaming-with-delay
+
+pulseaudio as a system service: https://unix.stackexchange.com/questions/75404/user-systemd-pulseaudio-service
+
+rgvolume: https://gstreamer.freedesktop.org/documentation/replaygain/rgvolume.html
+
+rganalysis: https://github.com/DarwinAwardWinner/rganalysis/
+
+icecast with mopidy: https://docs.mopidy.com/en/latest/icecast/
+
+shout2send in gstreamer: https://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-good/html/gst-plugins-good-plugins-shout2send.html

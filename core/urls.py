@@ -188,6 +188,14 @@ else:
             "create_playlists/", BASE.settings.create_playlists, name="create_playlists"
         ),
         path("analyse/", BASE.settings.analyse, name="analyse"),
+        path(
+            "disable_streaming/",
+            BASE.settings.disable_streaming,
+            name="disable_streaming",
+        ),
+        path(
+            "enable_streaming/", BASE.settings.enable_streaming, name="enable_streaming"
+        ),
         path("disable_events/", BASE.settings.disable_events, name="disable_events"),
         path("enable_events/", BASE.settings.enable_events, name="enable_events"),
         path("disable_hotspot/", BASE.settings.disable_hotspot, name="disable_hotspot"),

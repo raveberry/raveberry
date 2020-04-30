@@ -41,6 +41,7 @@ specificState = function (newState) {
 
 	$('#scan_progress').text(newState.scan_progress);
 
+	$('#streaming_enabled').text(newState.streaming_enabled);
 	$('#events_enabled').text(newState.events_enabled);
 	$('#hotspot_enabled').text(newState.hotspot_enabled);
 	$('#wifi_protected').text(newState.wifi_protected);
@@ -287,6 +288,20 @@ $(document).ready(function() {
 		temp.remove();
 	});
 
+	$('#disable_streaming').on('click tap', function() {
+		$.post(urls['disable_streaming']).done(function() {
+			successToast('');
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+	$('#enable_streaming').on('click tap', function() {
+		$.post(urls['enable_streaming']).done(function() {
+			successToast('');
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
 	$('#disable_events').on('click tap', function() {
 		$.post(urls['disable_events']).done(function() {
 			successToast('');

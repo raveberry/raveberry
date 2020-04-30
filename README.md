@@ -45,7 +45,7 @@ sudo apt-get install -y python3-pip ffmpeg atomicparsley mopidy redis-server lib
 pip3 install raveberry
 raveberry run
 ```
-Depending on your distribution, you may need to write `~/.local/bin/raveberry run` or add that to your PATH. `raveberry run` will start a basic version of Raveberry that can be tested on `http://localhost:8000/` (The server is running if you see `Quit the server with CONTROL-C.`).
+Depending on your distribution, you may need to write `~/.local/bin/raveberry run` or add that to your PATH. `raveberry run` will start a basic version of Raveberry that can be tested on `http://localhost:8080/` (The server is running if you see `Quit the server with CONTROL-C.`).
 
 If you want to install Raveberry system wide and make it fully featured, you can use the following command:
 ```
@@ -82,17 +82,17 @@ Your database will be preserved, unless you specify a database backup in your co
 * **Live Updates**:
 Web page content is updated instantly using websockets.
 
-* **Complementary App**:
-[Shareberry](https://github.com/raveberry/shareberry/) lets you share songs directly from your phone to Raveberry.
+* **Streaming Support**:
+With `icecast`, it is possible to remotely listen to Raveberry. See [`docs/streaming.md`](docs/streaming.md).
+
+* **Bluetooth Support**:
+Use your bluetooth speakers with Raveberry, removing the need of an aux cable.
 
 * **Hotspot**:
 Provides a WiFi network for access in areas without proper infrastructure. Can double as a repeater.
 
 * **Remote URL**:
 Specify a domain to make your Raveberry accessible from the world wide web.
-
-* **Privilege Levels**:
-Grant users additional permissions like playback control.
 
 * **Local Files Support**:
 Play all the files you already have in your local filesystem. Various filetypes supported.
@@ -103,11 +103,14 @@ With `youtube-dl` as a media provider, all of Youtube is available to play.
 * **Spotify Support**:
 Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account.
 
+* **Privilege Levels**:
+Grant users additional permissions like playback control.
+
 * **Graphical Admin Interface**:
 Raveberry features a convenient way of modifying the behavior of the server, like hotspot configuration or download limitation.
 
-* **Bluetooth support**
-Use your bluetooth speakers with Raveberry, removing the need of an aux cable.
+* **Complementary App**:
+[Shareberry](https://github.com/raveberry/shareberry/) lets you share songs directly from your phone to Raveberry.
 
 * **Audio normalization**:
 Raveberry uses replaygain to analyze the volume of songs and prevent sharp volume transitions.
@@ -184,7 +187,7 @@ comment out the following line in the used cava config (probably something like 
 ```
 # source = cava.monitor
 ```
-Now you should be able to start the server with `raveberry run`, login with admin:admin at `localhost:8000/login` and enable the visualization at `localhost:8000/lights`.
+Now you should be able to start the server with `raveberry run`, login with admin:admin at `localhost:8080/login` and enable the visualization at `localhost:8080/lights`.
 
 ### There is an error during installation while `building wheel for cryptography`.
 
