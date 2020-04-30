@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 import random
+import re
+import subprocess
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -110,9 +112,27 @@ class Player:
             # make songs disappear from tracklist after being played
             self.player.tracklist.set_consume(True)
 
-        with self.mopidy_command(important=True):
-            # currentsong = self.player.currentsong()
-            self.volume = self.player.mixer.get_volume() / 100
+        try:
+            # Try to get the volume from the pulse server.
+            # use pipefail so an exception is thrown if pactl does not exist
+            active_sink = False
+            volume = 100
+            for line in subprocess.check_output(
+                "pactl list sinks".split(),
+                env={"PULSE_SERVER": "127.0.0.1"},
+                universal_newlines=True,
+            ).splitlines():
+                if active_sink and "Volume:" in line:
+                    volume = re.search(r"(\d+)%", line).groups()[0]
+                    break
+                if "State: RUNNING" in line:
+                    active_sink = True
+            self.volume = int(volume) / 100
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            with self.mopidy_command(important=True):
+                # pulse is not installed or there is no server running.
+                # get volume from mopidy
+                self.volume = self.player.mixer.get_volume() / 100
 
     def start(self) -> None:
         """Starts the loop of the player."""
@@ -454,9 +474,20 @@ class Player:
         """Sets the playback volume.
         value has to be a float between 0 and 1."""
         self.volume = float(request.POST.get("value"))  # type: ignore
-        with self.mopidy_command() as allowed:
-            if allowed:
-                self.player.mixer.set_volume(round(self.volume * 100))
+        try:
+            # Try to set the volume via the pulse server.
+            # This is faster and does not impact visualization
+            subprocess.run(
+                f"pactl set-sink-volume @DEFAULT_SINK@ {round(self.volume*100)}%".split(),
+                env={"PULSE_SERVER": "127.0.0.1"},
+                check=True,
+            )
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            # pulse is not installed or there is no server running.
+            # change mopidy's volume
+            with self.mopidy_command() as allowed:
+                if allowed:
+                    self.player.mixer.set_volume(round(self.volume * 100))
 
     @disabled_when_voting
     @control
