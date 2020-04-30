@@ -1,14 +1,26 @@
 import os
 
+import youtube_dl
 from django.conf import settings
 from django.urls import reverse
 
+from core.musiq.youtube import Youtube
 from tests.music_test import MusicTest
 
 
 class YoutubeTests(MusicTest):
     def setUp(self):
         super().setUp()
+
+        try:
+            # try to find out whether youtube is happy with us this time
+            # send a request and skip the test if there is an error
+            with youtube_dl.YoutubeDL(Youtube.get_ydl_opts()) as ydl:
+                self.info_dict = ydl.extract_info(
+                    "https://www.youtube.com/watch?v=wobbf3lb2nk", download=False
+                )
+        except youtube_dl.utils.ExtractorError as e:
+            self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
 
         # clear test cache; ensure that it's the test directory
         if os.path.split(os.path.dirname(settings.SONGS_CACHE_DIR))[1] == "test_cache":
