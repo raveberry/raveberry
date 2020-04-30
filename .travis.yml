@@ -1,6 +1,11 @@
 language: python
 python: "3.7"
 
+env:
+  global:
+    - DOCKER_USERNAME=raveberry
+    - secure: "n2xAJLXA5l+L+6W9FHTjGOrZ6PGiaZot19tt5mT5O3rA0FjxKkqQBze/IeA4OC5hM5B4Sj0xfXqXcTJNz5qzLpM92bXVTbl9mDPfr6zYKpWNFH9c6p1p1HlLn+aiYNT/+S/JjnuXTjLnS3TKDVsB+zATSko4iwlWdMzkZebfADHAYrKoBYiUzcXKanxVdoi18ntSiiMsriPGjPsaq0pOhJ/psjKV6jWCOZTUghoGX8bv3y1N1kZGuly2m9HIAFQYpVx+59IWAoAsUn64KKh9zh67euC9tS+GgJ6JOIh9v9VJMpCjCQbSJ9ZQh7OZ7rR0SQJ4NS8zQFRQcJvxo18QcqEjnP+XTA0xIPhW6NBTQ9n01qR5j3rWssl42bZwk7uqkCYkR17uKLQHqifgA/bfjbQ6HOX0Wd0wXhUxD4doPAF/7GwsiF3QRg5Y3Hpuozxqc38mPR3wujeprPg4Wz0MTivgs4CvcgkRjOxhdo6L3T7MyUwGgYcHfIQKJMW7B16RxsK3+QZFvUMmB94ZfNjAZ3cHamvwLKvMvu5G7It39F1oFPTnNr+823Zs/a+2CkotqlTH/yXwnRNkGFzgEyXoAmpdAcfUqWIwV0IXHBWl5irp05Yn0F9GqEvBKKLyRBUs2g4f63M3E043QXVLmHm5PM98dQA3wx7XeGwor8vEyfI="
+
 services:
   - docker
 
@@ -23,3 +28,24 @@ deploy:
   skip_cleanup: true
   skip_existing: true
   distributions: "sdist bdist_wheel"
+after_deploy:
+  # update docker
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  # setup cross compilation requirements
+  - sudo apt-get -y install qemu-user qemu-user-static
+  # https://github.com/docker/for-linux/issues/56#issuecomment-502263368
+  - git clone https://github.com/computermouth/qemu-static-conf.git
+  - sudo mkdir -p /lib/binfmt.d
+  - sudo cp qemu-static-conf/*.conf /lib/binfmt.d/
+  - sudo systemctl restart systemd-binfmt.service
+  - export DOCKER_CLI_EXPERIMENTAL=enabled
+  - sudo systemctl restart docker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  # https://stackoverflow.com/questions/59365141/pushing-images-to-docker-hub-for-multiple-architectures-e-g-amd64-arm64-and
+  - docker buildx create --driver docker-container --name local --use unix:///var/run/docker.sock
+  # no quiet mode, pipe to /dev/null to not exceed maximum log length with buildx's fancy output
+  # https://github.com/docker/buildx/blob/master/commands/build.go#L79
+  - docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry . 2>/dev/null

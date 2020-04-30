@@ -6,4 +6,4 @@ then
     export PULSE_COOKIE=$HOME/pulse.cookie
 fi
 
-exec $@
+exec "$@"

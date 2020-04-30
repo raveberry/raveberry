@@ -25,4 +25,4 @@ USER mopidy
 EXPOSE 6680
 
 ENTRYPOINT ["/usr/bin/dumb-init", "/entrypoint.sh"]
-CMD ["/usr/bin/mopidy --config /config/mopidy.conf"]
+CMD ["/usr/bin/mopidy", "--config", "/config/mopidy.conf"]

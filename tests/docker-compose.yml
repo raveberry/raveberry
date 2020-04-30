@@ -13,12 +13,12 @@ services:
     image: redis
   mopidy:
     image: raveberry/raveberry-mopidy
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - songs-cache:/Music/raveberry
       - "/run/user/${UID:-1000}/pulse:/run/user/105/pulse"
-    user: root
-    devices:
-      - "/dev/snd:/dev/snd"
+    # squelch warnings about mopidy not being able to connect to playback device
+    command: bash -c "/usr/bin/mopidy --config /config/mopidy.conf 2>/dev/null"
   daphne:
     image: raveberry-test
     environment:
