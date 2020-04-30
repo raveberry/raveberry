@@ -1,7 +1,6 @@
 version: '3'
 
 volumes:
-  static-files:
   songs-cache:
 services:
   db:
@@ -14,10 +13,12 @@ services:
     image: redis
   mopidy:
     image: raveberry/raveberry-mopidy
-    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - songs-cache:/Music/raveberry
       - "/run/user/${UID:-1000}/pulse:/run/user/105/pulse"
+    user: root
+    devices:
+      - "/dev/snd:/dev/snd"
   daphne:
     image: raveberry-test
     environment:
@@ -25,7 +26,6 @@ services:
       DOCKER: 1
     command: bash -c "python manage.py test tests --noinput"
     volumes:
-      - static-files:/opt/raveberry/static
       - songs-cache:/Music/raveberry
     depends_on:
       - db
