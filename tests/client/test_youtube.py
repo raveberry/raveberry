@@ -19,7 +19,7 @@ class YoutubeTests(MusicTest):
                 self.info_dict = ydl.extract_info(
                     "https://www.youtube.com/watch?v=wobbf3lb2nk", download=False
                 )
-        except youtube_dl.utils.ExtractorError as e:
+        except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
 
         # clear test cache; ensure that it's the test directory
