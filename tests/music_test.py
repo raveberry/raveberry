@@ -4,6 +4,7 @@ import time
 
 from django.conf import settings
 from django.urls import reverse
+from mopidyapi import MopidyAPI
 
 from tests import util
 from tests.raveberry_test import RaveberryTest
@@ -14,7 +15,8 @@ class MusicTest(RaveberryTest):
         super().setUp()
 
         # mute player for testing
-        self.client.post(reverse("set_volume"), {"value": "0"})
+        self.player = MopidyAPI(host=settings.MOPIDY_HOST)
+        self.player.mixer.set_volume(0)
         # reduce number of downloaded songs for the test
         self.client.post(reverse("set_max_playlist_items"), {"value": "5"})
 
