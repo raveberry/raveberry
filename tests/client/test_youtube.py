@@ -17,7 +17,7 @@ class YoutubeTests(MusicTest):
             # send a request and skip the test if there is an error
             with youtube_dl.YoutubeDL(Youtube.get_ydl_opts()) as ydl:
                 self.info_dict = ydl.download(
-                    "https://www.youtube.com/watch?v=wobbf3lb2nk"
+                    ["https://www.youtube.com/watch?v=wobbf3lb2nk"]
                 )
         except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
@@ -54,8 +54,7 @@ class YoutubeTests(MusicTest):
         self.assertEqual(
             current_song["external_url"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
-        self.assertEqual(current_song["artist"], "Eskimo Callboy")
-        self.assertEqual(current_song["title"], "MC Thunder")
+        self.assertIn("MC Thunder", current_song["title"])
         self.assertEqual(current_song["duration"], 267)
 
     def test_url(self):
@@ -66,8 +65,7 @@ class YoutubeTests(MusicTest):
         self.assertEqual(
             current_song["external_url"], "https://www.youtube.com/watch?v=UNaYpBpRJOY"
         )
-        self.assertEqual(current_song["artist"], "Bring Me the Horizon")
-        self.assertEqual(current_song["title"], "Avalanche")
+        self.assertIn("Avalanche", current_song["title"])
         self.assertEqual(current_song["duration"], 275)
 
     def test_playlist_url(self):
