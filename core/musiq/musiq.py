@@ -178,7 +178,20 @@ class Musiq(Stateful):
     def post_song(self, request: WSGIRequest) -> HttpResponse:
         """This endpoint is part of the API and exempt from CSRF checks.
         Shareberry uses this endpoint."""
-        return self.request_music(request)
+        # only get ip on user requests
+        if self.base.settings.logging_enabled:
+            request_ip, _ = ipware.get_client_ip(request)
+            if request_ip is None:
+                request_ip = ""
+        else:
+            request_ip = ""
+        query = request.POST.get("query")
+        if not query:
+            return HttpResponseBadRequest("No query to share.")
+        # Set the requested platform to 'spotify'.
+        # It will automatically fall back to Youtube
+        # if Spotify is not enabled or a youtube link was requested.
+        return self.do_request_music(request_ip, query, None, False, "spotify")
 
     def index(self, request: WSGIRequest) -> HttpResponse:
         """Renders the /musiq page."""
