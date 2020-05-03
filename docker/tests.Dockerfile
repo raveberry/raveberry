@@ -6,6 +6,7 @@ RUN apt-get update &&\
 	apt-get update &&\
 	apt-get install -y yarn &&\
 	apt-get clean &&\
+	pip3 install -U youtube-dl &&\
 	pip3 install psycopg2 bs4 &&\
 	rm -rf ~/.cache/pip
 
