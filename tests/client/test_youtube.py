@@ -8,6 +8,23 @@ from core.musiq.youtube import Youtube
 from tests.music_test import MusicTest
 
 
+class YoutubeDLLogger:
+    def __init__(self, test: MusicTest):
+        self.test = test
+
+    @classmethod
+    def debug(cls, msg: str) -> None:
+        pass
+
+    @classmethod
+    def warning(cls, msg: str) -> None:
+        pass
+
+    def error(self, msg: str) -> None:
+        print(msg)
+        self.test.skipTest(msg)
+
+
 class YoutubeTests(MusicTest):
     def setUp(self):
         super().setUp()
@@ -15,7 +32,9 @@ class YoutubeTests(MusicTest):
         try:
             # try to find out whether youtube is happy with us this time
             # send a request and skip the test if there is an error
-            with youtube_dl.YoutubeDL(Youtube.get_ydl_opts()) as ydl:
+            ydl_opts = Youtube.get_ydl_opts()
+            ydl_opts["logger"] = YoutubeDLLogger(self)
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 self.info_dict = ydl.download(
                     ["https://www.youtube.com/watch?v=wobbf3lb2nk"]
                 )
