@@ -42,6 +42,9 @@ class YoutubeTests(MusicTest):
         except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
 
+        # reduce the number for youtube playlists
+        self.client.post(reverse("set_max_playlist_items"), {"value": "3"})
+
         # clear test cache; ensure that it's the test directory
         if os.path.split(os.path.dirname(settings.SONGS_CACHE_DIR))[1] == "test_cache":
             for member in os.listdir(settings.SONGS_CACHE_DIR):
@@ -91,31 +94,11 @@ class YoutubeTests(MusicTest):
     def test_playlist_url(self):
         self._post_request(
             "request_music",
-            "https://www.youtube.com/playlist?list=PLiS9Gj9LFFFxFrsk9vKmMWAd4TCrOgYd3",
+            "https://www.youtube.com/playlist?list=PLvYcr2tNZuRquz0NQmBFF6ZhqFHSeOrbk",
             playlist=True,
         )
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 2
-            and all(song["confirmed"] for song in state["song_queue"]),
-            timeout=60,
-        )
-        self.assertEqual(
-            state["current_song"]["external_url"],
-            "https://www.youtube.com/watch?v=LGamaKv0zNg",
-        )
-        self.assertEqual(
-            state["song_queue"][0]["external_url"],
-            "https://www.youtube.com/watch?v=eiCimeZi3-g",
-        )
-        self.assertEqual(
-            state["song_queue"][1]["external_url"],
-            "https://www.youtube.com/watch?v=CaY36kVk-cU",
-        )
-
-    def test_playlist_query(self):
-        self._post_request("request_music", "Muse Resistance Album", playlist=True)
-        state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 4
             and all(song["confirmed"] for song in state["song_queue"]),
             timeout=60,
         )
@@ -131,13 +114,25 @@ class YoutubeTests(MusicTest):
             state["song_queue"][1]["external_url"],
             "https://www.youtube.com/watch?v=47P6CI7V8gM",
         )
-        self.assertEqual(
-            state["song_queue"][2]["external_url"],
-            "https://www.youtube.com/watch?v=-5-K51jHQ6k",
+
+    def test_playlist_query(self):
+        self._post_request("request_music", "Muse Resistance Album", playlist=True)
+        state = self._poll_musiq_state(
+            lambda state: len(state["song_queue"]) == 2
+            and all(song["confirmed"] for song in state["song_queue"]),
+            timeout=60,
         )
         self.assertEqual(
-            state["song_queue"][3]["external_url"],
-            "https://www.youtube.com/watch?v=ZsbwAGZHybA",
+            state["current_song"]["external_url"],
+            "https://www.youtube.com/watch?v=d0KWiDGi_ek",
+        )
+        self.assertEqual(
+            state["song_queue"][0]["external_url"],
+            "https://www.youtube.com/watch?v=jcfcZfgyzm8",
+        )
+        self.assertEqual(
+            state["song_queue"][1]["external_url"],
+            "https://www.youtube.com/watch?v=47P6CI7V8gM",
         )
 
     def test_autoplay(self):
@@ -171,7 +166,7 @@ class YoutubeTests(MusicTest):
         self._post_request("request_radio")
         # ensure that 5 songs are enqueued
         self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 5
+            lambda state: len(state["song_queue"]) == 3
             and all(song["confirmed"] for song in state["song_queue"]),
             timeout=60,
         )
