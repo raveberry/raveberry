@@ -78,8 +78,9 @@ class Musiq(Stateful):
                 if platform is None or platform == "spotify":
                     if self.base.settings.spotify_enabled:
                         providers.append(SpotifyPlaylistProvider(self, query, key))
-                # use Youtube as a fallback
-                providers.append(YoutubePlaylistProvider(self, query, key))
+                if self.base.settings.youtube_enabled:
+                    # use Youtube as a fallback
+                    providers.append(YoutubePlaylistProvider(self, query, key))
         else:
             if key is not None:
                 # an archived song was requested.
@@ -103,8 +104,14 @@ class Musiq(Stateful):
                                 providers.append(SpotifySongProvider(self, query, key))
                             except ValueError:
                                 pass
-                    # use Youtube as a fallback
-                    providers.append(YoutubeSongProvider(self, query, key))
+                    if self.base.settings.youtube_enabled:
+                        # use Youtube as a fallback
+                        providers.append(YoutubeSongProvider(self, query, key))
+
+        if not len(providers):
+            return HttpResponseBadRequest(
+                "No backend configured to handle your request."
+            )
 
         fallback = False
         for i, provider in enumerate(providers):

@@ -142,6 +142,11 @@ else:
             name="update_user_count",
         ),
         path(
+            "set_youtube_enabled/",
+            BASE.settings.set_youtube_enabled,
+            name="set_youtube_enabled",
+        ),
+        path(
             "check_spotify_credentials/",
             BASE.settings.check_spotify_credentials,
             name="check_spotify_credentials",

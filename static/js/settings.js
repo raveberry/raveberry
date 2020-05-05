@@ -14,6 +14,8 @@ specificState = function (newState) {
 	$('#max_playlist_items').val(newState.max_playlist_items);
 	$('#has_internet').prop("checked", newState.has_internet);
 
+	$('#youtube_enabled').prop("checked", newState.youtube_enabled);
+
 	$('#spotify_credentials_valid').prop("checked", newState.spotify_credentials_valid);
 
 	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
@@ -102,6 +104,14 @@ $(document).ready(function() {
 	});
 	$('#update_user_count').on('click tap', function() {
 		$.get(urls['update_user_count']).done(function() {
+			successToast('');
+		});
+	});
+
+	$('#youtube_enabled').change(function() {
+		$.post(urls['set_youtube_enabled'], {
+			value: $(this).is(":checked"),
+		}).done(function() {
 			successToast('');
 		});
 	});

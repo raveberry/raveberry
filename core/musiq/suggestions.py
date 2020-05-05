@@ -75,13 +75,14 @@ class Suggestions:
                         }
                     )
 
-            youtube_suggestions = Youtube().get_search_suggestions(" ".join(terms))
-            # limit to the first three online suggestions
-            youtube_suggestions = youtube_suggestions[:2]
-            for suggestion in youtube_suggestions:
-                results.append(
-                    {"key": -1, "value": suggestion, "type": "youtube-online"}
-                )
+            if self.musiq.base.settings.youtube_enabled:
+                youtube_suggestions = Youtube().get_search_suggestions(" ".join(terms))
+                # limit to the first three online suggestions
+                youtube_suggestions = youtube_suggestions[:2]
+                for suggestion in youtube_suggestions:
+                    results.append(
+                        {"key": -1, "value": suggestion, "type": "youtube-online"}
+                    )
 
         # The following query is roughly equivalent to the following SQL code:
         # SELECT DISTINCT id, title, artist, counter
@@ -144,6 +145,12 @@ class Suggestions:
                 if (
                     not self.musiq.base.settings.spotify_enabled
                     and provider.type == "spotify"
+                ):
+                    continue
+                # don't suggest youtube songs if it was disabled
+                if (
+                    not self.musiq.base.settings.youtube_enabled
+                    and provider.type == "youtube"
                 ):
                     continue
                 result_dict = {

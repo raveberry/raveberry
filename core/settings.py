@@ -87,6 +87,7 @@ class Settings(Stateful):
         self.downvotes_to_kick = int(self.get_setting("downvotes_to_kick", "3"))
         self.max_download_size = int(self.get_setting("max_download_size", "10"))
         self.max_playlist_items = int(self.get_setting("max_playlist_items", "10"))
+        self.youtube_enabled = self.get_setting("youtube_enabled", "True") == "True"
         self.spotify_username = self.get_setting("spotify_username", "")
         self.spotify_password = self.get_setting("spotify_password", "")
         self.spotify_client_id = self.get_setting("spotify_client_id", "")
@@ -110,6 +111,8 @@ class Settings(Stateful):
         state_dict["max_download_size"] = self.max_download_size
         state_dict["max_playlist_items"] = self.max_playlist_items
         state_dict["has_internet"] = self.has_internet
+
+        state_dict["youtube_enabled"] = self.youtube_enabled
 
         state_dict["spotify_credentials_valid"] = self.spotify_enabled
 
@@ -330,6 +333,14 @@ class Settings(Stateful):
     def check_spotify_credentials(self, _request: WSGIRequest) -> HttpResponse:
         """Check whether the provided credentials are valid."""
         return self._check_spotify()
+
+    @option
+    def set_youtube_enabled(self, request: WSGIRequest):
+        """Enables or disables youtube to be used as a song provider."""
+        enabled = request.POST.get("value") == "true"
+        print(f"value: {enabled}")
+        Setting.objects.filter(key="youtube_enabled").update(value=enabled)
+        self.youtube_enabled = enabled
 
     @option
     def set_spotify_credentials(self, request: WSGIRequest) -> HttpResponse:
