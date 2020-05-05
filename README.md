@@ -195,8 +195,12 @@ You are probably missing some build dependencies on your system. This has been r
 
 ### "Connect Failed" when trying to connect to a bluetooth device.
 
-After switching to pulseaudio I did apparently not test the bluetooth connection...  
+This is a permission issue from before v0.5.  
 Run `sudo adduser pulse bluetooth` or upgrade Raveberry. Afterwards reboot and it should work again.
+
+### Where are my Youtube files?
+
+If you specified a path in your config file before installing, you will find them there. If no path was given, it will default to `~/Music/raveberry`. If you run it as `pi` using `raveberry run`, this will be `/home/pi/Music/raveberry`. If Raveberry was installed on the system, the process is running as `www-data` and you will find the directory at `/var/www/Music/raveberry`.
 
 ## More Information
 
