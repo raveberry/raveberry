@@ -127,10 +127,14 @@ class Settings(Stateful):
 
         state_dict["scan_progress"] = self.scan_progress
 
-        # icecast reports as active even if it is internally disabled.
-        # check if its port is used to determine if it's running
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            streaming_enabled = s.connect_ex(("localhost", 8000)) == 0
+        if settings.DOCKER and not settings.DOCKER_ICECAST:
+            # icecast is definitely disabled
+            streaming_enabled = False
+        else:
+            # the icecast service reports as active even if it is internally disabled.
+            # check if its port is used to determine if it's running
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                streaming_enabled = s.connect_ex((settings.ICECAST_HOST, 8000)) == 0
         state_dict["streaming_enabled"] = streaming_enabled
 
         try:
@@ -872,6 +876,11 @@ class Settings(Stateful):
     @option
     def enable_streaming(self, _request: WSGIRequest) -> HttpResponse:
         """Enable icecast streaming."""
+        if settings.DOCKER:
+            return HttpResponseBadRequest(
+                "Choose the correct docker-compose file to control streaming"
+            )
+
         icecast_exists = False
         for line in subprocess.check_output(
             "systemctl list-unit-files --full --all".split(), universal_newlines=True
@@ -889,11 +898,16 @@ class Settings(Stateful):
         return HttpResponse()
 
     @option
-    def disable_streaming(self, _request: WSGIRequest) -> None:
+    def disable_streaming(self, _request: WSGIRequest) -> HttpResponse:
         """Disable icecast streaming."""
+        if settings.DOCKER:
+            return HttpResponseBadRequest(
+                "Choose the correct docker-compose file to control streaming"
+            )
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_streaming"])
         config_file = self._get_mopidy_config()
         self._update_mopidy_config(config_file)
+        return HttpResponse()
 
     @option
     def disable_events(self, _request: WSGIRequest) -> None:

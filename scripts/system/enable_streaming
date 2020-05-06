@@ -32,7 +32,7 @@ if ! grep -qxF -- "$LINE" "$FILE"; then
 		<mount>
 			<mount-name>/stream</mount-name>
 			<stream-name>Raveberry Stream</stream-name>
-			<stream-description>Vote for the music you want to hear!</stream-description>
+			<stream-description>Vote for the music you want to listen to!</stream-description>
 			<fallback-mount>/silence.mp3</fallback-mount>
 			<fallback-override>1</fallback-override>
 			<authentication type="htpasswd">

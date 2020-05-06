@@ -4,10 +4,11 @@ RUN apt-get install -y mopidy-spotify dumb-init &&\
 	apt-get clean
 
 # Start helper script.
-COPY entrypoint.sh /entrypoint.sh
+COPY mopidy-entrypoint.sh /entrypoint.sh
 
-# Default configuration.
+# Default configurations.
 COPY mopidy.conf /config/mopidy.conf
+COPY mopidy_icecast.conf /config/mopidy_icecast.conf
 
 # Copy the pulse-client configuratrion.
 COPY pulse-client.conf /etc/pulse/client.conf

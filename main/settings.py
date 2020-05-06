@@ -24,6 +24,7 @@ except FileNotFoundError:
 DEBUG = bool(os.environ.get("DJANGO_DEBUG"))
 
 DOCKER = "DOCKER" in os.environ
+DOCKER_ICECAST = "DOCKER_ICECAST" in os.environ
 
 ALLOWED_HOSTS = ["*"]
 
@@ -79,12 +80,14 @@ if DOCKER:
     POSTGRES_HOST = "db"
     REDIS_HOST = "redis"
     MOPIDY_HOST = "mopidy"
+    ICECAST_HOST = "icecast"
     DEFAULT_CACHE_DIR = "/Music/raveberry/"
     TEST_CACHE_DIR = DEFAULT_CACHE_DIR
 else:
     POSTGRES_HOST = "127.0.0.1"
     REDIS_HOST = "127.0.0.1"
     MOPIDY_HOST = "localhost"
+    ICECAST_HOST = "localhost"
     DEFAULT_CACHE_DIR = "~/Music/raveberry/"
     TEST_CACHE_DIR = os.path.join(BASE_DIR, "test_cache/")
 
