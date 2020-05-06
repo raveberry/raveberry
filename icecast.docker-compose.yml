@@ -25,9 +25,12 @@ services:
     environment:
       ICECAST_ADMIN_PASSWORD: "${ICECAST_ADMIN_PASSWORD:-hackme}"
       STREAM_PASSWORD: "${STREAM_PASSWORD:-raveberry}"
-    # uncomment this if you need to access icecast's web interface
+    # uncomment this port mapping if you need to access icecast's web interface
     #ports:
     #  - 8000:8000
+    # uncomment these lines with a path to a custom icecast config
+    #volumes:
+    #  - /path/to/icecast.xml:/config/mopidy.conf
     restart: always
   mopidy:
     image: raveberry/raveberry-mopidy
