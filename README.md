@@ -20,8 +20,13 @@ If you just want it to work, you can use [docker-compose](https://docs.docker.co
 wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker-compose.yml
 docker-compose up -d
 ```
+If you want to use the remote streaming feature, instead run:
+```
+wget https://raw.githubusercontent.com/raveberry/raveberry/master/icecast.docker-compose.yml
+docker-compose -f icecast.docker-compose.yml up -d
+```
 
-Raveberry is now accessible at `http://localhost/` or `http://<your hostname>/` for other devices in the network. To use a different password for the `admin` user than the default password `admin`, set an environment variable `ADMIN_PASSWORD`.
+Raveberry is now accessible at `http://localhost/` or `http://<your hostname>/` for other devices in the network. To use a different password for the `admin` user than the default password `admin`, set an environment variable `ADMIN_PASSWORD`. Similarly, `STREAM_PASSWORD` sets the password to access the remote stream.
 
 If there is no sound, you might need to provide your UID an GID for pulse to work: `UID=$(id -u) GID=$(id -g) docker-compose up -d`
 
