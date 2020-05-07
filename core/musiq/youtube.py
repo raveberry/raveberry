@@ -218,8 +218,8 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
         if error is not None or location is None:
             logging.error("accessible video could not be downloaded: " + str(self.id))
-            logging.error(error)
             logging.error("location: " + str(location))
+            logging.error(error)
             self.musiq.placeholders.remove(self.placeholder)
             self.musiq.update_state()
             return

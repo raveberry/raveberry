@@ -51,6 +51,19 @@ class YoutubeTests(MusicTest):
                 if os.path.isfile(member_path):
                     os.remove(member_path)
 
+    def _poll_musiq_state(self, break_condition, timeout=1):
+        """ Wrap the poll method of the super class to skip tests if Youtube doesn't play along."""
+        try:
+            return super()._poll_musiq_state(break_condition, timeout=timeout)
+        except AssertionError:
+            with open(os.path.join(settings.BASE_DIR, "logs/info.log")) as log:
+                for line in log:
+                    pass
+                last_line = line
+                if "ERROR: No video formats found" in last_line:
+                    self.skipTest("Youtube provided no video formats")
+            raise
+
     def _post_request(self, url, query=None, playlist=False):
         if not query:
             response = self.client.post(reverse(url))
@@ -68,7 +81,7 @@ class YoutubeTests(MusicTest):
             and b"429" in response.content
             or b"403" in response.content
         ):
-            self.skipTest("This IP sent too many requests to Youtube does not like it.")
+            self.skipTest("This IP sent too many requests to Youtube.")
 
     def test_query(self):
         self._post_request("request_music", "Eskimo Callboy MC Thunder")
