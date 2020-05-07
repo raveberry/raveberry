@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import colorsys
 import errno
+import logging
 import math
 import os
 import subprocess
@@ -321,7 +322,7 @@ class Cava(VizProgram):
             os.mkfifo(self.cava_fifo_path)
         except FileExistsError:
             # the file already exists
-            print(self.cava_fifo_path + " already exists while starting")
+            logging.info(self.cava_fifo_path + " already exists while starting")
 
         self.cava_process = subprocess.Popen(
             ["cava", "-p", os.path.join(settings.BASE_DIR, "config/cava.config")],
@@ -362,9 +363,9 @@ class Cava(VizProgram):
         try:
             os.close(self.cava_fifo)
         except OSError as e:
-            print("cava fifo already closed: " + str(e))
+            logging.info("fifo already closed: " + str(e))
         except TypeError as e:
-            print("cava fifo does not exist: " + str(e))
+            logging.info("fifo does not exist: " + str(e))
 
         if self.cava_process:
             self.cava_process.terminate()
@@ -373,4 +374,4 @@ class Cava(VizProgram):
             os.remove(self.cava_fifo_path)
         except FileNotFoundError as e:
             # the file was already deleted
-            print(self.cava_fifo_path + " not found while deleting: " + str(e))
+            logging.info(self.cava_fifo_path + " not found while deleting: " + str(e))

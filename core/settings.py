@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import configparser
+import logging
 import math
 import os
 import re
@@ -158,7 +159,7 @@ class Settings(Stateful):
                 subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
             )
         except FileNotFoundError:
-            self.base.logger.error("scripts not installed")
+            logging.error("scripts not installed")
 
         return state_dict
 
@@ -342,7 +343,6 @@ class Settings(Stateful):
     def set_youtube_enabled(self, request: WSGIRequest):
         """Enables or disables youtube to be used as a song provider."""
         enabled = request.POST.get("value") == "true"
-        print(f"value: {enabled}")
         Setting.objects.filter(key="youtube_enabled").update(value=enabled)
         self.youtube_enabled = enabled
 
@@ -651,7 +651,7 @@ class Settings(Stateful):
             pass
         os.symlink(library_path, library_link)
 
-        self.base.logger.info(f"started scanning in {library_path}")
+        logging.info(f"started scanning in {library_path}")
 
         self.scan_progress = f"{filecount} / 0 / 0"
         self.update_state()
@@ -691,7 +691,7 @@ class Settings(Stateful):
         self.scan_progress = f"{filecount} / {files_scanned} / {files_added}"
         self.update_state()
 
-        self.base.logger.info(f"done scanning in {library_path}")
+        logging.info(f"done scanning in {library_path}")
 
     @option
     def create_playlists(self, _request: WSGIRequest) -> HttpResponse:
@@ -716,7 +716,7 @@ class Settings(Stateful):
         library_link = os.path.join(settings.SONGS_CACHE_DIR, "local_library")
         library_path = os.path.abspath(library_link)
 
-        self.base.logger.info(f"started creating playlists in {library_path}")
+        logging.info(f"started creating playlists in {library_path}")
 
         self.scan_progress = f"{local_files} / 0 / 0"
         self.update_state()
@@ -771,7 +771,7 @@ class Settings(Stateful):
         self.scan_progress = f"{local_files} / {files_processed} / {files_added}"
         self.update_state()
 
-        self.base.logger.info(f"finished creating playlists in {library_path}")
+        logging.info(f"finished creating playlists in {library_path}")
 
     @option
     def analyse(self, request: WSGIRequest) -> HttpResponse:

@@ -1,5 +1,6 @@
 """This module configures django."""
-
+import logging
+import logging.config
 import os
 import shutil
 import sys
@@ -185,18 +186,31 @@ ASGI_APPLICATION = "main.routing.APPLICATION"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [(REDIS_HOST, 6379)]},
+        "CONFIG": {"hosts": [(REDIS_HOST, 6379)], "capacity": 1500, "expiry": 10},
     },
 }
 
 # Logging
 
+# avoid creating a logger in every module
+# https://stackoverflow.com/questions/34726515/avoid-logger-logging-getlogger-name
+logging.basicConfig()
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "precise": {
+            "format": "%(asctime)s %(module)s.%(funcName)s:%(lineno)s %(levelname)s  %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "brief": {
+            "format": "%(module)s.%(funcName)s:%(lineno)s %(levelname)s  %(message)s",
+        },
+    },
     "handlers": {
         "infofile": {
             "level": "INFO",
+            "formatter": "precise",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": os.path.join(BASE_DIR, "logs/info.log"),
             "maxBytes": 1024 * 1024 * 15,  # 15MB
@@ -204,26 +218,34 @@ LOGGING = {
         },
         "errorfile": {
             "level": "ERROR",
+            "formatter": "precise",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": os.path.join(BASE_DIR, "logs/error.log"),
             "maxBytes": 1024 * 1024 * 15,  # 15MB
             "backupCount": 10,
         },
-        "console": {"class": "logging.StreamHandler"},
-    },
-    "loggers": {
-        "raveberry": {
-            "handlers": ["infofile", "errorfile"],
+        "console": {
             "level": "INFO",
-            "propagate": True,
+            "formatter": "brief",
+            "class": "logging.StreamHandler",
         },
-        "django.request": {
-            "handlers": ["errorfile"],
+        "docker": {
             "level": "ERROR",
-            "propagate": True,
+            "formatter": "precise",
+            "class": "logging.StreamHandler",
         },
+    },
+    "root": {
+        "handlers": ["infofile", "errorfile", "console"]
+        if DEBUG
+        else ["docker"]
+        if DOCKER
+        else ["infofile", "errorfile"],
+        "level": "DEBUG",
     },
 }
+LOGGING_CONFIG = None  # disables Django handling of logging
+logging.config.dictConfig(LOGGING)
 
 # Security Settings
 # SECURE_CONTENT_TYPE_NOSNIFF = True

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from functools import wraps
@@ -52,7 +53,7 @@ def option(
                 if response is not None:
                     return response
             except (ValueError, IndexError) as e:
-                print("error during lights option: " + str(e))
+                logging.exception("exception during lights option")
                 return HttpResponseBadRequest()
             self.update_state()
         return HttpResponse()

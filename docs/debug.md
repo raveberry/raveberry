@@ -1,6 +1,7 @@
 # Debugging
 
-Here you can find some hints on how to debug Raveberry if not everything works as intended.  
+Here you can find some hints on how to debug Raveberry if not everything is working as intended.  
+The logs of Raveberry can be found at `/opt/raveberry/logs`.
 Raveberry uses `systemd` services to provide its functionality.
 Services used are:
 * `nginx`: webserver, serves static files and proxys requests to `daphne`

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import random
 import re
@@ -208,7 +209,7 @@ class Player:
                 if song is None:
                     # either the semaphore didn't match up with the actual count
                     # of songs in the queue or a race condition occured
-                    self.musiq.base.logger.info("dequeued on empty list")
+                    logging.warning("dequeued on empty list")
                     continue
 
                 current_song = models.CurrentSong.objects.create(
@@ -353,8 +354,7 @@ class Player:
                 # As this function can raise several exceptions (it might do networking)
                 # we catch every exception to make sure the loop keeps running
             except Exception as e:  # pylint: disable=broad-except
-                self.musiq.base.logger.error("error during suggestions for " + url)
-                self.musiq.base.logger.error(e)
+                logging.exception("error during suggestions for " + url)
             else:
                 self.musiq.do_request_music(
                     "",
@@ -383,7 +383,7 @@ class Player:
             yield True
             self.player_lock.release()
         else:
-            print("mopidy command could not be executed")
+            logging.warning("mopidy command could not be executed")
             yield False
 
     @disabled_when_voting

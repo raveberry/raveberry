@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 
@@ -89,12 +90,12 @@ class SongProvider(MusicProvider):
         Detects the type of provider needed and returns one of corresponding type."""
         if key is not None:
             if query is None:
-                musiq.base.logger.error("archived song requested but no query given")
+                logging.error(f"archived song requested but no query given (key {key})")
                 raise ValueError()
             try:
                 archived_song = ArchivedSong.objects.get(id=key)
             except ArchivedSong.DoesNotExist:
-                musiq.base.logger.error("archived song requested for nonexistent key")
+                logging.error(f"archived song requested for nonexistent key {key}")
                 raise ValueError()
             external_url = archived_song.url
         if external_url is None:
@@ -237,15 +238,15 @@ class PlaylistProvider(MusicProvider):
         Both query and key need to be specified.
         Detects the type of provider needed and returns one of corresponding type."""
         if query is None:
-            musiq.base.logger.error("archived playlist requested but no query given")
+            logging.error(f"archived playlist requested but no query given (key {key})")
             raise ValueError
         if key is None:
-            musiq.base.logger.error("archived playlist requested but no key given")
+            logging.error("archived playlist requested but no key given")
             raise ValueError
         try:
             archived_playlist = ArchivedPlaylist.objects.get(id=key)
         except ArchivedPlaylist.DoesNotExist:
-            musiq.base.logger.error("archived song requested for nonexistent key")
+            logging.error(f"archived song requested for nonexistent key {key}")
             raise ValueError
 
         playlist_type = song_utils.determine_playlist_type(archived_playlist)

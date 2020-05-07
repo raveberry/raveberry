@@ -26,7 +26,6 @@ class Base(Stateful):
     """This class contains methods that are needed by all pages."""
 
     def __init__(self) -> None:
-        self.logger = logging.getLogger("raveberry")
         self.settings = Settings(self)
         self.user_manager = UserManager(self)
         self.lights = Lights(self)

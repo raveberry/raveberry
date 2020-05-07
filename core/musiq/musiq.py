@@ -38,8 +38,6 @@ class Musiq(Stateful):
     def __init__(self, base: "Base") -> None:
         self.base = base
 
-        self.logger = logging.getLogger("raveberry")
-
         self.suggestions = Suggestions(self)
 
         self.queue = QueuedSong.objects

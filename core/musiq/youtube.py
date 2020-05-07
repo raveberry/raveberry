@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import errno
 import json
+import logging
 import os
 import pickle
 import subprocess
@@ -65,19 +66,17 @@ class YoutubeDLLogger:
     @classmethod
     def debug(cls, msg: str) -> None:
         """This method is called if youtube-dl does debug level logging."""
-        if settings.DEBUG:
-            print(msg)
+        logging.debug(msg)
 
     @classmethod
     def warning(cls, msg: str) -> None:
         """This method is called if youtube-dl does warning level logging."""
-        if settings.DEBUG:
-            print(msg)
+        logging.debug(msg)
 
     @classmethod
     def error(cls, msg: str) -> None:
         """This method is called if youtube-dl does error level logging."""
-        print(msg)
+        logging.error(msg)
 
 
 class Youtube:
@@ -203,9 +202,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
             try:
                 os.remove(thumbnail)
             except FileNotFoundError:
-                self.musiq.base.logger.info(
-                    "tried to delete " + thumbnail + " but does not exist"
-                )
+                logging.info("tried to delete " + thumbnail + " but does not exist")
 
             try:
                 # tag the file with replaygain to perform volume normalization
@@ -220,11 +217,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
             error = e
 
         if error is not None or location is None:
-            self.musiq.logger.error(
-                "accessible video could not be downloaded: " + str(self.id)
-            )
-            self.musiq.logger.error(error)
-            self.musiq.logger.error("location: " + str(location))
+            logging.error("accessible video could not be downloaded: " + str(self.id))
+            logging.error(error)
+            logging.error("location: " + str(location))
             self.musiq.placeholders.remove(self.placeholder)
             self.musiq.update_state()
             return
