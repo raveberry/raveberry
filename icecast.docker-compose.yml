@@ -30,7 +30,7 @@ services:
     #  - 8000:8000
     # uncomment these lines with a path to a custom icecast config
     #volumes:
-    #  - /path/to/icecast.xml:/config/mopidy.conf
+    #  - /path/to/icecast.xml:/etc/icecast.xml
     restart: always
   mopidy:
     image: raveberry/raveberry-mopidy
