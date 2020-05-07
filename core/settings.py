@@ -159,7 +159,7 @@ class Settings(Stateful):
                 subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
             )
         except FileNotFoundError:
-            logging.error("scripts not installed")
+            logging.info("scripts not installed")
 
         return state_dict
 
