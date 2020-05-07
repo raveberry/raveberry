@@ -88,12 +88,14 @@ class Youtube:
         """This method returns a dictionary containing sensible defaults for youtube-dl options.
         It is roughly equivalent to the following command:
         youtube-dl --format bestaudio[ext=m4a]/best[ext=m4a] --output '%(id)s.%(ext)s' \
-            --no-playlist --write-thumbnail --default-search auto --add-metadata --embed-thumbnail
+            --no-playlist --no-cache-dir --write-thumbnail --default-search auto \
+            --add-metadata --embed-thumbnail
         """
         return {
             "format": "bestaudio[ext=m4a]/best[ext=m4a]",
             "outtmpl": os.path.join(settings.SONGS_CACHE_DIR, "%(id)s.%(ext)s"),
             "noplaylist": True,
+            "cachedir": False,
             "no_color": True,
             "writethumbnail": True,
             "default_search": "auto",

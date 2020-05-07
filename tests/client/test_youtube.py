@@ -34,7 +34,6 @@ class YoutubeTests(MusicTest):
             # send a request and skip the test if there is an error
             ydl_opts = Youtube.get_ydl_opts()
             ydl_opts["logger"] = YoutubeDLLogger(self)
-            ydl_opts["cachedir"] = False
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 self.info_dict = ydl.download(
                     ["https://www.youtube.com/watch?v=wobbf3lb2nk"]
