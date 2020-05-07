@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse
 
 import core.models as models
@@ -86,6 +87,11 @@ class Base(Stateful):
             if self.settings.spotify_enabled
             else "youtube",
         }
+
+    def no_stream(self, request: WSGIRequest) -> HttpResponse:
+        """Renders the /stream page. If this is reached, there is no stream active."""
+        context = self.context(request)
+        return render(request, "no_stream.html", context)
 
     @classmethod
     def submit_hashtag(cls, request: WSGIRequest) -> HttpResponse:

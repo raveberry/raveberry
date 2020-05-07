@@ -228,6 +228,7 @@ else:
         path("musiq/", BASE.musiq.index, name="musiq"),
         path("lights/", BASE.lights.index, name="lights"),
         path("pad/", BASE.pad.index, name="pad"),
+        path("stream/", BASE.no_stream, name="no_stream"),
         path("settings/", BASE.settings.index, name="settings"),
         path("accounts/", include("django.contrib.auth.urls")),
         path("login/", RedirectView.as_view(pattern_name="login", permanent=False)),
