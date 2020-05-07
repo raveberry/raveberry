@@ -238,7 +238,7 @@ LOGGING = {
     "root": {
         "handlers": ["infofile", "errorfile", "console"]
         if DEBUG
-        else ["docker"]
+        else ["infofile", "errorfile", "docker"]
         if DOCKER
         else ["infofile", "errorfile"],
         "level": "DEBUG",
