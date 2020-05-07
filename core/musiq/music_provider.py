@@ -364,6 +364,11 @@ class PlaylistProvider(MusicProvider):
                 # the sqlite database has problems if songs are pushed very fast
                 # while a new song is taken from the queue. Add a delay to mitigate.
                 time.sleep(1)
+        if self.is_radio():
+            # Delete radios after they were queued.
+            # They are only stored in the database to ensure the correct queueing order.
+            # Deleting the playlist deletes corresponding playlist entries and queries.
+            archived_playlist.delete()
 
     def enqueue(
         self, request_ip: str, archive: bool = True, manually_requested: bool = True
