@@ -38,7 +38,7 @@ services:
       - songs-cache:/Music/raveberry
       # If you want to use spotify, 
       # uncomment this line with a path to a config file containing the spotify credentials
-      # - /path/to/mopidy.conf:/config/mopidy.conf
+      # - /path/to/mopidy.conf:/config/mopidy_icecast.conf
     command: bash -c "/usr/bin/mopidy --config /config/mopidy_icecast.conf"
     depends_on:
       - icecast
