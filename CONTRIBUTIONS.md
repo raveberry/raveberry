@@ -36,7 +36,7 @@ git remote add upstream https://github.com/raveberry/raveberry.git
 ```
 
 ## Create a branch
-make sure your local and forked repo are in sync with the original repo
+Make sure your local and forked repo are in sync with the original repo
 ```
 git pull upstream master && git push origin master
 ```
@@ -48,10 +48,6 @@ git checkout -b feature/readme-update
 
 ## Start virtual enviroment for development
 
-Setup a virtual env for develpment
-```
-apt-get install python3-venv
-```
 
 Create new virtual enviroment for python development
 ```
@@ -60,11 +56,13 @@ python3 -m venv .venv
 
 Use new virtual Enviroment (required each time you start a bash session)
 ```
+cd ~/
 . .venv/bin/activate
 ```
 
 Install minimal dependencies
 ```
+cd raveberry/
 pip3 install -r requirements/common.txt
 ```
 
