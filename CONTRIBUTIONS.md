@@ -64,13 +64,12 @@ git checkout -b feature/readme-update
 
 Create new virtual enviroment for python development
 ```
-cd ~/
-python3 -m venv .venv-raveberry
+python3 -m venv .venv
 ```
 
 Use new virtual Enviroment (required each time you start a bash session)
 ```
-. .venv-raveberry/bin/activate
+. .venv/bin/activate
 ```
 
 Install minimal dependencies
