@@ -12,3 +12,6 @@
 # mypy
 .mypy_cache/
 .dmypy.json
+
+# virtual environment folder
+.venv/
