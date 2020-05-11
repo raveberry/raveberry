@@ -14,8 +14,6 @@ from threading import Event
 from threading import Lock
 from threading import Semaphore
 
-import mopidy.backend
-import mopidy.core
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
@@ -159,10 +157,7 @@ class Player:
         paused = False
         with self.mopidy_command() as allowed:
             if allowed:
-                paused = (
-                    self.player.playback.get_state()
-                    != mopidy.core.PlaybackState.PLAYING
-                )
+                paused = self.player.playback.get_state() != "playing"
         return paused
 
     @background_thread
@@ -323,10 +318,7 @@ class Player:
             with self.mopidy_command() as allowed:
                 if allowed:
                     try:
-                        if (
-                            self.player.playback.get_state()
-                            == mopidy.core.PlaybackState.STOPPED
-                        ):
+                        if self.player.playback.get_state() == "stopped":
                             break
                     except (requests.exceptions.ConnectionError, MopidyError):
                         # error during state get, skip until reconnected
