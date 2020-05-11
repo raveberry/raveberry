@@ -79,6 +79,11 @@ pip3 install wheel
 pip3 install -r requirements/common.txt
 ```
 
+If you need all dependencies (testing, visualization, type checking etc.), also run
+```
+pip3 install -r requirements/dev.txt
+```
+
 Start development server
 ```
 bin/raveberry run
