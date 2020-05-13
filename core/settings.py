@@ -101,6 +101,7 @@ class Settings(Stateful):
         self.bluetooth_devices: List[Dict[str, str]] = []
         self.homewifi = self.get_setting("homewifi", "")
         self.scan_progress = "0 / 0 / 0"
+        self.hotspot_possible = False
 
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
@@ -160,6 +161,14 @@ class Settings(Stateful):
             )
         except FileNotFoundError:
             logging.info("scripts not installed")
+
+        try:
+            f = open("/usr/local/sbin/raveberry/enable_hotspot")
+            state_dict["hotspot_available"] = True
+        except IOError:
+            state_dict["hotspot_available"] = False
+        finally:
+            f.close()
 
         return state_dict
 

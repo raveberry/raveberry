@@ -7,3 +7,24 @@
 #playlist {
 	white-space: pre;
 }
+
+.is-disabled
+{
+	
+	pointer-events:none;
+	position:relative;
+	& *
+	{
+		opacity:0.5;
+	}
+
+	&:after
+	{
+		position:absolute;
+		content:"Please configure hotspot during installation to use this feature.";
+		width:100%;
+		text-align: center;
+		top:30%;
+		color:white;
+	}
+}

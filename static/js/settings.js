@@ -49,6 +49,10 @@ specificState = function (newState) {
 	$('#wifi_protected').text(newState.wifi_protected);
 	$('#tunneling_enabled').text(newState.tunneling_enabled);
 	$('#remote_enabled').text(newState.remote_enabled);
+
+	if(!newState.hotspot_available){
+		$('.hotspot-function').addClass('is-disabled');
+	}
 }
 
 $(document).ready(function() {
