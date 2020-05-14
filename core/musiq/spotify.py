@@ -96,45 +96,17 @@ class SpotifySongProvider(SongProvider, Spotify):
     def __init__(
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
+        self.type = "spotify"
         super().__init__(musiq, query, key)
 
-        if query and query.startswith("https://www.youtube.com/watch?v="):
-            raise ValueError("Tried to create a Spotify provider using a Youtube Url")
-
-        self.type = "spotify"
-        self.spotify_library = musiq.player.player.library
         self.metadata: "Metadata" = {}
 
     def check_cached(self) -> bool:
-        if self.query is not None and self.query.startswith(
-            "https://open.spotify.com/"
-        ):
-            extracted_id = SpotifySongProvider.get_id_from_external_url(self.query)
-            if extracted_id is not None:
-                self.id = extracted_id
-
-        if not super()._check_cached():
-            return False
         # Spotify songs cannot be cached and have to be streamed everytime
         return False
 
     def check_downloadable(self) -> bool:
-        if self.id is not None:
-            return self.gather_metadata()
-
-        results = self.spotify_library.search({"any": [self.query]})
-
-        try:
-            track_info = results[0].tracks[0]
-        except IndexError:
-            self.error = "Spotify not enabled in Mopidy"
-            return False
-        except AttributeError:
-            self.error = "Song not found"
-            return False
-        self.id = SpotifySongProvider.get_id_from_internal_url(track_info.uri)
-        self.gather_metadata(track_info=track_info)
-        return True
+        return self.gather_metadata()
 
     def download(
         self,
@@ -144,25 +116,33 @@ class SpotifySongProvider(SongProvider, Spotify):
         manually_requested: bool = True,
     ) -> bool:
         self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
-        # spotify need to be streamed, no download possible
+        # Spotify needs to be streamed, no download possible
         return True
 
     # track_info is of type mopidy.models.Track, but mopidy should not be a dependency, so no import
     def gather_metadata(self, track_info: Any = None) -> bool:
         """Fetches metadata for this song's uri from Spotify."""
-        if not track_info:
-            results = self.spotify_library.search({"uri": [self.get_internal_url()]})
+        if not self.id:
+            results = self.web_client.get(
+                "search",
+                params={
+                    "q": self.query,
+                    "limit": "1",
+                    "market": "from_token",
+                    "type": "track",
+                },
+            )
             try:
-                track_info = results[0].tracks[0]
+                result = results["tracks"]["items"][0]
             except IndexError:
-                self.error = "Spotify not enabled in Mopidy"
                 return False
-
-        self.metadata["internal_url"] = track_info.uri
-        self.metadata["external_url"] = self.get_external_url()
-        self.metadata["artist"] = track_info.artists[0].name
-        self.metadata["title"] = track_info.name
-        self.metadata["duration"] = track_info.length / 1000
+        else:
+            result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"},)
+        self.metadata["internal_url"] = result["uri"]
+        self.metadata["external_url"] = result["external_urls"]["spotify"]
+        self.metadata["artist"] = result["artists"][0]["name"]
+        self.metadata["title"] = result["name"]
+        self.metadata["duration"] = result["duration_ms"] / 1000
         return True
 
     def get_metadata(self) -> "Metadata":
@@ -235,8 +215,8 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
     def __init__(
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
-        super().__init__(musiq, query, key)
         self.type = "spotify"
+        super().__init__(musiq, query, key)
 
     def search_id(self) -> Optional[str]:
         result = self.web_client.get(

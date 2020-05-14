@@ -16,8 +16,11 @@
 
     urls['set_youtube_enabled'] = '{% url 'set_youtube_enabled' %}';
 
+    urls['set_spotify_enabled'] = '{% url 'set_spotify_enabled' %}';
 	urls['set_spotify_credentials'] = '{% url 'set_spotify_credentials' %}';
-	urls['check_spotify_credentials'] = '{% url 'check_spotify_credentials' %}';
+
+    urls['set_soundcloud_enabled'] = '{% url 'set_soundcloud_enabled' %}';
+    urls['set_soundcloud_credentials'] = '{% url 'set_soundcloud_credentials' %}';
 
 	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
 	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
@@ -121,11 +124,8 @@
 		Spotify
 	</li>
 	<li class="list-group-item list_item">
-		<span class="description">Credentials valid</span>
-		<div>
-			<input type="checkbox" id="spotify_credentials_valid">
-			<i class="fas fa-sync" id="check_spotify_credentials"></i>
-		</div>
+        <span class="description">enabled</span>
+        <input type="checkbox" id="spotify_enabled">
 	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Username</span>
@@ -152,6 +152,29 @@
 	<li class="list-group-item list_item centered">
 		<button class="btn" id="set_spotify_credentials">Set Credentials</button>
 	</li>
+</ul>
+
+<ul class="list-group">
+    <li class="list-group-item list_header">
+        Soundcloud
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">enabled</span>
+        <input type="checkbox" id="soundcloud_enabled">
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">
+            Authentication Token
+            <a href="https://mopidy.com/ext/soundcloud/#authentication" data-toggle="tooltip" target="_blank" rel="noopener noreferrer"
+               title="Click here to get the credentials">
+                <i class="fas fa-question-circle"></i>
+            </a>
+        </span>
+        <input id="soundcloud_auth_token"/>
+    </li>
+    <li class="list-group-item list_item centered">
+        <button class="btn" id="set_soundcloud_credentials">Set Credentials</button>
+    </li>
 </ul>
 
 <ul class="list-group">
@@ -233,7 +256,7 @@
     </li>
 	<li class="list-group-item list_item">
 		<span class="description">Local Library Absolute Path</span>
-		<input id="library_path" value="/"/>
+		<input id="library_path" value="{{ local_library }}" autocomplete="off"/>
 	</li>
 	<li class="list-group-item list_item centered">
 		<button class="btn" id="scan_library">Scan Folder</button>

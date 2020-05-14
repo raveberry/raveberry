@@ -45,6 +45,8 @@ $(document).ready(function() {
 					request_new_music(ui.item.label, 'youtube');
 				} else if (ui.item.type == 'spotify-online') {
 					request_new_music(ui.item.key, 'spotify');
+				} else if (ui.item.type == 'soundcloud-online') {
+					request_new_music(ui.item.label, 'soundcloud');
 				} else {
 					request_archived_music(ui.item.key, ui.item.label);
 				}
@@ -77,6 +79,9 @@ $(document).ready(function() {
 				} else if (item.type.startsWith('spotify')) {
 					icon.addClass('fab')
 					    .addClass('fa-spotify');
+				} else if (item.type.startsWith('soundcloud')) {
+					icon.addClass('fab')
+						.addClass('fa-soundcloud');
 				}
 
 				let counter = '(' + item.counter + ')';

@@ -32,6 +32,18 @@ def get_path(basename: str) -> str:
     return path
 
 
+def determine_url_type(url: str) -> str:
+    if url.startswith("local_library/"):
+        return "local"
+    if url.startswith("https://www.youtube.com/"):
+        return "youtube"
+    if url.startswith("https://open.spotify.com/"):
+        return "spotify"
+    if url.startswith("https://soundcloud.com/"):
+        return "soundcloud"
+    return "unknown"
+
+
 def determine_playlist_type(archived_playlist: "ArchivedPlaylist") -> str:
     """Uses the url of the first song in the playlist
     to determine the platform where the playlist is from."""
@@ -39,13 +51,7 @@ def determine_playlist_type(archived_playlist: "ArchivedPlaylist") -> str:
     if not first_song:
         raise ValueError("Playlist contains no songs.")
     first_song_url = first_song.url
-    if first_song_url.startswith("local_library/"):
-        return "local"
-    if first_song_url.startswith("https://www.youtube.com/"):
-        return "youtube"
-    if first_song_url.startswith("https://open.spotify.com/"):
-        return "spotify"
-    raise ValueError()
+    return determine_url_type(first_song_url)
 
 
 def format_seconds(seconds: int) -> str:

@@ -16,7 +16,9 @@ specificState = function (newState) {
 
 	$('#youtube_enabled').prop("checked", newState.youtube_enabled);
 
-	$('#spotify_credentials_valid').prop("checked", newState.spotify_credentials_valid);
+	$('#spotify_enabled').prop("checked", newState.spotify_enabled);
+
+	$('#soundcloud_enabled').prop("checked", newState.soundcloud_enabled);
 
 	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
 	$.each(newState.bluetooth_devices, function(index, device) {
@@ -111,13 +113,15 @@ $(document).ready(function() {
 	$('#youtube_enabled').change(function() {
 		$.post(urls['set_youtube_enabled'], {
 			value: $(this).is(":checked"),
-		}).done(function() {
-			successToast('');
+		}).done(function(response) {
+			successToast(response);
 		});
 	});
 
-	$('#check_spotify_credentials').on('click tap', function() {
-		$.get(urls['check_spotify_credentials']).done(function(response) {
+	$('#spotify_enabled').on('click tap', function() {
+		$.post(urls['set_spotify_enabled'], {
+			value: $(this).is(":checked"),
+		}).done(function(response) {
 			successToast(response);
 		}).fail(function(response) {
 			errorToast(response.responseText);
@@ -129,6 +133,25 @@ $(document).ready(function() {
 			password: $('#spotify_password').val(),
 			client_id: $('#spotify_client_id').val(),
 			client_secret: $('#spotify_client_secret').val(),
+		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+
+	$('#soundcloud_enabled').on('click tap', function() {
+		$.post(urls['set_soundcloud_enabled'], {
+			value: $(this).is(":checked"),
+		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+	$('#set_soundcloud_credentials').on('click tap', function() {
+		$.post(urls['set_soundcloud_credentials'], {
+			auth_token: $('#soundcloud_auth_token').val(),
 		}).done(function(response) {
 			successToast(response);
 		}).fail(function(response) {

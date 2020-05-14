@@ -28,6 +28,10 @@ if TYPE_CHECKING:
     from core.musiq.song_utils import Metadata
 
 
+class WrongUrlError(Exception):
+    pass
+
+
 class MusicProvider:
     """The base class for all music providers.
     Provides abstract function declarations."""
@@ -38,15 +42,22 @@ class MusicProvider:
         self.musiq = musiq
         self.query = query
         self.key = key
-        self.id: Optional[str] = None
-        self.type = "unknown"
+        if not hasattr(self, "type"):
+            # the type should already have been set by the base class
+            self.type = "unknown"
+            assert False
+        self.id: Optional[str] = self.extract_id()
         self.placeholder: Optional[Dict[str, Union[Optional[int], str]]] = None
         self.ok_message = "ok"
         self.error = "error"
 
+    def extract_id(self):
+        """Tries to extract the id from the given query.
+        Returns the id if possible, otherwise None"""
+        return None
+
     def check_cached(self) -> bool:
-        """Returns whether this resource is available on disk.
-        Also sets the id of this resource."""
+        """Returns whether this resource is available on disk."""
         raise NotImplementedError()
 
     def check_downloadable(self) -> bool:
@@ -103,22 +114,28 @@ class SongProvider(MusicProvider):
                 "external_url was provided and could not be inferred from remaining attributes."
             )
         provider_class: Optional[Type[SongProvider]] = None
-        if external_url.startswith("local_library/"):
+        url_type = song_utils.determine_url_type(external_url)
+        if url_type == "local":
             from core.musiq.localdrive import LocalSongProvider
 
             provider_class = LocalSongProvider
-        elif external_url.startswith("https://www.youtube.com/"):
+        elif url_type == "youtube":
             from core.musiq.youtube import YoutubeSongProvider
 
             provider_class = YoutubeSongProvider
-        elif external_url.startswith("https://open.spotify.com/"):
+        elif url_type == "spotify":
             from core.musiq.spotify import SpotifySongProvider
 
             provider_class = SpotifySongProvider
+        elif url_type == "soundcloud":
+            from core.musiq.soundcloud import SoundcloudSongProvider
+
+            provider_class = SoundcloudSongProvider
         if not provider_class:
             raise NotImplementedError(f"No provider for given song: {external_url}")
+        if not query and external_url:
+            query = external_url
         provider = provider_class(musiq, query, key)
-        provider.id = provider_class.get_id_from_external_url(external_url)
         return provider
 
     def __init__(
@@ -127,10 +144,12 @@ class SongProvider(MusicProvider):
         super().__init__(musiq, query, key)
         self.ok_message = "song queued"
 
-        if key is None:
-            self.archived = False
-        else:
-            self.archived = True
+        if query:
+            url_type = song_utils.determine_url_type(query)
+            if url_type != self.type and url_type != "unknown":
+                raise WrongUrlError(
+                    f"Tried to create a {self.type} provider with: {query}"
+                )
 
     def _get_path(self) -> str:
         raise NotImplementedError()
@@ -143,26 +162,34 @@ class SongProvider(MusicProvider):
         """Returns the external url based on this object's id."""
         raise NotImplementedError()
 
-    def _check_cached(self) -> bool:
-        if self.id is not None:
+    def extract_id(self) -> Optional[str]:
+        if self.key is not None:
             try:
-                archived_song = ArchivedSong.objects.get(url=self.get_external_url())
+                archived_song = ArchivedSong.objects.get(id=self.key)
+                return self.__class__.get_id_from_external_url(archived_song.url)
             except ArchivedSong.DoesNotExist:
-                return False
-        elif self.key is not None:
-            archived_song = ArchivedSong.objects.get(id=self.key)
-        else:
+                return None
+        if self.query is not None:
+            url_type = song_utils.determine_url_type(self.query)
+            if url_type == "youtube":
+                from core.musiq.youtube import YoutubeSongProvider
+
+                return YoutubeSongProvider.get_id_from_external_url(self.query)
+            elif url_type == "spotify":
+                from core.musiq.spotify import SpotifySongProvider
+
+                return SpotifySongProvider.get_id_from_external_url(self.query)
+            elif url_type == "soundcloud":
+                from core.musiq.soundcloud import SoundcloudSongProvider
+
+                return SoundcloudSongProvider.get_id_from_external_url(self.query)
+            # interpret the query as an external url and try to look it up in the database
             try:
                 archived_song = ArchivedSong.objects.get(url=self.query)
+                return self.__class__.get_id_from_external_url(archived_song.url)
             except ArchivedSong.DoesNotExist:
-                return False
-        self.id = self.__class__.get_id_from_external_url(archived_song.url)
-        return True
-
-    def check_cached(self) -> bool:
-        if not self._check_cached():
-            return False
-        return os.path.isfile(self._get_path())
+                return None
+        assert False
 
     def check_downloadable(self) -> bool:
         raise NotImplementedError()
@@ -263,6 +290,10 @@ class PlaylistProvider(MusicProvider):
             from core.musiq.spotify import SpotifyPlaylistProvider
 
             provider_class = SpotifyPlaylistProvider
+        elif playlist_type == "soundcloud":
+            from core.musiq.soundcloud import SoundcloudPlaylistProvider
+
+            provider_class = SoundcloudPlaylistProvider
         if not provider_class:
             raise NotImplementedError(f"No provider for given playlist: {query}, {key}")
         provider = provider_class(musiq, query, key)

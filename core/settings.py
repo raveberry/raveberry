@@ -14,7 +14,7 @@ import subprocess
 import time
 from datetime import timedelta
 from functools import wraps
-from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, List
+from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, List, Tuple
 
 from dateutil import tz
 from django.conf import settings
@@ -89,13 +89,16 @@ class Settings(Stateful):
         self.max_download_size = int(self.get_setting("max_download_size", "10"))
         self.max_playlist_items = int(self.get_setting("max_playlist_items", "10"))
         self.youtube_enabled = self.get_setting("youtube_enabled", "True") == "True"
+        self.spotify_enabled = self.get_setting("spotify_enabled", "False") == "True"
         self.spotify_username = self.get_setting("spotify_username", "")
         self.spotify_password = self.get_setting("spotify_password", "")
         self.spotify_client_id = self.get_setting("spotify_client_id", "")
         self.spotify_client_secret = self.get_setting("spotify_client_secret", "")
+        self.soundcloud_enabled = (
+            self.get_setting("soundcloud_enabled", "False") == "True"
+        )
+        self.soundcloud_auth_token = self.get_setting("soundcloud_auth_token", "")
 
-        self.spotify_enabled = False
-        self._check_spotify()
         self._check_internet()
         self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None
         self.bluetooth_devices: List[Dict[str, str]] = []
@@ -115,7 +118,9 @@ class Settings(Stateful):
 
         state_dict["youtube_enabled"] = self.youtube_enabled
 
-        state_dict["spotify_credentials_valid"] = self.spotify_enabled
+        state_dict["spotify_enabled"] = self.spotify_enabled
+
+        state_dict["soundcloud_enabled"] = self.soundcloud_enabled
 
         state_dict["bluetooth_scanning"] = self.bluetoothctl is not None
         state_dict["bluetooth_devices"] = self.bluetooth_devices
@@ -168,6 +173,13 @@ class Settings(Stateful):
         if not self.base.user_manager.is_admin(request.user):
             raise PermissionDenied
         context = self.base.context(request)
+        library_path = os.path.abspath(
+            os.path.join(settings.SONGS_CACHE_DIR, "local_library")
+        )
+        if os.path.islink(library_path):
+            context["local_library"] = os.readlink(library_path)
+        else:
+            context["local_library"] = "/"
         return render(request, "settings.html", context)
 
     def _update_mopidy_config(self, config_file) -> None:
@@ -180,28 +192,26 @@ class Settings(Stateful):
                 self.spotify_password,
                 self.spotify_client_id,
                 self.spotify_client_secret,
+                self.soundcloud_auth_token,
             ]
         )
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
 
-    def _check_spotify(self, credentials_changed: bool = False) -> HttpResponse:
-        if not self.spotify_client_id or not self.spotify_client_secret:
-            self.spotify_enabled = False
-            return HttpResponseBadRequest("Not all credentials provided")
-        if settings.DOCKER:
-            self.spotify_enabled = True
-            return HttpResponse(
-                "Make sure to set mopidy config with spotify credentials."
-            )
+    def _check_mopidy_extensions(self) -> Dict[str, Tuple[bool, str]]:
+        """Returns a dict indicating for each extension whether it is enabled 
+        and provides a message.
+        Handles both service and user mopidy instances."""
         try:
             subprocess.check_call(
                 ["systemctl", "is-active", "mopidy"], stdout=subprocess.DEVNULL
             )
         except subprocess.CalledProcessError:
-            return self._check_spotify_user()
-        return self._check_spotify_service(credentials_changed=credentials_changed)
+            extensions = self._check_mopidy_extensions_user()
+        else:
+            extensions = self._check_mopidy_extensions_service()
+        return extensions
 
-    def _check_spotify_user(self) -> HttpResponse:
+    def _check_mopidy_extensions_user(self) -> Dict[str, Tuple[bool, str]]:
         self.spotify_enabled = False
         config = subprocess.run(
             ["mopidy", "config"],
@@ -211,60 +221,70 @@ class Settings(Stateful):
         ).stdout
         parser = configparser.ConfigParser()
         parser.read_string(config)
-        try:
-            if parser["spotify"]["enabled"] == "true":
-                self.spotify_enabled = True
-                return HttpResponse("Login probably successful")
-        except KeyError:
-            pass
-        return HttpResponseBadRequest("Config is invalid")
+        extensions = {}
+        for extension in ["spotify", "enabled"]:
+            try:
+                if parser[extension]["enabled"] == "true":
+                    extensions[extension] = (
+                        True,
+                        "Extension probably functional",
+                    )
+            except KeyError:
+                extensions[extension] = (False, "Extension disabled")
+        return extensions
 
-    def _check_spotify_service(self, credentials_changed: bool = False) -> HttpResponse:
-        if credentials_changed:
-            config_file = self._get_mopidy_config()
-            self._update_mopidy_config(config_file)
-
-            # wait for mopidy to try spotify login
-            time.sleep(5)
-
+    def _check_mopidy_extensions_service(self) -> Dict[str, Tuple[bool, str]]:
         # check the mopidy log and see if there is a spotify login error since the last restart
         log = subprocess.check_output(
             ["sudo", "/usr/local/sbin/raveberry/read_mopidy_log"],
             universal_newlines=True,
         )
-        login_error = False
-        response: HttpResponse
+
+        extensions = {}
         for line in log.split("\n")[::-1]:
-            if line.startswith("ERROR") and "spotify.session" in line:
-                login_error = True
-                response = HttpResponseBadRequest("User or Password are wrong")
+            if "spotify" not in extensions:
+                if line.startswith("ERROR") and "spotify.session" in line:
+                    extensions["spotify"] = (False, "User or Password are wrong")
+                elif line.startswith("ERROR") and "mopidy_spotify.web" in line:
+                    extensions["spotify"] = (
+                        False,
+                        "Client ID or Client Secret are wrong or expired",
+                    )
+                elif (
+                    line.startswith("WARNING")
+                    and "spotify" in line
+                    and "The extension has been automatically disabled" in line
+                ):
+                    extensions["spotify"] = (False, "Configuration Error")
+
+            if "soundcloud" not in extensions:
+                if line.startswith("ERROR") and 'Invalid "auth_token"' in line:
+                    extensions["soundcloud"] = (False, "auth_token is invalid")
+                elif (
+                    line.startswith("WARNING")
+                    and "soundcloud" in line
+                    and "The extension has been automatically disabled" in line
+                ):
+                    extensions["soundcloud"] = (False, "Configuration Error")
+
+            if "spotify" in extensions and "soundcloud" in extensions:
                 break
-            if line.startswith("ERROR") and "mopidy_spotify.web" in line:
-                login_error = True
-                response = HttpResponseBadRequest(
-                    "Client ID or Client Secret are wrong or expired"
-                )
-                break
-            if (
-                line.startswith("WARNING")
-                and "The extension has been automatically disabled" in line
-            ):
-                login_error = True
-                response = HttpResponseBadRequest("Configuration Error")
-                break
+
             if line.startswith("Started Mopidy music server."):
-                response = HttpResponse("Login successful")
+                if "spotify" not in extensions:
+                    extensions["spotify"] = (True, "Login successful")
+                if "soundcloud" not in extensions:
+                    extensions["soundcloud"] = (True, "auth_token valid")
                 break
         else:
             # there were too many lines in the log, could not determine whether there was an error
-            # leave spotify_enabled status as it is
-            return HttpResponseBadRequest("Could not check credentials")
+            if "spotify" not in extensions:
+                extensions["spotify"] = (True, "No info found, enabling te be safe")
+            if "soundcloud" not in extensions:
+                extensions["soundcloud"] = (True, "No info found, enabling te be safe")
+            pass
 
-        if not login_error:
-            self.spotify_enabled = True
-        else:
-            self.spotify_enabled = False
-        return response
+        return extensions
 
     def _check_internet(self) -> None:
         response = subprocess.call(
@@ -335,16 +355,31 @@ class Settings(Stateful):
         self.base.user_manager.update_user_count()
 
     @option
-    def check_spotify_credentials(self, _request: WSGIRequest) -> HttpResponse:
-        """Check whether the provided credentials are valid."""
-        return self._check_spotify()
-
-    @option
     def set_youtube_enabled(self, request: WSGIRequest):
         """Enables or disables youtube to be used as a song provider."""
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="youtube_enabled").update(value=enabled)
         self.youtube_enabled = enabled
+
+    def _set_extension_enabled(self, extension, enabled) -> HttpResponse:
+        if enabled:
+            extensions = self._check_mopidy_extensions()
+            functional, message = extensions[extension]
+            if not functional:
+                return HttpResponseBadRequest(message)
+            response = HttpResponse(message)
+        else:
+            response = HttpResponse("Disabled extension")
+        Setting.objects.filter(key=f"{extension}_enabled").update(value=enabled)
+        setattr(self, f"{extension}_enabled", enabled)
+        return response
+
+    @option
+    def set_spotify_enabled(self, request: WSGIRequest) -> HttpResponse:
+        """Enables or disables spotify to be used as a song provider.
+        Makes sure mopidy has correct spotify configuration."""
+        enabled = request.POST.get("value") == "true"
+        return self._set_extension_enabled("spotify", enabled)
 
     @option
     def set_spotify_credentials(self, request: WSGIRequest) -> HttpResponse:
@@ -375,7 +410,38 @@ class Settings(Stateful):
             value=self.spotify_client_secret
         )
 
-        return self._check_spotify(credentials_changed=True)
+        config_file = self._get_mopidy_config()
+        self._update_mopidy_config(config_file)
+        # wait for mopidy to try spotify login
+        time.sleep(3)
+        return HttpResponse("Updated credentials")
+
+    @option
+    def set_soundcloud_enabled(self, request: WSGIRequest) -> HttpResponse:
+        """Enables or disables soundcloud to be used as a song provider.
+        Makes sure mopidy has correct soundcloud configuration."""
+        enabled = request.POST.get("value") == "true"
+        return self._set_extension_enabled("soundcloud", enabled)
+
+    @option
+    def set_soundcloud_credentials(self, request: WSGIRequest) -> HttpResponse:
+        """Update soundcloud credentials."""
+        auth_token = request.POST.get("auth_token")
+
+        if not auth_token:
+            return HttpResponseBadRequest("All fields are required")
+
+        self.soundcloud_auth_token = auth_token
+
+        Setting.objects.filter(key="soundcloud_auth_token").update(
+            value=self.soundcloud_auth_token
+        )
+
+        config_file = self._get_mopidy_config()
+        self._update_mopidy_config(config_file)
+        # wait for mopidy to check the auth token login
+        time.sleep(3)
+        return HttpResponse("Updated credentials")
 
     def _get_bluetoothctl_line(self) -> str:
         # Note: this variable is not guarded by a lock.

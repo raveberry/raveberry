@@ -75,7 +75,7 @@ class SpotifyTests(MusicTest):
         self.client.post(
             reverse("request_music"),
             {
-                "query": "https://open.spotify.com/playlist/4wkYGL69lSR2FHFkOQOcW5",
+                "query": "https://open.spotify.com/playlist/2Ja8Y9o9awbq6F9Sl1AcwI",
                 "playlist": "true",
                 "platform": "spotify",
             },
@@ -85,16 +85,26 @@ class SpotifyTests(MusicTest):
             and all(song["confirmed"] for song in state["song_queue"]),
             timeout=60,
         )
-        actual_urls = [song["external_url"] for song in state["song_queue"]]
-        actual_urls.append(state["current_song"]["external_url"])
-        expected_urls = [
-            "https://open.spotify.com/track/0OPWhFse86QJxZGx3BlF85",
-            "https://open.spotify.com/track/1buxjkNB72uMhhRPZNZzt3",
-            "https://open.spotify.com/track/1wrKexsB7sCKsRyfu4J4QT",
-            "https://open.spotify.com/track/1XpbQhhxoUf6EHjK7IOjA9",
-            "https://open.spotify.com/track/4qDHt2ClApBBzDAvhNGWFd",
-        ]
-        self.assertEqual(sorted(expected_urls), sorted(actual_urls))
+        self.assertEqual(
+            state["current_song"]["external_url"],
+            "https://open.spotify.com/track/5wq8wceQvaFlOZovDtfr0j",
+        )
+        self.assertEqual(
+            state["song_queue"][0]["external_url"],
+            "https://open.spotify.com/track/5rupf5kRDLhhFPxH15ZmBF",
+        )
+        self.assertEqual(
+            state["song_queue"][1]["external_url"],
+            "https://open.spotify.com/track/3IwAWUa9JeTbwumBPvnOj9",
+        )
+        self.assertEqual(
+            state["song_queue"][2]["external_url"],
+            "https://open.spotify.com/track/3vMrcGW4o35zY6vXjWb1p7",
+        )
+        self.assertEqual(
+            state["song_queue"][3]["external_url"],
+            "https://open.spotify.com/track/6Jf7Sx68vsWFKeWjOxcLhQ",
+        )
 
     def test_playlist_query(self):
         self.client.post(

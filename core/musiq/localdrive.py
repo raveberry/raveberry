@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import random
 
 from core.models import ArchivedPlaylist, PlaylistEntry
@@ -34,8 +35,11 @@ class LocalSongProvider(SongProvider):
     def __init__(
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
-        super().__init__(musiq, query, key)
         self.type = "local"
+        super().__init__(musiq, query, key)
+
+    def check_cached(self) -> bool:
+        return os.path.isfile(self._get_path())
 
     def check_downloadable(self) -> bool:
         # Local files can not be downloaded from the internet
@@ -104,8 +108,8 @@ class LocalPlaylistProvider(PlaylistProvider):
     def __init__(
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
-        super().__init__(musiq, query, key)
         self.type = "local"
+        super().__init__(musiq, query, key)
 
     def search_id(self) -> None:
         self.error = "local playlists can not be downloaded"

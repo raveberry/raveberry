@@ -147,14 +147,24 @@ else:
             name="set_youtube_enabled",
         ),
         path(
-            "check_spotify_credentials/",
-            BASE.settings.check_spotify_credentials,
-            name="check_spotify_credentials",
+            "set_spotify_enabled/",
+            BASE.settings.set_spotify_enabled,
+            name="set_spotify_enabled",
         ),
         path(
             "set_spotify_credentials/",
             BASE.settings.set_spotify_credentials,
             name="set_spotify_credentials",
+        ),
+        path(
+            "set_soundcloud_enabled/",
+            BASE.settings.set_soundcloud_enabled,
+            name="set_soundcloud_enabled",
+        ),
+        path(
+            "set_soundcloud_credentials/",
+            BASE.settings.set_soundcloud_credentials,
+            name="set_soundcloud_credentials",
         ),
         path(
             "set_bluetooth_scanning/",

@@ -125,9 +125,10 @@
 					<a id="github_link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry" class="unlink">
 						<i class="fab fa-github"></i>
 					</a>
-					<div id="source_controls" {%if not spotify_enabled%} style="visibility: hidden"{%endif%}>
-						<i id="spotify" class="fab fa-spotify icon_disabled"></i>
-						<i id="youtube" class="fab fa-youtube icon_disabled"></i>
+					<div id="platform_controls">
+                        {%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon_disabled"></i>{%endif%}
+						{%if spotify_enabled%}<i id="spotify" class="fab fa-spotify icon_disabled"></i>{%endif%}
+                        {%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon_disabled"></i>{%endif%}
 					</div>
 					<a href="{{ apk_link }}" download>
 						<img id="shareberry_icon" height="30" alt="" onerror="this.style.visibility='hidden'" src="{% static "graphics/shareberry_normal.png" %}">

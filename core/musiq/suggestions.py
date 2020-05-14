@@ -12,6 +12,7 @@ from django.http import HttpResponseBadRequest, JsonResponse
 import core.musiq.song_utils as song_utils
 from core.models import ArchivedPlaylist, ArchivedSong
 from core.musiq.music_provider import SongProvider
+from core.musiq.soundcloud import Soundcloud
 from core.musiq.spotify import Spotify
 from core.musiq.youtube import Youtube
 from django.core.handlers.wsgi import WSGIRequest
@@ -73,6 +74,16 @@ class Suggestions:
                             "value": suggestion,
                             "type": "spotify-online",
                         }
+                    )
+
+            if self.musiq.base.settings.soundcloud_enabled:
+                spotify_suggestions = Soundcloud().get_search_suggestions(
+                    " ".join(terms)
+                )
+                soundcloud_suggestions = spotify_suggestions[:2]
+                for suggestion in soundcloud_suggestions:
+                    results.append(
+                        {"key": -1, "value": suggestion, "type": "soundcloud-online"}
                     )
 
             if self.musiq.base.settings.youtube_enabled:
@@ -141,16 +152,22 @@ class Suggestions:
                 # don't suggest online songs when we don't have internet
                 if not self.musiq.base.settings.has_internet and not cached:
                     continue
+                # don't suggest youtube songs if it was disabled
+                if (
+                    not self.musiq.base.settings.youtube_enabled
+                    and provider.type == "youtube"
+                ):
+                    continue
                 # don't suggest spotify songs if we are not logged in
                 if (
                     not self.musiq.base.settings.spotify_enabled
                     and provider.type == "spotify"
                 ):
                     continue
-                # don't suggest youtube songs if it was disabled
+                # don't suggest soundcloud songs if we are not logged in
                 if (
-                    not self.musiq.base.settings.youtube_enabled
-                    and provider.type == "youtube"
+                    not self.musiq.base.settings.soundcloud_enabled
+                    and provider.type == "soundcloud"
                 ):
                     continue
                 result_dict = {

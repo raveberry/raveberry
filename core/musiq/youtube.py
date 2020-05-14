@@ -151,10 +151,15 @@ class YoutubeSongProvider(SongProvider, Youtube):
     def __init__(
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
-        super().__init__(musiq, query, key)
         self.type = "youtube"
+        super().__init__(musiq, query, key)
         self.info_dict: Dict[str, Any] = {}
         self.ydl_opts = Youtube.get_ydl_opts()
+
+    def check_cached(self) -> bool:
+        if not self.id:
+            return False
+        return os.path.isfile(self._get_path())
 
     def check_downloadable(self) -> bool:
         try:
@@ -321,8 +326,8 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
     def __init__(
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
-        super().__init__(musiq, query, key)
         self.type = "youtube"
+        super().__init__(musiq, query, key)
         self.ydl_opts = Youtube.get_ydl_opts()
         del self.ydl_opts["noplaylist"]
         self.ydl_opts["extract_flat"] = True

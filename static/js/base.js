@@ -109,13 +109,7 @@ function updateBaseState(newState) {
 		Cookies.set('platform', newState.default_platform, { expires: 1 });
 	}
 
-	if (Cookies.get('platform') == 'spotify') {
-		$('#spotify').addClass('icon_enabled');
-		$('#youtube').addClass('icon_disabled');
-	} else {
-		$('#spotify').addClass('icon_disabled');
-		$('#youtube').addClass('icon_enabled');
-	}
+	updatePlatformClasses();
 }
 
 // this default behaviors can be overwritten by individual pages
@@ -175,29 +169,23 @@ function decideScrolling(span, seconds_per_pixel, static_seconds) {
 	}
 }
 
-// spotify/youtube mode
-function toggle_platform() {
-	let old_style_link = $('#active-stylesheet').attr('href');
-	let new_style_link = $('#inactive-stylesheet').attr('href');
-	if ($('#spotify').hasClass('icon_enabled')) {
-		set_spotify_platform();
-	} else {
-		set_youtube_platform();
-	}
-}
-
-function set_spotify_platform() {
-	$('#spotify').removeClass('icon_enabled');
-	$('#spotify').addClass('icon_disabled');
-	$('#youtube').removeClass('icon_disabled');
-	$('#youtube').addClass('icon_enabled');
-}
-
-function set_youtube_platform() {
-	$('#spotify').removeClass('icon_disabled');
-	$('#spotify').addClass('icon_enabled');
+function updatePlatformClasses() {
 	$('#youtube').removeClass('icon_enabled');
+	$('#spotify').removeClass('icon_enabled');
+	$('#soundcloud').removeClass('icon_enabled');
 	$('#youtube').addClass('icon_disabled');
+	$('#spotify').addClass('icon_disabled');
+	$('#soundcloud').addClass('icon_disabled');
+	if (Cookies.get('platform') == 'youtube') {
+		$('#youtube').removeClass('icon_disabled');
+		$('#youtube').addClass('icon_enabled');
+	} else if (Cookies.get('platform') == 'spotify') {
+		$('#spotify').removeClass('icon_disabled');
+		$('#spotify').addClass('icon_enabled');
+	} else if (Cookies.get('platform') == 'soundcloud') {
+		$('#soundcloud').removeClass('icon_disabled');
+		$('#soundcloud').addClass('icon_enabled');
+	}
 }
 
 // dark/light mode
@@ -401,17 +389,23 @@ $(document).ready(function() {
 		Cookies.set('theme', 'dark', { expires: 7 });
 	});
 
-	$('#spotify').on('click tap', function() {
-		if ($(this).hasClass('icon_enabled'))
-			return
-		toggle_platform();
-		Cookies.set('platform', 'spotify', { expires: 1 });
-	});
 	$('#youtube').on('click tap', function() {
 		if ($(this).hasClass('icon_enabled'))
 			return
-		toggle_platform();
 		Cookies.set('platform', 'youtube', { expires: 1 });
+		updatePlatformClasses();
+	});
+	$('#spotify').on('click tap', function() {
+		if ($(this).hasClass('icon_enabled'))
+			return
+		Cookies.set('platform', 'spotify', { expires: 1 });
+		updatePlatformClasses();
+	});
+	$('#soundcloud').on('click tap', function() {
+		if ($(this).hasClass('icon_enabled'))
+			return
+		Cookies.set('platform', 'soundcloud', { expires: 1 });
+		updatePlatformClasses();
 	});
 
 	// request initial state update

@@ -13,6 +13,7 @@ packagelist=(
 	atomicparsley #thumbnail embedding
 	nginx #webserver
 	mopidy pulseaudio #player
+	mopidy-spotify mopidy-soundcloud # mopidy extensions
 	pulseaudio-module-bluetooth # bluetooth playback
 	libglib2.0-dev libgirepository1.0-dev libcairo2-dev # PyGObject dependencies
 	gstreamer1.0-plugins-bad # m4a playback

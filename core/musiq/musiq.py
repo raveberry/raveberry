@@ -15,9 +15,15 @@ import core.musiq.song_utils as song_utils
 from core.models import CurrentSong
 from core.models import QueuedSong
 from core.musiq.localdrive import LocalSongProvider
-from core.musiq.music_provider import SongProvider, PlaylistProvider, MusicProvider
+from core.musiq.music_provider import (
+    SongProvider,
+    PlaylistProvider,
+    MusicProvider,
+    WrongUrlError,
+)
 from core.musiq.player import Player
 from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
+from core.musiq.soundcloud import SoundcloudSongProvider, SoundcloudPlaylistProvider
 from core.musiq.suggestions import Suggestions
 from core.musiq.youtube import (
     YoutubeSongProvider,
@@ -64,7 +70,7 @@ class Musiq(Stateful):
         if playlist:
             if key is not None:
                 # an archived song was requested.
-                # The key determines the SongProvider (Youtube or Spotify)
+                # The key determines the PlaylistProvider
                 provider = PlaylistProvider.create(self, query, key)
                 if provider is None:
                     return HttpResponseBadRequest(
@@ -73,16 +79,28 @@ class Musiq(Stateful):
                 providers.append(provider)
             else:
                 # try to use spotify if the user did not specifically request youtube
-                if platform is None or platform == "spotify":
-                    if self.base.settings.spotify_enabled:
-                        providers.append(SpotifyPlaylistProvider(self, query, key))
+                if self.base.settings.soundcloud_enabled:
+                    soundcloud_provider = SoundcloudPlaylistProvider(self, query, key)
+                    if platform == "soundcloud":
+                        providers.insert(0, soundcloud_provider)
+                    else:
+                        providers.append(soundcloud_provider)
+                if self.base.settings.spotify_enabled:
+                    spotify_provider = SpotifyPlaylistProvider(self, query, key)
+                    if platform == "spotify":
+                        providers.insert(0, spotify_provider)
+                    else:
+                        providers.append(spotify_provider)
                 if self.base.settings.youtube_enabled:
-                    # use Youtube as a fallback
-                    providers.append(YoutubePlaylistProvider(self, query, key))
+                    youtube_provider = YoutubePlaylistProvider(self, query, key)
+                    if platform == "youtube":
+                        providers.insert(0, youtube_provider)
+                    else:
+                        providers.append(youtube_provider)
         else:
             if key is not None:
                 # an archived song was requested.
-                # The key determines the SongProvider (Youtube or Spotify)
+                # The key determines the SongProvider
                 provider = SongProvider.create(self, query, key)
                 if provider is None:
                     return HttpResponseBadRequest(
@@ -95,16 +113,35 @@ class Musiq(Stateful):
                     # use only this one as its only possible source is the database
                     providers.append(LocalSongProvider(self, query, key))
                 else:
-                    # try to use spotify if the user did not specifically request youtube
-                    if platform is None or platform == "spotify":
-                        if self.base.settings.spotify_enabled:
-                            try:
-                                providers.append(SpotifySongProvider(self, query, key))
-                            except ValueError:
-                                pass
+                    if self.base.settings.soundcloud_enabled:
+                        try:
+                            soundcloud_provider = SoundcloudSongProvider(
+                                self, query, key
+                            )
+                            if platform == "soundcloud":
+                                providers.insert(0, soundcloud_provider)
+                            else:
+                                providers.append(soundcloud_provider)
+                        except WrongUrlError:
+                            pass
+                    if self.base.settings.spotify_enabled:
+                        try:
+                            spotify_provider = SpotifySongProvider(self, query, key)
+                            if platform == "spotify":
+                                providers.insert(0, spotify_provider)
+                            else:
+                                providers.append(spotify_provider)
+                        except WrongUrlError:
+                            pass
                     if self.base.settings.youtube_enabled:
-                        # use Youtube as a fallback
-                        providers.append(YoutubeSongProvider(self, query, key))
+                        try:
+                            youtube_provider = YoutubeSongProvider(self, query, key)
+                            if platform == "youtube":
+                                providers.insert(0, youtube_provider)
+                            else:
+                                providers.append(youtube_provider)
+                        except WrongUrlError:
+                            pass
 
         if not len(providers):
             return HttpResponseBadRequest(

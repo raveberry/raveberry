@@ -69,7 +69,9 @@ class Base(Stateful):
             "pad_enabled": self.user_manager.has_pad(request.user),
             "is_admin": self.user_manager.is_admin(request.user),
             "apk_link": self._get_apk_link(),
+            "youtube_enabled": self.settings.youtube_enabled,
             "spotify_enabled": self.settings.spotify_enabled,
+            "soundcloud_enabled": self.settings.soundcloud_enabled,
         }
 
     def state_dict(self) -> Dict[str, Any]:

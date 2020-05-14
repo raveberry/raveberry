@@ -149,23 +149,23 @@
 	padding: 8px;
 }
 
-#source_controls {
+#platform_controls {
 	width: 25%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-#source_controls > i.icon_enabled#spotify {
+#platform_controls > i.icon_enabled#youtube {
+	color: red /*youtube red*/;
+}
+
+#platform_controls > i.icon_enabled#spotify {
 	color: #1ED760 /*spotify green*/;
 }
 
-#source_controls > i.icon_enabled {
-	color: #1ED760 /*spotify green*/;
-}
-
-#source_controls > i.icon_enabled#youtube {
-	color: red /*youtube red*/ !important;
+#platform_controls > i.icon_enabled#soundcloud {
+	color: #F95401 /*soundcloud orange*/;
 }
 
 .unlink {
