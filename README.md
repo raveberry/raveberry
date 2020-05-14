@@ -211,7 +211,7 @@ If you specified a path in your config file before installing, you will find the
 
 You will encounter this when scanning your local files if they have long paths. Version 0.5.10 fixed this. If you installed your version before, update your database with:
 ```
-sudo -u www-data DJANGO_MOCK=1 python3 manage.py migrate
+sudo -u www-data DJANGO_MOCK=1 python3 /opt/raveberry/manage.py migrate
 ```
 You will not lose any data. If running a docker setup, this will be done automatically.
 
