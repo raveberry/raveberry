@@ -23,6 +23,9 @@
 	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
 	urls['disconnect_bluetooth'] = '{% url 'disconnect_bluetooth' %}';
 
+    urls['output_devices'] = '{% url 'output_devices' %}';
+    urls['set_output_device'] = '{% url 'set_output_device' %}';
+
 	urls['available_ssids'] = '{% url 'available_ssids' %}';
 	urls['connect_to_wifi'] = '{% url 'connect_to_wifi' %}';
 	urls['enable_homewifi'] = '{% url 'enable_homewifi' %}';
@@ -167,8 +170,22 @@
 	-->
 	<li class="list-group-item list_item">
 		<button class="btn" id="disconnect_bluetooth">Disconnect</button>
-		<button class="btn" id="connect_bluetooth">Connect to Bluetooth Device</button>
+		<button class="btn" id="connect_bluetooth">Connect</button>
 	</li>
+</ul>
+
+<ul class="list-group">
+    <li class="list-group-item list_header">
+        Sound Output
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Output Device</span>
+        <select class="form-control" id="output_devices">
+        </select>
+    </li>
+    <li class="list-group-item list_item centered">
+        <button class="btn" id="set_output_device">Set Output Device</button>
+    </li>
 </ul>
 
 <ul class="list-group">

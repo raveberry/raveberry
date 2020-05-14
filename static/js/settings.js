@@ -167,6 +167,30 @@ $(document).ready(function() {
 		});
 	});
 
+	$('#output_devices').on('click tap', function() {
+		$.get(urls['output_devices']).done(function(response) {
+			$('#output_devices').empty();
+			$.each(response, function(i, e) {
+				let option = $('<option/>');
+				option.text(e);
+				option.on('click tap', function(e) {
+					e.stopPropagation();
+				})
+				$('#output_devices').append(option);
+			});
+		})
+	});
+	$('#set_output_device').on('click tap', function() {
+		let selected = $("#output_devices option:selected").val();
+		$.post(urls['set_output_device'], {
+			device: selected,
+		}, function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	})
+
 	$('#wifi_ssid').focus(function () {
 		$.get(urls['available_ssids']).done(function(ssids) {
 			let available_ssids = ssids;

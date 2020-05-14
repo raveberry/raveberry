@@ -504,31 +504,70 @@ class Settings(Stateful):
         if error:
             return HttpResponseBadRequest(error)
 
-        # parse the sink number of the bluetooth device from pactl
-        sinks = subprocess.check_output(
-            "pactl list short sinks".split(), universal_newlines=True
-        )
-        bluetooth_sink = "2"
-        for sink in sinks.split("\n"):
-            if "bluez" in sink:
-                bluetooth_sink = sink[0]
-                break
-        subprocess.call(
-            f"pactl set-default-sink {bluetooth_sink}".split(),
-            stdout=subprocess.DEVNULL,
-        )
-        # restart mopidy to apply audio device change
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
-
-        return HttpResponse("Connected")
+        return HttpResponse("Connected. Set output device to activate.")
 
     @option
-    def disconnect_bluetooth(self, _request: WSGIRequest) -> HttpResponse:
-        """Disconnect from the current bluetooth device."""
-        subprocess.call("pactl set-default-sink 0".split(), stdout=subprocess.DEVNULL)
+    def disconnect_bluetooth(self, request: WSGIRequest) -> HttpResponse:
+        """Untrusts a given bluetooth device to prevent automatic reconnects.
+        Does not unpair or remove the device."""
+        address = request.POST.get("address")
+        if self.bluetoothctl is not None:
+            return HttpResponseBadRequest("Stop scanning before disconnecting")
+        if address is None or address == "":
+            return HttpResponseBadRequest("No device selected")
+
+        self.bluetoothctl = subprocess.Popen(
+            ["bluetoothctl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        )
+        assert self.bluetoothctl.stdin
+        error = ""
+
+        self.bluetoothctl.stdin.write(b"untrust " + address.encode() + b"\n")
+        self.bluetoothctl.stdin.flush()
+        while True:
+            line = self._get_bluetoothctl_line()
+            if not line:
+                break
+            if re.match(".*Device " + address + " not available", line):
+                error = "Device unavailable"
+                break
+            if re.match(".*untrust succeeded", line):
+                break
+
+        self._stop_bluetoothctl()
+        if error:
+            return HttpResponseBadRequest(error)
+        return HttpResponse("Disconnected")
+
+    @option
+    def output_devices(self, _request: WSGIRequest) -> JsonResponse:
+        """Returns a list of all sound output devices currently available."""
+        sinks = subprocess.check_output(
+            "pactl list short sinks".split(),
+            env={"PULSE_SERVER": "127.0.0.1"},
+            universal_newlines=True,
+        )
+        sinks = [sink.split() for sink in sinks.splitlines()]
+        sinks = [sink[1] for sink in sinks if len(sink) >= 2]
+        return JsonResponse(sinks, safe=False)
+
+    @option
+    def set_output_device(self, request: WSGIRequest) -> HttpResponse:
+        """Sets the given device as default output device."""
+        device = request.POST.get("device")
+        if not device:
+            return HttpResponseBadRequest("No device selected")
+
+        subprocess.call(
+            f"pactl set-default-sink {device}".split(),
+            stdout=subprocess.DEVNULL,
+            env={"PULSE_SERVER": "127.0.0.1"},
+        )
         # restart mopidy to apply audio device change
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
-        return HttpResponse("Disconnected")
+        return HttpResponse(
+            f"Set default output. Restarting the current song might be necessary."
+        )
 
     @option
     def available_ssids(self, _request: WSGIRequest) -> JsonResponse:

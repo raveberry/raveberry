@@ -171,6 +171,12 @@ else:
             BASE.settings.disconnect_bluetooth,
             name="disconnect_bluetooth",
         ),
+        path("output_devices/", BASE.settings.output_devices, name="output_devices",),
+        path(
+            "set_output_device/",
+            BASE.settings.set_output_device,
+            name="set_output_device",
+        ),
         path("available_ssids/", BASE.settings.available_ssids, name="available_ssids"),
         path("connect_to_wifi/", BASE.settings.connect_to_wifi, name="connect_to_wifi"),
         path("enable_homewifi/", BASE.settings.enable_homewifi, name="enable_homewifi"),
