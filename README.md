@@ -207,6 +207,14 @@ Run `sudo adduser pulse bluetooth` or upgrade Raveberry. Afterwards reboot and i
 
 If you specified a path in your config file before installing, you will find them there. If no path was given, it will default to `~/Music/raveberry`. If you run it as `pi` using `raveberry run`, this will be `/home/pi/Music/raveberry`. If Raveberry was installed on the system, the process is running as `www-data` and you will find the directory at `/var/www/Music/raveberry`.
 
+### `django.db.utils.DataError: value too long for type character varying(200)`
+
+You will encounter this when scanning your local files if they have long paths. Version 0.5.10 fixed this. If you installed your version before, update your database with:
+```
+sudo -u www-data DJANGO_MOCK=1 python3 manage.py migrate
+```
+You will not lose any data. If running a docker setup, this will be done automatically.
+
 ## More Information
 
 Feel free to visit [`docs/`](docs/) for more information about usage, resources etc.
