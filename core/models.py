@@ -30,7 +30,7 @@ class ArchivedSong(models.Model):
     """Stores an archived song.
     url identifies the song uniquely in the database and on the internet (if applicable)."""
 
-    url = models.CharField(max_length=200, unique=True)
+    url = models.CharField(max_length=2000, unique=True)
     artist = models.CharField(max_length=1000)
     title = models.CharField(max_length=1000)
     counter = models.IntegerField()
@@ -49,7 +49,7 @@ class ArchivedPlaylist(models.Model):
 
     id: int
     entries: QuerySet
-    list_id = models.CharField(max_length=200)
+    list_id = models.CharField(max_length=2000)
     title = models.CharField(max_length=1000)
     created = models.DateTimeField(auto_now_add=True)
     counter = models.IntegerField()
@@ -65,7 +65,7 @@ class PlaylistEntry(models.Model):
         "ArchivedPlaylist", on_delete=models.CASCADE, related_name="entries"
     )
     index = models.IntegerField()
-    url = models.CharField(max_length=200)
+    url = models.CharField(max_length=2000)
 
     def __str__(self) -> str:
         return self.playlist.title + "[" + str(self.index) + "]: " + self.url
@@ -105,8 +105,8 @@ class QueuedSong(models.Model):
     index = models.IntegerField()
     manually_requested = models.BooleanField()
     votes = models.IntegerField(default=0)
-    internal_url = models.CharField(max_length=200)
-    external_url = models.CharField(max_length=200, blank=True)
+    internal_url = models.CharField(max_length=2000)
+    external_url = models.CharField(max_length=2000, blank=True)
     artist = models.CharField(max_length=1000)
     title = models.CharField(max_length=1000)
     duration = models.IntegerField()
@@ -129,8 +129,8 @@ class CurrentSong(models.Model):
     queue_key = models.IntegerField()
     manually_requested = models.BooleanField()
     votes = models.IntegerField()
-    internal_url = models.CharField(max_length=200)
-    external_url = models.CharField(max_length=200, blank=True)
+    internal_url = models.CharField(max_length=2000)
+    external_url = models.CharField(max_length=2000, blank=True)
     artist = models.CharField(max_length=1000)
     title = models.CharField(max_length=1000)
     duration = models.IntegerField()
