@@ -39,7 +39,7 @@ after_deploy:
   # stop the build here if they are equal to skip unnecessary builds
   - if [ "$DOCKER_VERSION" == "$PYPI_VERSION" ]; then exit 0; fi
   # wait some time until until the new package is available on pypi
-  - sleep 60
+  - sleep 120
   # update docker
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
