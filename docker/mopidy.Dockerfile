@@ -1,4 +1,4 @@
-FROM raveberry/raveberry-dependencies
+FROM python:3
 
 
 RUN wget -q -O - https://apt.mopidy.com/mopidy.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn apt-key add - &&\
