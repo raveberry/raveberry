@@ -182,7 +182,13 @@ class Settings(Stateful):
             context["local_library"] = "/"
         return render(request, "settings.html", context)
 
-    def _update_mopidy_config(self, config_file) -> None:
+    def _update_mopidy_config(self, config_file=None) -> None:
+        if settings.DOCKER:
+            # raveberry cannot restart mopidy in the docker setup
+            return
+
+        if config_file is None:
+            config_file = self._get_mopidy_config()
         subprocess.call(
             [
                 "sudo",
@@ -196,6 +202,7 @@ class Settings(Stateful):
             ]
         )
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
+        time.sleep(3)
 
     def _check_mopidy_extensions(self) -> Dict[str, Tuple[bool, str]]:
         """Returns a dict indicating for each extension whether it is enabled 
@@ -363,11 +370,16 @@ class Settings(Stateful):
 
     def _set_extension_enabled(self, extension, enabled) -> HttpResponse:
         if enabled:
-            extensions = self._check_mopidy_extensions()
-            functional, message = extensions[extension]
-            if not functional:
-                return HttpResponseBadRequest(message)
-            response = HttpResponse(message)
+            if settings.DOCKER:
+                response = HttpResponse(
+                    "Make sure to use a mopidy config with correct credentials."
+                )
+            else:
+                extensions = self._check_mopidy_extensions()
+                functional, message = extensions[extension]
+                if not functional:
+                    return HttpResponseBadRequest(message)
+                response = HttpResponse(message)
         else:
             response = HttpResponse("Disabled extension")
         Setting.objects.filter(key=f"{extension}_enabled").update(value=enabled)
@@ -410,10 +422,7 @@ class Settings(Stateful):
             value=self.spotify_client_secret
         )
 
-        config_file = self._get_mopidy_config()
-        self._update_mopidy_config(config_file)
-        # wait for mopidy to try spotify login
-        time.sleep(3)
+        self._update_mopidy_config()
         return HttpResponse("Updated credentials")
 
     @option
@@ -437,10 +446,7 @@ class Settings(Stateful):
             value=self.soundcloud_auth_token
         )
 
-        config_file = self._get_mopidy_config()
-        self._update_mopidy_config(config_file)
-        # wait for mopidy to check the auth token login
-        time.sleep(3)
+        self._update_mopidy_config()
         return HttpResponse("Updated credentials")
 
     def _get_bluetoothctl_line(self) -> str:
@@ -1010,8 +1016,7 @@ class Settings(Stateful):
                 "Choose the correct docker-compose file to control streaming"
             )
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_streaming"])
-        config_file = self._get_mopidy_config()
-        self._update_mopidy_config(config_file)
+        self._update_mopidy_config()
         return HttpResponse()
 
     @option
