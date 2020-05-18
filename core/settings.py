@@ -630,11 +630,16 @@ class Settings(Stateful):
         if not device:
             return HttpResponseBadRequest("No device selected")
 
-        subprocess.call(
-            f"pactl set-default-sink {device}".split(),
-            stdout=subprocess.DEVNULL,
-            env={"PULSE_SERVER": "127.0.0.1"},
-        )
+        try:
+            subprocess.run(
+                ["pactl", "set-default-sink", device],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                env={"PULSE_SERVER": "127.0.0.1"},
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            return HttpResponseBadRequest(e.stderr)
         # restart mopidy to apply audio device change
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
         return HttpResponse(
