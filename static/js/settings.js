@@ -190,21 +190,20 @@ $(document).ready(function() {
 		});
 	});
 
-	$('#output_devices').on('click tap', function() {
-		$.get(urls['output_devices']).done(function(response) {
-			$('#output_devices').empty();
-			$.each(response, function(i, e) {
-				let option = $('<option/>');
-				option.text(e);
-				option.on('click tap', function(e) {
-					e.stopPropagation();
-				})
-				$('#output_devices').append(option);
+	$('#output_device').focus(function () {
+		$.get(urls['output_devices']).done(function(devices) {
+			$('#output_device').autocomplete({
+				// always show all possible output devices, regardless of current input content
+				source: function(request, response) {
+					response(devices);
+				},
+				minLength: 0,
 			});
-		})
+			$('#output_device').autocomplete("search");
+		});
 	});
 	$('#set_output_device').on('click tap', function() {
-		let selected = $("#output_devices option:selected").val();
+		let selected = $("#output_device").val();
 		$.post(urls['set_output_device'], {
 			device: selected,
 		}, function(response) {
