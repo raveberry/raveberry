@@ -60,7 +60,10 @@ class YoutubeTests(MusicTest):
                 for line in log:
                     pass
                 last_line = line
-                if "ERROR: No video formats found" in last_line:
+                if (
+                    "ERROR: No video formats found" in last_line
+                    or "ERROR: Unable to download webpage" in last_line
+                ):
                     self.skipTest("Youtube provided no video formats")
             raise
 
