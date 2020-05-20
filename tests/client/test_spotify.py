@@ -11,29 +11,19 @@ class SpotifyTests(MusicTest):
         super().setUp()
 
         try:
-            username = os.environ["SPOTIFY_USERNAME"]
-            password = os.environ["SPOTIFY_PASSWORD"]
             client_id = os.environ["SPOTIFY_CLIENT_ID"]
             client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
         except KeyError:
             self.skipTest("No spotify credentials provided.")
 
-        Setting.objects.get_or_create(key="spotify_username", defaults={"value": ""})
-        Setting.objects.get_or_create(key="spotify_password", defaults={"value": ""})
-        Setting.objects.get_or_create(key="spotify_client_id", defaults={"value": ""})
-        Setting.objects.get_or_create(
-            key="spotify_client_secret", defaults={"value": ""}
+        Setting.objects.update_or_create(
+            key="spotify_client_id", defaults={"value": client_id}
+        )
+        Setting.objects.update_or_create(
+            key="spotify_client_secret", defaults={"value": client_secret}
         )
 
-        self.client.post(
-            reverse("set_spotify_credentials"),
-            {
-                "username": username,
-                "password": password,
-                "client_id": client_id,
-                "client_secret": client_secret,
-            },
-        )
+        self.client.post(reverse("set_spotify_enabled"), {"value": "true"})
 
     def test_query(self):
         self.client.post(
@@ -82,7 +72,7 @@ class SpotifyTests(MusicTest):
         )
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 4
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
         self.assertEqual(
@@ -117,7 +107,7 @@ class SpotifyTests(MusicTest):
         )
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 4
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
         self.assertEqual(
@@ -155,7 +145,7 @@ class SpotifyTests(MusicTest):
         # make sure a song was downloaded into the queue
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["confirmed"],
+            and state["song_queue"][0]["internal_url"],
             timeout=10,
         )
         old_id = state["song_queue"][0]["id"]
@@ -164,7 +154,7 @@ class SpotifyTests(MusicTest):
         # make sure another song is enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["confirmed"]
+            and state["song_queue"][0]["internal_url"]
             and state["song_queue"][0]["id"] != old_id,
             timeout=10,
         )
@@ -183,6 +173,6 @@ class SpotifyTests(MusicTest):
         # ensure that 5 songs are enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 5
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )

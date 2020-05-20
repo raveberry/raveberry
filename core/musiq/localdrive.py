@@ -41,9 +41,13 @@ class LocalSongProvider(SongProvider):
     def check_cached(self) -> bool:
         return os.path.isfile(self._get_path())
 
-    def check_downloadable(self) -> bool:
+    def check_available(self) -> bool:
         # Local files can not be downloaded from the internet
         self.error = "Local file missing"
+        return False
+
+    def make_available(self) -> bool:
+        self.error = "Local file could not be made available"
         return False
 
     def get_metadata(self) -> "Metadata":
@@ -86,7 +90,7 @@ class LocalSongProvider(SongProvider):
 
     def request_radio(self, request_ip: str) -> HttpResponse:
         playlist = self._get_corresponding_playlist()
-        return self.musiq.do_request_music(
+        self.musiq.do_request_music(
             request_ip,
             playlist.title,
             playlist.id,
@@ -95,6 +99,7 @@ class LocalSongProvider(SongProvider):
             archive=False,
             manually_requested=False,
         )
+        return HttpResponse("queueing radio")
 
 
 class LocalPlaylistProvider(PlaylistProvider):

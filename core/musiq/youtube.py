@@ -161,7 +161,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
             return False
         return os.path.isfile(self._get_path())
 
-    def check_downloadable(self) -> bool:
+    def check_available(self) -> bool:
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
                 self.info_dict = ydl.extract_info(self.query, download=False)
@@ -186,16 +186,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
             return False
         return True
 
-    @background_thread
-    def _download(
-        self, request_ip: str, archive: bool, manually_requested: bool
-    ) -> None:
+    def _download(self) -> bool:
         error = None
         location = None
-
-        self.placeholder = {"query": self.query, "replaced_by": None}
-        self.musiq.placeholders.append(self.placeholder)
-        self.musiq.update_state()
 
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
@@ -225,27 +218,14 @@ class YoutubeSongProvider(SongProvider, Youtube):
             logging.error("accessible video could not be downloaded: " + str(self.id))
             logging.error("location: " + str(location))
             logging.error(error)
-            self.musiq.placeholders.remove(self.placeholder)
-            self.musiq.update_state()
-            return
-        self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
+            return False
+        return True
 
-    def download(
-        self,
-        request_ip: str,
-        background: bool = True,
-        archive: bool = True,
-        manually_requested: bool = True,
-    ) -> bool:
-        # check if file was already downloaded and only download if necessary
-        if os.path.isfile(self._get_path()):
-            self.enqueue(
-                request_ip, archive=archive, manually_requested=manually_requested
-            )
-        else:
-            thread = self._download(request_ip, archive, manually_requested)
-            if not background:
-                thread.join()
+    def make_available(self) -> bool:
+        if not os.path.isfile(self._get_path()):
+            self.musiq.update_state()
+            # only download the file if it was not already downloaded
+            return self._download()
         return True
 
     def get_metadata(self) -> "Metadata":
@@ -305,11 +285,10 @@ class YoutubeSongProvider(SongProvider, Youtube):
             raise ValueError()
         radio_id = "RD" + self.id
 
-        provider = YoutubePlaylistProvider(self.musiq, "radio for " + self.id, None)
+        provider = YoutubePlaylistProvider(self.musiq, "", None)
         provider.id = radio_id
-        if not provider.download(request_ip):
-            return HttpResponseBadRequest(provider.error)
-        return HttpResponse("queueing radio")
+        provider.request("", archive=False, manually_requested=False)
+        return HttpResponse("queueing radio (might take some time)")
 
 
 class YoutubePlaylistProvider(PlaylistProvider, Youtube):

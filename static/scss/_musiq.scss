@@ -158,9 +158,6 @@ $entry_height: 50px;
 #song_queue>li {
 	padding: 5px;
 }
-#song_queue>li.unconfirmed .queue_info_controls .fas{
-	color: theme-color("silent-text");
-}
 .queue_entry {
 	display: flex;
 	flex-wrap: wrap;

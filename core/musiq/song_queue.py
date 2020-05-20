@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.db import models
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, QuerySet
 
 import core.models
 from typing import Dict, Optional, Union, Tuple, TYPE_CHECKING
@@ -19,12 +19,23 @@ class SongQueue(models.Manager):
     Handles all operations on the queue."""
 
     @transaction.atomic
-    def enqueue(self, metadata: "Metadata", manually_requested: bool) -> QueuedSong:
+    def confirmed(self) -> QuerySet[QueuedSong]:
+        return self.exclude(internal_url="")
+
+    @transaction.atomic
+    def delete_placeholders(self) -> None:
+        self.filter(internal_url="").delete()
+
+    @transaction.atomic
+    def enqueue(
+        self, metadata: "Metadata", manually_requested: bool, votes=0
+    ) -> QueuedSong:
         """Creates a new song at the end of the queue and returns it."""
         last = self.last()
         index = 1 if last is None else last.index + 1
         song = self.create(
             index=index,
+            votes=votes,
             manually_requested=manually_requested,
             internal_url=metadata["internal_url"],
             external_url=metadata["external_url"],
@@ -36,14 +47,14 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def dequeue(self) -> Tuple[int, Optional["QueuedSong"]]:
-        """Removes the first song from the queue and returns its id and the object."""
-        first = self.first()
-        if first is None:
+        """Removes the first completed song from the queue and returns its id and the object."""
+        song = self.confirmed().first()
+        if song is None:
             return -1, None
-        first_id = first.id
-        first.delete()
-        self.update(index=F("index") - 1)
-        return first_id, first
+        song_id = song.id
+        song.delete()
+        self.filter(index__gt=song.index).update(index=F("index") - 1)
+        return song_id, song
 
     @transaction.atomic
     def prioritize(self, key: int) -> None:
@@ -62,8 +73,7 @@ class SongQueue(models.Manager):
         """Removes the song specified by :param key: from the queue and returns it."""
         to_remove = self.get(id=key)
         to_remove.delete()
-        if next is not None:
-            self.filter(index__gt=to_remove.index).update(index=F("index") - 1)
+        self.filter(index__gt=to_remove.index).update(index=F("index") - 1)
         return to_remove
 
     @transaction.atomic

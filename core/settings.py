@@ -85,7 +85,7 @@ class Settings(Stateful):
         self.logging_enabled = self.get_setting("logging_enabled", "True") == "True"
         self.people_to_party = int(self.get_setting("people_to_party", "3"))
         self.alarm_probability = float(self.get_setting("alarm_probability", "0"))
-        self.downvotes_to_kick = int(self.get_setting("downvotes_to_kick", "3"))
+        self.downvotes_to_kick = int(self.get_setting("downvotes_to_kick", "2"))
         self.max_download_size = int(self.get_setting("max_download_size", "10"))
         self.max_playlist_items = int(self.get_setting("max_playlist_items", "10"))
         self.youtube_enabled = self.get_setting("youtube_enabled", "True") == "True"
@@ -180,6 +180,7 @@ class Settings(Stateful):
             context["local_library"] = os.readlink(library_path)
         else:
             context["local_library"] = "/"
+        context["version"] = settings.VERSION
         return render(request, "settings.html", context)
 
     def _update_mopidy_config(self, config_file=None) -> None:

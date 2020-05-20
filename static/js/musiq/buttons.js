@@ -42,7 +42,7 @@ function request_archived_music(key, query, platform=Cookies.get('platform')) {
 			playlist: playlistEnabled(),
 			platform: platform,
 		}).done(function(response) {
-			successToast(response, '"' + query + '"');
+			successToast(response.message, '"' + query + '"');
 		}).fail(function(response) {
 			errorToast(response.responseText, '"' + query + '"');
 		});
@@ -58,7 +58,8 @@ function request_new_music(query, platform=Cookies.get('platform')) {
 			playlist: playlistEnabled(),
 			platform: platform,
 		}).done(function(response) {
-			successToast(response, '"' + query + '"');
+			successToast(response.message, '"' + query + '"');
+			Cookies.set('vote_' + response.key, '+', { expires: 7 });
 		}).fail(function(response) {
 			errorToast(response.responseText, '"' + query + '"');
 		});

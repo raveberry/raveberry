@@ -105,19 +105,8 @@ class SpotifySongProvider(SongProvider, Spotify):
         # Spotify songs cannot be cached and have to be streamed everytime
         return False
 
-    def check_downloadable(self) -> bool:
+    def check_available(self) -> bool:
         return self.gather_metadata()
-
-    def download(
-        self,
-        request_ip: str,
-        background: bool = True,
-        archive: bool = True,
-        manually_requested: bool = True,
-    ) -> bool:
-        self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
-        # Spotify needs to be streamed, no download possible
-        return True
 
     # track_info is of type mopidy.models.Track, but mopidy should not be a dependency, so no import
     def gather_metadata(self, track_info: Any = None) -> bool:

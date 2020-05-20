@@ -105,6 +105,9 @@ class QueuedSong(models.Model):
     index = models.IntegerField()
     manually_requested = models.BooleanField()
     votes = models.IntegerField(default=0)
+    # A placeholder has an empty internal url to prevent migrations
+    # With the next mandatory migration, this should probably be changed to None,
+    # adding null=True to this field
     internal_url = models.CharField(max_length=2000)
     external_url = models.CharField(max_length=2000, blank=True)
     artist = models.CharField(max_length=1000)

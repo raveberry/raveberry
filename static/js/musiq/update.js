@@ -115,37 +115,14 @@ specificState = function (newState) {
 		$('#volume_indicator').addClass('fa-volume-up');
 	}
 
-	// fill in replaced placeholders
-	$.each(newState.song_queue, function(index, song) {
-		if (song.replaces != null) {
-			newEntry = createQueueItem(song);
-			placeholder = $('.unconfirmed .queue_title:contains("' + song.replaces + '")').first().closest('li');
-			index = placeholder.index();
-			oldState.song_queue[index] = song;
-
-			// change the placeholder into a real song
-			
-			if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
-				placeholder.find('.queue_index').text(index + 1);
-			} else {
-				placeholder.find('.queue_index').text(song.votes);
-			}
-			insertDisplayName(placeholder.find('.queue_title'), song);
-			placeholder.find('.queue_info_time').text(song.duration_formatted);
-			placeholder.removeClass('unconfirmed');
-			placeholder.find('.download_icon').hide();
-			placeholder.find('.queue_index').show();
-		}
-	});
-
 	/*
 		<li class="list-group-item">
 			<div class="queue_entry">
-				<div class="download_icon">
+				<div class="download_icon queue_handle">
 					<div class="download_overlay"></div>
 					<img src="/static/graphics/download.png">
 				</div>
-				<div class="queue_index"><fa-sort>{{ forloop.counter }}</div>
+				<div class="queue_index queue_handle"><fa-sort>{{ forloop.counter }}</div>
 				<div class="queue_title">{{ song.artist }} - {{ song.title }}</div>
 				<div class="queue_info">
 					<span class="queue_info_time">{{ song.duration_formatted }}</span>
@@ -177,11 +154,6 @@ function insertDisplayName(element, song) {
 	}
 }
 function createQueueItem(song) {
-	if (!song.confirmed) {
-		song.artist = '';
-		song.duration_formatted = '--:--';
-		song.index = '-';
-	}
 	let li = $('<li/>')
 		.addClass('list-group-item')
 	let entry_div = $('<div/>')
@@ -189,6 +161,7 @@ function createQueueItem(song) {
 		.appendTo(li);
 	let download_icon = $('<div/>')
 		.addClass('download_icon')
+		.addClass('queue_handle')
 		.appendTo(entry_div);
 	let download_overlay = $('<div/>')
 		.addClass('download_overlay')
@@ -198,16 +171,17 @@ function createQueueItem(song) {
 		.appendTo(download_icon);
 	let index = $('<div/>')
 		.addClass('queue_index')
+		.addClass('queue_handle')
 	if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
 		index.text(song.index)
 	} else {
 		index.text(song.votes)
 	}
 	index.appendTo(entry_div);
-	if (!song.confirmed) {
-		index.hide();
-	} else {
+	if (song.internal_url) {
 		download_icon.hide();
+	} else {
+		index.hide();
 	}
 	let title = $('<div/>');
 	insertDisplayName(title, song);
@@ -252,9 +226,6 @@ function createQueueItem(song) {
 			down.addClass('pressed');
 		}
 		down.appendTo(controls);
-	}
-	if (!song.confirmed) {
-		li.addClass('unconfirmed');
 	}
 	return li;
 }

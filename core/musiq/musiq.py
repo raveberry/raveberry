@@ -20,6 +20,7 @@ from core.musiq.music_provider import (
     PlaylistProvider,
     MusicProvider,
     WrongUrlError,
+    ProviderError,
 )
 from core.musiq.player import Player
 from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
@@ -31,8 +32,8 @@ from core.musiq.youtube import (
 )
 from core.state_handler import Stateful
 from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import HttpResponse
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING, List
+from django.http.response import HttpResponse, JsonResponse
+from typing import Any, Dict, Optional, Union, TYPE_CHECKING, List, Tuple
 
 if TYPE_CHECKING:
     from core.base import Base
@@ -47,7 +48,6 @@ class Musiq(Stateful):
         self.suggestions = Suggestions(self)
 
         self.queue = QueuedSong.objects
-        self.placeholders: List[Dict[str, Union[Optional[int], str]]] = []
 
         self.player = Player(self)
         self.player.start()
@@ -61,9 +61,10 @@ class Musiq(Stateful):
         platform: str,
         archive: bool = True,
         manually_requested: bool = True,
-    ) -> HttpResponse:
+    ) -> Tuple[bool, str, Optional[int]]:
         """Performs the actual requesting of the music, not an endpoint.
-        Enqueues the requested song or playlist into the queue, using appropriate providers."""
+        Enqueues the requested song or playlist into the queue, using appropriate providers.
+        Returns a 3-tuple: successful, message, queue_key"""
         providers: List[MusicProvider] = []
 
         provider: MusicProvider
@@ -73,9 +74,7 @@ class Musiq(Stateful):
                 # The key determines the PlaylistProvider
                 provider = PlaylistProvider.create(self, query, key)
                 if provider is None:
-                    return HttpResponseBadRequest(
-                        "No provider found for requested playlist"
-                    )
+                    return False, "No provider found for requested playlist", None
                 providers.append(provider)
             else:
                 # try to use spotify if the user did not specifically request youtube
@@ -103,9 +102,7 @@ class Musiq(Stateful):
                 # The key determines the SongProvider
                 provider = SongProvider.create(self, query, key)
                 if provider is None:
-                    return HttpResponseBadRequest(
-                        "No provider found for requested song"
-                    )
+                    return False, "No provider found for requested song", None
                 providers.append(provider)
             else:
                 if platform == "local":
@@ -144,35 +141,29 @@ class Musiq(Stateful):
                             pass
 
         if not len(providers):
-            return HttpResponseBadRequest(
-                "No backend configured to handle your request."
-            )
+            return False, "No backend configured to handle your request.", None
 
         fallback = False
         for i, provider in enumerate(providers):
-            if not provider.check_cached():
-                if not provider.check_downloadable():
-                    # this provider cannot provide this song, use the next provider
-                    # if this was the last provider, show its error
-                    if i == len(providers) - 1:
-                        return HttpResponseBadRequest(provider.error)
-                    fallback = True
-                    continue
-                if not provider.download(
-                    request_ip, archive=archive, manually_requested=manually_requested
-                ):
-                    return HttpResponseBadRequest(provider.error)
-            else:
-                provider.enqueue(
+            try:
+                provider.request(
                     request_ip, archive=archive, manually_requested=manually_requested
                 )
-            # the current provider could provide the song, don't try the other ones
-            used_provider = provider
-            break
+                # the current provider could provide the song, don't try the other ones
+                break
+            except ProviderError:
+                # this provider cannot provide this song, use the next provider
+                # if this was the last provider, show its error
+                if i == len(providers) - 1:
+                    return False, provider.error, None
+                fallback = True
         message = provider.ok_message
+        queue_key = None
+        if not playlist:
+            queue_key = provider.queued_song.id
         if fallback:
             message += " (used fallback)"
-        return HttpResponse(message)
+        return True, message, queue_key
 
     def request_music(self, request: WSGIRequest) -> HttpResponse:
         """Endpoint to request music. Calls internal function."""
@@ -197,7 +188,13 @@ class Musiq(Stateful):
         else:
             request_ip = ""
 
-        return self.do_request_music(request_ip, query, ikey, playlist, platform)
+        successful, message, queue_key = self.do_request_music(
+            request_ip, query, ikey, playlist, platform
+        )
+        if successful:
+            return JsonResponse({"message": message, "key": queue_key})
+        else:
+            return HttpResponseBadRequest(message)
 
     def request_radio(self, request: WSGIRequest) -> HttpResponse:
         """Endpoint to request radio for the current song."""
@@ -233,7 +230,13 @@ class Musiq(Stateful):
         # Set the requested platform to 'spotify'.
         # It will automatically fall back to Youtube
         # if Spotify is not enabled or a youtube link was requested.
-        return self.do_request_music(request_ip, query, None, False, "spotify")
+        successful, message, _ = self.do_request_music(
+            request_ip, query, None, False, "spotify"
+        )
+        if successful:
+            return HttpResponse(message)
+        else:
+            return HttpResponseBadRequest(message)
 
     def index(self, request: WSGIRequest) -> HttpResponse:
         """Renders the /musiq page."""
@@ -256,20 +259,7 @@ class Musiq(Stateful):
             song_dict["duration_formatted"] = song_utils.format_seconds(
                 song_dict["duration"]
             )
-            song_dict["confirmed"] = True
-            # find the query of the placeholder that this song replaces (if any)
-            for placeholder in self.placeholders[:]:
-                if placeholder["replaced_by"] == song.id:
-                    song_dict["replaces"] = placeholder["query"]
-                    self.placeholders.remove(placeholder)
-                    break
-            else:
-                song_dict["replaces"] = None
             song_queue.append(song_dict)
-        song_queue += [
-            {"title": placeholder["query"], "confirmed": False}
-            for placeholder in self.placeholders
-        ]
 
         if state_dict["alarm"]:
             state_dict["current_song"] = {

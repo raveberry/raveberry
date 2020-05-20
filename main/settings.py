@@ -22,6 +22,12 @@ except FileNotFoundError:
         f.write(SECRET_KEY)
     print("created secret key")
 
+try:
+    with open(os.path.join(BASE_DIR, "VERSION")) as f:
+        VERSION = f.read().strip()
+except FileNotFoundError:
+    VERSION = "undefined"
+
 DEBUG = bool(os.environ.get("DJANGO_DEBUG"))
 
 DOCKER = "DOCKER" in os.environ

@@ -7,9 +7,7 @@ $(document).ready(function() {
 		return;
 
 	$("#song_queue").sortable({ 
-		handle: '.queue_index',
-		// don't allow resorting of unconfirmed songs
-		items: "li:not(.unconfirmed)",
+		handle: '.queue_handle',
 		stop: function(e, ui) {
 			key = keyOfElement(ui.item);
 			let prev = ui.item.prev();

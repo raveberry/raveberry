@@ -46,10 +46,11 @@ fi
 echo "*** Configuring Sound Output ***"
 cp setup/pulseaudio.service /etc/systemd/system/pulseaudio.service
 
-cp --parents /etc/pulse/default.pa $BACKUP_DIR/
+cp --parents /etc/pulse/system.pa $BACKUP_DIR/
 LINE=$(cat <<-EOF
-  load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1
-  load-module module-bluetooth-discover
+	load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1
+	load-module module-bluetooth-policy
+	load-module module-bluetooth-discover
 EOF
 )
 FILE="/etc/pulse/system.pa"

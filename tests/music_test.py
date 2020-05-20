@@ -77,8 +77,9 @@ class MusicTest(RaveberryTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 3
-            and all(song["confirmed"] for song in state["song_queue"]),
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 3
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=3,
         )
         return state

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import time
+import uuid
 
 from django.conf import settings
 from django.db import transaction
@@ -20,12 +22,15 @@ from core.models import (
     PlaylistEntry,
 )
 from core.models import RequestLog
-from core.util import background_thread
-from typing import Optional, Union, Dict, TYPE_CHECKING, Type, List, cast
+from typing import Optional, Union, Dict, TYPE_CHECKING, Type, List, cast, Callable
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
+
+
+class ProviderError(Exception):
+    pass
 
 
 class WrongUrlError(Exception):
@@ -47,11 +52,10 @@ class MusicProvider:
             self.type = "unknown"
             assert False
         self.id: Optional[str] = self.extract_id()
-        self.placeholder: Optional[Dict[str, Union[Optional[int], str]]] = None
         self.ok_message = "ok"
         self.error = "error"
 
-    def extract_id(self):
+    def extract_id(self) -> Optional[str]:
         """Tries to extract the id from the given query.
         Returns the id if possible, otherwise None"""
         return None
@@ -60,25 +64,66 @@ class MusicProvider:
         """Returns whether this resource is available on disk."""
         raise NotImplementedError()
 
-    def check_downloadable(self) -> bool:
-        """Returns whether this resource is available for download online."""
+    def check_available(self) -> bool:
+        """Returns whether this resource is available online."""
         raise NotImplementedError()
 
-    def download(
-        self,
-        request_ip: str,
-        background: bool = True,
-        archive: bool = True,
-        manually_requested: bool = True,
-    ) -> bool:
-        """Downloads this resource and enqueues it afterwards."""
+    def enqueue_placeholder(self, manually_requested) -> None:
+        """Enqueues a placeholder if applicable. Playlists have no placeholder, only songs do.
+        Used to identify this resource in the client after a request."""
         raise NotImplementedError()
 
-    def enqueue(
-        self, request_ip: str, archive: bool = True, manually_requested: bool = True
-    ):
-        """Adds the resource to the song queue."""
+    def remove_placeholder(self) -> None:
+        """Removes the placeholder in the queue that represents this resource.
+        Called if there was an error and this element needs to be removed from the queue."""
         raise NotImplementedError()
+
+    def make_available(self) -> bool:
+        """Makes this resource available for playback.
+        If possible, downloads it to disk.
+        If this takes a long time, calls update_state so the placeholder is visible.
+        Returns False if an error occured, True otherwise."""
+        raise NotImplementedError()
+
+    def persist(self, request_ip: str, archive: bool = True) -> None:
+        """Updates the database.
+        Creates an archived entry or updates it.
+        Also handles logging to database."""
+        raise NotImplementedError()
+
+    def enqueue(self) -> None:
+        """Updates the placeholder in the song queue with the actual data."""
+        raise NotImplementedError()
+
+    def request(
+        self, request_ip: str, archive: bool = True, manually_requested: bool = True,
+    ) -> None:
+        """Tries to request this resource.
+        Uses the local cache if possible, otherwise tries to retrieve it online."""
+
+        def enqueue_function() -> None:
+            self.persist(request_ip, archive=archive)
+            self.enqueue()
+
+        if not self.check_cached():
+            if not self.check_available():
+                raise ProviderError()
+
+            # overwrite the enqueue function and make the resource available before calling it
+            original_enqueue_function = enqueue_function
+
+            def enqueue_function() -> None:
+                if not self.make_available():
+                    self.remove_placeholder()
+                    self.musiq.update_state()
+                    return
+
+                original_enqueue_function()
+
+        self.enqueue_placeholder(manually_requested)
+
+        thread = threading.Thread(target=enqueue_function)
+        thread.start()
 
 
 class SongProvider(MusicProvider):
@@ -143,6 +188,7 @@ class SongProvider(MusicProvider):
     ) -> None:
         super().__init__(musiq, query, key)
         self.ok_message = "song queued"
+        self.queued_song = None
 
         if query:
             url_type = song_utils.determine_url_type(query)
@@ -191,14 +237,29 @@ class SongProvider(MusicProvider):
                 return None
         assert False
 
-    def check_downloadable(self) -> bool:
+    def enqueue_placeholder(self, manually_requested) -> None:
+        metadata = {
+            "internal_url": "",
+            "external_url": "",
+            "artist": "",
+            "title": self.query or self.get_external_url(),
+            "duration": -1,
+        }
+        initial_votes = 1 if manually_requested else 0
+        self.queued_song = self.musiq.queue.enqueue(
+            metadata, manually_requested, votes=initial_votes
+        )
+
+    def remove_placeholder(self) -> None:
+        self.queued_song.delete()
+
+    def check_available(self) -> bool:
         raise NotImplementedError()
 
-    def enqueue(
-        self, request_ip: str, archive: bool = True, manually_requested: bool = True
-    ) -> None:
-        from core.musiq.player import Player
+    def make_available(self) -> bool:
+        return True
 
+    def persist(self, request_ip: str, archive: bool = True) -> None:
         metadata = self.get_metadata()
 
         # Increase counter of song/playlist
@@ -222,24 +283,36 @@ class SongProvider(MusicProvider):
                     song=archived_song, query=self.query
                 )
 
-        if archive and request_ip:
+        if self.musiq.base.settings.logging_enabled and request_ip:
             RequestLog.objects.create(song=archived_song, address=request_ip)
 
-        song = self.musiq.queue.enqueue(metadata, manually_requested)
-        if self.placeholder:
-            self.placeholder["replaced_by"] = song.id
+    def enqueue(self) -> None:
+        if not self.musiq.queue.filter(id=self.queued_song.id).exists():
+            # this song was already deleted, do not enqueue
+            return
+
+        from core.musiq.player import Player
+
+        metadata = self.get_metadata()
+
+        self.queued_song.internal_url = metadata["internal_url"]
+        self.queued_song.external_url = metadata["external_url"]
+        self.queued_song.artist = metadata["artist"]
+        self.queued_song.title = metadata["title"]
+        self.queued_song.duration = metadata["duration"]
+        # make sure not to overwrite the index as it may have changed in the meantime
+        self.queued_song.save(
+            update_fields=[
+                "internal_url",
+                "external_url",
+                "artist",
+                "title",
+                "duration",
+            ]
+        )
+
         self.musiq.update_state()
         Player.queue_semaphore.release()
-
-    def download(
-        self,
-        request_ip: str,
-        background: bool = True,
-        archive: bool = True,
-        manually_requested: bool = True,
-    ) -> bool:
-        # self.enqueue(request_ip, archive=archive, manually_requested=manually_requested)
-        raise NotImplementedError()
 
     def get_suggestion(self) -> str:
         """Returns the external url of a suggested song based on this one."""
@@ -316,7 +389,7 @@ class PlaylistProvider(MusicProvider):
         if self.key is not None:
             archived_playlist = ArchivedPlaylist.objects.get(id=self.key)
         else:
-            assert self.query
+            assert self.query is not None
             try:
                 list_id = self.get_id_from_external_url(self.query)
                 archived_playlist = ArchivedPlaylist.objects.get(list_id=list_id)
@@ -324,13 +397,16 @@ class PlaylistProvider(MusicProvider):
                 return False
         self.id = archived_playlist.list_id
         self.key = archived_playlist.id
+        self.urls = [entry.url for entry in archived_playlist.entries.all()]
         return True
 
     def search_id(self) -> Optional[str]:
         """Fetches the id of this playlist from the internet and returns it."""
         raise NotImplementedError()
 
-    def check_downloadable(self) -> bool:
+    def check_available(self) -> bool:
+        if self.id is not None:
+            return True
         assert self.query
         list_id = self.get_id_from_external_url(self.query)
         if list_id is None:
@@ -350,85 +426,65 @@ class PlaylistProvider(MusicProvider):
         """Fetches the title and list of songs for this playlist from the internet."""
         raise NotImplementedError()
 
-    def download(
-        self,
-        request_ip: str,
-        background: bool = True,
-        archive: bool = True,
-        manually_requested: bool = True,
-    ) -> bool:
+    def enqueue_placeholder(self, manually_requested) -> None:
+        # Playlists have no placeholder representation.
+        pass
+
+    def remove_placeholder(self) -> None:
+        pass
+
+    def make_available(self) -> bool:
         queryset = ArchivedPlaylist.objects.filter(list_id=self.id)
         if not self.is_radio() and queryset.exists():
-            self.key = queryset.get().id
+            archived_playlist = queryset.get()
+            self.key = archived_playlist.id
+            self.urls = [entry.url for entry in archived_playlist.entries.all()]
         else:
             if not self.fetch_metadata():
                 return False
-        self.enqueue(request_ip)
         return True
 
-    @background_thread
-    def _queue_songs(
-        self, request_ip: str, archived_playlist: ArchivedPlaylist
-    ) -> None:
-        for index, entry in enumerate(archived_playlist.entries.all()):
-            if index == self.musiq.base.settings.max_playlist_items:
-                break
-            # request every url in the playlist as their own url
-            song_provider = SongProvider.create(self.musiq, external_url=entry.url)
-            song_provider.query = entry.url
-
-            if not song_provider.check_cached():
-                if not song_provider.check_downloadable():
-                    # song is not downloadable, continue with next song in playlist
-                    continue
-                if not song_provider.download(
-                    request_ip,
-                    background=False,
-                    archive=False,
-                    manually_requested=False,
-                ):
-                    # error during song download, continue with next song in playlist
-                    continue
-            else:
-                song_provider.enqueue("", archive=False, manually_requested=False)
-
-            if settings.DEBUG:
-                # the sqlite database has problems if songs are pushed very fast
-                # while a new song is taken from the queue. Add a delay to mitigate.
-                time.sleep(1)
+    def persist(self, request_ip: str, archive: bool = True) -> None:
         if self.is_radio():
-            # Delete radios after they were queued.
-            # They are only stored in the database to ensure the correct queueing order.
-            # Deleting the playlist deletes corresponding playlist entries and queries.
-            archived_playlist.delete()
+            return
 
-    def enqueue(
-        self, request_ip: str, archive: bool = True, manually_requested: bool = True
-    ) -> None:
-        if self.key is None:
-            assert self.id and self.title
-            with transaction.atomic():
-
+        with transaction.atomic():
+            queryset = ArchivedPlaylist.objects.filter(list_id=self.id)
+            if queryset.count() == 0:
+                initial_counter = 1 if archive else 0
                 archived_playlist = ArchivedPlaylist.objects.create(
-                    list_id=self.id, title=self.title, counter=1
+                    list_id=self.id, title=self.title, counter=initial_counter
                 )
                 for index, url in enumerate(self.urls):
                     PlaylistEntry.objects.create(
                         playlist=archived_playlist, index=index, url=url,
                     )
-        else:
-            assert not self.is_radio()
-            queryset = ArchivedPlaylist.objects.filter(list_id=self.id)
+            else:
+                if archive:
+                    queryset.update(counter=F("counter") + 1)
+                archived_playlist = queryset.get()
 
-            if archive:
-                queryset.update(counter=F("counter") + 1)
-            archived_playlist = queryset.get()
+        if archive:
+            ArchivedPlaylistQuery.objects.get_or_create(
+                playlist=archived_playlist, query=self.query
+            )
 
-        ArchivedPlaylistQuery.objects.get_or_create(
-            playlist=archived_playlist, query=self.query
-        )
-
-        if self.musiq.base.settings.logging_enabled:
+        if self.musiq.base.settings.logging_enabled and request_ip:
             RequestLog.objects.create(playlist=archived_playlist, address=request_ip)
 
-        self._queue_songs(request_ip, archived_playlist)
+    def enqueue(self) -> None:
+        for index, external_url in enumerate(self.urls):
+            if index == self.musiq.base.settings.max_playlist_items:
+                break
+            # request every url in the playlist as their own url
+            song_provider = SongProvider.create(self.musiq, external_url=external_url)
+
+            try:
+                song_provider.request("", archive=False, manually_requested=False)
+            except ProviderError:
+                continue
+
+            if settings.DEBUG:
+                # the sqlite database has problems if songs are pushed very fast
+                # while a new song is taken from the queue. Add a delay to mitigate.
+                time.sleep(1)

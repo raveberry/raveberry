@@ -83,6 +83,8 @@ class Player:
 
     # this has to be a class variable
     # so the manager of the queue can access it without a player object
+    # a semaphore that indicates whether any _completed_ songs are available in the queue
+    # placeholders do not count towards the internal counter
     queue_semaphore: Semaphore = None  # type: ignore
 
     SEEK_DISTANCE = 10 * 1000
@@ -99,6 +101,7 @@ class Player:
         )
 
         self.queue = models.QueuedSong.objects
+        self.queue.delete_placeholders()
         Player.queue_semaphore = Semaphore(self.queue.count())
         self.alarm_playing: Event = Event()
         self.running = True
@@ -190,12 +193,13 @@ class Player:
                 song: Optional[models.QueuedSong]
                 if self.musiq.base.settings.voting_system:
                     with transaction.atomic():
-                        song = self.queue.all().order_by("-votes", "index")[0]
+                        song = self.queue.confirmed().order_by("-votes", "index")[0]
                         song_id = song.id
                         self.queue.remove(song.id)
                 elif self.shuffle:
-                    index = random.randint(0, models.QueuedSong.objects.count() - 1)
-                    song_id = models.QueuedSong.objects.all()[index].id
+                    confirmed = self.queue.confirmed()
+                    index = random.randint(0, confirmed.count() - 1)
+                    song_id = confirmed[index].id
                     song = self.queue.remove(song_id)
                 else:
                     # move the first song in the queue into the current song
@@ -521,7 +525,7 @@ class Player:
             # if we removed a song and it was added by autoplay,
             # we want it to be the new basis for autoplay
             if not removed.manually_requested:
-                self._handle_autoplay(removed.external_url)
+                self._handle_autoplay(removed.external_url or removed.title)
             else:
                 self._handle_autoplay()
         except models.QueuedSong.DoesNotExist:
@@ -595,7 +599,7 @@ class Player:
         if removed is not None:
             self.queue_semaphore.acquire(blocking=False)
             if not removed.manually_requested:
-                self._handle_autoplay(removed.external_url)
+                self._handle_autoplay(removed.external_url or removed.title)
             else:
                 self._handle_autoplay()
         return HttpResponse()

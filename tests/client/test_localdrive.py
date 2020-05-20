@@ -73,7 +73,7 @@ class LocaldriveTests(MusicTest):
         # make sure a song was downloaded into the queue
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["confirmed"]
+            and state["song_queue"][0]["internal_url"]
         )
         old_id = state["song_queue"][0]["id"]
 
@@ -81,7 +81,7 @@ class LocaldriveTests(MusicTest):
         # make sure another song is enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["confirmed"]
+            and state["song_queue"][0]["internal_url"]
             and state["song_queue"][0]["id"] != old_id
         )
 
@@ -105,6 +105,6 @@ class LocaldriveTests(MusicTest):
         # ensure that the 4 songs of the album are enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 4
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=3,
         )

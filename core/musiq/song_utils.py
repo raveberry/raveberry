@@ -56,6 +56,10 @@ def determine_playlist_type(archived_playlist: "ArchivedPlaylist") -> str:
 
 def format_seconds(seconds: int) -> str:
     """Takes seconds and formats them as [hh:]mm:ss."""
+
+    if seconds < 0:
+        return "--:--"
+
     hours, seconds = seconds // 3600, seconds % 3600
     minutes, seconds = seconds // 60, seconds % 60
 

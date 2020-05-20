@@ -84,7 +84,7 @@ class YoutubeTests(MusicTest):
             self.skipTest("This IP sent too many requests to Youtube.")
 
     def test_query(self):
-        self._post_request("request_music", "Eskimo Callboy MC Thunder")
+        self._post_request("request_music", "Eskimo Callboy MC Thunder Official Video")
         current_song = self._poll_current_song()
         self.assertEqual(
             current_song["external_url"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
@@ -111,7 +111,7 @@ class YoutubeTests(MusicTest):
         )
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 2
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
         self.assertEqual(
@@ -131,7 +131,7 @@ class YoutubeTests(MusicTest):
         self._post_request("request_music", "Muse Resistance Album", playlist=True)
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 2
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
         self.assertEqual(
@@ -156,7 +156,7 @@ class YoutubeTests(MusicTest):
         # make sure a song was downloaded into the queue
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["confirmed"],
+            and state["song_queue"][0]["internal_url"],
             timeout=10,
         )
         old_id = state["song_queue"][0]["id"]
@@ -165,7 +165,7 @@ class YoutubeTests(MusicTest):
         # make sure another song is enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["confirmed"]
+            and state["song_queue"][0]["internal_url"]
             and state["song_queue"][0]["id"] != old_id,
             timeout=10,
         )
@@ -176,9 +176,9 @@ class YoutubeTests(MusicTest):
         )
         self._poll_current_song()
         self._post_request("request_radio")
-        # ensure that 5 songs are enqueued
+        # ensure that enough songs are enqueued
         self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 3
-            and all(song["confirmed"] for song in state["song_queue"]),
+            and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
