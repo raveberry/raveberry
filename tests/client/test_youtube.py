@@ -113,7 +113,8 @@ class YoutubeTests(MusicTest):
             playlist=True,
         )
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 2
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 2
             and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
@@ -133,7 +134,8 @@ class YoutubeTests(MusicTest):
     def test_playlist_query(self):
         self._post_request("request_music", "Muse Resistance Album", playlist=True)
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 2
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 2
             and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )

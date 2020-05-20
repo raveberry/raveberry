@@ -71,7 +71,8 @@ class SpotifyTests(MusicTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 4
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 4
             and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
@@ -106,7 +107,8 @@ class SpotifyTests(MusicTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 4
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 4
             and all(song["internal_url"] for song in state["song_queue"]),
             timeout=60,
         )
