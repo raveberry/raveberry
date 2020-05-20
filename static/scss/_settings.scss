@@ -7,3 +7,12 @@
 #playlist {
 	white-space: pre;
 }
+#upgrade_config {
+	white-space: pre;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+#upgrade_modal .modal-content {
+	display: flex;
+	flex-direction: column;
+}

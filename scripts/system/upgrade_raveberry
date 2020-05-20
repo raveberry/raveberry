@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+if (( $# != 1 )); then
+	echo "usage: $0 <config-file>"
+	exit 1
+fi
+
+pip3 install -U raveberry
+raveberry system-install --config-file "$1" --confirm-config > "/var/www/raveberry_install_log_$(date +%Y-%m-%d-%H:%M:%S)" 2>&1

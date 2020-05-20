@@ -235,6 +235,21 @@ else:
         path("enable_remote/", BASE.settings.enable_remote, name="enable_remote"),
         path("reboot_server/", BASE.settings.reboot_server, name="reboot_server"),
         path("reboot_system/", BASE.settings.reboot_system, name="reboot_system"),
+        path(
+            "get_latest_version/",
+            BASE.settings.get_latest_version,
+            name="get_latest_version",
+        ),
+        path(
+            "get_upgrade_config/",
+            BASE.settings.get_upgrade_config,
+            name="get_upgrade_config",
+        ),
+        path(
+            "upgrade_raveberry/",
+            BASE.settings.upgrade_raveberry,
+            name="upgrade_raveberry",
+        ),
     ]
 
     urlpatterns = [

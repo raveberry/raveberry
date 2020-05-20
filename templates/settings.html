@@ -57,6 +57,9 @@
 	urls['reboot_server'] = '{% url 'reboot_server' %}';
 	urls['reboot_system'] = '{% url 'reboot_system' %}';
 
+    urls['get_latest_version'] = '{% url 'get_latest_version' %}';
+    urls['get_upgrade_config'] = '{% url 'get_upgrade_config' %}';
+    urls['upgrade_raveberry'] = '{% url 'upgrade_raveberry' %}';
 </script>
 <script src="{% static "js/settings.js" %}"></script>
 {% endblock %}
@@ -393,13 +396,43 @@
 		<button class="btn" id="reboot_system">Reboot System</button>
 	</li>
 </ul>
+
 <ul class="list-group">
     <li class="list-group-item list_header">
         About
     </li>
     <li class="list-group-item list_item">
         <span class="description">Raveberry Version</span>
-        <span>{{ version }}</span>
+        <div>{{ version }}</div>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Latest Version</span>
+        <div>
+            <span id="latest_version">unknown</span>
+            <i class="fas fa-sync" id="get_latest_version"></i>
+        </div>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Upgrade Raveberry</span>
+        <button class="btn" id="open_upgrade_dialog">Upgrade</button>
     </li>
 </ul>
+
+<div id="upgrade_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div>
+                Are you sure that you want to upgrade? <br/>
+                If this config contains an old database backup, <br/>
+                your data <strong>will be lost</strong>! <br/>
+                (using the config from your install directory)
+            </div>
+            <div id="upgrade_config">
+                Fetching config...
+            </div>
+            <button class="btn" id="confirm_upgrade">Yes, I'm sure</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

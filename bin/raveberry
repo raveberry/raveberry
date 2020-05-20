@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+import argparse
 
 import pkg_resources
 
@@ -21,34 +22,51 @@ os.chdir(raveberry_directory)
 
 
 def main():
-    if len(sys.argv) != 2:
-        usage()
+    parser = argparse.ArgumentParser(
+        description="""\
+    A multi-user music server with a focus on participation.
+    For more info visit https://github.com/raveberry/raveberry""",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    parser.add_argument(
+        "command",
+        help="""\
+    run             run a basic version of raveberry
+    system-install  install raveberry into the system
+    version         print the version of this module
+    help            show this help and exit""",
+    )
+    parser.add_argument(
+        "--config-file",
+        "-c",
+        type=str,
+        help="Specify a config file to use for system-install",
+    )
+    parser.add_argument(
+        "--confirm-config",
+        action="store_true",
+        help="Do not prompt to confirm the config file",
+    )
+    args = parser.parse_args()
+
+    if args.config_file:
+        global configfile_path
+        configfile_path = args.config_file
+
+    command = args.command.lstrip("-")
+    choices = ["run", "system-install", "version", "v"]
+    if command not in choices:
+        parser.print_help()
         sys.exit(1)
-    command = sys.argv[1]
-    if command == "help":
-        usage()
     elif command == "run":
         run_server()
     elif command == "system-install":
-        system_install()
-    elif command.lstrip("-") == "version":
+        system_install(config_confirmed=args.confirm_config)
+    elif command == "version" or command == "v":
         version()
     else:
-        usage()
+        print("unknown command")
         sys.exit(1)
-
-
-def usage():
-    print(
-        f"""usage: {sys.argv[0]} [run | system-install | system-upgrade | help | version]
-
-run                     run a basic version of raveberry
-system-install          install raveberry into the system
-version                 print the version of this module
-help                    show this help and exit
-
-For more info visit https://github.com/raveberry/raveberry"""
-    )
 
 
 def version():
@@ -115,7 +133,7 @@ def user_install():
     subprocess.call(["/bin/bash", "setup/user_install.sh"])
 
 
-def system_install():
+def system_install(config_confirmed=False):
     print(
         """You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
 Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
@@ -123,13 +141,14 @@ Config-file location: """
         + configfile_path
     )
 
-    answer = input(
-        "Is this the configuration you want to install raveberry with? [Y/n] "
-    )
-    while answer not in ["", "Y", "y", "Yes", "yes", "N", "n", "No", "no"]:
-        answer = input('Please answers "yes" or "no": ')
-    if answer in ["N", "n", "No", "no"]:
-        sys.exit(0)
+    if not config_confirmed:
+        answer = input(
+            "Is this the configuration you want to install raveberry with? [Y/n] "
+        )
+        while answer not in ["", "Y", "y", "Yes", "yes", "N", "n", "No", "no"]:
+            answer = input('Please answers "yes" or "no": ')
+        if answer in ["N", "n", "No", "no"]:
+            sys.exit(0)
 
     read_config()
 

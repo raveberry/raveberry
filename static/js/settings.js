@@ -418,4 +418,27 @@ $(document).ready(function() {
 			successToast('');
 		});
 	});
+	$('#get_latest_version').on('click tap', function() {
+		$.get(urls['get_latest_version']).done(function(response) {
+			$('#latest_version').text(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+	$('#open_upgrade_dialog').on('click tap', function() {
+		$.get(urls['get_upgrade_config']).done(function(response) {
+			$('#upgrade_config').text(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+		$('#upgrade_modal').modal('show');
+	});
+	$('#confirm_upgrade').on('click tap', function() {
+		$('#upgrade_modal').modal('hide');
+		$.post(urls['upgrade_raveberry']).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
 });

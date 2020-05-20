@@ -1088,3 +1088,47 @@ class Settings(Stateful):
     def reboot_system(self, _request: WSGIRequest) -> None:
         """Reboots the system."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/reboot_system"])
+
+    @option
+    def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:
+        try:
+            subprocess.run(
+                "pip3 install raveberry==nonexistingversion".split(),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            # parse the newest verson from pip output
+            for line in e.stderr.splitlines():
+                if "from versions" in line:
+                    versions = [re.sub(r"[^0-9.]", "", token) for token in line.split()]
+                    versions = [version for version in versions if version]
+                    latest_version = versions[-1]
+                    return HttpResponse(latest_version)
+        return HttpResponseBadRequest("Could not determine latest version.")
+
+    @option
+    def get_upgrade_config(self, _request: WSGIRequest) -> HttpResponse:
+        with open(os.path.join(settings.BASE_DIR, "config/raveberry.ini")) as f:
+            config = f.read()
+        lines = config.splitlines()
+        lines = [line for line in lines if not line.startswith("#")]
+        return HttpResponse("\n".join(lines))
+
+    @option
+    def upgrade_raveberry(self, _request: WSGIRequest) -> HttpResponse:
+        @background_thread
+        def do_upgrade() -> None:
+            subprocess.call(
+                [
+                    "sudo",
+                    "/usr/local/sbin/raveberry/upgrade_raveberry",
+                    os.path.join(settings.BASE_DIR, "config/raveberry.ini"),
+                ]
+            )
+
+        do_upgrade()
+
+        return HttpResponse("Upgrading... Look for logs in /var/www/")
