@@ -121,7 +121,7 @@ Raveberry features a convenient way of modifying the behavior of the server, lik
 Raveberry uses replaygain to analyze the volume of songs and prevent sharp volume transitions.
 
 * **Screen visualization**:
-With the tool [`cava`](https://github.com/karlstav/cava), the current music is split into its frequencies and visualized on a connected screen. Can also be configured to run in [user mode](#user_visualization). (See screenshot below)
+With the tool `cava`, the current music is split into its frequencies and visualized on a connected screen. Can also be configured to run in [user mode](#user_visualization). (See screenshot below)
 
 * **Audio visualization**:
 Using the same tool, Raveberry can also make connected LEDs flash to the rhythm of the music.
@@ -214,6 +214,16 @@ You will encounter this when scanning your local files if they have long paths. 
 sudo -u www-data DJANGO_MOCK=1 python3 /opt/raveberry/manage.py migrate
 ```
 You will not lose any data. If running a docker setup, this will be done automatically.
+
+## Special Thanks
+
+* All the awesome people that created [Mopidy](https://mopidy.com/) for this incredibly versatile music player.
+* Especially [Mopidy-Spotify](https://github.com/mopidy/mopidy-spotify), without which I could not have added Spotify support.
+* [django](https://www.djangoproject.com/), for providing one of the best documentations I have ever encountered.
+* [@karlstav](https://github.com/karlstav) for his audio visualizer [`cava`](https://github.com/karlstav/cava).
+* [`youtube-dl`](https://github.com/ytdl-org/youtube-dl/) for greatly simplifying the interaction with Youtube.
+* [Steven van Tetering](https://www.tikveel.nl/) for writing [the shader](https://www.shadertoy.com/view/llycWD) I based my visualization on.
+* All my friends for constantly beta testing this project.
 
 ## More Information
 
