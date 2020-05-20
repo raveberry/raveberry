@@ -24,6 +24,8 @@ from core.models import (
 from core.models import RequestLog
 from typing import Optional, Union, Dict, TYPE_CHECKING, Type, List, cast, Callable
 
+from core.util import background_thread
+
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
@@ -122,8 +124,11 @@ class MusicProvider:
 
         self.enqueue_placeholder(manually_requested)
 
-        thread = threading.Thread(target=enqueue_function)
-        thread.start()
+        @background_thread
+        def enqueue_in_background() -> None:
+            enqueue_function()
+
+        enqueue_in_background()
 
 
 class SongProvider(MusicProvider):
