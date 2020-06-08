@@ -61,12 +61,26 @@ class Suggestions:
 
         results: List[Dict[str, Union[str, int]]] = []
 
-        if self.musiq.base.settings.has_internet:
+        if (
+            self.musiq.base.settings.online_suggestions
+            and self.musiq.base.settings.has_internet
+        ):
+
+            number_of_suggestions = 2
+            if [
+                self.musiq.base.settings.spotify_enabled,
+                self.musiq.base.settings.soundcloud_enabled,
+                self.musiq.base.settings.youtube_enabled,
+            ].count(True) > 1:
+                # If there is more than one active service,
+                # only offer one online suggestion per service
+                number_of_suggestions = 1
+
             if self.musiq.base.settings.spotify_enabled:
                 spotify_suggestions = Spotify().get_search_suggestions(
                     " ".join(terms), suggest_playlist
                 )
-                spotify_suggestions = spotify_suggestions[:2]
+                spotify_suggestions = spotify_suggestions[:number_of_suggestions]
                 for suggestion, external_url in spotify_suggestions:
                     results.append(
                         {
@@ -77,10 +91,10 @@ class Suggestions:
                     )
 
             if self.musiq.base.settings.soundcloud_enabled:
-                spotify_suggestions = Soundcloud().get_search_suggestions(
+                soundcloud_suggestions = Soundcloud().get_search_suggestions(
                     " ".join(terms)
                 )
-                soundcloud_suggestions = spotify_suggestions[:2]
+                soundcloud_suggestions = soundcloud_suggestions[:number_of_suggestions]
                 for suggestion in soundcloud_suggestions:
                     results.append(
                         {"key": -1, "value": suggestion, "type": "soundcloud-online"}
@@ -89,7 +103,7 @@ class Suggestions:
             if self.musiq.base.settings.youtube_enabled:
                 youtube_suggestions = Youtube().get_search_suggestions(" ".join(terms))
                 # limit to the first three online suggestions
-                youtube_suggestions = youtube_suggestions[:2]
+                youtube_suggestions = youtube_suggestions[:number_of_suggestions]
                 for suggestion in youtube_suggestions:
                     results.append(
                         {"key": -1, "value": suggestion, "type": "youtube-online"}
