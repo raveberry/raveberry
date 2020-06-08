@@ -43,6 +43,7 @@ function request_archived_music(key, query, platform=Cookies.get('platform')) {
 			platform: platform,
 		}).done(function(response) {
 			successToast(response.message, '"' + query + '"');
+			Cookies.set('vote_' + response.key, '+', { expires: 7 });
 		}).fail(function(response) {
 			errorToast(response.responseText, '"' + query + '"');
 		});
