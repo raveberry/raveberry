@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5 - 2020-06-08
+
+- Bump django to 2.2.13
+
 ## 0.6.4 - 2020-05-20
 
 - Started keeping this changelog.
