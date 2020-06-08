@@ -83,6 +83,9 @@ class Settings(Stateful):
         self.base = base
         self.voting_system = self.get_setting("voting_system", "False") == "True"
         self.logging_enabled = self.get_setting("logging_enabled", "True") == "True"
+        self.online_suggestions = (
+            self.get_setting("online_suggestions", "True") == "True"
+        )
         self.people_to_party = int(self.get_setting("people_to_party", "3"))
         self.alarm_probability = float(self.get_setting("alarm_probability", "0"))
         self.downvotes_to_kick = int(self.get_setting("downvotes_to_kick", "2"))
@@ -109,6 +112,7 @@ class Settings(Stateful):
         state_dict = self.base.state_dict()
         state_dict["voting_system"] = self.voting_system
         state_dict["logging_enabled"] = self.logging_enabled
+        state_dict["online_suggestions"] = self.online_suggestions
         state_dict["people_to_party"] = self.people_to_party
         state_dict["alarm_probability"] = self.alarm_probability
         state_dict["downvotes_to_kick"] = self.downvotes_to_kick
@@ -316,6 +320,13 @@ class Settings(Stateful):
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="logging_enabled").update(value=enabled)
         self.logging_enabled = enabled
+
+    @option
+    def set_online_suggestions(self, request: WSGIRequest) -> None:
+        """Enables or disables the voting system based on the given value."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="online_suggestions").update(value=enabled)
+        self.online_suggestions = enabled
 
     @option
     def set_people_to_party(self, request: WSGIRequest) -> None:

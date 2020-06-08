@@ -7,6 +7,7 @@ specificState = function (newState) {
 
 	$('#voting_system').prop("checked", newState.voting_system);
 	$('#logging_enabled').prop("checked", newState.logging_enabled);
+	$('#online_suggestions').prop("checked", newState.online_suggestions);
 	$('#people_to_party').val(newState.people_to_party);
 	$('#alarm_probability').val(newState.alarm_probability);
 	$('#downvotes_to_kick').val(newState.downvotes_to_kick);
@@ -63,6 +64,13 @@ $(document).ready(function() {
 	});
 	$('#logging_enabled').change(function() {
 		$.post(urls['set_logging_enabled'], {
+			value: $(this).is(":checked"),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#online_suggestions').change(function() {
+		$.post(urls['set_online_suggestions'], {
 			value: $(this).is(":checked"),
 		}).done(function() {
 			successToast('');

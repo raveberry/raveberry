@@ -111,6 +111,11 @@ else:
             name="set_logging_enabled",
         ),
         path(
+            "set_online_suggestions/",
+            BASE.settings.set_online_suggestions,
+            name="set_online_suggestions",
+        ),
+        path(
             "set_people_to_party/",
             BASE.settings.set_people_to_party,
             name="set_people_to_party",
