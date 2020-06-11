@@ -33,4 +33,3 @@ fi
 
 systemctl daemon-reload
 /usr/local/sbin/raveberry/enable_events
-systemctl reload nginx
