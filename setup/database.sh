@@ -14,7 +14,7 @@ fi
 
 if [[ -z "$DB_BACKUP" ]]; then
 	if [[ ! $db_exists = true ]]; then
-		echo "Performing Migrations"
+		echo "Performing migrations"
 		sudo -Hu www-data DJANGO_MOCK=1 python3 manage.py migrate
 		echo "Creating Users"
 		if [[ "$ADMIN_PASSWORD" == "admin" ]]; then
@@ -28,8 +28,6 @@ if [[ -z "$DB_BACKUP" ]]; then
 			User.objects.create_user('mod', password='mod')
 			User.objects.create_user('pad', password='pad')
 		EOF
-	else
-		echo "Database already exists, no migration needed"
 	fi
 else
 	echo "Restoring Backup"
@@ -39,6 +37,10 @@ else
 	sudo -u postgres psql -c "CREATE DATABASE raveberry;"
 	sudo -u postgres psql raveberry < $DB_BACKUP
 fi
+echo "Initializing search engine"
+sudo -Hu www-data DJANGO_MOCK=1 python3 manage.py migrate
+sudo -Hu www-data DJANGO_MOCK=1 python3 manage.py installwatson
+sudo -Hu www-data DJANGO_MOCK=1 python3 manage.py buildwatson
 
 if [ ! -z "$DEV_USER" ] && [ ! -f db.sqlite3 ]; then
 	echo "*** Creating Debug Database ***"
