@@ -1,23 +1,33 @@
 $(document).ready(function() {
-	let voting_timeout = 5000;
-	let last_vote = $.now() - voting_timeout;
+	// Use a token bucket implementation to allow 10 Votes per minute.
+    let maxTokens = 10;
+    let currentTokens = maxTokens;
+	let bucketLifetime = 30000; // half a minute
+	let currentBucket = $.now();
 	function can_vote() {
 		let now = $.now();
-		let time_passed = now - last_vote;
-		if (time_passed < voting_timeout) {
-			let ratio = (voting_timeout - time_passed) / voting_timeout;
-			warningToastWithBar("You're doing that too often");
-			$('#vote_timeout_bar').css('transition', 'none');
-			$('#vote_timeout_bar').css('width', ratio * 100 + '%');
-			$('#vote_timeout_bar')[0].offsetHeight;
-			$('#vote_timeout_bar').css({
-				'transition': 'width ' + ratio * voting_timeout / 1000 + 's linear',
-				'width': '0%',
-			});
-			return false;
+		let timePassed = now - currentBucket;
+		if (timePassed > bucketLifetime) {
+			currentBucket = now;
+			currentTokens = maxTokens - 1;
+			return true;
 		}
-		last_vote = $.now();
-		return true;
+
+		if (currentTokens > 0) {
+			currentTokens --;
+			return true;
+		}
+
+		let ratio = (bucketLifetime - timePassed) / bucketLifetime;
+		warningToastWithBar("You're doing that too often");
+		$('#vote_timeout_bar').css('transition', 'none');
+		$('#vote_timeout_bar').css('width', ratio * 100 + '%');
+		$('#vote_timeout_bar')[0].offsetHeight;
+		$('#vote_timeout_bar').css({
+			'transition': 'width ' + ratio * bucketLifetime / 1000 + 's linear',
+			'width': '0%',
+		});
+		return false;
 	}
 	function vote_down(button, key) {
 		votes = button.closest('.queue_entry').find('.queue_index');
