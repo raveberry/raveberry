@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "watson",
     "compressor",
     "sass_processor",
     "channels",
@@ -60,6 +61,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.user_manager.SimpleMiddleware",
+    "watson.middleware.SearchContextMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"

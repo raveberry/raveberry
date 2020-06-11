@@ -18,6 +18,8 @@ from core.musiq.youtube import Youtube
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import JsonResponse, HttpResponse
 
+from watson import search as watson
+
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
 
@@ -56,7 +58,7 @@ class Suggestions:
     def get_suggestions(self, request: WSGIRequest) -> JsonResponse:
         """Returns suggestions for a given query.
         Combines online and offline suggestions."""
-        terms = request.GET["term"].split()
+        query = request.GET["term"]
         suggest_playlist = request.GET["playlist"] == "true"
 
         results: List[Dict[str, Union[str, int]]] = []
@@ -78,7 +80,7 @@ class Suggestions:
 
             if self.musiq.base.settings.spotify_enabled:
                 spotify_suggestions = Spotify().get_search_suggestions(
-                    " ".join(terms), suggest_playlist
+                    query, suggest_playlist
                 )
                 spotify_suggestions = spotify_suggestions[:number_of_suggestions]
                 for suggestion, external_url in spotify_suggestions:
@@ -91,9 +93,7 @@ class Suggestions:
                     )
 
             if self.musiq.base.settings.soundcloud_enabled:
-                soundcloud_suggestions = Soundcloud().get_search_suggestions(
-                    " ".join(terms)
-                )
+                soundcloud_suggestions = Soundcloud().get_search_suggestions(query)
                 soundcloud_suggestions = soundcloud_suggestions[:number_of_suggestions]
                 for suggestion in soundcloud_suggestions:
                     results.append(
@@ -101,7 +101,7 @@ class Suggestions:
                     )
 
             if self.musiq.base.settings.youtube_enabled:
-                youtube_suggestions = Youtube().get_search_suggestions(" ".join(terms))
+                youtube_suggestions = Youtube().get_search_suggestions(query)
                 # limit to the first three online suggestions
                 youtube_suggestions = youtube_suggestions[:number_of_suggestions]
                 for suggestion in youtube_suggestions:
@@ -109,56 +109,27 @@ class Suggestions:
                         {"key": -1, "value": suggestion, "type": "youtube-online"}
                     )
 
-        # The following query is roughly equivalent to the following SQL code:
-        # SELECT DISTINCT id, title, artist, counter
-        # FROM core_archivedsong s LEFT JOIN core_archivedquery q ON q.song
-        # WHERE forall term in terms: term in q.query or term in s.artist or term in s.title
-        # ORDER BY -counter
         if suggest_playlist:
-            remaining_playlists = ArchivedPlaylist.objects.prefetch_related("queries")
-            # exclude radios from suggestions
-            remaining_playlists = remaining_playlists.exclude(
-                list_id__startswith="RD"
-            ).exclude(list_id__contains="&list=RD")
+            search_results = watson.search(query, models=(ArchivedPlaylist,))[:20]
 
-            for term in terms:
-                remaining_playlists = remaining_playlists.filter(
-                    Q(title__icontains=term) | Q(queries__query__icontains=term)
-                )
-
-            playlist_suggestions = (
-                remaining_playlists.values("id", "title", "counter")
-                .distinct()
-                .order_by("-counter")[:20]
-            )
-
-            for playlist in playlist_suggestions:
-                archived_playlist = ArchivedPlaylist.objects.get(id=playlist["id"])
+            for playlist in search_results:
+                playlist_info = playlist.meta
+                archived_playlist = ArchivedPlaylist.objects.get(id=playlist_info["id"])
                 result_dict: Dict[str, Union[str, int]] = {
-                    "key": playlist["id"],
-                    "value": playlist["title"],
-                    "counter": playlist["counter"],
+                    "key": playlist_info["id"],
+                    "value": playlist_info["title"],
+                    "counter": playlist_info["counter"],
                     "type": song_utils.determine_playlist_type(archived_playlist),
                 }
                 results.append(result_dict)
         else:
-            remaining_songs = ArchivedSong.objects.prefetch_related("queries")
+            search_results = watson.search(query, models=(ArchivedSong,))[:20]
 
-            for term in terms:
-                remaining_songs = remaining_songs.filter(
-                    Q(title__icontains=term)
-                    | Q(artist__icontains=term)
-                    | Q(queries__query__icontains=term)
+            for search_result in search_results:
+                song_info = search_result.meta
+                provider = SongProvider.create(
+                    self.musiq, external_url=song_info["url"]
                 )
-
-            song_suggestions = (
-                remaining_songs.values("id", "title", "url", "artist", "counter")
-                .distinct()
-                .order_by("-counter")[:20]
-            )
-
-            for song in song_suggestions:
-                provider = SongProvider.create(self.musiq, external_url=song["url"])
                 cached = provider.check_cached()
                 # don't suggest local songs if they are not cached (=not at expected location)
                 if not cached and provider.type == "local":
@@ -185,9 +156,11 @@ class Suggestions:
                 ):
                     continue
                 result_dict = {
-                    "key": song["id"],
-                    "value": song_utils.displayname(song["artist"], song["title"]),
-                    "counter": song["counter"],
+                    "key": song_info["id"],
+                    "value": song_utils.displayname(
+                        song_info["artist"], song_info["title"]
+                    ),
+                    "counter": song_info["counter"],
                     "type": provider.type,
                 }
                 results.append(result_dict)
