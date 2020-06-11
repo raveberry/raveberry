@@ -16,3 +16,20 @@
 	display: flex;
 	flex-direction: column;
 }
+
+.system-install-only.is-disabled
+{
+	pointer-events:none;
+	position:relative;
+	opacity:0.5;
+
+	&:after
+	{
+		position:absolute;
+		content:attr(disabled-note) "";
+		width:100%;
+		text-align: center;
+		top:30%;
+		color:white;
+	}
+}

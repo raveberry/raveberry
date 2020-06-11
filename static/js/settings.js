@@ -52,6 +52,21 @@ specificState = function (newState) {
 	$('#wifi_protected').text(newState.wifi_protected);
 	$('#tunneling_enabled').text(newState.tunneling_enabled);
 	$('#remote_enabled').text(newState.remote_enabled);
+
+	if(!newState.system_install){
+		$('.system-install-only').addClass('is-disabled');
+		$('.system-install-only').attr('disabled-note', 'This feature is only available in a system install.');
+	} else {
+		if (!newState.hotspot_configured) {
+			console.log("no hotspot")
+			$('.hotspot-functionality').addClass('is-disabled');
+			$('.hotspot-functionality').attr('disabled-note', 'Please configure hotspot during installation to use this feature.');
+		}
+		if (!newState.remote_configured) {
+			$('.remote-functionality').addClass('is-disabled');
+			$('.remote-functionality').attr('disabled-note', 'Please configure remote during installation to use this feature.');
+		}
+	}
 }
 
 $(document).ready(function() {

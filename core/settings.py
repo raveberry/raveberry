@@ -168,7 +168,13 @@ class Settings(Stateful):
                 subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
             )
         except FileNotFoundError:
-            logging.info("scripts not installed")
+            state_dict["system_install"] = False
+        else:
+            state_dict["system_install"] = True
+            config = configparser.ConfigParser()
+            config.read(os.path.join(settings.BASE_DIR, "config/raveberry.ini"))
+            state_dict["hotspot_configured"] = config.getboolean("Modules", "hotspot")
+            state_dict["remote_configured"] = config["Remote"]["remote_key"] != ""
 
         return state_dict
 
@@ -1004,11 +1010,6 @@ class Settings(Stateful):
     @option
     def enable_streaming(self, _request: WSGIRequest) -> HttpResponse:
         """Enable icecast streaming."""
-        if settings.DOCKER:
-            return HttpResponseBadRequest(
-                "Choose the correct docker-compose file to control streaming"
-            )
-
         icecast_exists = False
         for line in subprocess.check_output(
             "systemctl list-unit-files --full --all".split(), universal_newlines=True
@@ -1028,10 +1029,6 @@ class Settings(Stateful):
     @option
     def disable_streaming(self, _request: WSGIRequest) -> HttpResponse:
         """Disable icecast streaming."""
-        if settings.DOCKER:
-            return HttpResponseBadRequest(
-                "Choose the correct docker-compose file to control streaming"
-            )
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_streaming"])
         self._update_mopidy_config()
         return HttpResponse()
