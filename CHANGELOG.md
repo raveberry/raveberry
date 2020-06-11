@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.6 - 2020-06-11
+
+- Requesting archived musiq also toggles the upvote button
+- If more than one backend is configured, only one online suggestion per service is displayed
+- [watson](https://github.com/etianen/django-watson) is used to search the database for suggestions
+
 ## 0.6.5 - 2020-06-08
 
 - Bump django to 2.2.13
