@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.7 - 2020-06-10
+
+- Users can vote 10 times in 30 seconds instead of once every 5 seconds
+- Unavailable options are greyed out in settings
+
 ## 0.6.6 - 2020-06-11
 
 - Requesting archived musiq also toggles the upvote button
