@@ -1,21 +1,25 @@
 """This module handles the led strip."""
 from typing import Tuple
 
-import Adafruit_PCA9685
-
 
 class Strip:
     """This class provides an interface to control the led strip."""
 
     def __init__(self) -> None:
+        self.brightness = 1.0
+
+        try:
+            import Adafruit_PCA9685
+        except ModuleNotFoundError:
+            self.initialized = False
+            return
+
         try:
             self.controller = Adafruit_PCA9685.PCA9685()
             self.initialized = True
         except (RuntimeError, OSError):
             # LED strip is not connected
             self.initialized = False
-
-        self.brightness = 1.0
 
     def set_color(self, color: Tuple[float, float, float]) -> None:
         """Sets the color of the strip to the given rgb triple."""

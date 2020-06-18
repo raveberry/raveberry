@@ -1,8 +1,6 @@
 """This module handles the Neopixel led ring."""
 from typing import List, Tuple
 
-import rpi_ws281x
-
 
 class Ring:
     """This class provides an interface to control the led ring."""
@@ -21,6 +19,12 @@ class Ring:
     def __init__(self) -> None:
         self.brightness = 1.0
         self.monochrome = False
+
+        try:
+            import rpi_ws281x
+        except ModuleNotFoundError:
+            self.initialized = False
+            return
 
         self.controller = rpi_ws281x.Adafruit_NeoPixel(
             self.LED_COUNT,
