@@ -1,7 +1,9 @@
 -r common.txt
 -r screenvis.txt
+-r ledvis.txt
 pylint
 pylint-django
 mypy
 typing-extensions
 django-stubs
+libsass>=0.19.2
