@@ -204,7 +204,11 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
             try:
                 # tag the file with replaygain to perform volume normalization
-                subprocess.call(["rganalysis", location], stdout=subprocess.DEVNULL)
+                subprocess.call(
+                    ["rganalysis", location],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
             except OSError as e:
                 if e.errno == errno.ENOENT:
                     pass  # the rganalysis package was not found. Skip normalization
