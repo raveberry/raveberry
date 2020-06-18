@@ -1,0 +1,2 @@
+Adafruit-PCA9685>=1.0.1
+rpi-ws281x==4.2.3 # https://github.com/rpi-ws281x/rpi-ws281x-python/issues/46
