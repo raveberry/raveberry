@@ -13,12 +13,13 @@ try:
     import raveberry
 
     raveberry_directory = os.path.dirname(raveberry.__file__)
-    configfile_path = os.path.join(raveberry_directory, "config/raveberry.ini")
+    default_config = os.path.join(raveberry_directory, "config/raveberry.ini")
 except ModuleNotFoundError:
     # also allow this script to work without installed module in the git folder
     raveberry_directory = "."
-    configfile_path = os.path.join(raveberry_directory, "config/raveberry.ini")
-os.chdir(raveberry_directory)
+    default_config = os.path.join(raveberry_directory, "config/raveberry.ini")
+
+used_config = default_config
 
 
 def main():
@@ -50,9 +51,10 @@ def main():
     args = parser.parse_args()
 
     if args.config_file:
-        global configfile_path
-        configfile_path = args.config_file
+        global used_config
+        used_config = os.path.abspath(args.config_file)
 
+    os.chdir(raveberry_directory)
     command = args.command.lstrip("-")
     choices = ["run", "system-install", "version", "v"]
     if command not in choices:
@@ -93,7 +95,7 @@ def run_server():
 
 def read_config():
     config = configparser.ConfigParser()
-    config.read(configfile_path)
+    config.read(used_config)
     for section_name, section in config.items():
         for key, value in section.items():
             try:
@@ -138,7 +140,7 @@ def system_install(config_confirmed=False):
         """You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
 Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
 Config-file location: """
-        + configfile_path
+        + used_config
     )
 
     if not config_confirmed:
@@ -149,6 +151,11 @@ Config-file location: """
             answer = input('Please answers "yes" or "no": ')
         if answer in ["N", "n", "No", "no"]:
             sys.exit(0)
+
+    if used_config != default_config:
+        # If the user provided a different config, copy it to the default config's location,
+        # so it is available for upgrades after the install.
+        shutil.copyfile(used_config, default_config)
 
     read_config()
 
