@@ -84,6 +84,9 @@ If you need all dependencies (testing, visualization, type checking etc.), also 
 pip3 install -r requirements/dev.txt
 ```
 
+If you want to develop in the frontend (change scss files), enable the sass processor so changes are visible immediately.
+In `main/settings.py`, change the value of `SASS_PROCESSOR_ENABLED` from `False` to `True`.
+
 Start development server
 ```
 bin/raveberry run
