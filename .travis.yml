@@ -61,4 +61,4 @@ after_deploy:
   - docker buildx create --driver docker-container --name local --use unix:///var/run/docker.sock
   # no quiet mode, pipe to /dev/null to not exceed maximum log length with buildx's fancy output
   # https://github.com/docker/buildx/blob/master/commands/build.go#L79
-  - docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry . 2>&1 | head -n 1000
+  - docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry static/ 2>&1 | head -n 1000

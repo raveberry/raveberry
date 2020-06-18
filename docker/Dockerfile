@@ -5,4 +5,6 @@ RUN pip install psycopg2 &&\
 	pip install raveberry --no-deps --target /opt &&\
 	rm -rf ~/.cache/pip
 
+COPY . /opt/raveberry/static
+
 WORKDIR /opt/raveberry
