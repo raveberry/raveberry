@@ -13,8 +13,10 @@ if [[ ! -d static/libs ]]; then
 	echo "Installing frontend libraries"
 	HOME= yarn install
 fi
-echo "Compiling SCSS Files"
-DJANGO_MOCK=1 DJANGO_DEBUG=1 python3 manage.py compilescss
+if [[ ! -f static/scss/dark.css ]]; then
+	echo "Compiling SCSS Files"
+	DJANGO_MOCK=1 DJANGO_DEBUG=1 python3 manage.py compilescss
+fi
 
 if [ "$ADMIN_PASSWORD" == "admin" ]; then
   echo 1>&2

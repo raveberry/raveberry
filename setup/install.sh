@@ -27,12 +27,6 @@ apt-get install -y ${packagelist[@]} || exit 1
 # force system wide reinstall even if packages are present for the user by using sudo -H
 sudo -H pip3 install -r requirements.txt || exit 1
 
-echo "*** Installing yarn ***"
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-apt-get update
-apt-get install -y yarn
-
 if [ ! -z "$HOTSPOT" ]; then
 	apt-get install -y dnsmasq hostapd #wifi access point
 fi
@@ -48,6 +42,11 @@ if [ ! -z "$SCREEN_VISUALIZATION" ]; then
 		xorg # X is needed for displaying
 	)
 	apt-get install -y ${packagelist[@]} || exit 1
+fi
+
+if [ ! -z "$LED_VISUALIZATION" ]; then
+	echo "*** Installing dependencies for led control ***"
+	sudo -H pip3 install -r requirements/ledvis.txt || exit 1
 fi
 
 if [[ ( ! -z "$LED_VISUALIZATION" || ! -z "$SCREEN_VISUALIZATION" ) ]] && ! type cava > /dev/null 2>&1; then

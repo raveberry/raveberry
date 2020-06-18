@@ -180,6 +180,8 @@ if not os.path.exists(os.path.join(BASE_DIR, "static/admin")):
 
 # adapted for django-compressor and sass-processor
 SASS_PROCESSOR_ROOT = STATIC_ROOT
+# Change this to True if you are changing scss files.
+SASS_PROCESSOR_ENABLED = False
 
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",

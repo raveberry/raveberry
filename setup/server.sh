@@ -1,9 +1,3 @@
-echo "*** Installing Frontend Libraries ***"
-sudo -u www-data HOME= yarn install
-
-echo "*** Compiling Sass Files ***"
-scripts/compilescss.sh
-
 echo "nginx..."
 cp --parents /etc/nginx/sites-enabled/default $BACKUP_DIR/ 2>/dev/null
 rm -f /etc/nginx/sites-enabled/default
