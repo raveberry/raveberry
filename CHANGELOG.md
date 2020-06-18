@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.8 - 2020-06-18
+
+- The config file is persisted during system installation. Now a custom config can be used during upgrade.
+- css files are published, removing the need of building them on device.
+- Dependencies were cleaned up.
+	- Packages that control leds are not required anymore (as one of them caused a segfault).
+	- libsass was removed, speeding up the docker build.
+
 ## 0.6.7 - 2020-06-10
 
 - Users can vote 10 times in 30 seconds instead of once every 5 seconds
