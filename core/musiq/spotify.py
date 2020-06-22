@@ -16,7 +16,6 @@ from typing import Dict, Optional, Union, List, Tuple, TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
-    from core.musiq.player import Player
 
 
 class Spotify:

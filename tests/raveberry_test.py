@@ -16,12 +16,12 @@ class RaveberryTest(TransactionTestCase):
         self.client = Client()
         util.admin_login(self.client)
 
-        self.base.musiq.player.start_loop()
+        self.base.musiq.playback.start_loop()
 
     def tearDown(self):
         util.admin_login(self.client)
 
-        self.base.musiq.player.stop_loop()
+        self.base.musiq.playback.stop_loop()
 
     def _poll_state(self, state_url, break_condition, timeout=1):
         timeout *= 10

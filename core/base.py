@@ -83,7 +83,7 @@ class Base(Stateful):
                 id=1, defaults={"value": 0}
             )[0].value,
             "lights_enabled": self.lights.loop_active.is_set(),
-            "alarm": self.musiq.player.alarm_playing.is_set(),
+            "alarm": self.musiq.playback.alarm_playing.is_set(),
             "default_platform": "spotify"
             if self.settings.platforms.spotify_enabled
             else "youtube",

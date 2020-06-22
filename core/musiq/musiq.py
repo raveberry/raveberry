@@ -22,7 +22,8 @@ from core.musiq.music_provider import (
     WrongUrlError,
     ProviderError,
 )
-from core.musiq.player import Player
+from core.musiq.playback import Playback
+from core.musiq.controller import Controller
 from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
 from core.musiq.soundcloud import SoundcloudSongProvider, SoundcloudPlaylistProvider
 from core.musiq.suggestions import Suggestions
@@ -49,8 +50,9 @@ class Musiq(Stateful):
 
         self.queue = QueuedSong.objects
 
-        self.player = Player(self)
-        self.player.start()
+        self.playback = Playback(self)
+        self.controller = Controller(self)
+        self.playback.start()
 
     def do_request_music(
         self,
@@ -275,11 +277,11 @@ class Musiq(Stateful):
             }
         else:
             state_dict["current_song"] = current_song
-        state_dict["paused"] = self.player.paused()
-        state_dict["progress"] = self.player.progress()
-        state_dict["shuffle"] = self.player.shuffle
-        state_dict["repeat"] = self.player.repeat
-        state_dict["autoplay"] = self.player.autoplay
-        state_dict["volume"] = self.player.volume
+        state_dict["paused"] = self.playback.paused()
+        state_dict["progress"] = self.playback.progress()
+        state_dict["shuffle"] = self.controller.shuffle
+        state_dict["repeat"] = self.controller.repeat
+        state_dict["autoplay"] = self.controller.autoplay
+        state_dict["volume"] = self.controller.volume
         state_dict["song_queue"] = song_queue
         return state_dict

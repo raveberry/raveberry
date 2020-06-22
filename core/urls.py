@@ -36,23 +36,25 @@ else:
         path(
             "suggestions/", BASE.musiq.suggestions.get_suggestions, name="suggestions"
         ),
-        path("restart/", BASE.musiq.player.restart, name="restart_song"),
-        path("seek_backward/", BASE.musiq.player.seek_backward, name="seek_backward"),
-        path("play/", BASE.musiq.player.play, name="play_song"),
-        path("pause/", BASE.musiq.player.pause, name="pause_song"),
-        path("seek_forward/", BASE.musiq.player.seek_forward, name="seek_forward"),
-        path("skip/", BASE.musiq.player.skip, name="skip_song"),
-        path("set_shuffle/", BASE.musiq.player.set_shuffle, name="set_shuffle"),
-        path("set_repeat/", BASE.musiq.player.set_repeat, name="set_repeat"),
-        path("set_autoplay/", BASE.musiq.player.set_autoplay, name="set_autoplay"),
+        path("restart/", BASE.musiq.controller.restart, name="restart_song"),
+        path(
+            "seek_backward/", BASE.musiq.controller.seek_backward, name="seek_backward"
+        ),
+        path("play/", BASE.musiq.controller.play, name="play_song"),
+        path("pause/", BASE.musiq.controller.pause, name="pause_song"),
+        path("seek_forward/", BASE.musiq.controller.seek_forward, name="seek_forward"),
+        path("skip/", BASE.musiq.controller.skip, name="skip_song"),
+        path("set_shuffle/", BASE.musiq.controller.set_shuffle, name="set_shuffle"),
+        path("set_repeat/", BASE.musiq.controller.set_repeat, name="set_repeat"),
+        path("set_autoplay/", BASE.musiq.controller.set_autoplay, name="set_autoplay"),
         path("request_radio/", BASE.musiq.request_radio, name="request_radio"),
-        path("set_volume/", BASE.musiq.player.set_volume, name="set_volume"),
-        path("remove_all/", BASE.musiq.player.remove_all, name="remove_all"),
-        path("prioritize/", BASE.musiq.player.prioritize, name="prioritize_song"),
-        path("remove/", BASE.musiq.player.remove, name="remove_song"),
-        path("reorder/", BASE.musiq.player.reorder, name="reorder_song"),
-        path("vote_up/", BASE.musiq.player.vote_up, name="vote_up_song"),
-        path("vote_down/", BASE.musiq.player.vote_down, name="vote_down_song"),
+        path("set_volume/", BASE.musiq.controller.set_volume, name="set_volume"),
+        path("remove_all/", BASE.musiq.controller.remove_all, name="remove_all"),
+        path("prioritize/", BASE.musiq.controller.prioritize, name="prioritize_song"),
+        path("remove/", BASE.musiq.controller.remove, name="remove_song"),
+        path("reorder/", BASE.musiq.controller.reorder, name="reorder_song"),
+        path("vote_up/", BASE.musiq.controller.vote_up, name="vote_up_song"),
+        path("vote_down/", BASE.musiq.controller.vote_down, name="vote_down_song"),
     ]
 
     LIGHTS_URLS = [

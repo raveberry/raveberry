@@ -296,7 +296,7 @@ class SongProvider(MusicProvider):
             # this song was already deleted, do not enqueue
             return
 
-        from core.musiq.player import Player
+        from core.musiq.playback import Playback
 
         metadata = self.get_metadata()
 
@@ -317,7 +317,7 @@ class SongProvider(MusicProvider):
         )
 
         self.musiq.update_state()
-        Player.queue_semaphore.release()
+        Playback.queue_semaphore.release()
 
     def get_suggestion(self) -> str:
         """Returns the external url of a suggested song based on this one."""

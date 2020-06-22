@@ -45,7 +45,7 @@ def option(
         ):
             return HttpResponseForbidden()
         # don't allow option changes during alarm
-        if self.base.musiq.player.alarm_playing.is_set():
+        if self.base.musiq.playback.alarm_playing.is_set():
             return HttpResponseForbidden()
         with self.option_lock:
             try:
