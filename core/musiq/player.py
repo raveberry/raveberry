@@ -67,7 +67,7 @@ def disabled_when_voting(func: Callable) -> Callable:
         self: "Player", request: WSGIRequest, *args, **kwargs
     ) -> HttpResponse:
         if (
-            self.musiq.base.settings.voting_system
+            self.musiq.base.settings.basic.voting_system
             and not self.musiq.base.user_manager.has_controls(request.user)
         ):
             return HttpResponseForbidden()
@@ -191,7 +191,7 @@ class Player:
 
                 # select the next song depending on settings
                 song: Optional[models.QueuedSong]
-                if self.musiq.base.settings.voting_system:
+                if self.musiq.base.settings.basic.voting_system:
                     with transaction.atomic():
                         song = self.queue.confirmed().order_by("-votes", "index")[0]
                         song_id = song.id
@@ -229,11 +229,11 @@ class Player:
                         url=current_song.external_url
                     )
                     votes: Optional[int]
-                    if self.musiq.base.settings.voting_system:
+                    if self.musiq.base.settings.basic.voting_system:
                         votes = current_song.votes
                     else:
                         votes = None
-                    if self.musiq.base.settings.logging_enabled:
+                    if self.musiq.base.settings.basic.logging_enabled:
                         models.PlayLog.objects.create(
                             song=archived_song,
                             manually_requested=current_song.manually_requested,
@@ -285,7 +285,7 @@ class Player:
 
             if (
                 self.musiq.base.user_manager.partymode_enabled()
-                and random.random() < self.musiq.base.settings.alarm_probability
+                and random.random() < self.musiq.base.settings.basic.alarm_probability
             ):
                 self.alarm_playing.set()
                 self.musiq.base.lights.alarm_started()
@@ -583,7 +583,8 @@ class Player:
             current_song = models.CurrentSong.objects.get()
             if (
                 current_song.queue_key == ikey
-                and current_song.votes <= -self.musiq.base.settings.downvotes_to_kick
+                and current_song.votes
+                <= -self.musiq.base.settings.basic.downvotes_to_kick
             ):
                 with self.mopidy_command() as allowed:
                     if allowed:
@@ -592,7 +593,7 @@ class Player:
             pass
 
         removed = self.queue.vote_down(
-            ikey, -self.musiq.base.settings.downvotes_to_kick
+            ikey, -self.musiq.base.settings.basic.downvotes_to_kick
         )
         # if we removed a song by voting, and it was added by autoplay,
         # we want it to be the new basis for autoplay

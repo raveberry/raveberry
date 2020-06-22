@@ -78,19 +78,19 @@ class Musiq(Stateful):
                 providers.append(provider)
             else:
                 # try to use spotify if the user did not specifically request youtube
-                if self.base.settings.soundcloud_enabled:
+                if self.base.settings.platforms.soundcloud_enabled:
                     soundcloud_provider = SoundcloudPlaylistProvider(self, query, key)
                     if platform == "soundcloud":
                         providers.insert(0, soundcloud_provider)
                     else:
                         providers.append(soundcloud_provider)
-                if self.base.settings.spotify_enabled:
+                if self.base.settings.platforms.spotify_enabled:
                     spotify_provider = SpotifyPlaylistProvider(self, query, key)
                     if platform == "spotify":
                         providers.insert(0, spotify_provider)
                     else:
                         providers.append(spotify_provider)
-                if self.base.settings.youtube_enabled:
+                if self.base.settings.platforms.youtube_enabled:
                     youtube_provider = YoutubePlaylistProvider(self, query, key)
                     if platform == "youtube":
                         providers.insert(0, youtube_provider)
@@ -110,7 +110,7 @@ class Musiq(Stateful):
                     # use only this one as its only possible source is the database
                     providers.append(LocalSongProvider(self, query, key))
                 else:
-                    if self.base.settings.soundcloud_enabled:
+                    if self.base.settings.platforms.soundcloud_enabled:
                         try:
                             soundcloud_provider = SoundcloudSongProvider(
                                 self, query, key
@@ -121,7 +121,7 @@ class Musiq(Stateful):
                                 providers.append(soundcloud_provider)
                         except WrongUrlError:
                             pass
-                    if self.base.settings.spotify_enabled:
+                    if self.base.settings.platforms.spotify_enabled:
                         try:
                             spotify_provider = SpotifySongProvider(self, query, key)
                             if platform == "spotify":
@@ -130,7 +130,7 @@ class Musiq(Stateful):
                                 providers.append(spotify_provider)
                         except WrongUrlError:
                             pass
-                    if self.base.settings.youtube_enabled:
+                    if self.base.settings.platforms.youtube_enabled:
                         try:
                             youtube_provider = YoutubeSongProvider(self, query, key)
                             if platform == "youtube":
@@ -181,7 +181,7 @@ class Musiq(Stateful):
             ikey = int(key)
 
         # only get ip on user requests
-        if self.base.settings.logging_enabled:
+        if self.base.settings.basic.logging_enabled:
             request_ip, _ = ipware.get_client_ip(request)
             if request_ip is None:
                 request_ip = ""
@@ -199,7 +199,7 @@ class Musiq(Stateful):
     def request_radio(self, request: WSGIRequest) -> HttpResponse:
         """Endpoint to request radio for the current song."""
         # only get ip on user requests
-        if self.base.settings.logging_enabled:
+        if self.base.settings.basic.logging_enabled:
             request_ip, _ = ipware.get_client_ip(request)
             if request_ip is None:
                 request_ip = ""
@@ -218,7 +218,7 @@ class Musiq(Stateful):
         """This endpoint is part of the API and exempt from CSRF checks.
         Shareberry uses this endpoint."""
         # only get ip on user requests
-        if self.base.settings.logging_enabled:
+        if self.base.settings.basic.logging_enabled:
             request_ip, _ = ipware.get_client_ip(request)
             if request_ip is None:
                 request_ip = ""
@@ -252,7 +252,7 @@ class Musiq(Stateful):
             current_song = None
         song_queue = []
         all_songs = self.queue.all()
-        if self.base.settings.voting_system:
+        if self.base.settings.basic.voting_system:
             all_songs = all_songs.order_by("-votes", "index")
         for song in all_songs:
             song_dict = model_to_dict(song)

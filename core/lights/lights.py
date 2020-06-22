@@ -40,7 +40,7 @@ def option(
     def _decorator(self: "Lights", request: WSGIRequest) -> HttpResponse:
         # only privileged users can change options during voting system
         if (
-            self.base.settings.voting_system
+            self.base.settings.basic.voting_system
             and not self.base.user_manager.has_controls(request.user)
         ):
             return HttpResponseForbidden()

@@ -288,7 +288,7 @@ class SongProvider(MusicProvider):
                     song=archived_song, query=self.query
                 )
 
-        if self.musiq.base.settings.logging_enabled and request_ip:
+        if self.musiq.base.settings.basic.logging_enabled and request_ip:
             RequestLog.objects.create(song=archived_song, address=request_ip)
 
     def enqueue(self) -> None:
@@ -474,12 +474,12 @@ class PlaylistProvider(MusicProvider):
                 playlist=archived_playlist, query=self.query
             )
 
-        if self.musiq.base.settings.logging_enabled and request_ip:
+        if self.musiq.base.settings.basic.logging_enabled and request_ip:
             RequestLog.objects.create(playlist=archived_playlist, address=request_ip)
 
     def enqueue(self) -> None:
         for index, external_url in enumerate(self.urls):
-            if index == self.musiq.base.settings.max_playlist_items:
+            if index == self.musiq.base.settings.basic.max_playlist_items:
                 break
             # request every url in the playlist as their own url
             song_provider = SongProvider.create(self.musiq, external_url=external_url)

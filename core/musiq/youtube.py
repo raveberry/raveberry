@@ -176,7 +176,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
         self.id = self.info_dict["id"]
 
         size = self.info_dict["filesize"]
-        max_size = self.musiq.base.settings.max_download_size * 1024 * 1024
+        max_size = self.musiq.base.settings.basic.max_download_size * 1024 * 1024
         if (
             max_size != 0
             and self.check_cached() is None
@@ -362,7 +362,9 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
     def fetch_metadata(self) -> bool:
         # in case of a radio playist, restrict the number of songs that are downloaded
         if self.is_radio():
-            self.ydl_opts["playlistend"] = self.musiq.base.settings.max_playlist_items
+            self.ydl_opts[
+                "playlistend"
+            ] = self.musiq.base.settings.basic.max_playlist_items
 
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:

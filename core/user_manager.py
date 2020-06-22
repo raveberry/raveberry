@@ -61,7 +61,9 @@ class UserManager:
     def partymode_enabled(self) -> bool:
         """Determines whether partymode is enabled,
         based on the number of currently active users."""
-        return len(UserManager.last_requests) >= self.base.settings.people_to_party
+        return (
+            len(UserManager.last_requests) >= self.base.settings.basic.people_to_party
+        )
 
 
 class SimpleMiddleware:

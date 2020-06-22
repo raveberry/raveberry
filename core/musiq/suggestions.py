@@ -64,21 +64,21 @@ class Suggestions:
         results: List[Dict[str, Union[str, int]]] = []
 
         if (
-            self.musiq.base.settings.online_suggestions
-            and self.musiq.base.settings.has_internet
+            self.musiq.base.settings.basic.online_suggestions
+            and self.musiq.base.settings.basic.has_internet
         ):
 
             number_of_suggestions = 2
             if [
-                self.musiq.base.settings.spotify_enabled,
-                self.musiq.base.settings.soundcloud_enabled,
-                self.musiq.base.settings.youtube_enabled,
+                self.musiq.base.settings.platforms.spotify_enabled,
+                self.musiq.base.settings.platforms.soundcloud_enabled,
+                self.musiq.base.settings.platforms.youtube_enabled,
             ].count(True) > 1:
                 # If there is more than one active service,
                 # only offer one online suggestion per service
                 number_of_suggestions = 1
 
-            if self.musiq.base.settings.spotify_enabled:
+            if self.musiq.base.settings.platforms.spotify_enabled:
                 spotify_suggestions = Spotify().get_search_suggestions(
                     query, suggest_playlist
                 )
@@ -92,7 +92,7 @@ class Suggestions:
                         }
                     )
 
-            if self.musiq.base.settings.soundcloud_enabled:
+            if self.musiq.base.settings.platforms.soundcloud_enabled:
                 soundcloud_suggestions = Soundcloud().get_search_suggestions(query)
                 soundcloud_suggestions = soundcloud_suggestions[:number_of_suggestions]
                 for suggestion in soundcloud_suggestions:
@@ -100,7 +100,7 @@ class Suggestions:
                         {"key": -1, "value": suggestion, "type": "soundcloud-online"}
                     )
 
-            if self.musiq.base.settings.youtube_enabled:
+            if self.musiq.base.settings.platforms.youtube_enabled:
                 youtube_suggestions = Youtube().get_search_suggestions(query)
                 # limit to the first three online suggestions
                 youtube_suggestions = youtube_suggestions[:number_of_suggestions]
@@ -135,23 +135,23 @@ class Suggestions:
                 if not cached and provider.type == "local":
                     continue
                 # don't suggest online songs when we don't have internet
-                if not self.musiq.base.settings.has_internet and not cached:
+                if not self.musiq.base.settings.basic.has_internet and not cached:
                     continue
                 # don't suggest youtube songs if it was disabled
                 if (
-                    not self.musiq.base.settings.youtube_enabled
+                    not self.musiq.base.settings.platforms.youtube_enabled
                     and provider.type == "youtube"
                 ):
                     continue
                 # don't suggest spotify songs if we are not logged in
                 if (
-                    not self.musiq.base.settings.spotify_enabled
+                    not self.musiq.base.settings.platforms.spotify_enabled
                     and provider.type == "spotify"
                 ):
                     continue
                 # don't suggest soundcloud songs if we are not logged in
                 if (
-                    not self.musiq.base.settings.soundcloud_enabled
+                    not self.musiq.base.settings.platforms.soundcloud_enabled
                     and provider.type == "soundcloud"
                 ):
                     continue

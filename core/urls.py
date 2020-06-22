@@ -104,157 +104,211 @@ else:
         path("state/", BASE.settings.get_state, name="settings_state"),
         path(
             "set_voting_system/",
-            BASE.settings.set_voting_system,
+            BASE.settings.basic.set_voting_system,
             name="set_voting_system",
         ),
         path(
             "set_logging_enabled/",
-            BASE.settings.set_logging_enabled,
+            BASE.settings.basic.set_logging_enabled,
             name="set_logging_enabled",
         ),
         path(
             "set_online_suggestions/",
-            BASE.settings.set_online_suggestions,
+            BASE.settings.basic.set_online_suggestions,
             name="set_online_suggestions",
         ),
         path(
             "set_people_to_party/",
-            BASE.settings.set_people_to_party,
+            BASE.settings.basic.set_people_to_party,
             name="set_people_to_party",
         ),
         path(
             "set_alarm_probability/",
-            BASE.settings.set_alarm_probability,
+            BASE.settings.basic.set_alarm_probability,
             name="set_alarm_probability",
         ),
         path(
             "set_downvotes_to_kick/",
-            BASE.settings.set_downvotes_to_kick,
+            BASE.settings.basic.set_downvotes_to_kick,
             name="set_downvotes_to_kick",
         ),
         path(
             "set_max_download_size/",
-            BASE.settings.set_max_download_size,
+            BASE.settings.basic.set_max_download_size,
             name="set_max_download_size",
         ),
         path(
             "set_max_playlist_items/",
-            BASE.settings.set_max_playlist_items,
+            BASE.settings.basic.set_max_playlist_items,
             name="set_max_playlist_items",
         ),
-        path("check_internet/", BASE.settings.check_internet, name="check_internet"),
+        path(
+            "check_internet/", BASE.settings.basic.check_internet, name="check_internet"
+        ),
         path(
             "update_user_count/",
-            BASE.settings.update_user_count,
+            BASE.settings.basic.update_user_count,
             name="update_user_count",
         ),
         path(
             "set_youtube_enabled/",
-            BASE.settings.set_youtube_enabled,
+            BASE.settings.platforms.set_youtube_enabled,
             name="set_youtube_enabled",
         ),
         path(
             "set_spotify_enabled/",
-            BASE.settings.set_spotify_enabled,
+            BASE.settings.platforms.set_spotify_enabled,
             name="set_spotify_enabled",
         ),
         path(
             "set_spotify_credentials/",
-            BASE.settings.set_spotify_credentials,
+            BASE.settings.platforms.set_spotify_credentials,
             name="set_spotify_credentials",
         ),
         path(
             "set_soundcloud_enabled/",
-            BASE.settings.set_soundcloud_enabled,
+            BASE.settings.platforms.set_soundcloud_enabled,
             name="set_soundcloud_enabled",
         ),
         path(
             "set_soundcloud_credentials/",
-            BASE.settings.set_soundcloud_credentials,
+            BASE.settings.platforms.set_soundcloud_credentials,
             name="set_soundcloud_credentials",
         ),
         path(
             "set_bluetooth_scanning/",
-            BASE.settings.set_bluetooth_scanning,
+            BASE.settings.sound.set_bluetooth_scanning,
             name="set_bluetooth_scanning",
         ),
         path(
             "connect_bluetooth/",
-            BASE.settings.connect_bluetooth,
+            BASE.settings.sound.connect_bluetooth,
             name="connect_bluetooth",
         ),
         path(
             "disconnect_bluetooth/",
-            BASE.settings.disconnect_bluetooth,
+            BASE.settings.sound.disconnect_bluetooth,
             name="disconnect_bluetooth",
         ),
-        path("output_devices/", BASE.settings.output_devices, name="output_devices",),
+        path(
+            "output_devices/",
+            BASE.settings.sound.output_devices,
+            name="output_devices",
+        ),
         path(
             "set_output_device/",
-            BASE.settings.set_output_device,
+            BASE.settings.sound.set_output_device,
             name="set_output_device",
         ),
-        path("available_ssids/", BASE.settings.available_ssids, name="available_ssids"),
-        path("connect_to_wifi/", BASE.settings.connect_to_wifi, name="connect_to_wifi"),
-        path("enable_homewifi/", BASE.settings.enable_homewifi, name="enable_homewifi"),
         path(
-            "disable_homewifi/", BASE.settings.disable_homewifi, name="disable_homewifi"
+            "available_ssids/",
+            BASE.settings.wifi.available_ssids,
+            name="available_ssids",
         ),
-        path("stored_ssids/", BASE.settings.stored_ssids, name="stored_ssids"),
+        path(
+            "connect_to_wifi/",
+            BASE.settings.wifi.connect_to_wifi,
+            name="connect_to_wifi",
+        ),
+        path(
+            "enable_homewifi/",
+            BASE.settings.wifi.enable_homewifi,
+            name="enable_homewifi",
+        ),
+        path(
+            "disable_homewifi/",
+            BASE.settings.wifi.disable_homewifi,
+            name="disable_homewifi",
+        ),
+        path("stored_ssids/", BASE.settings.wifi.stored_ssids, name="stored_ssids"),
         path(
             "set_homewifi_ssid/",
-            BASE.settings.set_homewifi_ssid,
+            BASE.settings.wifi.set_homewifi_ssid,
             name="set_homewifi_ssid",
         ),
         path(
             "list_subdirectories/",
-            BASE.settings.list_subdirectories,
+            BASE.settings.library.list_subdirectories,
             name="list_subdirectories",
         ),
-        path("scan_library/", BASE.settings.scan_library, name="scan_library"),
+        path("scan_library/", BASE.settings.library.scan_library, name="scan_library"),
         path(
-            "create_playlists/", BASE.settings.create_playlists, name="create_playlists"
+            "create_playlists/",
+            BASE.settings.library.create_playlists,
+            name="create_playlists",
         ),
-        path("analyse/", BASE.settings.analyse, name="analyse"),
+        path("analyse/", BASE.settings.analysis.analyse, name="analyse"),
         path(
             "disable_streaming/",
-            BASE.settings.disable_streaming,
+            BASE.settings.system.disable_streaming,
             name="disable_streaming",
         ),
         path(
-            "enable_streaming/", BASE.settings.enable_streaming, name="enable_streaming"
+            "enable_streaming/",
+            BASE.settings.system.enable_streaming,
+            name="enable_streaming",
         ),
-        path("disable_events/", BASE.settings.disable_events, name="disable_events"),
-        path("enable_events/", BASE.settings.enable_events, name="enable_events"),
-        path("disable_hotspot/", BASE.settings.disable_hotspot, name="disable_hotspot"),
-        path("enable_hotspot/", BASE.settings.enable_hotspot, name="enable_hotspot"),
-        path("unprotect_wifi/", BASE.settings.unprotect_wifi, name="unprotect_wifi"),
-        path("protect_wifi/", BASE.settings.protect_wifi, name="protect_wifi"),
+        path(
+            "disable_events/",
+            BASE.settings.system.disable_events,
+            name="disable_events",
+        ),
+        path(
+            "enable_events/", BASE.settings.system.enable_events, name="enable_events"
+        ),
+        path(
+            "disable_hotspot/",
+            BASE.settings.system.disable_hotspot,
+            name="disable_hotspot",
+        ),
+        path(
+            "enable_hotspot/",
+            BASE.settings.system.enable_hotspot,
+            name="enable_hotspot",
+        ),
+        path(
+            "unprotect_wifi/",
+            BASE.settings.system.unprotect_wifi,
+            name="unprotect_wifi",
+        ),
+        path("protect_wifi/", BASE.settings.system.protect_wifi, name="protect_wifi"),
         path(
             "disable_tunneling/",
-            BASE.settings.disable_tunneling,
+            BASE.settings.system.disable_tunneling,
             name="disable_tunneling",
         ),
         path(
-            "enable_tunneling/", BASE.settings.enable_tunneling, name="enable_tunneling"
+            "enable_tunneling/",
+            BASE.settings.system.enable_tunneling,
+            name="enable_tunneling",
         ),
-        path("disable_remote/", BASE.settings.disable_remote, name="disable_remote"),
-        path("enable_remote/", BASE.settings.enable_remote, name="enable_remote"),
-        path("reboot_server/", BASE.settings.reboot_server, name="reboot_server"),
-        path("reboot_system/", BASE.settings.reboot_system, name="reboot_system"),
+        path(
+            "disable_remote/",
+            BASE.settings.system.disable_remote,
+            name="disable_remote",
+        ),
+        path(
+            "enable_remote/", BASE.settings.system.enable_remote, name="enable_remote"
+        ),
+        path(
+            "reboot_server/", BASE.settings.system.reboot_server, name="reboot_server"
+        ),
+        path(
+            "reboot_system/", BASE.settings.system.reboot_system, name="reboot_system"
+        ),
         path(
             "get_latest_version/",
-            BASE.settings.get_latest_version,
+            BASE.settings.system.get_latest_version,
             name="get_latest_version",
         ),
         path(
             "get_upgrade_config/",
-            BASE.settings.get_upgrade_config,
+            BASE.settings.system.get_upgrade_config,
             name="get_upgrade_config",
         ),
         path(
             "upgrade_raveberry/",
-            BASE.settings.upgrade_raveberry,
+            BASE.settings.system.upgrade_raveberry,
             name="upgrade_raveberry",
         ),
     ]

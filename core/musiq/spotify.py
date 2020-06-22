@@ -171,7 +171,7 @@ class SpotifySongProvider(SongProvider, Spotify):
         result = self.web_client.get(
             "recommendations",
             params={
-                "limit": self.musiq.base.settings.max_playlist_items,
+                "limit": self.musiq.base.settings.basic.max_playlist_items,
                 "market": "from_token",
                 "seed_tracks": self.id,
             },
