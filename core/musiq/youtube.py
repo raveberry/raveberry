@@ -100,11 +100,11 @@ class Youtube:
             "default_search": "auto",
             "postprocessors": [
                 {"key": "FFmpegMetadata"},
-                {
-                    "key": "EmbedThumbnail",
-                    # overwrite any thumbnails already present
-                    "already_have_thumbnail": True,
-                },
+                # {
+                #     "key": "EmbedThumbnail",
+                #     # overwrite any thumbnails already present
+                #     "already_have_thumbnail": True,
+                # },
             ],
             "logger": YoutubeDLLogger(),
         }
