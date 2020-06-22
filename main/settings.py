@@ -6,21 +6,25 @@ import shutil
 import sys
 import pathlib
 
+from django.core.management.utils import get_random_secret_key
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from typing import List
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MOCK = os.environ.get("DJANGO_MOCK")
 
-try:
-    with open(os.path.join(BASE_DIR, "config/secret_key.txt")) as f:
-        SECRET_KEY = f.read().strip()
-except FileNotFoundError:
-    from django.core.management.utils import get_random_secret_key
-
+if MOCK:
     SECRET_KEY = get_random_secret_key()
-    with open(os.path.join(BASE_DIR, "config/secret_key.txt"), "w") as f:
-        f.write(SECRET_KEY)
-    print("created secret key")
+else:
+    try:
+        with open(os.path.join(BASE_DIR, "config/secret_key.txt")) as f:
+            SECRET_KEY = f.read().strip()
+    except FileNotFoundError:
+        SECRET_KEY = get_random_secret_key()
+        with open(os.path.join(BASE_DIR, "config/secret_key.txt"), "w") as f:
+            f.write(SECRET_KEY)
+        print("created secret key")
 
 try:
     with open(os.path.join(BASE_DIR, "VERSION")) as f:
@@ -157,7 +161,7 @@ STATICFILES_DIRS: List[str] = [
 ]
 STATIC_URL = "/static/"
 
-if not os.path.exists(os.path.join(BASE_DIR, "static/admin")):
+if not os.path.exists(os.path.join(BASE_DIR, "static/admin")) and not MOCK:
     import django
 
     DJANGO_PATH = os.path.dirname(django.__file__)
@@ -270,11 +274,12 @@ try:
         SONGS_CACHE_DIR = f.read().strip()
 except FileNotFoundError:
     SONGS_CACHE_DIR = ""
-if SONGS_CACHE_DIR == "":
-    SONGS_CACHE_DIR = os.path.expanduser(DEFAULT_CACHE_DIR)
-    with open(os.path.join(BASE_DIR, "config/cache_dir"), "w") as f:
-        f.write(SONGS_CACHE_DIR)
-    print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
+if not MOCK:
+    if SONGS_CACHE_DIR == "":
+        SONGS_CACHE_DIR = os.path.expanduser(DEFAULT_CACHE_DIR)
+        with open(os.path.join(BASE_DIR, "config/cache_dir"), "w") as f:
+            f.write(SONGS_CACHE_DIR)
+        print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
 
 # use a different cache directory for testing
 if "test" in sys.argv:

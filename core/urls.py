@@ -7,7 +7,9 @@ from django.urls import include
 from django.urls import path
 from django.views.generic import RedirectView
 
-if os.environ.get("DJANGO_MOCK"):
+from main import settings
+
+if settings.MOCK:
     import core.mock
 
     # Mock all url names so they can be reversed.
