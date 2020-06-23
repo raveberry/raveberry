@@ -24,7 +24,10 @@ services:
     image: raveberry/raveberry-icecast
     environment:
       ICECAST_ADMIN_PASSWORD: "${ICECAST_ADMIN_PASSWORD:-hackme}"
+      STREAM_USERNAME: "${STREAM_USERNAME:-raveberry}"
       STREAM_PASSWORD: "${STREAM_PASSWORD:-raveberry}"
+      # or set STREAM_NOAUTH if you don't want to protect your stream
+      # STREAM_NOAUTH: 1
     # uncomment this port mapping if you need to access icecast's web interface
     #ports:
     #  - 8000:8000
