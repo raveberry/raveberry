@@ -12,3 +12,5 @@ python-dateutil>=2.8.0
 requests>=2.22.0
 soundcloud>=0.5.0
 youtube-dl>=2019.8.2
+psycopg2
+https://github.com/DarwinAwardWinner/rganalysis/archive/master.zip
