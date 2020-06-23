@@ -21,7 +21,7 @@ COPY pulse-client.conf /etc/pulse/client.conf
 ENV HOME=/var/lib/mopidy
 RUN set -ex \
  && usermod -G audio,sudo mopidy \
- && chown mopidy:audio -R $HOME /entrypoint.sh \
+ && chown mopidy:audio -R $HOME /entrypoint.sh /config \
  && chmod go+rwx -R $HOME /entrypoint.sh
 
 # Runs as mopidy user by default.
