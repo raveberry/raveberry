@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.10 - 2020-06-24
+
+- settings.py (the previously largest file) was split into smaller files.
+- player.py was split into playback.py and controller.py
+- In suggestions, playcount is fetched from the database to avoid presenting stale information.
+- Code was made more mypy and pylint compliant.
+- The number of suggestions that is shown when searching can be customized.
+- The number of online suggestions can be changed for each service individually.
+- The name of the WiFi created by Raveberry can be changed in the config file.
+
+## 0.6.9 - 2020-06-18
+- Due to a bug in youtube-dl, it currently crashes during thumbnail embedding. Thus, it was temporarily disabled.
+
 ## 0.6.8 - 2020-06-18
 
 - The config file is persisted during system installation. Now a custom config can be used during upgrade.
