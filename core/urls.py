@@ -157,9 +157,19 @@ else:
             name="set_youtube_enabled",
         ),
         path(
+            "set_youtube_suggestions/",
+            BASE.settings.platforms.set_youtube_suggestions,
+            name="set_youtube_suggestions",
+        ),
+        path(
             "set_spotify_enabled/",
             BASE.settings.platforms.set_spotify_enabled,
             name="set_spotify_enabled",
+        ),
+        path(
+            "set_spotify_suggestions/",
+            BASE.settings.platforms.set_spotify_suggestions,
+            name="set_spotify_suggestions",
         ),
         path(
             "set_spotify_credentials/",
@@ -170,6 +180,11 @@ else:
             "set_soundcloud_enabled/",
             BASE.settings.platforms.set_soundcloud_enabled,
             name="set_soundcloud_enabled",
+        ),
+        path(
+            "set_soundcloud_suggestions/",
+            BASE.settings.platforms.set_soundcloud_suggestions,
+            name="set_soundcloud_suggestions",
         ),
         path(
             "set_soundcloud_credentials/",

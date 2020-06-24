@@ -46,7 +46,7 @@ class Spotify:
             "search",
             params={
                 "q": query,
-                "limit": "10",
+                "limit": "20",
                 "market": "from_token",
                 "type": "playlist" if playlist else "track",
             },

@@ -61,22 +61,18 @@ class Suggestions:
             self.musiq.base.settings.basic.online_suggestions
             and self.musiq.base.settings.basic.has_internet
         ):
+            platform_settings = self.musiq.base.settings.platforms
 
-            number_of_suggestions = 2
-            if [
-                self.musiq.base.settings.platforms.spotify_enabled,
-                self.musiq.base.settings.platforms.soundcloud_enabled,
-                self.musiq.base.settings.platforms.youtube_enabled,
-            ].count(True) > 1:
-                # If there is more than one active service,
-                # only offer one online suggestion per service
-                number_of_suggestions = 1
-
-            if self.musiq.base.settings.platforms.spotify_enabled:
+            if (
+                platform_settings.spotify_enabled
+                and platform_settings.spotify_suggestions > 0
+            ):
                 spotify_suggestions = Spotify().get_search_suggestions(
                     query, suggest_playlist
                 )
-                spotify_suggestions = spotify_suggestions[:number_of_suggestions]
+                spotify_suggestions = spotify_suggestions[
+                    : platform_settings.spotify_suggestions
+                ]
                 for suggestion, external_url in spotify_suggestions:
                     results.append(
                         {
@@ -86,18 +82,27 @@ class Suggestions:
                         }
                     )
 
-            if self.musiq.base.settings.platforms.soundcloud_enabled:
+            if (
+                platform_settings.soundcloud_enabled
+                and platform_settings.soundcloud_suggestions > 0
+            ):
                 soundcloud_suggestions = Soundcloud().get_search_suggestions(query)
-                soundcloud_suggestions = soundcloud_suggestions[:number_of_suggestions]
+                soundcloud_suggestions = soundcloud_suggestions[
+                    : platform_settings.soundcloud_suggestions
+                ]
                 for suggestion in soundcloud_suggestions:
                     results.append(
                         {"key": -1, "value": suggestion, "type": "soundcloud-online"}
                     )
 
-            if self.musiq.base.settings.platforms.youtube_enabled:
+            if (
+                platform_settings.youtube_enabled
+                and platform_settings.youtube_suggestions > 0
+            ):
                 youtube_suggestions = Youtube().get_search_suggestions(query)
-                # limit to the first three online suggestions
-                youtube_suggestions = youtube_suggestions[:number_of_suggestions]
+                youtube_suggestions = youtube_suggestions[
+                    : platform_settings.youtube_suggestions
+                ]
                 for suggestion in youtube_suggestions:
                     results.append(
                         {"key": -1, "value": suggestion, "type": "youtube-online"}

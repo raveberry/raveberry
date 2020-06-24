@@ -16,10 +16,13 @@ specificState = function (newState) {
 	$('#has_internet').prop("checked", newState.has_internet);
 
 	$('#youtube_enabled').prop("checked", newState.youtube_enabled);
+	$('#youtube_suggestions').val(newState.youtube_suggestions);
 
 	$('#spotify_enabled').prop("checked", newState.spotify_enabled);
+	$('#spotify_suggestions').val(newState.spotify_suggestions);
 
 	$('#soundcloud_enabled').prop("checked", newState.soundcloud_enabled);
+	$('#soundcloud_suggestions').val(newState.soundcloud_suggestions);
 
 	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
 	$.each(newState.bluetooth_devices, function(index, device) {
@@ -140,6 +143,13 @@ $(document).ready(function() {
 			successToast(response);
 		});
 	});
+	$('#youtube_suggestions').change(function() {
+		$.post(urls['set_youtube_suggestions'], {
+			value: $(this).val(),
+		}).done(function(response) {
+			successToast(response);
+		});
+	});
 
 	$('#spotify_enabled').on('click tap', function() {
 		$.post(urls['set_spotify_enabled'], {
@@ -148,6 +158,13 @@ $(document).ready(function() {
 			successToast(response);
 		}).fail(function(response) {
 			errorToast(response.responseText);
+		});
+	});
+	$('#spotify_suggestions').change(function() {
+		$.post(urls['set_spotify_suggestions'], {
+			value: $(this).val(),
+		}).done(function(response) {
+			successToast(response);
 		});
 	});
 	$('#set_spotify_credentials').on('click tap', function() {
@@ -170,6 +187,13 @@ $(document).ready(function() {
 			successToast(response);
 		}).fail(function(response) {
 			errorToast(response.responseText);
+		});
+	});
+	$('#soundcloud_suggestions').change(function() {
+		$.post(urls['set_soundcloud_suggestions'], {
+			value: $(this).val(),
+		}).done(function(response) {
+			successToast(response);
 		});
 	});
 	$('#set_soundcloud_credentials').on('click tap', function() {

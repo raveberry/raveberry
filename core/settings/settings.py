@@ -95,10 +95,13 @@ class Settings(Stateful):
         state_dict["has_internet"] = self.basic.has_internet
 
         state_dict["youtube_enabled"] = self.platforms.youtube_enabled
+        state_dict["youtube_suggestions"] = self.platforms.youtube_suggestions
 
         state_dict["spotify_enabled"] = self.platforms.spotify_enabled
+        state_dict["spotify_suggestions"] = self.platforms.spotify_suggestions
 
         state_dict["soundcloud_enabled"] = self.platforms.soundcloud_enabled
+        state_dict["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions
 
         state_dict["bluetooth_scanning"] = self.sound.bluetoothctl is not None
         state_dict["bluetooth_devices"] = self.sound.bluetooth_devices

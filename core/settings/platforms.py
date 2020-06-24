@@ -20,16 +20,24 @@ class Platforms:
 
     def __init__(self, base: "Base"):
         self.base = base
+
         self.youtube_enabled = Settings.get_setting("youtube_enabled", "True") == "True"
+        self.youtube_suggestions = int(Settings.get_setting("youtube_suggestions", "2"))
+
         self.spotify_enabled = (
             Settings.get_setting("spotify_enabled", "False") == "True"
         )
+        self.spotify_suggestions = int(Settings.get_setting("spotify_suggestions", "2"))
         self.spotify_username = Settings.get_setting("spotify_username", "")
         self.spotify_password = Settings.get_setting("spotify_password", "")
         self.spotify_client_id = Settings.get_setting("spotify_client_id", "")
         self.spotify_client_secret = Settings.get_setting("spotify_client_secret", "")
+
         self.soundcloud_enabled = (
             Settings.get_setting("soundcloud_enabled", "False") == "True"
+        )
+        self.soundcloud_suggestions = int(
+            Settings.get_setting("soundcloud_suggestions", "2")
         )
         self.soundcloud_auth_token = Settings.get_setting("soundcloud_auth_token", "")
 
@@ -39,6 +47,13 @@ class Platforms:
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="youtube_enabled").update(value=enabled)
         self.youtube_enabled = enabled
+
+    @Settings.option
+    def set_youtube_suggestions(self, request: WSGIRequest):
+        """Sets the number of online suggestions from youtube to be shown."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="youtube_suggestions").update(value=value)
+        self.youtube_suggestions = value
 
     def _set_extension_enabled(self, extension, enabled) -> HttpResponse:
         if enabled:
@@ -64,6 +79,13 @@ class Platforms:
         Makes sure mopidy has correct spotify configuration."""
         enabled = request.POST.get("value") == "true"
         return self._set_extension_enabled("spotify", enabled)
+
+    @Settings.option
+    def set_spotify_suggestions(self, request: WSGIRequest):
+        """Sets the number of online suggestions from spotify to be shown."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="spotify_suggestions").update(value=value)
+        self.spotify_suggestions = value
 
     @Settings.option
     def set_spotify_credentials(self, request: WSGIRequest) -> HttpResponse:
@@ -103,6 +125,13 @@ class Platforms:
         Makes sure mopidy has correct soundcloud configuration."""
         enabled = request.POST.get("value") == "true"
         return self._set_extension_enabled("soundcloud", enabled)
+
+    @Settings.option
+    def set_soundcloud_suggestions(self, request: WSGIRequest):
+        """Sets the number of online suggestions from soundcloud to be shown."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="soundcloud_suggestions").update(value=value)
+        self.soundcloud_suggestions = value
 
     @Settings.option
     def set_soundcloud_credentials(self, request: WSGIRequest) -> HttpResponse:

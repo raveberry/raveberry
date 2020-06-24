@@ -16,12 +16,15 @@
 	urls['update_user_count'] = '{% url 'update_user_count' %}';
 
     urls['set_youtube_enabled'] = '{% url 'set_youtube_enabled' %}';
+    urls['set_youtube_suggestions'] = '{% url 'set_youtube_suggestions' %}';
 
     urls['set_spotify_enabled'] = '{% url 'set_spotify_enabled' %}';
 	urls['set_spotify_credentials'] = '{% url 'set_spotify_credentials' %}';
+    urls['set_spotify_suggestions'] = '{% url 'set_spotify_suggestions' %}';
 
     urls['set_soundcloud_enabled'] = '{% url 'set_soundcloud_enabled' %}';
     urls['set_soundcloud_credentials'] = '{% url 'set_soundcloud_credentials' %}';
+    urls['set_soundcloud_suggestions'] = '{% url 'set_soundcloud_suggestions' %}';
 
 	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
 	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
@@ -125,6 +128,10 @@
         <span class="description">enabled</span>
         <input type="checkbox" id="youtube_enabled">
     </li>
+    <li class="list-group-item list_item">
+        <span class="description">Number of online suggestions</span>
+        <input id="youtube_suggestions"/>
+    </li>
 </ul>
 
 <ul class="list-group">
@@ -135,6 +142,10 @@
         <span class="description">enabled</span>
         <input type="checkbox" id="spotify_enabled">
 	</li>
+    <li class="list-group-item list_item">
+        <span class="description">Number of online suggestions</span>
+        <input id="spotify_suggestions"/>
+    </li>
 	<li class="list-group-item list_item">
 		<span class="description">Username</span>
 		<input id="spotify_username"/>
@@ -169,6 +180,10 @@
     <li class="list-group-item list_item">
         <span class="description">enabled</span>
         <input type="checkbox" id="soundcloud_enabled">
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Number of online suggestions</span>
+        <input id="soundcloud_suggestions"/>
     </li>
     <li class="list-group-item list_item">
         <span class="description">
