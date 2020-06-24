@@ -13,7 +13,7 @@ class CoreConfig(AppConfig):
         watson.register(
             self.get_model("ArchivedSong"),
             fields=("url", "artist", "title", "queries__query"),
-            store=("id", "title", "url", "artist", "counter"),
+            store=("id", "title", "url", "artist"),
         )
         watson.register(
             self.get_model("ArchivedPlaylist"),

@@ -121,7 +121,7 @@ class Suggestions:
                 result_dict: Dict[str, Union[str, int]] = {
                     "key": playlist_info["id"],
                     "value": playlist_info["title"],
-                    "counter": playlist_info["counter"],
+                    "counter": playlist.object.counter,
                     "type": song_utils.determine_playlist_type(archived_playlist),
                 }
                 results.append(result_dict)
@@ -163,7 +163,7 @@ class Suggestions:
                     "value": song_utils.displayname(
                         song_info["artist"], song_info["title"]
                     ),
-                    "counter": song_info["counter"],
+                    "counter": search_result.object.counter,
                     "type": provider.type,
                 }
                 results.append(result_dict)
