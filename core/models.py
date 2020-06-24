@@ -160,6 +160,7 @@ class RequestLog(models.Model):
     address = models.CharField(max_length=50)
 
     def item_displayname(self) -> str:
+        """Returns the displayname of the song or the title of the playlist"""
         if self.song is not None:
             return self.song.displayname()
         if self.playlist is not None:
@@ -185,10 +186,10 @@ class PlayLog(models.Model):
     votes = models.IntegerField(null=True)
 
     def song_displayname(self) -> str:
+        """Returns the displayname of the song (if present)"""
         if not self.song:
             return "Unknown"
-        else:
-            return self.song.displayname()
+        return self.song.displayname()
 
     def __str__(self) -> str:
         return (

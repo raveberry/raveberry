@@ -96,7 +96,7 @@ class Library:
             pass
         os.symlink(library_path, library_link)
 
-        logging.info(f"started scanning in {library_path}")
+        logging.info("started scanning in %s", library_path)
 
         self.scan_progress = f"{filecount} / 0 / 0"
         self.base.settings.update_state()
@@ -136,7 +136,7 @@ class Library:
         self.scan_progress = f"{filecount} / {files_scanned} / {files_added}"
         self.base.settings.update_state()
 
-        logging.info(f"done scanning in {library_path}")
+        logging.info("done scanning in %s", library_path)
 
     @Settings.option
     def create_playlists(self, _request: WSGIRequest) -> HttpResponse:
@@ -161,7 +161,7 @@ class Library:
         library_link = os.path.join(settings.SONGS_CACHE_DIR, "local_library")
         library_path = os.path.abspath(library_link)
 
-        logging.info(f"started creating playlists in {library_path}")
+        logging.info("started creating playlists in %s", library_path)
 
         self.scan_progress = f"{local_files} / 0 / 0"
         self.base.settings.update_state()

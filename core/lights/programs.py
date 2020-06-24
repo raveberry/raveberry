@@ -322,7 +322,7 @@ class Cava(VizProgram):
             os.mkfifo(self.cava_fifo_path)
         except FileExistsError:
             # the file already exists
-            logging.info(self.cava_fifo_path + " already exists while starting")
+            logging.info("%s already exists while starting", self.cava_fifo_path)
 
         self.cava_process = subprocess.Popen(
             ["cava", "-p", os.path.join(settings.BASE_DIR, "config/cava.config")],
@@ -363,9 +363,9 @@ class Cava(VizProgram):
         try:
             os.close(self.cava_fifo)
         except OSError as e:
-            logging.info("fifo already closed: " + str(e))
+            logging.info("fifo already closed: %s", e)
         except TypeError as e:
-            logging.info("fifo does not exist: " + str(e))
+            logging.info("fifo does not exist: %s", e)
 
         if self.cava_process:
             self.cava_process.terminate()
@@ -374,4 +374,4 @@ class Cava(VizProgram):
             os.remove(self.cava_fifo_path)
         except FileNotFoundError as e:
             # the file was already deleted
-            logging.info(self.cava_fifo_path + " not found while deleting: " + str(e))
+            logging.info("%s not found while deleting: %s", self.cava_fifo_path, e)

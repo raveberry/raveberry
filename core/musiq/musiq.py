@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, Dict, Optional, Union, TYPE_CHECKING, List, Tuple, cast, Type
 
 import ipware
+from django.core.handlers.wsgi import WSGIRequest
 from django.forms.models import model_to_dict
-from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
+from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 import core.musiq.song_utils as song_utils
 from core.models import CurrentSong
 from core.models import QueuedSong
+from core.musiq.controller import Controller
 from core.musiq.localdrive import LocalSongProvider
 from core.musiq.music_provider import (
     SongProvider,
@@ -23,18 +26,14 @@ from core.musiq.music_provider import (
     ProviderError,
 )
 from core.musiq.playback import Playback
-from core.musiq.controller import Controller
-from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
 from core.musiq.soundcloud import SoundcloudSongProvider, SoundcloudPlaylistProvider
+from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
 from core.musiq.suggestions import Suggestions
 from core.musiq.youtube import (
     YoutubeSongProvider,
     YoutubePlaylistProvider,
 )
 from core.state_handler import Stateful
-from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import HttpResponse, JsonResponse
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING, List, Tuple, cast, Type
 
 if TYPE_CHECKING:
     from core.base import Base
@@ -133,7 +132,7 @@ class Musiq(Stateful):
                     except WrongUrlError:
                         pass
 
-        if not len(providers):
+        if not providers:
             return False, "No backend configured to handle your request.", None
 
         fallback = False
@@ -156,10 +155,10 @@ class Musiq(Stateful):
             queued_song = cast(SongProvider, provider).queued_song
             if not queued_song:
                 logging.error(
-                    f"no placeholder was created for query '{query}' and key '{key}'"
+                    "no placeholder was created for query '%s' and key '%s'", query, key
                 )
                 return False, "No placeholder was created", None
-            queued_key = queued_song.id
+            queue_key = queued_song.id
         if fallback:
             message += " (used fallback)"
         return True, message, queue_key
@@ -190,10 +189,9 @@ class Musiq(Stateful):
         successful, message, queue_key = self.do_request_music(
             request_ip, query, ikey, playlist, platform
         )
-        if successful:
-            return JsonResponse({"message": message, "key": queue_key})
-        else:
+        if not successful:
             return HttpResponseBadRequest(message)
+        return JsonResponse({"message": message, "key": queue_key})
 
     def request_radio(self, request: WSGIRequest) -> HttpResponse:
         """Endpoint to request radio for the current song."""
@@ -232,10 +230,9 @@ class Musiq(Stateful):
         successful, message, _ = self.do_request_music(
             request_ip, query, None, False, "spotify"
         )
-        if successful:
-            return HttpResponse(message)
-        else:
+        if not successful:
             return HttpResponseBadRequest(message)
+        return HttpResponse(message)
 
     def index(self, request: WSGIRequest) -> HttpResponse:
         """Renders the /musiq page."""

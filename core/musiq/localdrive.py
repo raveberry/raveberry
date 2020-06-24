@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import os
 import random
+from typing import Optional, TYPE_CHECKING
+
+from django.http.response import HttpResponse
 
 from core.models import ArchivedPlaylist, PlaylistEntry
 from core.musiq import song_utils
 from core.musiq.music_provider import SongProvider, PlaylistProvider
-from django.http.response import HttpResponse
-from typing import Dict, Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq

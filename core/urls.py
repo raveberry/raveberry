@@ -1,6 +1,5 @@
 """This module contains all url endpoints and maps them to their corresponding functions."""
 
-import os
 import re
 
 from django.urls import include
@@ -13,7 +12,7 @@ if settings.MOCK:
     import core.mock
 
     # Mock all url names so they can be reversed.
-    url_names = []
+    url_names = []  # pylint: disable=invalid-name
     with open(__file__) as urls:
         for line in urls:
             match = re.search(r'name="(\w+)"', line)

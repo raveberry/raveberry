@@ -2,30 +2,23 @@
 from __future__ import annotations
 
 import math
+import subprocess
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, Optional, List
 
 from dateutil import tz
+from django.conf import settings
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
+from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import JsonResponse
+from django.utils import dateparse
 from django.utils import timezone
 
 import core.musiq.song_utils as song_utils
 from core.models import PlayLog
 from core.models import RequestLog
-
-if TYPE_CHECKING:
-    from core.base import Base
-
-import subprocess
-from typing import Dict, TYPE_CHECKING, Optional, List
-
-from django.conf import settings
-from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.http import HttpResponseBadRequest
-from django.utils import dateparse
-
 from core.settings.settings import Settings
 
 if TYPE_CHECKING:
@@ -33,6 +26,8 @@ if TYPE_CHECKING:
 
 
 class Analysis:
+    """This class is responsible for handling the analysis."""
+
     def __init__(self, base: "Base"):
         self.base = base
         self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None

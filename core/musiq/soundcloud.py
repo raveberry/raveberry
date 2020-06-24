@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Optional, List, TYPE_CHECKING
+
 import requests
 import soundcloud
 from bs4 import BeautifulSoup
+from django.http.response import HttpResponse
 
 from core.musiq.music_provider import SongProvider, PlaylistProvider
-from django.http.response import HttpResponse
-from typing import Optional, List, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
@@ -55,6 +56,7 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
 
     @staticmethod
     def get_id_from_internal_url(url: str) -> str:
+        """Returns the internal id based on the given url."""
         return url.split(".")[-1]
 
     def __init__(

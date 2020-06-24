@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Optional, List, Tuple, TYPE_CHECKING
 from urllib.parse import urlparse
 
-from django.http import HttpResponse
-from core.musiq.spotify_web import OAuthClient
+from django.http.response import HttpResponse
 
 from core.models import Setting
 from core.musiq import song_utils
 from core.musiq.music_provider import SongProvider, PlaylistProvider
-from django.http.response import HttpResponse
-from typing import Dict, Optional, Union, List, Tuple, TYPE_CHECKING, Any
+from core.musiq.spotify_web import OAuthClient
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
@@ -89,7 +88,7 @@ class SpotifySongProvider(SongProvider, Spotify):
 
     @staticmethod
     def get_id_from_internal_url(url: str) -> str:
-        """Constructs and returns the internal id based on the given url."""
+        """Returns the internal id based on the given url."""
         return url.split(":")[-1]
 
     def __init__(
@@ -107,8 +106,7 @@ class SpotifySongProvider(SongProvider, Spotify):
     def check_available(self) -> bool:
         return self.gather_metadata()
 
-    # track_info is of type mopidy.models.Track, but mopidy should not be a dependency, so no import
-    def gather_metadata(self, track_info: Any = None) -> bool:
+    def gather_metadata(self) -> bool:
         """Fetches metadata for this song's uri from Spotify."""
         if not self.id:
             results = self.web_client.get(

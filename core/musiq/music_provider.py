@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import logging
-import os
-import threading
 import time
-import uuid
+from typing import Optional, TYPE_CHECKING, Type, List
 
 from django.conf import settings
 from django.db import transaction
@@ -23,8 +21,6 @@ from core.models import (
     QueuedSong,
 )
 from core.models import RequestLog
-from typing import Optional, Union, Dict, TYPE_CHECKING, Type, List, cast, Callable
-
 from core.util import background_thread
 
 if TYPE_CHECKING:
@@ -33,11 +29,12 @@ if TYPE_CHECKING:
 
 
 class ProviderError(Exception):
-    pass
+    """An error to indicate that an error occurred while providing music."""
 
 
 class WrongUrlError(Exception):
-    pass
+    """An error to indicate that a provider was called
+    with a url that belongs to a different service."""
 
 
 class MusicProvider:
@@ -104,24 +101,26 @@ class MusicProvider:
         """Tries to request this resource.
         Uses the local cache if possible, otherwise tries to retrieve it online."""
 
-        def enqueue_function() -> None:
+        def enqueue() -> None:
             self.persist(request_ip, archive=archive)
             self.enqueue()
+
+        enqueue_function = enqueue
 
         if not self.check_cached():
             if not self.check_available():
                 raise ProviderError()
 
             # overwrite the enqueue function and make the resource available before calling it
-            original_enqueue_function = enqueue_function
-
-            def enqueue_function() -> None:
+            def fetch_enqueue() -> None:
                 if not self.make_available():
                     self.remove_placeholder()
                     self.musiq.update_state()
                     return
 
-                original_enqueue_function()
+                enqueue()
+
+            enqueue_function = fetch_enqueue
 
         self.enqueue_placeholder(manually_requested)
 
@@ -152,12 +151,14 @@ class SongProvider(MusicProvider):
         Detects the type of provider needed and returns one of corresponding type."""
         if key is not None:
             if query is None:
-                logging.error(f"archived song requested but no query given (key {key})")
+                logging.error(
+                    "archived song requested but no query given (key %s)", key
+                )
                 raise ValueError()
             try:
                 archived_song = ArchivedSong.objects.get(id=key)
             except ArchivedSong.DoesNotExist:
-                logging.error(f"archived song requested for nonexistent key {key}")
+                logging.error("archived song requested for nonexistent key %s", key)
                 raise ValueError()
             external_url = archived_song.url
         if external_url is None:
@@ -198,7 +199,7 @@ class SongProvider(MusicProvider):
 
         if query:
             url_type = song_utils.determine_url_type(query)
-            if url_type != self.type and url_type != "unknown":
+            if url_type not in (self.type, "unknown"):
                 raise WrongUrlError(
                     f"Tried to create a {self.type} provider with: {query}"
                 )
@@ -227,11 +228,11 @@ class SongProvider(MusicProvider):
                 from core.musiq.youtube import YoutubeSongProvider
 
                 return YoutubeSongProvider.get_id_from_external_url(self.query)
-            elif url_type == "spotify":
+            if url_type == "spotify":
                 from core.musiq.spotify import SpotifySongProvider
 
                 return SpotifySongProvider.get_id_from_external_url(self.query)
-            elif url_type == "soundcloud":
+            if url_type == "soundcloud":
                 from core.musiq.soundcloud import SoundcloudSongProvider
 
                 return SoundcloudSongProvider.get_id_from_external_url(self.query)
@@ -241,7 +242,8 @@ class SongProvider(MusicProvider):
                 return self.__class__.get_id_from_external_url(archived_song.url)
             except ArchivedSong.DoesNotExist:
                 return None
-        assert False
+        logging.error("Can not extract id because neither key nor query are known")
+        return None
 
     def enqueue_placeholder(self, manually_requested) -> None:
         metadata: Metadata = {
@@ -346,7 +348,9 @@ class PlaylistProvider(MusicProvider):
         Both query and key need to be specified.
         Detects the type of provider needed and returns one of corresponding type."""
         if query is None:
-            logging.error(f"archived playlist requested but no query given (key {key})")
+            logging.error(
+                "archived playlist requested but no query given (key %s)", key
+            )
             raise ValueError
         if key is None:
             logging.error("archived playlist requested but no key given")
@@ -354,7 +358,7 @@ class PlaylistProvider(MusicProvider):
         try:
             archived_playlist = ArchivedPlaylist.objects.get(id=key)
         except ArchivedPlaylist.DoesNotExist:
-            logging.error(f"archived song requested for nonexistent key {key}")
+            logging.error("archived song requested for nonexistent key %s", key)
             raise ValueError
 
         playlist_type = song_utils.determine_playlist_type(archived_playlist)
@@ -458,7 +462,7 @@ class PlaylistProvider(MusicProvider):
 
         assert self.id
         if self.title is None:
-            logging.warning(f"Persisting a playlist with no title (id {self.id})")
+            logging.warning("Persisting a playlist with no title (id %s)", self.id)
             self.title = ""
 
         with transaction.atomic():

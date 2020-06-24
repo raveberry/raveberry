@@ -9,18 +9,6 @@ import os
 import pickle
 import subprocess
 from contextlib import contextmanager
-from urllib.parse import parse_qs
-from urllib.parse import urlparse
-
-import requests
-import youtube_dl
-from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest
-
-import core.musiq.song_utils as song_utils
-from core.musiq.music_provider import SongProvider, PlaylistProvider
-from core.util import background_thread
-from django.http.response import HttpResponse
 from typing import (
     Any,
     Dict,
@@ -30,6 +18,16 @@ from typing import (
     Iterator,
     cast,
 )
+from urllib.parse import parse_qs
+from urllib.parse import urlparse
+
+import requests
+import youtube_dl
+from django.conf import settings
+from django.http.response import HttpResponse
+
+import core.musiq.song_utils as song_utils
+from core.musiq.music_provider import SongProvider, PlaylistProvider
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
@@ -200,7 +198,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
             try:
                 os.remove(thumbnail)
             except FileNotFoundError:
-                logging.info("tried to delete " + thumbnail + " but does not exist")
+                logging.info("tried to delete %s but does not exist", thumbnail)
 
             try:
                 # tag the file with replaygain to perform volume normalization
@@ -219,8 +217,8 @@ class YoutubeSongProvider(SongProvider, Youtube):
             error = e
 
         if error is not None or location is None:
-            logging.error("accessible video could not be downloaded: " + str(self.id))
-            logging.error("location: " + str(location))
+            logging.error("accessible video could not be downloaded: %s", self.id)
+            logging.error("location: %s", location)
             logging.error(error)
             return False
         return True

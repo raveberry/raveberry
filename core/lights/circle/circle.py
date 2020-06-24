@@ -85,13 +85,13 @@ class Circle(ScreenProgram):
         self.background: pi3d.Sprite = None  # type: ignore
         self.particle_shader: pi3d.Shader = None  # type: ignore
         self.particle_sprite: pi3d.Sprite = None  # type: ignore
-        self.instance_vbo: ctypes._CData = None  # type: ignore
+        self.instance_vbo: ctypes._CData = None  # type: ignore # pylint: disable=no-member
         self.spectrum: pi3d.Sprite = None  # type: ignore
         self.logo: pi3d.Sprite = None  # type: ignore
         self.logo_array: np.ndarray = None  # type: ignore
         self.dynamic_texture: pi3d.Texture = None  # type: ignore
         self.after: pi3d.Sprite = None  # type: ignore
-        self.post: pi3d.util.OffscreenTexture.OffscreenTexture = None  # type: ignore
+        self.post: pi3d.util.OffscreenTexture.OffscreenTexture = None  # type: ignore # pylint: disable=no-member
         self.post_sprite: pi3d.Sprite = None  # type: ignore
 
         # https://stackoverflow.com/questions/48472285/create-core-context-with-glut-freeglut

@@ -6,8 +6,10 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING, Dict, Union, List
 
-from django.db.models import Q
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponseBadRequest
+from django.http.response import JsonResponse, HttpResponse
+from watson import search as watson
 
 import core.musiq.song_utils as song_utils
 from core.models import ArchivedPlaylist, ArchivedSong
@@ -15,10 +17,6 @@ from core.musiq.music_provider import SongProvider
 from core.musiq.soundcloud import Soundcloud
 from core.musiq.spotify import Spotify
 from core.musiq.youtube import Youtube
-from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import JsonResponse, HttpResponse
-
-from watson import search as watson
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
@@ -55,14 +53,10 @@ class Suggestions:
         playlist = remaining_playlists.all()[index]
         return JsonResponse({"suggestion": playlist.title, "key": playlist.id})
 
-    def get_suggestions(self, request: WSGIRequest) -> JsonResponse:
-        """Returns suggestions for a given query.
-        Combines online and offline suggestions."""
-        query = request.GET["term"]
-        suggest_playlist = request.GET["playlist"] == "true"
-
+    def _online_suggestions(
+        self, query, suggest_playlist
+    ) -> List[Dict[str, Union[str, int]]]:
         results: List[Dict[str, Union[str, int]]] = []
-
         if (
             self.musiq.base.settings.basic.online_suggestions
             and self.musiq.base.settings.basic.has_internet
@@ -108,6 +102,15 @@ class Suggestions:
                     results.append(
                         {"key": -1, "value": suggestion, "type": "youtube-online"}
                     )
+        return results
+
+    def get_suggestions(self, request: WSGIRequest) -> JsonResponse:
+        """Returns suggestions for a given query.
+        Combines online and offline suggestions."""
+        query = request.GET["term"]
+        suggest_playlist = request.GET["playlist"] == "true"
+
+        results = self._online_suggestions(query, suggest_playlist)
 
         if suggest_playlist:
             search_results = watson.search(query, models=(ArchivedPlaylist,))[:20]

@@ -30,7 +30,9 @@ if TYPE_CHECKING:
     from core.settings.analysis import Analysis
     from core.settings.system import System
 
-    T = TypeVar("T", Basic, Platforms, Sound, Wifi, Library, Analysis, System)
+    T = TypeVar(  # pylint: disable=invalid-name
+        "T", Basic, Platforms, Sound, Wifi, Library, Analysis, System
+    )
 
 
 class Settings(Stateful):
@@ -115,8 +117,8 @@ class Settings(Stateful):
         else:
             # the icecast service reports as active even if it is internally disabled.
             # check if its port is used to determine if it's running
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                streaming_enabled = s.connect_ex((settings.ICECAST_HOST, 8000)) == 0
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                streaming_enabled = sock.connect_ex((settings.ICECAST_HOST, 8000)) == 0
         state_dict["streaming_enabled"] = streaming_enabled
 
         try:

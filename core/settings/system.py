@@ -85,7 +85,6 @@ class System:
         return extensions
 
     def _check_mopidy_extensions_user(self) -> Dict[str, Tuple[bool, str]]:
-        self.spotify_enabled = False
         config = subprocess.run(
             ["mopidy", "config"],
             stdout=subprocess.PIPE,
@@ -155,8 +154,6 @@ class System:
                 extensions["spotify"] = (True, "No info found, enabling te be safe")
             if "soundcloud" not in extensions:
                 extensions["soundcloud"] = (True, "No info found, enabling te be safe")
-            pass
-
         return extensions
 
     @Settings.option
@@ -251,6 +248,7 @@ class System:
 
     @Settings.option
     def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:
+        """Looks up the newest version number from PyPi and returns it."""
         try:
             subprocess.run(
                 "pip3 install raveberry==nonexistingversion".split(),
@@ -271,6 +269,7 @@ class System:
 
     @Settings.option
     def get_upgrade_config(self, _request: WSGIRequest) -> HttpResponse:
+        """Returns the config that will be used for the upgrade."""
         with open(os.path.join(settings.BASE_DIR, "config/raveberry.ini")) as f:
             config = f.read()
         lines = config.splitlines()
@@ -279,6 +278,8 @@ class System:
 
     @Settings.option
     def upgrade_raveberry(self, _request: WSGIRequest) -> HttpResponse:
+        """Performs an upgrade of raveberry."""
+
         @background_thread
         def do_upgrade() -> None:
             subprocess.call(

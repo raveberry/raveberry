@@ -274,7 +274,7 @@ class Playback:
                 # As this function can raise several exceptions (it might do networking)
                 # we catch every exception to make sure the loop keeps running
             except Exception as e:  # pylint: disable=broad-except
-                logging.exception("error during suggestions for " + url)
+                logging.exception("error during suggestions for %s: %s", url, e)
             else:
                 self.musiq.do_request_music(
                     "",

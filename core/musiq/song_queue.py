@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Optional, Tuple, TYPE_CHECKING
+
 from django.db import models
 from django.db import transaction
 from django.db.models import F, QuerySet
 
 import core.models
-from typing import Dict, Optional, Union, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core.models import QueuedSong
@@ -20,10 +21,13 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def confirmed(self) -> QuerySet[QueuedSong]:
+        """Returns a QuerySet containing all confirmed songs.
+        Confirmed songs are not in the process of being made available."""
         return self.exclude(internal_url="")
 
     @transaction.atomic
     def delete_placeholders(self) -> None:
+        """Deletes all songs from the queue that are not confirmed."""
         self.filter(internal_url="").delete()
 
     @transaction.atomic

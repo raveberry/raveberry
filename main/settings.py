@@ -2,14 +2,14 @@
 import logging
 import logging.config
 import os
+import pathlib
 import shutil
 import sys
-import pathlib
-
-from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from typing import List
+
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MOCK = os.environ.get("DJANGO_MOCK")

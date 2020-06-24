@@ -6,13 +6,14 @@ import logging
 import threading
 import time
 from functools import wraps
+from typing import Callable, Dict, Any, Optional, TYPE_CHECKING, cast, Tuple
 
+from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
-from core.state_handler import Stateful
 from core.lights.circle.circle import Circle
 from core.lights.programs import Adaptive, LedProgram, ScreenProgram
 from core.lights.programs import Alarm
@@ -24,9 +25,8 @@ from core.lights.ring import Ring
 from core.lights.screen import Screen
 from core.lights.strip import Strip
 from core.models import Setting
+from core.state_handler import Stateful
 from core.util import background_thread
-from django.core.handlers.wsgi import WSGIRequest
-from typing import Callable, Dict, Any, Optional, TYPE_CHECKING, cast, Tuple
 
 if TYPE_CHECKING:
     from core.base import Base
@@ -53,7 +53,7 @@ def option(
                 if response is not None:
                     return response
             except (ValueError, IndexError) as e:
-                logging.exception("exception during lights option")
+                logging.exception("exception during lights option: %s", e)
                 return HttpResponseBadRequest()
             self.update_state()
         return HttpResponse()

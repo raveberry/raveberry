@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Any, TYPE_CHECKING, Dict
+from typing import Any, TYPE_CHECKING, Dict
 
 from django.core.exceptions import PermissionDenied
 from django.core.handlers.wsgi import WSGIRequest

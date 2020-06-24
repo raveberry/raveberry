@@ -2,11 +2,14 @@
 
 import os
 import random
+from typing import Dict, Any
 
 from django.conf import settings
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
+from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -17,9 +20,6 @@ from core.pad import Pad
 from core.settings.settings import Settings
 from core.state_handler import Stateful
 from core.user_manager import UserManager
-from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import HttpResponse
-from typing import Dict, Any
 
 
 class Base(Stateful):

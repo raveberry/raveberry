@@ -1,5 +1,6 @@
 """This module was copied from here in order to remove the mopidy dependency in the server code:
 https://github.com/mopidy/mopidy-spotify/blob/master/mopidy_spotify/web.py"""
+# pylint: skip-file
 import copy
 import email
 import logging

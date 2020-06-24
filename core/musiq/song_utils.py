@@ -1,17 +1,17 @@
 """This module provides some utility functions concerning songs."""
 
 import os
+from typing import TYPE_CHECKING
 
 import mutagen.easymp4
 
 from main import settings
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing_extensions import TypedDict
     from core.musiq.music_provider import ArchivedPlaylist
 
-    Metadata = TypedDict(
+    Metadata = TypedDict(  # pylint: disable=invalid-name
         "Metadata",
         {
             "artist": str,
@@ -33,6 +33,7 @@ def get_path(basename: str) -> str:
 
 
 def determine_url_type(url: str) -> str:
+    """Returns the service the given url corresponds to."""
     if url.startswith("local_library/"):
         return "local"
     if url.startswith("https://www.youtube.com/"):
