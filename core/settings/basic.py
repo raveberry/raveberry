@@ -25,6 +25,9 @@ class Basic:
         self.online_suggestions = (
             Settings.get_setting("online_suggestions", "True") == "True"
         )
+        self.number_of_suggestions = int(
+            Settings.get_setting("number_of_suggestions", "20")
+        )
         self.people_to_party = int(Settings.get_setting("people_to_party", "3"))
         self.alarm_probability = float(Settings.get_setting("alarm_probability", "0"))
         self.downvotes_to_kick = int(Settings.get_setting("downvotes_to_kick", "2"))
@@ -61,6 +64,13 @@ class Basic:
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="online_suggestions").update(value=enabled)
         self.online_suggestions = enabled
+
+    @Settings.option
+    def set_number_of_suggestions(self, request: WSGIRequest) -> None:
+        """Enables or disables the voting system based on the given value."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="number_of_suggestions").update(value=value)
+        self.number_of_suggestions = value
 
     @Settings.option
     def set_people_to_party(self, request: WSGIRequest) -> None:

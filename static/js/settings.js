@@ -8,6 +8,7 @@ specificState = function (newState) {
 	$('#voting_system').prop("checked", newState.voting_system);
 	$('#logging_enabled').prop("checked", newState.logging_enabled);
 	$('#online_suggestions').prop("checked", newState.online_suggestions);
+	$('#number_of_suggestions').val(newState.number_of_suggestions);
 	$('#people_to_party').val(newState.people_to_party);
 	$('#alarm_probability').val(newState.alarm_probability);
 	$('#downvotes_to_kick').val(newState.downvotes_to_kick);
@@ -61,7 +62,6 @@ specificState = function (newState) {
 		$('.system-install-only').attr('disabled-note', 'This feature is only available in a system install.');
 	} else {
 		if (!newState.hotspot_configured) {
-			console.log("no hotspot")
 			$('.hotspot-functionality').addClass('is-disabled');
 			$('.hotspot-functionality').attr('disabled-note', 'Please configure hotspot during installation to use this feature.');
 		}
@@ -90,6 +90,13 @@ $(document).ready(function() {
 	$('#online_suggestions').change(function() {
 		$.post(urls['set_online_suggestions'], {
 			value: $(this).is(":checked"),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#number_of_suggestions').change(function() {
+		$.post(urls['set_number_of_suggestions'], {
+			value: $(this).val(),
 		}).done(function() {
 			successToast('');
 		});

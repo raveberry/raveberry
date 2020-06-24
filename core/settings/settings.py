@@ -87,6 +87,7 @@ class Settings(Stateful):
         state_dict["voting_system"] = self.basic.voting_system
         state_dict["logging_enabled"] = self.basic.logging_enabled
         state_dict["online_suggestions"] = self.basic.online_suggestions
+        state_dict["number_of_suggestions"] = self.basic.number_of_suggestions
         state_dict["people_to_party"] = self.basic.people_to_party
         state_dict["alarm_probability"] = self.basic.alarm_probability
         state_dict["downvotes_to_kick"] = self.basic.downvotes_to_kick

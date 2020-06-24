@@ -119,6 +119,11 @@ else:
             name="set_online_suggestions",
         ),
         path(
+            "set_number_of_suggestions/",
+            BASE.settings.basic.set_number_of_suggestions,
+            name="set_number_of_suggestions",
+        ),
+        path(
             "set_people_to_party/",
             BASE.settings.basic.set_people_to_party,
             name="set_people_to_party",

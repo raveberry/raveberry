@@ -7,6 +7,7 @@
 	urls['set_voting_system'] = '{% url 'set_voting_system' %}';
 	urls['set_logging_enabled'] = '{% url 'set_logging_enabled' %}';
     urls['set_online_suggestions'] = '{% url 'set_online_suggestions' %}';
+    urls['set_number_of_suggestions'] = '{% url 'set_number_of_suggestions' %}';
 	urls['set_people_to_party'] = '{% url 'set_people_to_party' %}';
 	urls['set_alarm_probability'] = '{% url 'set_alarm_probability' %}';
 	urls['set_downvotes_to_kick'] = '{% url 'set_downvotes_to_kick' %}';
@@ -84,6 +85,10 @@
     <li class="list-group-item list_item">
         <span class="description">Online Suggestions</span>
         <input type="checkbox" id="online_suggestions">
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Number of suggestions</span>
+        <input id="number_of_suggestions"/>
     </li>
 	<li class="list-group-item list_item">
 		<span class="description">People to Party</span>

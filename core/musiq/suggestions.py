@@ -116,9 +116,12 @@ class Suggestions:
         suggest_playlist = request.GET["playlist"] == "true"
 
         results = self._online_suggestions(query, suggest_playlist)
+        basic_settings = self.musiq.base.settings.basic
 
         if suggest_playlist:
-            search_results = watson.search(query, models=(ArchivedPlaylist,))[:20]
+            search_results = watson.search(query, models=(ArchivedPlaylist,))[
+                : basic_settings.number_of_suggestions
+            ]
 
             for playlist in search_results:
                 playlist_info = playlist.meta
@@ -131,7 +134,9 @@ class Suggestions:
                 }
                 results.append(result_dict)
         else:
-            search_results = watson.search(query, models=(ArchivedSong,))[:20]
+            search_results = watson.search(query, models=(ArchivedSong,))[
+                : basic_settings.number_of_suggestions
+            ]
 
             for search_result in search_results:
                 song_info = search_result.meta
