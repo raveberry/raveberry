@@ -20,6 +20,7 @@ from core.models import (
     ArchivedPlaylist,
     ArchivedPlaylistQuery,
     PlaylistEntry,
+    QueuedSong,
 )
 from core.models import RequestLog
 from typing import Optional, Union, Dict, TYPE_CHECKING, Type, List, cast, Callable
@@ -193,7 +194,7 @@ class SongProvider(MusicProvider):
     ) -> None:
         super().__init__(musiq, query, key)
         self.ok_message = "song queued"
-        self.queued_song = None
+        self.queued_song: Optional[QueuedSong] = None
 
         if query:
             url_type = song_utils.determine_url_type(query)
@@ -243,7 +244,7 @@ class SongProvider(MusicProvider):
         assert False
 
     def enqueue_placeholder(self, manually_requested) -> None:
-        metadata = {
+        metadata: Metadata = {
             "internal_url": "",
             "external_url": "",
             "artist": "",
@@ -256,6 +257,7 @@ class SongProvider(MusicProvider):
         )
 
     def remove_placeholder(self) -> None:
+        assert self.queued_song
         self.queued_song.delete()
 
     def check_available(self) -> bool:
@@ -292,6 +294,7 @@ class SongProvider(MusicProvider):
             RequestLog.objects.create(song=archived_song, address=request_ip)
 
     def enqueue(self) -> None:
+        assert self.queued_song
         if not self.musiq.queue.filter(id=self.queued_song.id).exists():
             # this song was already deleted, do not enqueue
             return
@@ -452,6 +455,11 @@ class PlaylistProvider(MusicProvider):
     def persist(self, request_ip: str, archive: bool = True) -> None:
         if self.is_radio():
             return
+
+        assert self.id
+        if self.title is None:
+            logging.warning(f"Persisting a playlist with no title (id {self.id})")
+            self.title = ""
 
         with transaction.atomic():
             queryset = ArchivedPlaylist.objects.filter(list_id=self.id)

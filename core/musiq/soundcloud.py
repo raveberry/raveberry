@@ -34,7 +34,7 @@ class Soundcloud:
         If not, it is created using the client-id from mopidy-soundcloud."""
         return Soundcloud._get_web_client()
 
-    def get_search_suggestions(self, query: str) -> List[Tuple[str, str]]:
+    def get_search_suggestions(self, query: str) -> List[str]:
         """Returns a list of suggested items for the given query."""
 
         response = self.web_client.get(

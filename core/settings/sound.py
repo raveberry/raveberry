@@ -79,7 +79,7 @@ class Sound:
                     if re.match("[A-Z0-9][A-Z0-9](-[A-Z0-9][A-Z0-9]){5}", name):
                         continue
                     self.bluetooth_devices.append({"address": address, "name": name})
-                    self.update_state()
+                    self.base.settings.update_state()
         else:
             if self.bluetoothctl is None:
                 return HttpResponseBadRequest("Currently not scanning")
@@ -191,13 +191,13 @@ class Sound:
     @Settings.option
     def output_devices(self, _request: WSGIRequest) -> JsonResponse:
         """Returns a list of all sound output devices currently available."""
-        sinks = subprocess.check_output(
+        output = subprocess.check_output(
             "pactl list short sinks".split(),
             env={"PULSE_SERVER": "127.0.0.1"},
             universal_newlines=True,
         )
-        sinks = [sink.split() for sink in sinks.splitlines()]
-        sinks = [sink[1] for sink in sinks if len(sink) >= 2]
+        tokenized_lines = [line.split() for line in output.splitlines()]
+        sinks = [sink[1] for sink in tokenized_lines if len(sink) >= 2]
         return JsonResponse(sinks, safe=False)
 
     @Settings.option

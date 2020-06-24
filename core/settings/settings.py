@@ -8,7 +8,7 @@ import os
 import socket
 import subprocess
 from functools import wraps
-from typing import Callable, Dict, Any, TYPE_CHECKING, Optional
+from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, TypeVar
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -22,6 +22,15 @@ from core.state_handler import Stateful
 
 if TYPE_CHECKING:
     from core.base import Base
+    from core.settings.basic import Basic
+    from core.settings.platforms import Platforms
+    from core.settings.sound import Sound
+    from core.settings.wifi import Wifi
+    from core.settings.library import Library
+    from core.settings.analysis import Analysis
+    from core.settings.system import System
+
+    T = TypeVar("T", Basic, Platforms, Sound, Wifi, Library, Analysis, System)
 
 
 class Settings(Stateful):
@@ -35,12 +44,13 @@ class Settings(Stateful):
             0
         ].value
 
+    @staticmethod
     def option(
-        func: Callable[["Settings", WSGIRequest], Optional[HttpResponse]]
-    ) -> Callable[["Settings", WSGIRequest], HttpResponse]:
+        func: Callable[[T, WSGIRequest], Optional[HttpResponse]]
+    ) -> Callable[[T, WSGIRequest], HttpResponse]:
         """A decorator that makes sure that only the admin changes a setting."""
 
-        def _decorator(self: "Settings", request: WSGIRequest) -> HttpResponse:
+        def _decorator(self: T, request: WSGIRequest) -> HttpResponse:
             # don't allow option changes during alarm
             if request.user.username != "admin":
                 return HttpResponseForbidden()

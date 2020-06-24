@@ -21,6 +21,7 @@ from core.models import Setting
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
+    from core.musiq.playback import Playback
 
 
 def control(func: Callable) -> Callable:
@@ -66,13 +67,15 @@ class Controller:
 
     def __init__(self, musiq: "Musiq") -> None:
         self.musiq = musiq
-        self.playback = self.musiq.playback
+        self.playback: "Playback" = self.musiq.playback
 
-        self.shuffle = (
+        self.shuffle: bool = (
             self.musiq.base.settings.get_setting("shuffle", "False") == "True"
         )
-        self.repeat = self.musiq.base.settings.get_setting("repeat", "False") == "True"
-        self.autoplay = (
+        self.repeat: bool = self.musiq.base.settings.get_setting(
+            "repeat", "False"
+        ) == "True"
+        self.autoplay: bool = (
             self.musiq.base.settings.get_setting("autoplay", "False") == "True"
         )
 
@@ -86,12 +89,15 @@ class Controller:
                 universal_newlines=True,
             ).splitlines():
                 if active_sink and "Volume:" in line:
-                    volume = re.search(r"(\d+)%", line).groups()[0]
+                    match = re.search(r"(\d+)%", line)
+                    if not match:
+                        raise ValueError
+                    volume = int(match.groups()[0])
                     break
                 if "State: RUNNING" in line:
                     active_sink = True
-            self.volume = int(volume) / 100
-        except (FileNotFoundError, subprocess.CalledProcessError):
+            self.volume = volume / 100
+        except (FileNotFoundError, subprocess.CalledProcessError, ValueError):
             with self.playback.mopidy_command(important=True):
                 # pulse is not installed or there is no server running.
                 # get volume from mopidy
