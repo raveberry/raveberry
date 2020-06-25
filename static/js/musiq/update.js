@@ -172,10 +172,10 @@ function createQueueItem(song) {
 	let index = $('<div/>')
 		.addClass('queue_index')
 		.addClass('queue_handle')
-	if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
-		index.text(song.index)
-	} else {
+	if (VOTING_SYSTEM) {
 		index.text(song.votes)
+	} else {
+		index.text(song.index)
 	}
 	index.appendTo(entry_div);
 	if (song.internal_url) {
@@ -197,18 +197,7 @@ function createQueueItem(song) {
 	let controls = $('<span/>')
 		.addClass('queue_info_controls')
 		.appendTo(info);
-	if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
-		let up = $('<i/>')
-			.addClass('fas')
-			.addClass('fa-level-up-alt')
-			.addClass('prioritize')
-			.appendTo(controls);
-		let down = $('<i/>')
-			.addClass('fas')
-			.addClass('fa-trash-alt')
-			.addClass('remove')
-			.appendTo(controls);
-	} else {
+	if (VOTING_SYSTEM) {
 		let previous_vote = Cookies.get('vote_' + song.id);
 		let up = $('<i/>')
 			.addClass('fas')
@@ -226,6 +215,18 @@ function createQueueItem(song) {
 			down.addClass('pressed');
 		}
 		down.appendTo(controls);
+	}
+	if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
+		let up = $('<i/>')
+			.addClass('fas')
+			.addClass('fa-level-up-alt')
+			.addClass('prioritize')
+			.appendTo(controls);
+		let down = $('<i/>')
+			.addClass('fas')
+			.addClass('fa-trash-alt')
+			.addClass('remove')
+			.appendTo(controls);
 	}
 	return li;
 }

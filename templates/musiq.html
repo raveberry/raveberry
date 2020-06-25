@@ -31,9 +31,10 @@
 <script src="{% static "js/musiq/autocomplete.js" %}"></script>
 <script src="{% static "js/musiq/queue.js" %}"></script>
 <script src="{% static "js/musiq/buttons.js" %}"></script>
-{% if voting_system and not controls_enabled %}
+{% if voting_system %}
 <script src="{% static "js/musiq/buttons_voting.js" %}"></script>
-{% else %}
+{% endif %}
+{% if not voting_system or controls_enabled %}
 <script src="{% static "js/musiq/buttons_normal.js" %}"></script>
 {% endif %}
 <script src="{% static "js/musiq/update.js" %}"></script>

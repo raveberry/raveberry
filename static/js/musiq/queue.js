@@ -3,7 +3,7 @@ $(document).ready(function() {
 	$("#current_song").disableSelection();
 	$("#song_queue").disableSelection();
 
-	if (VOTING_SYSTEM && !CONTROLS_ENABLED)
+	if (VOTING_SYSTEM)
 		return;
 
 	$("#song_queue").sortable({ 
