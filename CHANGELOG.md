@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.11 - 2020-06-25
+
+- In voting mode, the voting buttons are now shown to logged in users as well.
+- Allow users to upgrade from a config where no hotspot ssid was specified.
+
 ## 0.6.10 - 2020-06-24
 
 - settings.py (the previously largest file) was split into smaller files.
