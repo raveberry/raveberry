@@ -69,6 +69,18 @@ function request_new_music(query, platform=Cookies.get('platform')) {
 	disablePlaylistMode();
 }
 
+function showTitleModal(element, url) {
+	let new_modal_text = element.contents().clone();
+	if (new_modal_text.length > 1) {
+		// cut the character that connects artist and title
+		new_modal_text.get(1).data = new_modal_text.get(1).data.substring(3);
+	}
+	new_modal_text.append('<br/>');
+	$('#title_modal .modal-text').html(new_modal_text);
+	$('#external_link').attr('href', url);
+	$('#title_modal').modal('show');
+}
+
 $(document).ready(function() {
 	$('#playlist_mode').on('click tap', function (e) {
 		if ($(this).hasClass('icon_disabled')) {
@@ -140,6 +152,12 @@ $(document).ready(function() {
 		}
 	});
 
+	// info popup for the current song
+	$('#current_song').on('click tap', function() {
+		let url = state.current_song.external_url;
+		showTitleModal($('#current_song_title'), url);
+	});
+
 	$('#volume_slider').change(function() {
 		$.post(urls['set_volume'], {
 			value: $(this).val(),
@@ -160,18 +178,9 @@ $(document).ready(function() {
 
 	// info popups for songs with long text
 	$('#song_queue').on('click tap', '.queue_title', function() {
-		index = $(this).closest('.queue_entry').parent().index();
+		let index = $(this).closest('.queue_entry').parent().index();
 		let url = state.song_queue[index].external_url;
-
-		let new_modal_text = $(this).contents().clone();
-		if (new_modal_text.length > 1) {
-			// cut the character that connects artist and title
-			new_modal_text.get(1).data = new_modal_text.get(1).data.substring(3);
-		}
-		new_modal_text.append('<br/>');
-		$('#title_modal .modal-text').html(new_modal_text);
-		$('#external_link').attr('href', url);
-		$('#title_modal').modal('show');
+		showTitleModal($(this), url);
 	});
 	// close modals on click
 	$('#title_modal .modal-content').on('click tap', function() {
