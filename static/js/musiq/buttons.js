@@ -156,6 +156,9 @@ $(document).ready(function() {
 
 	// info popup for the current song
 	$('#current_song').on('click tap', function() {
+		if (state.current_song == null) {
+			return;
+		}
 		let url = state.current_song.external_url;
 		showTitleModal($('#current_song_title'), url);
 	});
