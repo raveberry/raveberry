@@ -128,6 +128,8 @@ $(document).ready(function() {
 	});
 	$('#music_input').focus(function() {
 		showSearchIcon();
+		let content_length = $(this).val().length;
+		$(this)[0].setSelectionRange(content_length, content_length);
 	});
 	$('#clearbutton').on('click tap', function() {
 		$(this).prev('input').val('').trigger('change').focus();
