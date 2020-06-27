@@ -124,7 +124,7 @@ class Youtube:
         with youtube_session() as session:
             params = {
                 "client": "youtube",
-                "q": query,
+                "q": query[:100],  # queries longer than 100 characters are not accepted
                 "xhr": "t",  # this makes the response be a json file
             }
             response = session.get(
