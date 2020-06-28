@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.12 - 2020-06-28
+
+- Clicking the current songs shows further information as well (like it does for songs in the queue)
+- Since the little cross at the right end of the input field is a little small, the cursor now moves to the right of the text when tapped. Then, the text can be deleted with the keyboard.
+
 ## 0.6.11 - 2020-06-25
 
 - In voting mode, the voting buttons are now shown to logged in users as well.
