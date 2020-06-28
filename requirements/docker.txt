@@ -1,0 +1,3 @@
+-r common.txt
+psycopg2
+https://github.com/DarwinAwardWinner/rganalysis/archive/master.zip

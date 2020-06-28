@@ -1,10 +1,14 @@
 FROM raveberry/raveberry-dependencies
 
-RUN pip install psycopg2 &&\
-	pip install -U youtube-dl &&\
-	pip install raveberry --no-deps --target /opt &&\
+RUN pip install -U youtube-dl &&\
 	rm -rf ~/.cache/pip
 
-COPY . /opt/raveberry/static
+COPY . /opt/raveberry
+COPY docker/entrypoint.sh /entrypoint.sh
 
 WORKDIR /opt/raveberry
+
+EXPOSE 9000
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/usr/local/bin/daphne", "--bind", "0.0.0.0", "--port", "9000", "main.asgi:application"]

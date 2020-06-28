@@ -80,11 +80,6 @@ Just update all of your containers in the docker-compose file:
 ```
 docker-compose pull
 ```
-It is a good idea to remove the static files volume. This is necessary after changes in the frontend code, which happen from time to time. You will not lose any data.
-```
-docker volume ls # find the state-files volume (e.g. raveberry_static-files)
-docker volume rm raveberry_static-files # delete it. You might need to stop and remove some containers.
-```
 
 ### Manual Installation
 Updating an existing installation is easy. Just update the PyPi package and rerun the system installation.

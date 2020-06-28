@@ -30,8 +30,6 @@ class Analysis:
 
     def __init__(self, base: "Base"):
         self.base = base
-        self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None
-        self.bluetooth_devices: List[Dict[str, str]] = []
 
     @Settings.option
     def analyse(self, request: WSGIRequest) -> HttpResponse:

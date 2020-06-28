@@ -51,6 +51,9 @@ class Musiq(Stateful):
 
         self.playback = Playback(self)
         self.controller = Controller(self)
+
+    def start(self) -> None:
+        self.controller.start()
         self.playback.start()
 
     def do_request_music(

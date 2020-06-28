@@ -42,9 +42,12 @@ class Settings(Stateful):
     def get_setting(key: str, default: str) -> str:
         """This method returns the value for the given :param key:.
         Vaules of non-existing keys are set to :param default:"""
-        return Setting.objects.get_or_create(key=key, defaults={"value": default})[
-            0
-        ].value
+        if settings.MOCK:
+            return default
+        else:
+            return Setting.objects.get_or_create(key=key, defaults={"value": default})[
+                0
+            ].value
 
     @staticmethod
     def option(

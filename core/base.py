@@ -32,6 +32,10 @@ class Base(Stateful):
         self.pad = Pad(self)
         self.musiq = Musiq(self)
 
+    def start(self) -> None:
+        self.lights.start()
+        self.musiq.start()
+
     @classmethod
     def _get_random_hashtag(cls) -> str:
         if models.Tag.objects.count() == 0:

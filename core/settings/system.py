@@ -67,8 +67,6 @@ class System:
 
     def __init__(self, base: "Base"):
         self.base = base
-        self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None
-        self.bluetooth_devices: List[Dict[str, str]] = []
 
     def check_mopidy_extensions(self) -> Dict[str, Tuple[bool, str]]:
         """Returns a dict indicating for each extension whether it is enabled

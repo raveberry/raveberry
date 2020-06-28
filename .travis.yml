@@ -11,6 +11,7 @@ services:
 
 install:
   - docker build -f docker/tests.Dockerfile -t raveberry-test .
+
 script:
   - docker-compose -f tests/docker-compose.yml up --exit-code-from daphne
 
@@ -18,7 +19,7 @@ before_deploy:
   - yarn install
   - scripts/clean_libs.sh
   - pip install -r requirements/dev.txt
-  - DJANGO_DEBUG=1 DJANGO_MOCK=1 python manage.py compilescss
+  - DJANGO_MOCK=1 python manage.py compilescss
   - mkdir raveberry
   # move all files except those needed for packaging
   - mv `\ls -A1 | grep -v -E '(setup.py|MANIFEST.in|raveberry)'` raveberry
@@ -40,8 +41,13 @@ after_deploy:
   - echo $PYPI_VERSION
   # stop the build here if they are equal to skip unnecessary builds
   - if [ "$DOCKER_VERSION" == "$PYPI_VERSION" ]; then exit 0; fi
-  # wait some time until until the new package is available on pypi
-  - sleep 120
+  # include static javascript files in docker container
+  # We need to use --force as COMPRESS_OFFLINE is not enabled.
+  # Online compression is still needed for inline javascript.
+  - DJANGO_MOCK=1 python manage.py compress --force
+  # copy static admin files into the folder
+  - DJANGO_PATH=$(python -c 'import django, os; print(f"{os.path.dirname(django.__file__)}/contrib/admin/static/admin")')
+  - cp -r "$DJANGO_PATH" static/admin
   # update docker
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -61,4 +67,5 @@ after_deploy:
   - docker buildx create --driver docker-container --name local --use unix:///var/run/docker.sock
   # no quiet mode, pipe to /dev/null to not exceed maximum log length with buildx's fancy output
   # https://github.com/docker/buildx/blob/master/commands/build.go#L79
-  - docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry static/ 2>&1 | head -n 1000
+  - docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry . 2>&1 | head -n 1000
+  - docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx . 2>&1 | head -n 1000

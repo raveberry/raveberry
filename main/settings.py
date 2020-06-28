@@ -12,7 +12,8 @@ from typing import List
 from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MOCK = os.environ.get("DJANGO_MOCK")
+MOCK = bool(os.environ.get("DJANGO_MOCK"))
+FORCE_POSTGRES = bool(os.environ.get("DJANGO_POSTGRES"))
 
 if MOCK:
     SECRET_KEY = get_random_secret_key()
@@ -106,7 +107,7 @@ else:
 
 # Database
 
-if DEBUG:
+if (DEBUG or MOCK) and not FORCE_POSTGRES:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

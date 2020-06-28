@@ -6,6 +6,3 @@ test_cache
 
 # don't have the container inherit our cache path
 config/cache_dir
-
-# don't have the container inherit our admin symlink
-static/admin

@@ -1,7 +1,6 @@
 version: '3'
 
 volumes:
-  static-files:
   songs-cache:
     # If you want to access downloaded files on your host system,
     # uncomment the following lines and choose a folder.
@@ -42,11 +41,9 @@ services:
       MOD_PASSWORD: "${MOD_PASSWORD:-mod}"
       PAD_PASSWORD: "${PAD_PASSWORD:-pad}"
       DOCKER: 1
-    command: bash -c "DJANGO_MOCK=1 python manage.py migrate --noinput && scripts/create_users.sh && /usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application"
     expose:
       - 9000
     volumes:
-      - static-files:/opt/raveberry/static
       - songs-cache:/Music/raveberry
     depends_on:
       - db
@@ -57,8 +54,6 @@ services:
     image: raveberry/raveberry-nginx
     ports:
       - "80:80"
-    volumes:
-      - static-files:/usr/share/nginx/static
     depends_on:
       - daphne
     restart: always

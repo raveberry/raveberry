@@ -60,6 +60,8 @@
 			let CONTROLS_ENABLED = false;
 			{% endif %}
 		</script>
+		{% endcompress %}
+		{% compress js file %}
 		<script src="{% static "js/base.js" %}"></script>
 		{% block scripts %}
 		{% endblock %}

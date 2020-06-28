@@ -1,9 +1,9 @@
 #!/bin/bash
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
 echo "Performing Migrations"
-DJANGO_DEBUG=1 DJANGO_MOCK=1 python3 manage.py migrate
+DJANGO_MOCK=1 python3 manage.py migrate
 echo "Creating Users"
-DJANGO_DEBUG=1 DJANGO_MOCK=1 python3 manage.py shell <<-EOF
+DJANGO_MOCK=1 python3 manage.py shell <<-EOF
 	from django.contrib.auth.models import User
 	User.objects.create_superuser('admin', email='', password='$ADMIN_PASSWORD')
 	User.objects.create_user('mod', password='mod')
@@ -15,7 +15,7 @@ if [[ ! -d static/libs ]]; then
 fi
 if [[ ! -f static/scss/dark.css ]]; then
 	echo "Compiling SCSS Files"
-	DJANGO_MOCK=1 DJANGO_DEBUG=1 python3 manage.py compilescss
+	DJANGO_MOCK=1 python3 manage.py compilescss
 fi
 
 if [ "$ADMIN_PASSWORD" == "admin" ]; then

@@ -133,6 +133,7 @@ class Lights(Stateful):
         self.screen_program.use()
         self._consumers_changed()
 
+    def start(self) -> None:
         self._loop()
 
     @background_thread

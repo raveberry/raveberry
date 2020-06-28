@@ -51,7 +51,6 @@ services:
       PAD_PASSWORD: "${PAD_PASSWORD:-pad}"
       DOCKER: 1
       DOCKER_ICECAST: 1
-    command: bash -c "DJANGO_MOCK=1 python manage.py compilescss && DJANGO_MOCK=1 python manage.py migrate --noinput && scripts/create_users.sh && /usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application"
     expose:
       - 9000
     volumes:

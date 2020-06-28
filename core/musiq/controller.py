@@ -79,6 +79,7 @@ class Controller:
             self.musiq.base.settings.get_setting("autoplay", "False") == "True"
         )
 
+    def start(self) -> None:
         try:
             # Try to get the volume from the pulse server.
             active_sink = False
