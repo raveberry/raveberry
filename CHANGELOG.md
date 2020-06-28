@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.13 - 2020-06-28
+- Javascript files are copied into the nginx container. This removes the need of the shared static folder.
+- `DJANGO_MOCK` always uses the debug database, unless otherwise specified with `DJANGO_POSTGRES`. It also mocks all url patterns instead of just faking them.
+
 ## 0.6.12 - 2020-06-28
 
 - Clicking the current songs shows further information as well (like it does for songs in the queue)
