@@ -38,3 +38,5 @@ If you want to disable authentication completely, you need to edit icecast's con
 ### Docker
 
 If you want to enable or disable streaming with the docker setup, use the respective docker-compose files. The setting in the admin page does not toggle streaming. You can provide a custom icecast configuration in `icecast.docker-compose.yml` to tweak it.
+
+In the docker setup, authentication can be disabled by setting the `STREAM_NOAUTH` environment variable. Uncomment the corresponding line in the `icecast.docker-compose.yml` to persist the change.

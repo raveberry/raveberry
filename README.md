@@ -26,7 +26,7 @@ wget https://raw.githubusercontent.com/raveberry/raveberry/master/icecast.docker
 docker-compose -f icecast.docker-compose.yml up -d
 ```
 
-Raveberry is now accessible at `http://localhost/` or `http://<your hostname>/` for other devices in the network. To use a different password for the `admin` user than the default password `admin`, set an environment variable `ADMIN_PASSWORD`. Similarly, `STREAM_PASSWORD` sets the password to access the remote stream.
+Raveberry is now accessible at `http://localhost/` or `http://<your hostname>/` for other devices in the network. To use a different password for the `admin` user than the default password `admin`, set an environment variable `ADMIN_PASSWORD`. Similarly, `STREAM_PASSWORD` sets the password to access the remote stream, `STREAM_NOAUTH=1` disables password protection.
 
 If there is no sound, you might need to provide your UID an GID for pulse to work: `UID=$(id -u) GID=$(id -g) docker-compose up -d`
 
