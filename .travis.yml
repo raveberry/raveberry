@@ -34,9 +34,9 @@ deploy:
 after_deploy:
   - cd raveberry
   # read and trim the version from the latest docker image
-  - DOCKER_VERSION=$(docker pull raveberry/raveberry >/dev/null && docker run -it raveberry/raveberry pip freeze --path /opt | tr -d '[:space:]')
+  - DOCKER_VERSION=$(docker pull raveberry/raveberry >/dev/null && docker run --entrypoint /bin/cat raveberry/raveberry /opt/raveberry/VERSION | tr -d '[:space:]')
   # read and trim the version of this folder
-  - PYPI_VERSION="raveberry==$(cat VERSION | tr -d '[:space:]')"
+  - PYPI_VERSION="$(cat VERSION | tr -d '[:space:]')"
   - echo $DOCKER_VERSION
   - echo $PYPI_VERSION
   # stop the build here if they are equal to skip unnecessary builds
