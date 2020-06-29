@@ -246,10 +246,10 @@
         <stream-description>Vote for the music you want to listen to!</stream-description>
         <fallback-mount>/silence.mp3</fallback-mount>
         <fallback-override>1</fallback-override>
-        <authentication type="htpasswd">
+        <!-- <authentication type="htpasswd">
             <option name="filename" value="/usr/share/icecast/.htaccess"/>
             <option name="allow_duplicate_users" value="1"/>
-        </authentication>
+        </authentication> -->
     </mount>
 
 </icecast>
