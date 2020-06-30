@@ -24,11 +24,11 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       # optional spotify and soundcloud settings
-      # - SPOTIFY_USERNAME=raveberry
-      # - SPOTIFY_PASSWORD=s3cr3t
-      # - SPOTIFY_CLIENT_ID=raveberry
-      # - SPOTIFY_CLIENT_SECRET=s3cret
-      # - SOUNDCLOUD_AUTH_TOKEN=s3cret
+      - SPOTIFY_USERNAME
+      - SPOTIFY_PASSWORD
+      - SPOTIFY_CLIENT_ID
+      - SPOTIFY_CLIENT_SECRET
+      - SOUNDCLOUD_AUTH_TOKEN
     volumes:
       - songs-cache:/Music/raveberry
       # Comment this line if pulse does not work.

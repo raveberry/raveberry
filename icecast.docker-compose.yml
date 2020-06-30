@@ -27,7 +27,7 @@ services:
       STREAM_USERNAME: "${STREAM_USERNAME:-raveberry}"
       STREAM_PASSWORD: "${STREAM_PASSWORD:-raveberry}"
       # or set STREAM_NOAUTH if you don't want to protect your stream
-      # STREAM_NOAUTH: 1
+      STREAM_NOAUTH: "${STREAM_NOAUTH}"
     # uncomment this port mapping if you need to access icecast's web interface
     #ports:
     #  - 8000:8000
@@ -37,6 +37,13 @@ services:
     restart: always
   mopidy:
     image: raveberry/raveberry-mopidy
+    environment:
+      # optional spotify and soundcloud settings
+      - SPOTIFY_USERNAME
+      - SPOTIFY_PASSWORD
+      - SPOTIFY_CLIENT_ID
+      - SPOTIFY_CLIENT_SECRET
+      - SOUNDCLOUD_AUTH_TOKEN
     volumes:
       - songs-cache:/Music/raveberry
       # If you want to use spotify, 
