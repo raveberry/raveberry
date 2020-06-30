@@ -22,7 +22,7 @@ ENV HOME=/var/lib/mopidy
 RUN set -ex \
  && usermod -G audio,sudo mopidy \
  && chown mopidy:audio -R $HOME /entrypoint.sh /config \
- && chmod go+rwx -R $HOME /entrypoint.sh
+ && chmod go+rwx -R $HOME /entrypoint.sh /config
 
 # Runs as mopidy user by default.
 USER mopidy
