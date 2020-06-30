@@ -59,7 +59,7 @@ class Platforms:
         if enabled:
             if settings.DOCKER:
                 response = HttpResponse(
-                    "Make sure to use a mopidy config with correct credentials."
+                    "Make sure you provided mopidy with correct credentials."
                 )
             else:
                 extensions = self.base.settings.system.check_mopidy_extensions()

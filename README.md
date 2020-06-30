@@ -32,7 +32,7 @@ If there is no sound, you might need to provide your UID an GID for pulse to wor
 
 To use local files from your system, specify the path to the desired folder in the volumes section of the file. The folder will be visible in as `/Music/raveberry`, which is the path you need to use when scanning the library.
 
-In order to use Spotify, you need to provide your credentials to Raveberry via the `/settings` page and to mopidy with a config file. Copy the file from `docker/mopidy.conf` and fill in your credentials. Then uncomment the corresponding line in the mopidy section of the .yml file.
+In order to use Spotify, you need to provide your credentials to Raveberry via the `/settings` page and to mopidy via environment variables. Find out which environment variables in the docker compose file.
 
 Note: Playback and voting should work as expected, but additional features like visualization or the hotspot are not supported (yet).
 
