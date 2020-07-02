@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.14 - 2020-07-02
+- Fixed a bug where migrations where not performed during install, making it impossible to run Raveberry.
+- Credentials can now be passed to the mopidy container via environment variables.
+- Disabling stream authentication is now simpler in the docker setup.
+
 ## 0.6.13 - 2020-06-28
 - Javascript files are copied into the nginx container. This removes the need of the shared static folder.
 - `DJANGO_MOCK` always uses the debug database, unless otherwise specified with `DJANGO_POSTGRES`. It also mocks all url patterns instead of just faking them.
