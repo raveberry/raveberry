@@ -6,12 +6,14 @@ Raveberry uses `systemd` services to provide its functionality.
 Services used are:
 * `nginx`: webserver, serves static files and proxys requests to `daphne`
 * `daphne`: webserver, runs all the python code
-* `mpd.service`: Music Player Daemon, plays the songs
-* `mpd.socket`: provides a socket interface to communicate with `mpd`
-* `hostapd`: runs the hotspot (if configured)
-* `dnsmasq`: handles DNS for the hotspot (if configured)
-* `remote`: connects to a remote URL (if configured)
-* `homewifi`: disables the hotspot in the homewifi (if configured)
+* `gunicorn`: alternative to daphne without websockets (usually disabled)
+* `mopidy`: music player, plays the songs
+* `pulseaudio`: runs a pulseaudio system server
+* `xinit`: starts the X-server (if visualization is configured)
+* `hostapd`: runs the hotspot (if hotspot is configured)
+* `dnsmasq`: handles DNS for the hotspot (if hotspot is configured)
+* `homewifi`: disables the hotspot at home (if is configured)
+* `remote`: connects to a remote server (if remote is configured)
 
 You can check if they are running with
 ```
@@ -20,10 +22,6 @@ systemctl status <service>
 For a log of the service, use
 ```
 journalctl -xe -u <service>
-```
-Only `daphne` writes its logs to `/var/log/syslog`. In general, inspecting the syslog might help:
-```
-less /var/log/syslog
 ```
 Sometimes a restart is required.
 ```
