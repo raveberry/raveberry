@@ -472,6 +472,11 @@ $(document).ready(function() {
 			successToast('');
 		});
 	});
+	$('#shutdown_system').on('click tap', function() {
+		$.post(urls['shutdown_system']).done(function() {
+			successToast('');
+		});
+	});
 	$('#get_latest_version').on('click tap', function() {
 		$.get(urls['get_latest_version']).done(function(response) {
 			$('#latest_version').text(response);

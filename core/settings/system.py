@@ -245,6 +245,11 @@ class System:
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/reboot_system"])
 
     @Settings.option
+    def shutdown_system(self, _request: WSGIRequest) -> None:
+        """Shuts down the system."""
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/shutdown_system"])
+
+    @Settings.option
     def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:
         """Looks up the newest version number from PyPi and returns it."""
         try:
