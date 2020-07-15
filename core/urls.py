@@ -268,6 +268,7 @@ SETTINGS_URLS = [
     path("enable_remote/", BASE.settings.system.enable_remote, name="enable_remote"),
     path("reboot_server/", BASE.settings.system.reboot_server, name="reboot_server"),
     path("reboot_system/", BASE.settings.system.reboot_system, name="reboot_system"),
+    path("shutdown_system/", BASE.settings.system.shutdown_system, name="shutdown_system"),
     path(
         "get_latest_version/",
         BASE.settings.system.get_latest_version,
