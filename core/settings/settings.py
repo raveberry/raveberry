@@ -15,7 +15,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from core.models import Setting
 from core.state_handler import Stateful
@@ -162,7 +162,7 @@ class Settings(Stateful):
     def index(self, request: WSGIRequest) -> HttpResponse:
         """Renders the /settings page. Only admin is allowed to see this page."""
         if not self.base.user_manager.is_admin(request.user):
-            raise PermissionDenied
+            return redirect("login")
         context = self.base.context(request)
         library_path = os.path.abspath(
             os.path.join(settings.SONGS_CACHE_DIR, "local_library")
