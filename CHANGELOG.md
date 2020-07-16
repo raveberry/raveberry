@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.15 - 2020-07-16
+- Added the `/network_info` page that shows wifi and ip information and allows people to connect with the shown qr codes.
+- Swapped the pad icon with the qr icon linking to the new page.
+- Accessing the `/settings` without being logged in redirects you to the login page.
+- Light mode works on every page, not just `/musiq`.
+- Added a shutdown button in `/settings`.
+- Hide all passwords in `/settings`.
+
 ## 0.6.14 - 2020-07-02
 - Fixed a bug where migrations where not performed during install, making it impossible to run Raveberry.
 - Credentials can now be passed to the mopidy container via environment variables.
