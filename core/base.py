@@ -16,6 +16,7 @@ from django.urls import reverse
 import core.models as models
 from core.lights.lights import Lights
 from core.musiq.musiq import Musiq
+from core.network_info import NetworkInfo
 from core.pad import Pad
 from core.settings.settings import Settings
 from core.state_handler import Stateful
@@ -31,6 +32,7 @@ class Base(Stateful):
         self.lights = Lights(self)
         self.pad = Pad(self)
         self.musiq = Musiq(self)
+        self.network_info = NetworkInfo(self)
 
     def start(self) -> None:
         self.lights.start()

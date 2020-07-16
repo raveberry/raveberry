@@ -1,0 +1,15 @@
+#network_info svg {
+  background-color: white;
+  width: 15rem;
+  height: 15rem;
+  max-width: inherit;
+}
+
+#show_password {
+  cursor: pointer;
+}
+
+#network_info .list_item > span:only-child{
+  width: 100%;
+  max-width: unset;
+}

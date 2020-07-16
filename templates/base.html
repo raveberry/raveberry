@@ -119,9 +119,9 @@
 							<i class="fas fa-cog"></i>
 						</a>
 					</div>
-					<a href="{% url 'pad' %}"{%if pad_enabled == False%} style='visibility: hidden;'{%endif%}>
-							<i class="fas fa-file-alt"></i>
-					</a>
+                    <a href="{% url 'network_info' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
+                        <i class="fas fa-qrcode"></i>
+                    </a>
 				</div>
 				<div class="menu_row">
 					<a id="github_link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry" class="unlink">
@@ -137,7 +137,6 @@
 					</a>
 				</div>
                 <div class="menu_row">
-                    <div></div>
                     <div></div>
                     <a id="stream_link" target="_blank" rel="noopener noreferrer" href="/stream" class="unlink">
                         <i class="fas fa-headphones"></i>

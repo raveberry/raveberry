@@ -292,6 +292,7 @@ urlpatterns = [
     path("lights/", BASE.lights.index, name="lights"),
     path("pad/", BASE.pad.index, name="pad"),
     path("stream/", BASE.no_stream, name="no_stream"),
+    path("network_info/", BASE.network_info.index, name="network_info"),
     path("settings/", BASE.settings.index, name="settings"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("login/", RedirectView.as_view(pattern_name="login", permanent=False)),

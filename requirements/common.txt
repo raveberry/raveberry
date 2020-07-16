@@ -9,6 +9,7 @@ django-watson>=1.5.5
 mopidyapi>=1.0.0
 mutagen>=1.42.0
 python-dateutil>=2.8.0
+qrcode>=6.1
 requests>=2.22.0
 soundcloud>=0.5.0
 youtube-dl>=2019.8.2

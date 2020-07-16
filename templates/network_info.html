@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block scripts %}
+<script src="{% static "js/network_info.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<ul class="list-group" id="network_info">
+	<li class="list-group-item list_header">
+		Network Info
+	</li>
+    <li class="list-group-item list_item">
+        <span class="description">SSID</span>
+        <span>{%if ssid%}{{ssid}}{%else%}Unknown{%endif%}</span>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Password <u id="show_password">(show)</u></span>
+        <span id="password">{%if password%}{{password}}{%else%}Unknown{%endif%}</span>
+    </li>
+	<li class="list-group-item list_item">
+        <span class="description">IP</span>
+        <span>{%if ip%}{{ip}}{%else%}Unknown{%endif%}</span>
+	</li>
+    <li class="list-group-item list_item">
+        <span class="description">Connect to wifi:</span>
+    </li>
+    <li class="list-group-item list_item centered">
+        {% if wifi_qr %}
+            {{wifi_qr|safe}}
+        {% else %}
+            Unknown
+        {% endif %}
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Visit Raveberry: <a href="{{ raveberry_url }}">{{ raveberry_url }}</a></span>
+    </li>
+    <li class="list-group-item list_item centered">
+        {{raveberry_qr|safe}}
+    </li>
+</ul>
+{% endblock %}
