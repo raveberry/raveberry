@@ -1,4 +1,3 @@
-let state = null;
 let animationInProgress = false;
 
 specificState = function (newState) {

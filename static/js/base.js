@@ -1,3 +1,4 @@
+let state = null;
 let toastTimeout = 2000;
 let currentToastId = 0;
 function infoToast(firstLine, secondLine) {
