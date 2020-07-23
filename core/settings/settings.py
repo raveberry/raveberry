@@ -103,6 +103,7 @@ class Settings(Stateful):
 
         state_dict["spotify_enabled"] = self.platforms.spotify_enabled
         state_dict["spotify_suggestions"] = self.platforms.spotify_suggestions
+        state_dict["spotify_filter"] = self.platforms.spotify_filter
 
         state_dict["soundcloud_enabled"] = self.platforms.soundcloud_enabled
         state_dict["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions

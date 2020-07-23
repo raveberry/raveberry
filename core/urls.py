@@ -154,6 +154,11 @@ SETTINGS_URLS = [
         name="set_spotify_suggestions",
     ),
     path(
+        "set_spotify_filter/",
+        BASE.settings.platforms.set_spotify_filter,
+        name="set_spotify_filter",
+    ),
+    path(
         "set_spotify_credentials/",
         BASE.settings.platforms.set_spotify_credentials,
         name="set_spotify_credentials",

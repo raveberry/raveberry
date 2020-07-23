@@ -28,6 +28,7 @@ class Platforms:
             Settings.get_setting("spotify_enabled", "False") == "True"
         )
         self.spotify_suggestions = int(Settings.get_setting("spotify_suggestions", "2"))
+        self.spotify_filter = Settings.get_setting("spotify_filter", "")
         self.spotify_username = Settings.get_setting("spotify_username", "")
         self.spotify_password = Settings.get_setting("spotify_password", "")
         self.spotify_client_id = Settings.get_setting("spotify_client_id", "")
@@ -86,6 +87,13 @@ class Platforms:
         value = int(request.POST.get("value"))  # type: ignore
         Setting.objects.filter(key="spotify_suggestions").update(value=value)
         self.spotify_suggestions = value
+
+    @Settings.option
+    def set_spotify_filter(self, request: WSGIRequest):
+        """Sets the keywords to filter out of results."""
+        value = request.POST.get("value")
+        Setting.objects.filter(key="spotify_filter").update(value=value)
+        self.spotify_filter = value
 
     @Settings.option
     def set_spotify_credentials(self, request: WSGIRequest) -> HttpResponse:
