@@ -38,13 +38,15 @@ if TYPE_CHECKING:
 def youtube_session() -> Iterator[requests.Session]:
     """This context opens a requests session and loads the youtube cookies file."""
     session = requests.session()
-    try:
-        with open(
-            os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle"), "rb"
-        ) as f:
-            session.cookies.update(pickle.load(f))
-    except FileNotFoundError:
-        pass
+
+    pickle_file = os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle")
+
+    if os.path.getsize(pickle_file) > 0:
+        try:
+            with open(pickle_file, "rb") as f:
+                session.cookies.update(pickle.load(f))
+        except FileNotFoundError:
+            pass
 
     headers = {
         "User-Agent": youtube_dl.utils.random_user_agent(),
@@ -52,9 +54,7 @@ def youtube_session() -> Iterator[requests.Session]:
     session.headers.update(headers)
     yield session
 
-    with open(
-        os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle"), "wb"
-    ) as f:
+    with open(pickle_file, "wb") as f:
         pickle.dump(session.cookies, f)
 
 
