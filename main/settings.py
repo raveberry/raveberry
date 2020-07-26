@@ -87,6 +87,8 @@ TEMPLATES = [
     },
 ]
 
+CSRF_FAILURE_VIEW = "core.util.csrf_failure"
+
 WSGI_APPLICATION = "main.wsgi.application"
 
 # Docker changes

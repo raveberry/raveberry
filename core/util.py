@@ -3,7 +3,9 @@
 from threading import Thread
 from typing import Callable, Any
 
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import connection
+from django.http import HttpResponseForbidden, HttpResponse
 
 
 def background_thread(function: Callable) -> Callable[..., Thread]:
@@ -21,3 +23,7 @@ def background_thread(function: Callable) -> Callable[..., Thread]:
         return thread
 
     return decorator
+
+
+def csrf_failure(_request: WSGIRequest, reason: str = "") -> HttpResponse:
+    return HttpResponseForbidden("Please reload")
