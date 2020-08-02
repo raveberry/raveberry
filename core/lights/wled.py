@@ -6,6 +6,7 @@ import socket
 from core import util
 from core.lights.device import Device
 from core.models import Setting
+from main import settings
 
 
 class WLED(Device):
@@ -18,9 +19,8 @@ class WLED(Device):
             self.lights.base.settings.get_setting("wled_led_count", "10")
         )
 
-        try:
-            self.ip = Setting.objects.get(key="wled_ip").value
-        except Setting.DoesNotExist:
+        self.ip = self.lights.base.settings.get_setting("wled_ip", "")
+        if not self.ip and not settings.MOCK:
             try:
                 device = util.get_default_device()
                 broadcast = util.broadcast_of_device(device)
@@ -29,7 +29,7 @@ class WLED(Device):
                 # we don't want the startup to fail
                 # just because the broadcast address could not be determined
                 self.ip = "127.0.0.1"
-            Setting.objects.create(key="wled_ip", value=self.ip)
+            Setting.objects.filter(key="wled_ip").update(value=self.ip)
         self.port = int(self.lights.base.settings.get_setting("wled_port", "21324"))
 
         self.header = bytes(

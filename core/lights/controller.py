@@ -130,7 +130,7 @@ class Controller:
         value = int(request.POST.get("value"))  # type: ignore
         if not (2 <= value <= 490):
             return
-        Setting.objects.filter(key=f"wled_led_count").update(value=value)
+        Setting.objects.filter(key="wled_led_count").update(value=value)
         self.lights.wled.led_count = value
 
     @Lights.option
@@ -141,7 +141,7 @@ class Controller:
             socket.inet_aton(value)
         except socket.error:
             return
-        Setting.objects.filter(key=f"wled_ip").update(value=value)
+        Setting.objects.filter(key="wled_ip").update(value=value)
         self.lights.wled.ip = value
 
     @Lights.option
@@ -150,7 +150,7 @@ class Controller:
         value = int(request.POST.get("value"))  # type: ignore
         if not (1024 <= value <= 65535):
             return
-        Setting.objects.filter(key=f"wled_port").update(value=value)
+        Setting.objects.filter(key="wled_port").update(value=value)
         self.lights.wled.port = value
 
     @Lights.option
