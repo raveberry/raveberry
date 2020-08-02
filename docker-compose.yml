@@ -46,7 +46,6 @@ services:
     environment:
       ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin}"
       MOD_PASSWORD: "${MOD_PASSWORD:-mod}"
-      PAD_PASSWORD: "${PAD_PASSWORD:-pad}"
       DOCKER: 1
     expose:
       - 9000

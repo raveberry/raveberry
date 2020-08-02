@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 - 2020-08-02
+
+- Add WLED support.
+- Removed the pad.
+- Overwrite Youtube's cookie file if it is empty.
+- Less verbose CSRF error.
+- Add `--local` option to `raveberry` command to use a local raveberry copy instead of the installed package.
+- Hide shuffle and repeat buttons in voting mode as they have no effect anyway when voting.
+
 ## 0.6.15 - 2020-07-16
 - Added the `/network_info` page that shows wifi and ip information and allows people to connect with the shown qr codes.
 - Swapped the pad icon with the qr icon linking to the new page.

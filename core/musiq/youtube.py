@@ -41,12 +41,12 @@ def youtube_session() -> Iterator[requests.Session]:
 
     pickle_file = os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle")
 
-    if os.path.getsize(pickle_file) > 0:
-        try:
+    try:
+        if os.path.getsize(pickle_file) > 0:
             with open(pickle_file, "rb") as f:
                 session.cookies.update(pickle.load(f))
-        except FileNotFoundError:
-            pass
+    except FileNotFoundError:
+        pass
 
     headers = {
         "User-Agent": youtube_dl.utils.random_user_agent(),

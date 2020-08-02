@@ -26,7 +26,6 @@ if [[ -z "$DB_BACKUP" ]]; then
 			from django.contrib.auth.models import User
 			User.objects.create_superuser('admin', email='', password='$ADMIN_PASSWORD')
 			User.objects.create_user('mod', password='mod')
-			User.objects.create_user('pad', password='pad')
 		EOF
 	fi
 else
@@ -56,7 +55,6 @@ if [ ! -z "$DEV_USER" ] && [ ! -f db.sqlite3 ]; then
 		from django.contrib.auth.models import User
 		User.objects.create_superuser('admin', email='', password='$ADMIN_PASSWORD')
 		User.objects.create_user('mod', password='mod')
-		User.objects.create_user('pad', password='pad')
 	EOF
 else
 	echo "Debug database already exists, no migration needed"

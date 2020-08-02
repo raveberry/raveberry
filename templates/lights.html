@@ -7,6 +7,12 @@
 	urls['set_ring_program'] = '{% url 'set_ring_program' %}';
 	urls['set_ring_brightness'] = '{% url 'set_ring_brightness' %}';
 	urls['set_ring_monochrome'] = '{% url 'set_ring_monochrome' %}';
+    urls['set_wled_led_count'] = '{% url 'set_wled_led_count' %}';
+    urls['set_wled_ip'] = '{% url 'set_wled_ip' %}';
+    urls['set_wled_port'] = '{% url 'set_wled_port' %}';
+    urls['set_wled_program'] = '{% url 'set_wled_program' %}';
+    urls['set_wled_brightness'] = '{% url 'set_wled_brightness' %}';
+    urls['set_wled_monochrome'] = '{% url 'set_wled_monochrome' %}';
 	urls['set_strip_program'] = '{% url 'set_strip_program' %}';
 	urls['set_strip_brightness'] = '{% url 'set_strip_brightness' %}';
 	urls['adjust_screen'] = '{% url 'adjust_screen' %}';
@@ -38,6 +44,40 @@
 		<span class="description">Monochrome</span>
 		<input type="checkbox" id="ring_monochrome">
 	</li>
+</ul>
+
+<ul class="list-group" id="wled_options">
+    <li class="list-group-item list_header">
+        WLED
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">LED count</span>
+        <input id="wled_led_count"/>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">IP</span>
+        <input id="wled_ip"/>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Port</span>
+        <input id="wled_port"/>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Program</span>
+        <select class="form-control" id="wled_program">
+            {% for program_name in color_program_names %}
+                <option>{{ program_name }}</option>
+            {% endfor %}
+        </select>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Brightness</span>
+        <input type="range" id="wled_brightness" min="0" max="1" step="0.01">
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Monochrome</span>
+        <input type="checkbox" id="wled_monochrome">
+    </li>
 </ul>
 
 <ul class="list-group" id="strip_options">

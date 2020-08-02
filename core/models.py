@@ -205,13 +205,3 @@ class Setting(models.Model):
 
     def __str__(self) -> str:
         return self.key + ": " + ("None" if self.value is None else self.value)
-
-
-class Pad(models.Model):
-    """Stores the text in the pad."""
-
-    version = models.IntegerField(default=0)
-    content = models.CharField(max_length=100000)
-
-    def __str__(self) -> str:
-        return "{" + str(self.version) + "}: " + self.content[:20] + "..."

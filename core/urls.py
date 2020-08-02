@@ -43,41 +43,74 @@ MUSIQ_URLS = [
 
 LIGHTS_URLS = [
     path("state/", BASE.lights.get_state, name="lights_state"),
-    path("shortcut/", BASE.lights.set_lights_shortcut, name="set_lights_shortcut"),
-    path("set_ring_program/", BASE.lights.set_ring_program, name="set_ring_program"),
+    path(
+        "shortcut/",
+        BASE.lights.controller.set_lights_shortcut,
+        name="set_lights_shortcut",
+    ),
+    path(
+        "set_ring_program/",
+        BASE.lights.controller.set_ring_program,
+        name="set_ring_program",
+    ),
     path(
         "set_ring_brightness/",
-        BASE.lights.set_ring_brightness,
+        BASE.lights.controller.set_ring_brightness,
         name="set_ring_brightness",
     ),
     path(
         "set_ring_monochrome/",
-        BASE.lights.set_ring_monochrome,
+        BASE.lights.controller.set_ring_monochrome,
         name="set_ring_monochrome",
     ),
     path(
-        "set_strip_program/", BASE.lights.set_strip_program, name="set_strip_program",
+        "set_wled_led_count/",
+        BASE.lights.controller.set_wled_led_count,
+        name="set_wled_led_count",
+    ),
+    path("set_wled_ip/", BASE.lights.controller.set_wled_ip, name="set_wled_ip",),
+    path("set_wled_port/", BASE.lights.controller.set_wled_port, name="set_wled_port",),
+    path(
+        "set_wled_program/",
+        BASE.lights.controller.set_wled_program,
+        name="set_wled_program",
+    ),
+    path(
+        "set_wled_brightness/",
+        BASE.lights.controller.set_wled_brightness,
+        name="set_wled_brightness",
+    ),
+    path(
+        "set_wled_monochrome/",
+        BASE.lights.controller.set_wled_monochrome,
+        name="set_wled_monochrome",
+    ),
+    path(
+        "set_strip_program/",
+        BASE.lights.controller.set_strip_program,
+        name="set_strip_program",
     ),
     path(
         "set_strip_brightness/",
-        BASE.lights.set_strip_brightness,
+        BASE.lights.controller.set_strip_brightness,
         name="set_strip_brightness",
     ),
-    path("adjust_screen/", BASE.lights.adjust_screen, name="adjust_screen"),
+    path("adjust_screen/", BASE.lights.controller.adjust_screen, name="adjust_screen"),
     path(
         "set_screen_program/",
-        BASE.lights.set_screen_program,
+        BASE.lights.controller.set_screen_program,
         name="set_screen_program",
     ),
     path(
-        "set_program_speed/", BASE.lights.set_program_speed, name="set_program_speed",
+        "set_program_speed/",
+        BASE.lights.controller.set_program_speed,
+        name="set_program_speed",
     ),
-    path("set_fixed_color/", BASE.lights.set_fixed_color, name="set_fixed_color"),
-]
-
-PAD_URLS = [
-    path("state/", BASE.pad.get_state, name="pad_state"),
-    path("submit/", BASE.pad.submit, name="submit_pad"),
+    path(
+        "set_fixed_color/",
+        BASE.lights.controller.set_fixed_color,
+        name="set_fixed_color",
+    ),
 ]
 
 SETTINGS_URLS = [
@@ -292,7 +325,6 @@ urlpatterns = [
     path("", RedirectView.as_view(pattern_name="musiq", permanent=False), name="base"),
     path("musiq/", BASE.musiq.index, name="musiq"),
     path("lights/", BASE.lights.index, name="lights"),
-    path("pad/", BASE.pad.index, name="pad"),
     path("stream/", BASE.no_stream, name="no_stream"),
     path("network_info/", BASE.network_info.index, name="network_info"),
     path("settings/", BASE.settings.index, name="settings"),
@@ -308,7 +340,6 @@ urlpatterns = [
                 path("submit_hashtag/", BASE.submit_hashtag, name="submit_hashtag"),
                 path("musiq/", include(MUSIQ_URLS)),
                 path("lights/", include(LIGHTS_URLS)),
-                path("pad/", include(PAD_URLS)),
                 path("settings/", include(SETTINGS_URLS)),
             ]
         ),

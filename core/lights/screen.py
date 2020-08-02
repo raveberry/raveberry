@@ -5,11 +5,14 @@ import subprocess
 import time
 import os
 
+from core.lights.device import Device
 
-class Screen:
+
+class Screen(Device):
     """This class provides an interface to control the screen."""
 
-    def __init__(self) -> None:
+    def __init__(self, lights) -> None:
+        super().__init__(lights, "screen")
         self.initialized = False
         self.adjust()
 
@@ -72,3 +75,6 @@ class Screen:
         #
         # so we set hotplug and initialize the screen even if none is connected
         self.initialized = True
+
+    def clear(self):
+        pass

@@ -17,7 +17,6 @@ import core.models as models
 from core.lights.lights import Lights
 from core.musiq.musiq import Musiq
 from core.network_info import NetworkInfo
-from core.pad import Pad
 from core.settings.settings import Settings
 from core.state_handler import Stateful
 from core.user_manager import UserManager
@@ -30,7 +29,6 @@ class Base(Stateful):
         self.settings = Settings(self)
         self.user_manager = UserManager(self)
         self.lights = Lights(self)
-        self.pad = Pad(self)
         self.musiq = Musiq(self)
         self.network_info = NetworkInfo(self)
 
@@ -71,7 +69,6 @@ class Base(Stateful):
             "voting_system": self.settings.basic.voting_system,
             "hashtag": self._get_random_hashtag(),
             "controls_enabled": self.user_manager.has_controls(request.user),
-            "pad_enabled": self.user_manager.has_pad(request.user),
             "is_admin": self.user_manager.is_admin(request.user),
             "apk_link": self._get_apk_link(),
             "youtube_enabled": self.settings.platforms.youtube_enabled,

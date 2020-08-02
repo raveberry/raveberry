@@ -6,23 +6,29 @@ import shutil
 import subprocess
 import sys
 import argparse
+import pathlib
 
 import pkg_resources
 
 try:
     import raveberry
 
-    raveberry_directory = os.path.dirname(raveberry.__file__)
-    default_config = os.path.join(raveberry_directory, "config/raveberry.ini")
+    module_found = True
+    module_raveberry_directory = os.path.dirname(raveberry.__file__)
 except ModuleNotFoundError:
-    # also allow this script to work without installed module in the git folder
-    raveberry_directory = "."
-    default_config = os.path.join(raveberry_directory, "config/raveberry.ini")
+    module_found = False
+    module_raveberry_directory = None
 
-used_config = default_config
+local_raveberry_directory = str(pathlib.Path(__file__).parent.parent)
+raveberry_directory = None
+module_used = None
+default_config = None
+used_config = None
 
 
 def main():
+    global raveberry_directory, module_used, default_config, used_config
+
     parser = argparse.ArgumentParser(
         description="""\
     A multi-user music server with a focus on participation.
@@ -48,10 +54,27 @@ def main():
         action="store_true",
         help="Do not prompt to confirm the config file",
     )
+    parser.add_argument(
+        "--local",
+        action="store_true",
+        help="Use the local folder even if the module is installed",
+    )
     args = parser.parse_args()
 
+    if args.local or not module_found:
+        module_used = False
+        raveberry_directory = local_raveberry_directory
+        default_config = os.path.join(local_raveberry_directory, "config/raveberry.ini")
+    else:
+        module_used = True
+        raveberry_directory = module_raveberry_directory
+        default_config = os.path.join(
+            module_raveberry_directory, "config/raveberry.ini"
+        )
+
+    default_config = os.path.abspath(default_config)
+    used_config = default_config
     if args.config_file:
-        global used_config
         used_config = os.path.abspath(args.config_file)
 
     os.chdir(raveberry_directory)
@@ -142,6 +165,8 @@ Depending on your configuration, this will alter some system files. (Although ev
 Config-file location: """
         + used_config
     )
+    if not module_used:
+        print("Using folder: " + raveberry_directory)
 
     if not config_confirmed:
         answer = input(

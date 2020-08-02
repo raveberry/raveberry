@@ -1,12 +1,18 @@
 """This module handles the led strip."""
 from typing import Tuple
 
+from django.core.handlers.wsgi import WSGIRequest
 
-class Strip:
+from core.lights.device import Device
+from core.lights.lights import Lights
+
+
+class Strip(Device):
     """This class provides an interface to control the led strip."""
 
-    def __init__(self) -> None:
-        self.brightness = 1.0
+    def __init__(self, lights) -> None:
+        super().__init__(lights, "strip")
+        self.monochrome = True
 
         try:
             import Adafruit_PCA9685

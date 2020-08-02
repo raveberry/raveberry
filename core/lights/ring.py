@@ -1,8 +1,10 @@
 """This module handles the Neopixel led ring."""
 from typing import List, Tuple
 
+from core.lights.device import Device
 
-class Ring:
+
+class Ring(Device):
     """This class provides an interface to control the led ring."""
 
     # LED ring configuration:
@@ -16,9 +18,8 @@ class Ring:
 
     LED_OFFSET = 12  # at which index the zeroth pixel is located.
 
-    def __init__(self) -> None:
-        self.brightness = 1.0
-        self.monochrome = False
+    def __init__(self, lights) -> None:
+        super().__init__(lights, "ring")
 
         try:
             import rpi_ws281x

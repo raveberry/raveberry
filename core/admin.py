@@ -8,7 +8,6 @@ import core.models as models
 for model in [
     models.Tag,
     models.Counter,
-    models.Pad,
     models.QueuedSong,
     models.CurrentSong,
     models.ArchivedSong,

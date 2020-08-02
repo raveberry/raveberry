@@ -11,6 +11,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
+from core import util
 from core.state_handler import Stateful
 
 if TYPE_CHECKING:
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 
 
 class NetworkInfo(Stateful):
-    """This class handles requests on the /pad page."""
+    """This class handles requests on the /network_info page."""
 
     def __init__(self, base: "Base"):
         self.base = base
@@ -26,34 +27,6 @@ class NetworkInfo(Stateful):
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
         return state_dict
-
-    def _get_default_device(self) -> str:
-        output = subprocess.check_output(
-            "ip route show default".split(), universal_newlines=True
-        )
-        words = output.split()
-        device = None
-        for cur, nex in zip(words, words[1:]):
-            if cur == "dev":
-                device = nex
-        if not device:
-            raise ValueError("No default device found")
-        return device
-
-    def _ip_of_device(self, device: str) -> str:
-        output = subprocess.check_output(
-            f"ip -4 a show dev {device}".split(), universal_newlines=True
-        )
-        ip = None
-        for line in output.split("\n"):
-            line = line.strip()
-            if not line.startswith("inet"):
-                continue
-            ip = line.split()[1].split("/")[0]
-            break
-        if not ip:
-            raise ValueError(f"ip not found for {device}")
-        return ip
 
     def _qr_path(self, data) -> str:
         # from https://github.com/lincolnloop/python-qrcode/blob/master/qrcode/console_scripts.py
@@ -87,8 +60,8 @@ class NetworkInfo(Stateful):
         except subprocess.CalledProcessError:
             wifi_active = False
 
-        device = self._get_default_device()
-        ip = self._ip_of_device(device)
+        device = util.get_default_device()
+        ip = util.ip_of_device(device)
 
         if wifi_active:
             try:

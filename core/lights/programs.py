@@ -72,6 +72,10 @@ class LedProgram(VizProgram):
         """Returns the colors for the ring, one rgb tuple for each led."""
         raise NotImplementedError()
 
+    def wled_colors(self) -> List[Tuple[float, float, float]]:
+        """Returns the colors for WLED, one rgb tuple for each led."""
+        raise NotImplementedError()
+
     def strip_color(self) -> Tuple[float, float, float]:
         """Returns the rgb values for the strip."""
         raise NotImplementedError()
@@ -88,6 +92,9 @@ class Disabled(LedProgram, ScreenProgram):
         raise NotImplementedError()
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
+        raise NotImplementedError()
+
+    def wled_colors(self) -> List[Tuple[float, float, float]]:
         raise NotImplementedError()
 
     def strip_color(self) -> Tuple[float, float, float]:
@@ -109,6 +116,9 @@ class Fixed(LedProgram):
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
         return [self.lights.fixed_color for _ in range(self.lights.ring.LED_COUNT)]
+
+    def wled_colors(self) -> List[Tuple[float, float, float]]:
+        return [self.lights.fixed_color for _ in range(self.lights.wled.led_count)]
 
     def strip_color(self) -> Tuple[float, float, float]:
         return self.lights.fixed_color
@@ -132,13 +142,17 @@ class Rainbow(LedProgram):
         self.time_passed %= self.program_duration
         self.current_fraction = self.time_passed / self.program_duration
 
-    def ring_colors(self) -> List[Tuple[float, float, float]]:
+    def _colors(self, led_count) -> List[Tuple[float, float, float]]:
         return [
-            colorsys.hsv_to_rgb(
-                (self.current_fraction + led / self.lights.ring.LED_COUNT) % 1, 1, 1
-            )
-            for led in range(self.lights.ring.LED_COUNT)
+            colorsys.hsv_to_rgb((self.current_fraction + led / led_count) % 1, 1, 1)
+            for led in range(led_count)
         ]
+
+    def ring_colors(self) -> List[Tuple[float, float, float]]:
+        return self._colors(self.lights.ring.LED_COUNT)
+
+    def wled_colors(self) -> List[Tuple[float, float, float]]:
+        return self._colors(self.lights.wled.led_count)
 
     def strip_color(self) -> Tuple[float, float, float]:
         return colorsys.hsv_to_rgb(self.current_fraction, 1, 1)
@@ -157,81 +171,123 @@ class Adaptive(LedProgram):
         # map the leds to rainbow colors from red over green to blue
         # (without pink-> hue values in [0, ⅔]
         # stretch the outer regions (red and blue) and compress the inner region (green)
-        self.led_count = self.lights.ring.LED_COUNT
-        hues = [
+        ring_hues = [
             (2 / 3)
             * 1
-            / (1 + math.e ** (-4 * math.e * (led / (self.led_count - 1) - 0.5)))
-            for led in range(0, self.led_count)
+            / (
+                1
+                + math.e
+                ** (-4 * math.e * (led / (self.lights.ring.LED_COUNT - 1) - 0.5))
+            )
+            for led in range(0, self.lights.ring.LED_COUNT)
         ]
-        self.base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in hues]
+        self.ring_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in ring_hues]
+
+        # WLED
+        # identical to ring, but with a different number of leds
+        wled_hues = [
+            (2 / 3)
+            * 1
+            / (
+                1
+                + math.e
+                ** (-4 * math.e * (led / (self.lights.wled.led_count - 1) - 0.5))
+            )
+            for led in range(0, self.lights.wled.led_count)
+        ]
+        self.wled_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in wled_hues]
 
         # STRIP
         # distribute frequencies over the three leds. Don't use hard cuts, but smooth functions
         # the functions add up to one at every point and each functions integral is a third
+        self.strip_granularity = 16
         self.red_coeffs = [
-            -1 / (1 + math.e ** (-6 * math.e * (led / (self.led_count - 1) - 1 / 3)))
+            -1
+            / (
+                1
+                + math.e ** (-6 * math.e * (led / (self.strip_granularity - 1) - 1 / 3))
+            )
             + 1
-            for led in range(0, self.led_count)
+            for led in range(0, self.strip_granularity)
         ]
         self.blue_coeffs = [
-            1 / (1 + math.e ** (-6 * math.e * (led / (self.led_count - 1) - 2 / 3)))
-            for led in range(0, self.led_count)
+            1
+            / (
+                1
+                + math.e ** (-6 * math.e * (led / (self.strip_granularity - 1) - 2 / 3))
+            )
+            for led in range(0, self.strip_granularity)
         ]
         self.green_coeffs = [
             1 - self.red_coeffs[led] - self.blue_coeffs[led]
-            for led in range(0, self.led_count)
+            for led in range(0, self.strip_granularity)
         ]
-
-        self.current_frame: List[float] = []
 
     def start(self) -> None:
         self.cava.use()
 
     def compute(self) -> None:
+        pass
+
+    def _aggregate_frame(self, led_count) -> List[float]:
         # aggregate the length of cavas frame into a list the length of the number of leds we have.
         # This reduces computation time.
-        values_per_led = len(self.cava.current_frame) // self.led_count
-        self.current_frame = []
-        for led in range(self.led_count):
-            self.current_frame.append(
-                sum(
-                    self.cava.current_frame[
-                        led * values_per_led : (led + 1) * values_per_led
-                    ]
-                )
-                / values_per_led
-            )
+        values_per_led = len(self.cava.current_frame) // led_count
+        left = len(self.cava.current_frame) - values_per_led * led_count
+
+        start = 0
+
+        aggregated = []
+        for led in range(led_count):
+            end = start + values_per_led
+            bin_size = values_per_led
+            if left > 0:
+                end += 1
+                left -= 1
+                bin_size += 1
+
+            aggregated.append(sum(self.cava.current_frame[start:end]) / bin_size)
+            start += values_per_led
+        return aggregated
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
+        aggregated = self._aggregate_frame(self.lights.ring.LED_COUNT)
         colors = [
             tuple(factor * val for val in color)
-            for factor, color in zip(self.current_frame, self.base_colors)
+            for factor, color in zip(aggregated, self.ring_base_colors)
+        ]
+        # https://github.com/python/mypy/issues/5068
+        return cast(List[Tuple[float, float, float]], colors)
+
+    def wled_colors(self) -> List[Tuple[float, float, float]]:
+        aggregated = self._aggregate_frame(self.lights.wled.led_count)
+        colors = [
+            tuple(factor * val for val in color)
+            for factor, color in zip(aggregated, self.wled_base_colors)
         ]
         # https://github.com/python/mypy/issues/5068
         return cast(List[Tuple[float, float, float]], colors)
 
     def strip_color(self) -> Tuple[float, float, float]:
+        aggregated = self._aggregate_frame(self.strip_granularity)
         red = (
-            sum(coeff * val for coeff, val in zip(self.red_coeffs, self.current_frame))
+            sum(coeff * val for coeff, val in zip(self.red_coeffs, aggregated))
             * 3
-            / self.led_count
+            / self.strip_granularity
         )
         green = (
-            sum(
-                coeff * val for coeff, val in zip(self.green_coeffs, self.current_frame)
-            )
+            sum(coeff * val for coeff, val in zip(self.green_coeffs, aggregated))
             * 3
-            / self.led_count
+            / self.strip_granularity
         )
         blue = (
-            sum(coeff * val for coeff, val in zip(self.blue_coeffs, self.current_frame))
+            sum(coeff * val for coeff, val in zip(self.blue_coeffs, aggregated))
             * 3
-            / self.led_count
+            / self.strip_granularity
         )
-        red = min(1, red)
-        green = min(1, green)
-        blue = min(1, blue)
+        red = min(1.0, red)
+        green = min(1.0, green)
+        blue = min(1.0, blue)
         return red, green, blue
 
     def stop(self) -> None:

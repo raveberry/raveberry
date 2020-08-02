@@ -1,5 +1,5 @@
 """This module provides app wide utility functions."""
-
+import subprocess
 from threading import Thread
 from typing import Callable, Any
 
@@ -23,6 +23,44 @@ def background_thread(function: Callable) -> Callable[..., Thread]:
         return thread
 
     return decorator
+
+
+def get_default_device() -> str:
+    output = subprocess.check_output(
+        "ip route show default".split(), universal_newlines=True
+    )
+    words = output.split()
+    device = None
+    for cur, nex in zip(words, words[1:]):
+        if cur == "dev":
+            device = nex
+    if not device:
+        raise ValueError("No default device found")
+    return device
+
+
+def ip_of_device(device: str) -> str:
+    output = subprocess.check_output(
+        f"ip -4 a show dev {device}".split(), universal_newlines=True
+    )
+    ip = None
+    for line in output.split("\n"):
+        line = line.strip()
+        if not line.startswith("inet"):
+            continue
+        ip = line.split()[1].split("/")[0]
+        break
+    if not ip:
+        raise ValueError(f"ip not found for {device}")
+    return ip
+
+
+def broadcast_of_device(device: str) -> str:
+    output = subprocess.check_output(
+        f"ip -o -f inet addr show {device}".split(), universal_newlines=True
+    )
+    words = output.split()
+    return words[5]
 
 
 def csrf_failure(_request: WSGIRequest, reason: str = "") -> HttpResponse:

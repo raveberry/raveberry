@@ -49,11 +49,6 @@
 			{% else %}
 			let ADMIN = false;
 			{% endif %}
-			{% if pad_enabled %}
-			let PAD_ENABLED = true;
-			{% else %}
-			let PAD_ENABLED = false;
-			{% endif %}
 			{% if controls_enabled %}
 			let CONTROLS_ENABLED = true;
 			{% else %}
@@ -109,7 +104,7 @@
 						<i id="dark_theme" class="fas fa-moon icon_disabled"></i>
 					</div>
 				</div>
-				<div class="menu_row"{%if not controls_enabled and not pad_enabled and not is_admin %} style='display: none;'{%endif%}>
+				<div class="menu_row"{%if not controls_enabled and not is_admin%} style='display: none;'{%endif%}>
 					<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
 						<i class="fas fa-sliders-h"></i>
 					</a>

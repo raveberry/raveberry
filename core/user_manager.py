@@ -18,14 +18,7 @@ class UserManager:
     @classmethod
     def has_controls(cls, user: AbstractUser) -> bool:
         """Determines whether the given user is allowed to control playback."""
-        return (
-            user.username == "mod" or user.username == "pad" or user.username == "admin"
-        )
-
-    @classmethod
-    def has_pad(cls, user: AbstractUser) -> bool:
-        """Determines whether the given user is allowed to access the pad."""
-        return user.username == "pad" or user.username == "admin"
+        return user.username == "mod" or user.username == "admin"
 
     @classmethod
     def is_admin(cls, user: AbstractUser) -> bool:

@@ -12,6 +12,13 @@ updateState = function (newState) {
 		$('#ring_options').addClass('disabled');
 		$('#ring_options .list_item').hide();
 	}
+	if (newState.wled_connected) {
+		$('#wled_options').removeClass('disabled');
+		$('#wled_options .list_item').show();
+	} else {
+		$('#wled_options').addClass('disabled');
+		$('#wled_options .list_item').hide();
+	}
 	if (newState.strip_connected) {
 		$('#strip_options').removeClass('disabled');
 		$('#strip_options .list_item').show();
@@ -31,6 +38,12 @@ updateState = function (newState) {
 	$('#ring_program').val(newState.ring_program);
 	$('#ring_brightness').val(newState.ring_brightness);
 	$('#ring_monochrome').prop("checked", newState.ring_monochrome);
+	$('#wled_led_count').val(newState.wled_led_count);
+	$('#wled_ip').val(newState.wled_ip);
+	$('#wled_port').val(newState.wled_port);
+	$('#wled_program').val(newState.wled_program);
+	$('#wled_brightness').val(newState.wled_brightness);
+	$('#wled_monochrome').prop("checked", newState.wled_monochrome);
 	$('#strip_program').val(newState.strip_program);
 	$('#strip_brightness').val(newState.strip_brightness);
 	$('#screen_program').val(newState.screen_program);
@@ -55,6 +68,46 @@ $(document).ready(function() {
 			value: $(this).is(":checked"),
 		});
 	});
+
+
+	$('#wled_led_count').change(function() {
+		$.post(urls['set_wled_led_count'], {
+			value: $(this).val(),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#wled_ip').change(function() {
+		$.post(urls['set_wled_ip'], {
+			value: $(this).val(),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#wled_port').change(function() {
+		$.post(urls['set_wled_port'], {
+			value: $(this).val(),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#wled_program').change(function() {
+		let selected = $("#wled_program option:selected").val();
+		$.post(urls['set_wled_program'], {
+			program: selected,
+		});
+	});
+	$('#wled_brightness').change(function() {
+		$.post(urls['set_wled_brightness'], {
+			value: $(this).val(),
+		});
+	});
+	$('#wled_monochrome').change(function() {
+		$.post(urls['set_wled_monochrome'], {
+			value: $(this).is(":checked"),
+		});
+	});
+
 
 	$('#strip_program').change(function() {
 		let selected = $("#strip_program option:selected").val();
