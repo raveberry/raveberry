@@ -15,7 +15,7 @@ if [ -z "$HOTSPOT" ]; then
 		# In v0.6.10 the option was added to specify the ssid of the hotspot.
 		# Users with a config file from an earlier version do not have this option in their config.
 		# Default to "Raveberry" as the hotspot name.
-		HOTSPOT_SSID=Raveberry
+		export HOTSPOT_SSID=Raveberry
 	fi
 	# remove hotspot specific system scripts
 	rm /usr/local/sbin/raveberry/enable_tunneling
