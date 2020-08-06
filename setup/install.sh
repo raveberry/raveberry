@@ -52,9 +52,9 @@ fi
 if [[ ( ! -z "$LED_VISUALIZATION" || ! -z "$SCREEN_VISUALIZATION" ) ]] && ! type cava > /dev/null 2>&1; then
 	echo "*** Installing cava ***"
 	cd /opt
+	apt-get install -y git libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool m4 automake libtool
 	git clone https://github.com/karlstav/cava
 	cd cava
-	apt-get install -y libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool m4 automake libtool
 	./autogen.sh
 	./configure
 	make
