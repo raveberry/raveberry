@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1 - 2020-08-06
+
+- Added a necessary dependency for cava install.
+- Fixed install when no hotspot ssid is given.
+
 ## 0.7.0 - 2020-08-02
 
 - Add WLED support.
