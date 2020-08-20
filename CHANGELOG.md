@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.2 - 2020-08-20
+
+- Added a "new music only" mode. No suggestions are given and only songs that have never been played are accepted.
+- Added local music as a new platform, so local songs can be searched for.
+- All superusers act as admin, regardless of username.
+
 ## 0.7.1 - 2020-08-06
 
 - Added a necessary dependency for cava install.
