@@ -162,7 +162,7 @@ class YoutubeTests(MusicTest):
         state = self._poll_musiq_state(
             lambda state: len(state["song_queue"]) == 1
             and state["song_queue"][0]["internal_url"],
-            timeout=10,
+            timeout=15,
         )
         old_id = state["song_queue"][0]["id"]
 
@@ -172,10 +172,11 @@ class YoutubeTests(MusicTest):
             lambda state: len(state["song_queue"]) == 1
             and state["song_queue"][0]["internal_url"]
             and state["song_queue"][0]["id"] != old_id,
-            timeout=10,
+            timeout=15,
         )
 
-    # Fore some reason youtube-dl does not download any songs in a radio list.
+    # youtube-dl can not download
+    # https://github.com/ytdl-org/youtube-dl/issues/25465
     # def test_radio(self):
     #     self._post_request(
     #         "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"

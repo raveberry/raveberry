@@ -21,6 +21,7 @@ class Basic:
         self.base = base
 
         self.voting_system = Settings.get_setting("voting_system", "False") == "True"
+        self.new_music_only = Settings.get_setting("new_music_only", "False") == "True"
         self.logging_enabled = Settings.get_setting("logging_enabled", "True") == "True"
         self.online_suggestions = (
             Settings.get_setting("online_suggestions", "True") == "True"
@@ -50,6 +51,13 @@ class Basic:
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="voting_system").update(value=enabled)
         self.voting_system = enabled
+
+    @Settings.option
+    def set_new_music_only(self, request: WSGIRequest) -> None:
+        """Enables or disables the new music only mode based on the given value."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="new_music_only").update(value=enabled)
+        self.new_music_only = enabled
 
     @Settings.option
     def set_logging_enabled(self, request: WSGIRequest) -> None:

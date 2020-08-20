@@ -5,6 +5,7 @@
 <script>
 	urls['state'] = '{% url 'settings_state' %}';
 	urls['set_voting_system'] = '{% url 'set_voting_system' %}';
+    urls['set_new_music_only'] = '{% url 'set_new_music_only' %}';
 	urls['set_logging_enabled'] = '{% url 'set_logging_enabled' %}';
     urls['set_online_suggestions'] = '{% url 'set_online_suggestions' %}';
     urls['set_number_of_suggestions'] = '{% url 'set_number_of_suggestions' %}';
@@ -79,6 +80,10 @@
 		<span class="description">Voting System</span>
 		<input type="checkbox" id="voting_system">
 	</li>
+    <li class="list-group-item list_item">
+        <span class="description">New music only</span>
+        <input type="checkbox" id="new_music_only">
+    </li>
 	<li class="list-group-item list_item">
 		<span class="description">Logging</span>
 		<input type="checkbox" id="logging_enabled">

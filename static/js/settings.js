@@ -6,6 +6,7 @@ specificState = function (newState) {
 	}
 
 	$('#voting_system').prop("checked", newState.voting_system);
+	$('#new_music_only').prop("checked", newState.new_music_only);
 	$('#logging_enabled').prop("checked", newState.logging_enabled);
 	$('#online_suggestions').prop("checked", newState.online_suggestions);
 	$('#number_of_suggestions').val(newState.number_of_suggestions);
@@ -75,6 +76,13 @@ specificState = function (newState) {
 $(document).ready(function() {
 	$('#voting_system').change(function() {
 		$.post(urls['set_voting_system'], {
+			value: $(this).is(":checked"),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#new_music_only').change(function() {
+		$.post(urls['set_new_music_only'], {
 			value: $(this).is(":checked"),
 		}).done(function() {
 			successToast('');

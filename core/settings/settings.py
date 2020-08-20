@@ -57,7 +57,7 @@ class Settings(Stateful):
 
         def _decorator(self: T, request: WSGIRequest) -> HttpResponse:
             # don't allow option changes during alarm
-            if request.user.username != "admin":
+            if not self.base.user_manager.is_admin(request.user):
                 return HttpResponseForbidden()
             response = func(self, request)
             self.base.settings.update_state()
@@ -88,6 +88,7 @@ class Settings(Stateful):
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
         state_dict["voting_system"] = self.basic.voting_system
+        state_dict["new_music_only"] = self.basic.new_music_only
         state_dict["logging_enabled"] = self.basic.logging_enabled
         state_dict["online_suggestions"] = self.basic.online_suggestions
         state_dict["number_of_suggestions"] = self.basic.number_of_suggestions
@@ -164,9 +165,7 @@ class Settings(Stateful):
         if not self.base.user_manager.is_admin(request.user):
             return redirect("login")
         context = self.base.context(request)
-        library_path = os.path.abspath(
-            os.path.join(settings.SONGS_CACHE_DIR, "local_library")
-        )
+        library_path = self.library.get_library_path()
         if os.path.islink(library_path):
             context["local_library"] = os.readlink(library_path)
         else:

@@ -15,15 +15,14 @@ if TYPE_CHECKING:
 class UserManager:
     """This class counts active users and handles permissions."""
 
-    @classmethod
-    def has_controls(cls, user: AbstractUser) -> bool:
+    def has_controls(self, user: AbstractUser) -> bool:
         """Determines whether the given user is allowed to control playback."""
-        return user.username == "mod" or user.username == "admin"
+        return user.username == "mod" or self.is_admin(user)
 
     @classmethod
     def is_admin(cls, user: AbstractUser) -> bool:
         """Determines whether the given user is the admin."""
-        return user.username == "admin"
+        return user.is_superuser
 
     # This dictionary needs to be static so the middleware can access it.
     last_requests: Dict[str, datetime] = {}

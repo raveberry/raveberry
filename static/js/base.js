@@ -171,13 +171,18 @@ function decideScrolling(span, seconds_per_pixel, static_seconds) {
 }
 
 function updatePlatformClasses() {
+	$('#local').removeClass('icon_enabled');
 	$('#youtube').removeClass('icon_enabled');
 	$('#spotify').removeClass('icon_enabled');
 	$('#soundcloud').removeClass('icon_enabled');
+	$('#local').addClass('icon_disabled');
 	$('#youtube').addClass('icon_disabled');
 	$('#spotify').addClass('icon_disabled');
 	$('#soundcloud').addClass('icon_disabled');
-	if (Cookies.get('platform') == 'youtube') {
+	if (Cookies.get('platform') == 'local') {
+		$('#local').removeClass('icon_disabled');
+		$('#local').addClass('icon_enabled');
+	} else if (Cookies.get('platform') == 'youtube') {
 		$('#youtube').removeClass('icon_disabled');
 		$('#youtube').addClass('icon_enabled');
 	} else if (Cookies.get('platform') == 'spotify') {
@@ -390,6 +395,12 @@ $(document).ready(function() {
 		Cookies.set('theme', 'dark', { expires: 7 });
 	});
 
+	$('#local').on('click tap', function() {
+		if ($(this).hasClass('icon_enabled'))
+			return
+		Cookies.set('platform', 'local', { expires: 1 });
+		updatePlatformClasses();
+	});
 	$('#youtube').on('click tap', function() {
 		if ($(this).hasClass('icon_enabled'))
 			return

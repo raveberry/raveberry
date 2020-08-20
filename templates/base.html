@@ -123,6 +123,7 @@
 						<i class="fab fa-github"></i>
 					</a>
 					<div id="platform_controls">
+                        {%if local_enabled%}<i id="local" class="fas fa-hdd icon_disabled"></i>{%endif%}
                         {%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon_disabled"></i>{%endif%}
 						{%if spotify_enabled%}<i id="spotify" class="fab fa-spotify icon_disabled"></i>{%endif%}
                         {%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon_disabled"></i>{%endif%}

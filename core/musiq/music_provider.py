@@ -122,6 +122,17 @@ class MusicProvider:
 
             enqueue_function = fetch_enqueue
 
+        if self.musiq.base.settings.basic.new_music_only and isinstance(
+            self, SongProvider
+        ):
+            try:
+                archived_song = ArchivedSong.objects.get(url=self.get_external_url())
+                if archived_song.counter > 0:
+                    self.error = "Only new music is allowed!"
+                    raise ProviderError()
+            except ArchivedSong.DoesNotExist:
+                pass
+
         self.enqueue_placeholder(manually_requested)
 
         @background_thread

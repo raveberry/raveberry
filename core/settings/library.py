@@ -30,6 +30,10 @@ class Library:
         self.base = base
         self.scan_progress = "0 / 0 / 0"
 
+    @staticmethod
+    def get_library_path() -> str:
+        return os.path.abspath(os.path.join(settings.SONGS_CACHE_DIR, "local_library"))
+
     @Settings.option
     def list_subdirectories(self, request: WSGIRequest) -> HttpResponse:
         """Returns a list of all subdirectories for the given path."""

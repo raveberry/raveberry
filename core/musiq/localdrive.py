@@ -7,8 +7,9 @@ import random
 from typing import Optional, TYPE_CHECKING
 
 from django.http.response import HttpResponse
+from watson import search as watson
 
-from core.models import ArchivedPlaylist, PlaylistEntry
+from core.models import ArchivedPlaylist, PlaylistEntry, ArchivedSong
 from core.musiq import song_utils
 from core.musiq.music_provider import SongProvider, PlaylistProvider
 
@@ -40,16 +41,38 @@ class LocalSongProvider(SongProvider):
         super().__init__(musiq, query, key)
 
     def check_cached(self) -> bool:
+        if not self.id:
+            return False
         return os.path.isfile(self._get_path())
 
     def check_available(self) -> bool:
-        # Local files can not be downloaded from the internet
-        self.error = "Local file missing"
-        return False
+        if not self.id:
+            # use the query to search for the local song
+            # use the same algorithm that also provides the suggestions
+            local_songs = ArchivedSong.objects.filter(url__startswith="local_library/")
+            try:
+                result = watson.search(self.query, models=(local_songs,))[0]
+            except IndexError:
+                self.error = "No local song found"
+                return False
+            url = result.meta["url"]
+            self.id = LocalSongProvider.get_id_from_external_url(url)
+            if not os.path.isfile(self._get_path()):
+                self.error = "No local song found"
+                return False
+            return True
+        else:
+            if not os.path.isfile(self._get_path()):
+                # Local files can not be downloaded from the internet
+                self.error = "Local file missing"
+                return False
+        return True
 
     def make_available(self) -> bool:
-        self.error = "Local file could not be made available"
-        return False
+        if not self.id:
+            self.error = "Local file could not be made available"
+            return False
+        return True
 
     def get_metadata(self) -> "Metadata":
         metadata = song_utils.get_metadata(self._get_path())
@@ -68,8 +91,6 @@ class LocalSongProvider(SongProvider):
         return "file://" + self._get_path()
 
     def get_external_url(self) -> str:
-        if not self.id:
-            raise ValueError()
         return "local_library/" + self.id
 
     def _get_corresponding_playlist(self) -> ArchivedPlaylist:

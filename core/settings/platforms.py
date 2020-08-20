@@ -1,6 +1,7 @@
 """This module handles all settings regarding the music platforms."""
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -9,6 +10,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
 from core.models import Setting
+from core.settings.library import Library
 from core.settings.settings import Settings
 
 if TYPE_CHECKING:
@@ -20,6 +22,8 @@ class Platforms:
 
     def __init__(self, base: "Base"):
         self.base = base
+
+        self.local_enabled = os.path.islink(Library.get_library_path())
 
         self.youtube_enabled = Settings.get_setting("youtube_enabled", "True") == "True"
         self.youtube_suggestions = int(Settings.get_setting("youtube_suggestions", "2"))

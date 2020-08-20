@@ -121,6 +121,11 @@ SETTINGS_URLS = [
         name="set_voting_system",
     ),
     path(
+        "set_new_music_only/",
+        BASE.settings.basic.set_new_music_only,
+        name="set_new_music_only",
+    ),
+    path(
         "set_logging_enabled/",
         BASE.settings.basic.set_logging_enabled,
         name="set_logging_enabled",

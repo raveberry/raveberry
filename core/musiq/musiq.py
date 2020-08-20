@@ -99,41 +99,35 @@ class Musiq(Stateful):
             providers.append(provider)
         else:
             if platform == "local":
-                # Local playlists can only be requested as archived musiq
-                assert not playlist
-                # if a local provider was requested,
-                # use only this one as its only possible source is the database
+                # local music can only be searched explicitly
                 providers.append(local_provider_class(self, query, key))
-            else:
-                if self.base.settings.platforms.soundcloud_enabled:
-                    try:
-                        soundcloud_provider = soundcloud_provider_class(
-                            self, query, key
-                        )
-                        if platform == "soundcloud":
-                            providers.insert(0, soundcloud_provider)
-                        else:
-                            providers.append(soundcloud_provider)
-                    except WrongUrlError:
-                        pass
-                if self.base.settings.platforms.spotify_enabled:
-                    try:
-                        spotify_provider = spotify_provider_class(self, query, key)
-                        if platform == "spotify":
-                            providers.insert(0, spotify_provider)
-                        else:
-                            providers.append(spotify_provider)
-                    except WrongUrlError:
-                        pass
-                if self.base.settings.platforms.youtube_enabled:
-                    try:
-                        youtube_provider = youtube_provider_class(self, query, key)
-                        if platform == "youtube":
-                            providers.insert(0, youtube_provider)
-                        else:
-                            providers.append(youtube_provider)
-                    except WrongUrlError:
-                        pass
+            if self.base.settings.platforms.soundcloud_enabled:
+                try:
+                    soundcloud_provider = soundcloud_provider_class(self, query, key)
+                    if platform == "soundcloud":
+                        providers.insert(0, soundcloud_provider)
+                    else:
+                        providers.append(soundcloud_provider)
+                except WrongUrlError:
+                    pass
+            if self.base.settings.platforms.spotify_enabled:
+                try:
+                    spotify_provider = spotify_provider_class(self, query, key)
+                    if platform == "spotify":
+                        providers.insert(0, spotify_provider)
+                    else:
+                        providers.append(spotify_provider)
+                except WrongUrlError:
+                    pass
+            if self.base.settings.platforms.youtube_enabled:
+                try:
+                    youtube_provider = youtube_provider_class(self, query, key)
+                    if platform == "youtube":
+                        providers.insert(0, youtube_provider)
+                    else:
+                        providers.append(youtube_provider)
+                except WrongUrlError:
+                    pass
 
         if not providers:
             return False, "No backend configured to handle your request.", None
@@ -149,7 +143,8 @@ class Musiq(Stateful):
             except ProviderError:
                 # this provider cannot provide this song, use the next provider
                 # if this was the last provider, show its error
-                if i == len(providers) - 1:
+                # in new music only mode, do not allow fallbacks
+                if self.base.settings.basic.new_music_only or i == len(providers) - 1:
                     return False, provider.error, None
                 fallback = True
         message = provider.ok_message

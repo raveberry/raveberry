@@ -71,6 +71,7 @@ class Base(Stateful):
             "controls_enabled": self.user_manager.has_controls(request.user),
             "is_admin": self.user_manager.is_admin(request.user),
             "apk_link": self._get_apk_link(),
+            "local_enabled": self.settings.platforms.local_enabled,
             "youtube_enabled": self.settings.platforms.youtube_enabled,
             "spotify_enabled": self.settings.platforms.spotify_enabled,
             "soundcloud_enabled": self.settings.platforms.soundcloud_enabled,
@@ -110,10 +111,9 @@ class Base(Stateful):
 
         return HttpResponse()
 
-    @classmethod
-    def logged_in(cls, request: WSGIRequest) -> HttpResponse:
+    def logged_in(self, request: WSGIRequest) -> HttpResponse:
         """This endpoint is visited after every login.
         Redirect the admin to the settings and everybody else to the musiq page."""
-        if request.user.username == "admin":
+        if self.user_manager.is_admin(request.user):
             return HttpResponseRedirect(reverse("settings"))
         return HttpResponseRedirect(reverse("musiq"))

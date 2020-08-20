@@ -115,6 +115,9 @@ class Suggestions:
         query = request.GET["term"]
         suggest_playlist = request.GET["playlist"] == "true"
 
+        if self.musiq.base.settings.basic.new_music_only and not suggest_playlist:
+            return JsonResponse([], safe=False)
+
         results = self._online_suggestions(query, suggest_playlist)
         basic_settings = self.musiq.base.settings.basic
 
