@@ -27,9 +27,13 @@ fi
 if [ ! -z "$LED_VISUALIZATION" ]; then
 	echo "*** Configuring LEDs ***"
 	echo "i2c..."
-	echo "dtparam=i2c_arm=on" >> /boot/config.txt
+	LINE="dtparam=i2c_arm=on"
+	FILE="/boot/config.txt"
+	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	echo "spi..."
-	echo "dtparam=spi=on" >> /boot/config.txt
+	LINE="dtparam=spi=on"
+	FILE="/boot/config.txt"
+	grep -qxF -- "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 	if [[ `cat /proc/device-tree/model` == "Raspberry Pi 4"* ]]; then
 		LINE="core_freq=500"
 		FILE="/boot/config.txt"

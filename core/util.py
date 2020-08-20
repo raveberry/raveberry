@@ -1,7 +1,7 @@
 """This module provides app wide utility functions."""
 import subprocess
 from threading import Thread
-from typing import Callable, Any
+from typing import Callable, Any, List
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import connection
@@ -25,18 +25,18 @@ def background_thread(function: Callable) -> Callable[..., Thread]:
     return decorator
 
 
-def get_default_device() -> str:
+def get_devices() -> List[str]:
     output = subprocess.check_output(
         "ip route show default".split(), universal_newlines=True
     )
     words = output.split()
-    device = None
+    devices = []
     for cur, nex in zip(words, words[1:]):
         if cur == "dev":
-            device = nex
-    if not device:
-        raise ValueError("No default device found")
-    return device
+            devices.append(nex)
+    if not devices:
+        raise ValueError("no devices found")
+    return devices
 
 
 def ip_of_device(device: str) -> str:
