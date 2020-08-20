@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Optional, List, Tuple, TYPE_CHECKING
 from urllib.parse import urlparse
+import re
 
 from django.http.response import HttpResponse
 
@@ -113,13 +114,24 @@ class SpotifySongProvider(SongProvider, Spotify):
                 "search",
                 params={
                     "q": self.query,
-                    "limit": "1",
+                    "limit": "50",
                     "market": "from_token",
                     "type": "track",
                 },
             )
+
             try:
-                result = results["tracks"]["items"][0]
+                result = None
+                # go over all tracks and see if there is any reason to filter
+                # the track out
+                for item in results["tracks"]["items"]:
+                    if self.filter_track(item):
+                        result = item
+                        break
+
+                # if no track made it out of the filter
+                if not result:
+                    return False
             except IndexError:
                 return False
         else:
@@ -129,6 +141,23 @@ class SpotifySongProvider(SongProvider, Spotify):
         self.metadata["artist"] = result["artists"][0]["name"]
         self.metadata["title"] = result["name"]
         self.metadata["duration"] = result["duration_ms"] / 1000
+        return True
+
+    @staticmethod
+    def filter_track(track: hash):
+        # get filter keywords
+        keywords = Setting.objects.get(key="spotify_filter").value
+        keywords = re.split('[,\s]+', keywords.strip())
+
+        try:
+            # if any of the keywords match the track title
+            # we don't want this track
+            for keyword in keywords:
+                if re.search(keyword, track["name"], re.IGNORECASE):
+                    return False
+        except IndexError:
+            return False
+
         return True
 
     def get_metadata(self) -> "Metadata":

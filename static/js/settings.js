@@ -22,6 +22,7 @@ specificState = function (newState) {
 
 	$('#spotify_enabled').prop("checked", newState.spotify_enabled);
 	$('#spotify_suggestions').val(newState.spotify_suggestions);
+	$('#spotify_filter').val(newState.spotify_filter);
 
 	$('#soundcloud_enabled').prop("checked", newState.soundcloud_enabled);
 	$('#soundcloud_suggestions').val(newState.soundcloud_suggestions);
@@ -179,6 +180,13 @@ $(document).ready(function() {
 		$.post(urls['set_spotify_suggestions'], {
 			value: $(this).val(),
 		}).done(function(response) {
+			successToast(response);
+		});
+	});
+	$('#spotify_filter').change(function () {
+		$.post(urls['set_spotify_filter'], {
+			value: $(this).val(),
+		}).done(function (response) {
 			successToast(response);
 		});
 	});
