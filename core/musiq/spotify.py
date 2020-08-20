@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Optional, List, Tuple, TYPE_CHECKING
 from urllib.parse import urlparse
-import re
 
 from django.http.response import HttpResponse
 
 from core.models import Setting
 from core.musiq import song_utils
-from core.musiq.music_provider import SongProvider, PlaylistProvider
+from core.musiq.song_provider import SongProvider
+from core.musiq.playlist_provider import PlaylistProvider
 from core.musiq.spotify_web import OAuthClient
 
 if TYPE_CHECKING:
@@ -120,19 +120,15 @@ class SpotifySongProvider(SongProvider, Spotify):
                 },
             )
 
-            try:
-                result = None
-                # go over all tracks and see if there is any reason to filter
-                # the track out
-                for item in results["tracks"]["items"]:
-                    if self.filter_track(item):
-                        result = item
-                        break
-
-                # if no track made it out of the filter
-                if not result:
-                    return False
-            except IndexError:
+            # apply the filterlist from the settings
+            for item in results["tracks"]["items"]:
+                if not song_utils.contains_keywords(
+                    item["name"], self.musiq.base.settings.basic.forbidden_keywords
+                ):
+                    result = item
+                    break
+            else:
+                # all tracks got filtered
                 return False
         else:
             result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"},)
@@ -141,23 +137,6 @@ class SpotifySongProvider(SongProvider, Spotify):
         self.metadata["artist"] = result["artists"][0]["name"]
         self.metadata["title"] = result["name"]
         self.metadata["duration"] = result["duration_ms"] / 1000
-        return True
-
-    @staticmethod
-    def filter_track(track: hash):
-        # get filter keywords
-        keywords = Setting.objects.get(key="spotify_filter").value
-        keywords = re.split('[,\s]+', keywords.strip())
-
-        try:
-            # if any of the keywords match the track title
-            # we don't want this track
-            for keyword in keywords:
-                if re.search(keyword, track["name"], re.IGNORECASE):
-                    return False
-        except IndexError:
-            return False
-
         return True
 
     def get_metadata(self) -> "Metadata":

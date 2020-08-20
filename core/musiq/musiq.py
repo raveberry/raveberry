@@ -19,12 +19,12 @@ from core.models import QueuedSong
 from core.musiq.controller import Controller
 from core.musiq.localdrive import LocalSongProvider
 from core.musiq.music_provider import (
-    SongProvider,
-    PlaylistProvider,
     MusicProvider,
     WrongUrlError,
     ProviderError,
 )
+from core.musiq.song_provider import SongProvider
+from core.musiq.playlist_provider import PlaylistProvider
 from core.musiq.playback import Playback
 from core.musiq.soundcloud import SoundcloudSongProvider, SoundcloudPlaylistProvider
 from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
@@ -235,6 +235,8 @@ class Musiq(Stateful):
     def index(self, request: WSGIRequest) -> HttpResponse:
         """Renders the /musiq page."""
         context = self.base.context(request)
+        context["additional_keywords"] = self.base.settings.basic.additional_keywords
+        context["forbidden_keywords"] = self.base.settings.basic.forbidden_keywords
         return render(request, "musiq.html", context)
 
     def state_dict(self) -> Dict[str, Any]:

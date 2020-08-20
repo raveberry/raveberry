@@ -89,6 +89,16 @@ span.clearable input {
 	padding-right: 5px;
 	text-align: center;
 }
+.additional_keywords {
+	padding-left: 5px;
+	color: theme-color("silent-text");
+	font-style: italic;
+}
+.forbidden_keywords {
+	padding-left: 5px;
+	color: theme-color("silent-text");
+	text-decoration: line-through;
+}
 
 // current song
 #current_song {

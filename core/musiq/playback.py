@@ -24,7 +24,7 @@ from mopidyapi.client import MopidyAPI
 from mopidyapi.exceptions import MopidyError
 
 import core.models as models
-from core.musiq.music_provider import SongProvider
+from core.musiq.song_provider import SongProvider
 from core.util import background_thread
 
 if TYPE_CHECKING:

@@ -15,6 +15,8 @@ specificState = function (newState) {
 	$('#downvotes_to_kick').val(newState.downvotes_to_kick);
 	$('#max_download_size').val(newState.max_download_size);
 	$('#max_playlist_items').val(newState.max_playlist_items);
+	$('#additional_keywords').val(newState.additional_keywords);
+	$('#forbidden_keywords').val(newState.forbidden_keywords);
 	$('#has_internet').prop("checked", newState.has_internet);
 
 	$('#youtube_enabled').prop("checked", newState.youtube_enabled);
@@ -22,7 +24,6 @@ specificState = function (newState) {
 
 	$('#spotify_enabled').prop("checked", newState.spotify_enabled);
 	$('#spotify_suggestions').val(newState.spotify_suggestions);
-	$('#spotify_filter').val(newState.spotify_filter);
 
 	$('#soundcloud_enabled').prop("checked", newState.soundcloud_enabled);
 	$('#soundcloud_suggestions').val(newState.soundcloud_suggestions);
@@ -134,11 +135,29 @@ $(document).ready(function() {
 	$('#max_download_size').change(function() {
 		$.post(urls['set_max_download_size'], {
 			value: $(this).val(),
+		}).done(function() {
+			successToast('');
 		});
 	});
 	$('#max_playlist_items').change(function() {
 		$.post(urls['set_max_playlist_items'], {
 			value: $(this).val(),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#additional_keywords').change(function() {
+		$.post(urls['set_additional_keywords'], {
+			value: $(this).val(),
+		}).done(function() {
+			successToast('');
+		});
+	});
+	$('#forbidden_keywords').change(function() {
+		$.post(urls['set_forbidden_keywords'], {
+			value: $(this).val(),
+		}).done(function() {
+			successToast('');
 		});
 	});
 	$('#check_internet').on('click tap', function() {
@@ -180,13 +199,6 @@ $(document).ready(function() {
 		$.post(urls['set_spotify_suggestions'], {
 			value: $(this).val(),
 		}).done(function(response) {
-			successToast(response);
-		});
-	});
-	$('#spotify_filter').change(function () {
-		$.post(urls['set_spotify_filter'], {
-			value: $(this).val(),
-		}).done(function (response) {
 			successToast(response);
 		});
 	});

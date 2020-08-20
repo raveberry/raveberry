@@ -14,6 +14,8 @@
 	urls['set_downvotes_to_kick'] = '{% url 'set_downvotes_to_kick' %}';
 	urls['set_max_download_size'] = '{% url 'set_max_download_size' %}';
 	urls['set_max_playlist_items'] = '{% url 'set_max_playlist_items' %}';
+    urls['set_additional_keywords'] = '{% url 'set_additional_keywords' %}';
+    urls['set_forbidden_keywords'] = '{% url 'set_forbidden_keywords' %}';
 	urls['check_internet'] = '{% url 'check_internet' %}';
 	urls['update_user_count'] = '{% url 'update_user_count' %}';
 
@@ -23,7 +25,6 @@
     urls['set_spotify_enabled'] = '{% url 'set_spotify_enabled' %}';
 	urls['set_spotify_credentials'] = '{% url 'set_spotify_credentials' %}';
     urls['set_spotify_suggestions'] = '{% url 'set_spotify_suggestions' %}';
-	urls['set_spotify_filter'] = '{% url 'set_spotify_filter' %}';
 
     urls['set_soundcloud_enabled'] = '{% url 'set_soundcloud_enabled' %}';
     urls['set_soundcloud_credentials'] = '{% url 'set_soundcloud_credentials' %}';
@@ -117,6 +118,14 @@
 		<span class="description">Max Songs Enqueued per Playlist</span>
 		<input id="max_playlist_items"/>
 	</li>
+    <li class="list-group-item list_item">
+        <span class="description">Add this to every query</span>
+        <input id="additional_keywords"/>
+    </li>
+    <li class="list-group-item list_item">
+        <span class="description">Do not enqueue Songs containing these Words (Only Spotify and Soundcloud)</span>
+        <input id="forbidden_keywords"/>
+    </li>
 	<li class="list-group-item list_item">
 		<span class="description">Internet Connection</span>
 		<div>
@@ -158,10 +167,6 @@
         <span class="description">Number of online suggestions</span>
         <input id="spotify_suggestions"/>
     </li>
-	<li class="list-group-item list_item">
-		<span class="description">Keywords to filter out of results</span>
-		<input id="spotify_filter"/>
-	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Username</span>
 		<input id="spotify_username"/>

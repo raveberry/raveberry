@@ -1,6 +1,7 @@
 """This module provides some utility functions concerning songs."""
 
 import os
+import re
 from typing import TYPE_CHECKING
 
 import mutagen.easymp4
@@ -102,3 +103,14 @@ def get_metadata(path: str) -> "Metadata":
         metadata["duration"] = -1
 
     return metadata
+
+
+def contains_keywords(title: str, keywords: str) -> bool:
+    words = re.split(r"[,\s]+", keywords.strip())
+    # delete empty matches
+    words = [word for word in words if word]
+
+    for word in words:
+        if re.search(word, title, re.IGNORECASE):
+            return True
+    return False

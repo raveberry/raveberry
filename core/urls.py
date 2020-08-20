@@ -156,6 +156,16 @@ SETTINGS_URLS = [
         name="set_downvotes_to_kick",
     ),
     path(
+        "set_additional_keywords/",
+        BASE.settings.basic.set_additional_keywords,
+        name="set_additional_keywords",
+    ),
+    path(
+        "set_forbidden_keywords/",
+        BASE.settings.basic.set_forbidden_keywords,
+        name="set_forbidden_keywords",
+    ),
+    path(
         "set_max_download_size/",
         BASE.settings.basic.set_max_download_size,
         name="set_max_download_size",
@@ -190,11 +200,6 @@ SETTINGS_URLS = [
         "set_spotify_suggestions/",
         BASE.settings.platforms.set_spotify_suggestions,
         name="set_spotify_suggestions",
-    ),
-    path(
-        "set_spotify_filter/",
-        BASE.settings.platforms.set_spotify_filter,
-        name="set_spotify_filter",
     ),
     path(
         "set_spotify_credentials/",

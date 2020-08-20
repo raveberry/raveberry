@@ -58,9 +58,20 @@ $(document).ready(function() {
 		})
 			.data("ui-autocomplete")._renderItem = function (ul, item) {
 				if (item.type == 'search') {
+				    let term = $('<span>').text(item.label);
+					let additional_keywords = $('<span>')
+						.addClass('additional_keywords')
+						.text(ADDITIONAL_KEYWORDS);
+					let forbidden_keywords = $('<span>')
+						.addClass('forbidden_keywords')
+						.text(FORBIDDEN_KEYWORDS.split(/[\s,]+/).join(" "));
 					let suggestion_div = $('<div>')
-						.text(item.label)
-						.prepend('<i class="fas fa-search suggestion_type"></i>');
+						.append('<i class="fas fa-search suggestion_type"></i>')
+						.append(term)
+						.append(additional_keywords);
+					if (Cookies.get('platform') == 'spotify' || Cookies.get('platform') == 'soundcloud') {
+						suggestion_div.append(forbidden_keywords);
+					}
 					return $('<li class="ui-menu-item-with-icon"></li>')
 						.data("item.autocomplete", item)
 						.append(suggestion_div)

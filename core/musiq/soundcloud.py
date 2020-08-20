@@ -9,7 +9,9 @@ import soundcloud
 from bs4 import BeautifulSoup
 from django.http.response import HttpResponse
 
-from core.musiq.music_provider import SongProvider, PlaylistProvider
+from core.musiq import song_utils
+from core.musiq.song_provider import SongProvider
+from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
@@ -79,10 +81,17 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
     def gather_metadata(self) -> bool:
         """Fetches metadata for this song's uri from Soundcloud."""
         if not self.id:
-            results = self.web_client.get("/tracks", q=self.query, limit=1)
-            try:
-                result = results[0]
-            except IndexError:
+            results = self.web_client.get("/tracks", q=self.query, limit=20)
+
+            # apply the filterlist from the settings
+            for item in results:
+                if not song_utils.contains_keywords(
+                    item.title, self.musiq.base.settings.basic.forbidden_keywords
+                ):
+                    result = item
+                    break
+            else:
+                # all tracks got filtered
                 return False
             self.id = result.id
         else:

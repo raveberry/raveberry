@@ -13,7 +13,7 @@ from watson import search as watson
 
 import core.musiq.song_utils as song_utils
 from core.models import ArchivedPlaylist, ArchivedSong
-from core.musiq.music_provider import SongProvider
+from core.musiq.song_provider import SongProvider
 from core.musiq.soundcloud import Soundcloud
 from core.musiq.spotify import Spotify
 from core.musiq.youtube import Youtube

@@ -96,6 +96,8 @@ class Settings(Stateful):
         state_dict["alarm_probability"] = self.basic.alarm_probability
         state_dict["downvotes_to_kick"] = self.basic.downvotes_to_kick
         state_dict["max_download_size"] = self.basic.max_download_size
+        state_dict["additional_keywords"] = self.basic.additional_keywords
+        state_dict["forbidden_keywords"] = self.basic.forbidden_keywords
         state_dict["max_playlist_items"] = self.basic.max_playlist_items
         state_dict["has_internet"] = self.basic.has_internet
 
@@ -104,7 +106,6 @@ class Settings(Stateful):
 
         state_dict["spotify_enabled"] = self.platforms.spotify_enabled
         state_dict["spotify_suggestions"] = self.platforms.spotify_suggestions
-        state_dict["spotify_filter"] = self.platforms.spotify_filter
 
         state_dict["soundcloud_enabled"] = self.platforms.soundcloud_enabled
         state_dict["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions

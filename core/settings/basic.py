@@ -34,6 +34,8 @@ class Basic:
         self.downvotes_to_kick = int(Settings.get_setting("downvotes_to_kick", "2"))
         self.max_download_size = int(Settings.get_setting("max_download_size", "10"))
         self.max_playlist_items = int(Settings.get_setting("max_playlist_items", "10"))
+        self.additional_keywords = Settings.get_setting("additional_keywords", "")
+        self.forbidden_keywords = Settings.get_setting("forbidden_keywords", "")
         self._check_internet()
 
     def _check_internet(self) -> None:
@@ -114,6 +116,20 @@ class Basic:
         value = int(request.POST.get("value"))  # type: ignore
         Setting.objects.filter(key="max_playlist_items").update(value=value)
         self.max_playlist_items = value
+
+    @Settings.option
+    def set_additional_keywords(self, request: WSGIRequest):
+        """Sets the keywords to filter out of results."""
+        value = request.POST.get("value")
+        Setting.objects.filter(key="additional_keywords").update(value=value)
+        self.additional_keywords = value
+
+    @Settings.option
+    def set_forbidden_keywords(self, request: WSGIRequest):
+        """Sets the keywords to filter out of results."""
+        value = request.POST.get("value")
+        Setting.objects.filter(key="forbidden_keywords").update(value=value)
+        self.forbidden_keywords = value
 
     @Settings.option
     def check_internet(self, _request: WSGIRequest) -> None:

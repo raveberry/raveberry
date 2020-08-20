@@ -27,7 +27,8 @@ from django.conf import settings
 from django.http.response import HttpResponse
 
 import core.musiq.song_utils as song_utils
-from core.musiq.music_provider import SongProvider, PlaylistProvider
+from core.musiq.song_provider import SongProvider
+from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq

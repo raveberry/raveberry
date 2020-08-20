@@ -11,7 +11,8 @@ from watson import search as watson
 
 from core.models import ArchivedPlaylist, PlaylistEntry, ArchivedSong
 from core.musiq import song_utils
-from core.musiq.music_provider import SongProvider, PlaylistProvider
+from core.musiq.song_provider import SongProvider
+from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
