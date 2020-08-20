@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3 - 2020-08-20
+
+- Added two new options in the settings that modify search behavior.
+	- Additional keywords can be specified that are added to every query.
+	- A list of keywords can be given that will be used to filter results. No song containing any of these words will be enqueued (Only for Spotify and Soundcloud).
+
 ## 0.7.2 - 2020-08-20
 
 - Added a "new music only" mode. No suggestions are given and only songs that have never been played are accepted.
