@@ -73,6 +73,12 @@ specificState = function (newState) {
 			$('.remote-functionality').attr('disabled-note', 'Please configure remote during installation to use this feature.');
 		}
 	}
+
+	if (Cookies.get("ignore_updates") === undefined) {
+		$('#update_information_policy option[value=yes]').attr('selected','selected');
+	} else {
+		$('#update_information_policy option[value=no]').attr('selected','selected');
+	}
 }
 
 $(document).ready(function() {
@@ -512,6 +518,24 @@ $(document).ready(function() {
 			errorToast(response.responseText);
 		});
 	});
+	$('#update_information_policy').on('change', function() {
+		if (this.value == 'yes') {
+		    Cookies.remove('ignore_updates');
+		} else {
+			Cookies.set('ignore_updates', '', {expires: 365});
+		}
+	});
+	$('#open_changelog').on('click tap', function() {
+		$.get(urls['get_changelog']).done(function(response) {
+			$('#changelog').html(marked(response));
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+		$('#changelog_modal').modal('show');
+	});
+	$('#changelog_ok').on('click tap', function() {
+		$('#changelog_modal').modal('hide');
+	})
 	$('#open_upgrade_dialog').on('click tap', function() {
 		$.get(urls['get_upgrade_config']).done(function(response) {
 			$('#upgrade_config').text(response);
@@ -528,4 +552,24 @@ $(document).ready(function() {
 			errorToast(response.responseText);
 		});
 	});
+
+	let fragment = window.location.hash.substr(1);
+	if (fragment == "show_changelog") {
+		$.get(urls['get_changelog']).done(function(response) {
+			$('#changelog').html(marked(response));
+			$.each(response.split('\n'),(_, line) => {
+				let tokens = line.split(/\s+/);
+				if (tokens[0] == '##') {
+					let version = tokens[1];
+					$('#latest_version').text(version);
+					return false;
+				}
+			});
+		})
+		let scrollDuration = 1000;
+		$("html, body").animate({ scrollTop: $("#about").offset().top }, scrollDuration);
+		setTimeout(function() {
+			$('#changelog_modal').modal('show');
+		}, scrollDuration);
+	}
 });

@@ -422,4 +422,26 @@ $(document).ready(function() {
 
 	// request initial state update
 	getState();
+
+	$('#goto_update').on('click tap', function() {
+		location.href='/settings/#show_changelog';
+	})
+	$('#remind_updates').on('click tap', function() {
+		let tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+		Cookies.set('ignore_updates', '', {expires: tomorrow});
+		$('#update-banner').slideUp('fast');
+	})
+	$('#ignore_updates').on('click tap', function() {
+		Cookies.set('ignore_updates', '', {expires: 365});
+		$('#update-banner').slideUp('fast');
+	})
+	if (ADMIN) {
+		if (Cookies.get("ignore_updates") === undefined) {
+			$.get(urls['upgrade_available']).done(function(response) {
+				if (response) {
+					$('#update-banner').slideDown('fast');
+				}
+			})
+		}
+	}
 });

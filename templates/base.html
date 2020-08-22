@@ -22,6 +22,7 @@
 		<script src="{% static "libs/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js" %}"></script>
 		<script src="{% static "libs/jquerykeyframes/dist/jquery.keyframes.js" %}"></script>
 		<script src="{% static "libs/js-cookie/src/js.cookie.js" %}"></script>
+        <script src="{% static "libs/marked/marked.min.js" %}"></script>
 		<script src="{% static "libs/reconnecting-websocket/dist/reconnecting-websocket-iife.min.js" %}"></script>
 		{% endcompress %}
 		{% compress js inline %}
@@ -67,14 +68,21 @@
 		<link id="favicon" rel="shortcut icon" type="image/png" href=""/>
 	</head>
 	<body>
-		<div id="disconnected-banner" class="connection-banner">
+		<div id="disconnected-banner" class="information-banner">
 			<i class="fas fa-exclamation-circle"></i>
 			disconnected, trying to reconnect...
 		</div>
-		<div id="reconnected-banner" class="connection-banner">
+		<div id="reconnected-banner" class="information-banner">
 			<i class="fas fa-check-circle"></i>
 			reconnected!
 		</div>
+        <div id="update-banner" class="information-banner">
+            <i class="fas fa-info-circle"></i>
+            New update available! <br/>
+            <div id="update_banner_buttons">
+                <span id="goto_update">show me</span> <span id="remind_updates">remind me later</span> <span id="ignore_updates">don't ask again</span>
+            </div>
+        </div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
 				<img id="navbar_icon" height="30" alt="" onerror="this.style.visibility='hidden'" src="{% static "graphics/raveberry_normal.png" %}">

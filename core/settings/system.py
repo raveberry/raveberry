@@ -9,6 +9,7 @@ import subprocess
 import time
 from typing import Dict, TYPE_CHECKING, Tuple, Optional, List
 
+import requests
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -249,8 +250,8 @@ class System:
         """Shuts down the system."""
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/shutdown_system"])
 
-    @Settings.option
-    def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:
+    @classmethod
+    def _fetch_latest_version(cls) -> Optional[str]:
         """Looks up the newest version number from PyPi and returns it."""
         try:
             subprocess.run(
@@ -267,8 +268,32 @@ class System:
                     versions = [re.sub(r"[^0-9.]", "", token) for token in line.split()]
                     versions = [version for version in versions if version]
                     latest_version = versions[-1]
-                    return HttpResponse(latest_version)
-        return HttpResponseBadRequest("Could not determine latest version.")
+                    return latest_version
+        return None
+
+    @Settings.option
+    def upgrade_available(self, _request: WSGIRequest) -> HttpResponse:
+        latest_version = self._fetch_latest_version()
+        current_version = settings.VERSION
+        if latest_version != current_version:
+            return HttpResponse(True)
+        return HttpResponse(False)
+
+    @Settings.option
+    def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:
+        """Returns the newest version number of Raveberry from PyPi."""
+        latest_version = self._fetch_latest_version()
+        if latest_version is None:
+            return HttpResponseBadRequest("Could not determine latest version.")
+        return HttpResponse(latest_version)
+
+    @Settings.option
+    def get_changelog(self, _request: WSGIRequest) -> HttpResponse:
+        """Retreives the changelog and returns it."""
+        changelog = requests.get(
+            "https://raw.githubusercontent.com/raveberry/raveberry/master/CHANGELOG.md"
+        ).text
+        return HttpResponse(changelog)
 
     @Settings.option
     def get_upgrade_config(self, _request: WSGIRequest) -> HttpResponse:

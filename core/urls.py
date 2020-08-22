@@ -325,10 +325,16 @@ SETTINGS_URLS = [
         name="get_latest_version",
     ),
     path(
+        "upgrade_available/",
+        BASE.settings.system.upgrade_available,
+        name="upgrade_available",
+    ),
+    path(
         "get_upgrade_config/",
         BASE.settings.system.get_upgrade_config,
         name="get_upgrade_config",
     ),
+    path("get_changelog/", BASE.settings.system.get_changelog, name="get_changelog",),
     path(
         "upgrade_raveberry/",
         BASE.settings.system.upgrade_raveberry,

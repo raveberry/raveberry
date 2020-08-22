@@ -67,7 +67,9 @@
 	urls['shutdown_system'] = '{% url 'shutdown_system' %}';
 
     urls['get_latest_version'] = '{% url 'get_latest_version' %}';
+    urls['upgrade_available'] = '{% url 'upgrade_available' %}';
     urls['get_upgrade_config'] = '{% url 'get_upgrade_config' %}';
+    urls['get_changelog'] = '{% url 'get_changelog' %}';
     urls['upgrade_raveberry'] = '{% url 'upgrade_raveberry' %}';
 </script>
 <script src="{% static "js/settings.js" %}"></script>
@@ -440,7 +442,7 @@
 </ul>
 
 <ul class="list-group">
-    <li class="list-group-item list_header">
+    <li class="list-group-item list_header" id="about">
         About
     </li>
     <li class="list-group-item list_item">
@@ -454,11 +456,33 @@
             <i class="fas fa-sync" id="get_latest_version"></i>
         </div>
     </li>
+    <li class="list-group-item list_item">
+        <span class="description">Update Information Policy</span>
+        <select id="update_information_policy">
+            <option value="yes">Remind me</option>
+            <option value="no">Don't remind me</option>
+        </select>
+    </li>
+    <li class="list-group-item list_item system-install-only">
+        <span class="description">Changelog</span>
+        <button class="btn" id="open_changelog">Show</button>
+    </li>
     <li class="list-group-item list_item system-install-only">
         <span class="description">Upgrade Raveberry</span>
         <button class="btn" id="open_upgrade_dialog">Upgrade</button>
     </li>
 </ul>
+
+<div id="changelog_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="changelog">
+                Fetching changelog...
+            </div>
+            <button class="btn" id="changelog_ok">Ok</button>
+        </div>
+    </div>
+</div>
 
 <div id="upgrade_modal" class="modal fade" role="dialog">
     <div class="modal-dialog">

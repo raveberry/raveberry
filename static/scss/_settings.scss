@@ -12,6 +12,10 @@
 	margin-top: 20px;
 	margin-bottom: 20px;
 }
+#changelog_modal .modal-content {
+	display: flex;
+	flex-direction: column;
+}
 #upgrade_modal .modal-content {
 	display: flex;
 	flex-direction: column;

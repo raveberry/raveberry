@@ -8,6 +8,7 @@
     "jquery-ui-touch-punch": "^0.2.3",
     "jquerykeyframes": "^1.0.7",
     "js-cookie": "^2.2.0",
+	"marked": "^1.1.1",
     "reconnecting-websocket": "^4.1.10"
   }
 }

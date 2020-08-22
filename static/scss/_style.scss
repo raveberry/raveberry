@@ -37,8 +37,8 @@ body {
 	color: theme-color("normal-text");
 }
 
-// connection information banner
-.connection-banner {
+// information banner
+.information-banner {
 	position: fixed;
 	top: 0;
 	right: 0;
@@ -48,7 +48,7 @@ body {
 	text-align: center;
 	display: none;
 }
-.connection-banner > i {
+.information-banner > i {
 	color: theme-color("elevated-background");
 }
 #disconnected-banner {
@@ -56,6 +56,16 @@ body {
 }
 #reconnected-banner {
 	background-color: theme-color("green");
+}
+#update-banner {
+	background-color: theme-color("yellow");
+}
+#update_banner_buttons > span {
+	display: inline-block;
+	width: 30%;
+	text-align: center;
+	text-decoration: underline;
+	cursor: pointer;
 }
 
 // toasts
