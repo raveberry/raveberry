@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5 - 2020-09-20
+
+- IP of the hotspot is shown in `/network_info`.
+
 ## 0.7.4 - 2020-09-20
 
 - The admin is informed about new versions.
