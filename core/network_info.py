@@ -76,7 +76,7 @@ class NetworkInfo(Stateful):
                 )
                 context["hotspot_url"] = url
                 context["hotspot_url_qr"] = self._qr_path(url)
-                context["ip"] = ip
+                context["hotspot_ip"] = ip
         except FileNotFoundError:
             # hotspot was not configured
             pass
