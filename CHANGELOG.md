@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4 - 2020-09-20
+
+- The admin is informed about new versions.
+- `/network_info` now shows info for both networks if the hotspot is enabled.
+- The button that toggles repeat mode is not hidden in voting mode.
+
 ## 0.7.3 - 2020-08-20
 
 - Added two new options in the settings that modify search behavior.
