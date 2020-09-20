@@ -527,7 +527,8 @@ $(document).ready(function() {
 	});
 	$('#open_changelog').on('click tap', function() {
 		$.get(urls['get_changelog']).done(function(response) {
-			$('#changelog').html(marked(response));
+			let md = window.markdownit();
+			$('#changelog').html(md.render(response));
 		}).fail(function(response) {
 			errorToast(response.responseText);
 		});
@@ -555,8 +556,10 @@ $(document).ready(function() {
 
 	let fragment = window.location.hash.substr(1);
 	if (fragment == "show_changelog") {
+		$('#update-banner').remove();
 		$.get(urls['get_changelog']).done(function(response) {
-			$('#changelog').html(marked(response));
+			let md = window.markdownit();
+			$('#changelog').html(md.render(response));
 			$.each(response.split('\n'),(_, line) => {
 				let tokens = line.split(/\s+/);
 				if (tokens[0] == '##') {

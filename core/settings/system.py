@@ -12,7 +12,7 @@ from typing import Dict, TYPE_CHECKING, Tuple, Optional, List
 import requests
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.http import HttpResponseBadRequest
 
 from core.settings.settings import Settings
@@ -276,8 +276,8 @@ class System:
         latest_version = self._fetch_latest_version()
         current_version = settings.VERSION
         if latest_version != current_version:
-            return HttpResponse(True)
-        return HttpResponse(False)
+            return JsonResponse(True, safe=False)
+        return JsonResponse(False, safe=False)
 
     @Settings.option
     def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:

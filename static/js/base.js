@@ -424,7 +424,10 @@ $(document).ready(function() {
 	getState();
 
 	$('#goto_update').on('click tap', function() {
-		location.href='/settings/#show_changelog';
+		location.href = '/settings/#show_changelog';
+		if (location.pathname.endsWith('/settings/')) {
+			location.reload();
+		}
 	})
 	$('#remind_updates').on('click tap', function() {
 		let tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
