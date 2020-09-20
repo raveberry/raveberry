@@ -11,7 +11,7 @@ KEEP=$(cat <<-EOF
 	js-cookie/src/js.cookie.js$
 	reconnecting-websocket/dist/reconnecting-websocket-iife.min.js$
 	bootstrap/scss/.*
-	marked/marked.min.js$
+	markdown-it/dist/markdown-it.min.js$
 	@fortawesome/fontawesome-free/webfonts/.*.woff2
 	@fortawesome/fontawesome-free/scss/.*
 EOF
