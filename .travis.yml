@@ -25,6 +25,8 @@ before_deploy:
   - mv `\ls -A1 | grep -v -E '(setup.py|MANIFEST.in|raveberry)'` raveberry
 deploy:
   provider: pypi
+  # https://travis-ci.community/t/cant-deploy-to-pypi-anymore-pkg-resources-contextualversionconflict-importlib-metadata-0-18/10494/22
+  edge: True
   user: __token__
   password:
     secure: "PeaYlNTZGABTbpTN9cjoNr+JEjq1KGk6S4GmgBelwVhfM88WuZi0DzLOVpLbWVIR77szSqGMNJN+P5WSdf75YsfWcDs9h4+fn9oj13OiZIYNEEXPpu3QC8Dcqe4t/XRc11pE79CXSkz3pvCUdwrSHt8RKJTypGpu1n5Pgt7YDoRzcHwzOQmLhm9gx6gJ6f8bKoEdbIoNtvNMRw1GM/SGPh+v5lkodfwEAQynWruqSR6HaYuvWqefwHouvVaSU5htItsVhU4h0nXxpQ5kMFZPmyX5/eb0R0z+ZxaYT7DdA6WquFPn5mp+/qtikd1xZXzRTifr5+bvV6yPIYYzvfb7kIYwnoGaFbYNazJ+M0mEWXjV5D/rcPT1H5tJU6gIrLXBw0BLReBfzNy9T8CnD7SG88dOH2JCpRBwi/L1XvBuAQqFSzmtlvTN+rYvowu8F8cwnLB6hsMqVILhqtOYsEEtgcjzR6Y05c7lotzF2Ek6tr75F4FclzB5SkPkT7cZg7w35laix5XG1yUgYDMGhW3N7SMtYlAy+rV8AR+6CmsHdO2PBgHXeB+xlN1fGMEfCt3o2XSUwW+CTsi8jutsqTC36eCXot+hfNRp/nTyZjh2EyvopdblPfFeH1Q4ZY4uTMEWCZ1hPgKaXosYykz9MFHlvNFB7RiP1WUlTVdEpX7qgmQ="

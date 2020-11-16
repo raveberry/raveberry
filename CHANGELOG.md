@@ -3,6 +3,7 @@
 ## 0.7.6 - 2020-11-16
 
 - Stick to django channels 2.2
+- youtube-dl struggles with playlist downloading
 
 ## 0.7.5 - 2020-09-20
 
