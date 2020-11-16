@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.6 - 2020-11-16
+
+- Stick to django channels 2.2
+
 ## 0.7.5 - 2020-09-20
 
 - IP of the hotspot is shown in `/network_info`.
