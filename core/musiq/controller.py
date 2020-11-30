@@ -15,6 +15,7 @@ from django.db import transaction
 from django.db.models import F
 from django.http import HttpResponseForbidden
 from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
 
 import core.models as models
 from core.models import Setting
@@ -284,6 +285,7 @@ class Controller:
         return HttpResponse()
 
     @control
+    @csrf_exempt
     def vote_up(self, request: WSGIRequest) -> HttpResponse:
         """Increases the vote-count of the given song by one."""
         key = request.POST.get("key")
@@ -296,6 +298,7 @@ class Controller:
         return HttpResponse()
 
     @control
+    @csrf_exempt
     def vote_down(self, request: WSGIRequest) -> HttpResponse:
         """Decreases the vote-count of the given song by one.
         If a song receives too many downvotes, it is removed."""
