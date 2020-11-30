@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.7 - 2020-11-16
+
+- Remove CSRF checks for voting methods, as the Discord bot needs to access them.
+
 ## 0.7.6 - 2020-11-16
 
 - Stick to django channels 2.2
