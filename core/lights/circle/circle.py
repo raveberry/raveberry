@@ -166,11 +166,7 @@ class Circle(ScreenProgram):
         # Thus, import it here instead of at the top of the file
         import pi3d
         from pi3d.util.OffScreenTexture import OffScreenTexture
-        from pi3d.constants import (
-            opengles,
-            GL_CLAMP_TO_EDGE,
-            GL_ALWAYS,
-        )
+        from pi3d.constants import opengles, GL_CLAMP_TO_EDGE, GL_ALWAYS
 
         # used for reimplementing the draw call with instancing
         from pi3d.constants import (

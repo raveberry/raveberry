@@ -3,11 +3,7 @@
 from __future__ import annotations
 
 import socket
-from typing import (
-    TYPE_CHECKING,
-    cast,
-    Tuple,
-)
+from typing import TYPE_CHECKING, cast, Tuple
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponseBadRequest, HttpResponse

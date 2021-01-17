@@ -68,8 +68,8 @@ LIGHTS_URLS = [
         BASE.lights.controller.set_wled_led_count,
         name="set_wled_led_count",
     ),
-    path("set_wled_ip/", BASE.lights.controller.set_wled_ip, name="set_wled_ip",),
-    path("set_wled_port/", BASE.lights.controller.set_wled_port, name="set_wled_port",),
+    path("set_wled_ip/", BASE.lights.controller.set_wled_ip, name="set_wled_ip"),
+    path("set_wled_port/", BASE.lights.controller.set_wled_port, name="set_wled_port"),
     path(
         "set_wled_program/",
         BASE.lights.controller.set_wled_program,
@@ -236,20 +236,20 @@ SETTINGS_URLS = [
         BASE.settings.sound.disconnect_bluetooth,
         name="disconnect_bluetooth",
     ),
-    path("output_devices/", BASE.settings.sound.output_devices, name="output_devices",),
+    path("output_devices/", BASE.settings.sound.output_devices, name="output_devices"),
     path(
         "set_output_device/",
         BASE.settings.sound.set_output_device,
         name="set_output_device",
     ),
     path(
-        "available_ssids/", BASE.settings.wifi.available_ssids, name="available_ssids",
+        "available_ssids/", BASE.settings.wifi.available_ssids, name="available_ssids"
     ),
     path(
-        "connect_to_wifi/", BASE.settings.wifi.connect_to_wifi, name="connect_to_wifi",
+        "connect_to_wifi/", BASE.settings.wifi.connect_to_wifi, name="connect_to_wifi"
     ),
     path(
-        "enable_homewifi/", BASE.settings.wifi.enable_homewifi, name="enable_homewifi",
+        "enable_homewifi/", BASE.settings.wifi.enable_homewifi, name="enable_homewifi"
     ),
     path(
         "disable_homewifi/",
@@ -284,21 +284,13 @@ SETTINGS_URLS = [
         BASE.settings.system.enable_streaming,
         name="enable_streaming",
     ),
-    path(
-        "disable_events/", BASE.settings.system.disable_events, name="disable_events",
-    ),
+    path("disable_events/", BASE.settings.system.disable_events, name="disable_events"),
     path("enable_events/", BASE.settings.system.enable_events, name="enable_events"),
     path(
-        "disable_hotspot/",
-        BASE.settings.system.disable_hotspot,
-        name="disable_hotspot",
+        "disable_hotspot/", BASE.settings.system.disable_hotspot, name="disable_hotspot"
     ),
-    path(
-        "enable_hotspot/", BASE.settings.system.enable_hotspot, name="enable_hotspot",
-    ),
-    path(
-        "unprotect_wifi/", BASE.settings.system.unprotect_wifi, name="unprotect_wifi",
-    ),
+    path("enable_hotspot/", BASE.settings.system.enable_hotspot, name="enable_hotspot"),
+    path("unprotect_wifi/", BASE.settings.system.unprotect_wifi, name="unprotect_wifi"),
     path("protect_wifi/", BASE.settings.system.protect_wifi, name="protect_wifi"),
     path(
         "disable_tunneling/",
@@ -310,9 +302,7 @@ SETTINGS_URLS = [
         BASE.settings.system.enable_tunneling,
         name="enable_tunneling",
     ),
-    path(
-        "disable_remote/", BASE.settings.system.disable_remote, name="disable_remote",
-    ),
+    path("disable_remote/", BASE.settings.system.disable_remote, name="disable_remote"),
     path("enable_remote/", BASE.settings.system.enable_remote, name="enable_remote"),
     path("reboot_server/", BASE.settings.system.reboot_server, name="reboot_server"),
     path("reboot_system/", BASE.settings.system.reboot_system, name="reboot_system"),
@@ -334,7 +324,7 @@ SETTINGS_URLS = [
         BASE.settings.system.get_upgrade_config,
         name="get_upgrade_config",
     ),
-    path("get_changelog/", BASE.settings.system.get_changelog, name="get_changelog",),
+    path("get_changelog/", BASE.settings.system.get_changelog, name="get_changelog"),
     path(
         "upgrade_raveberry/",
         BASE.settings.system.upgrade_raveberry,
@@ -372,9 +362,9 @@ urlpatterns = [
                 path(
                     "musiq/",
                     include(
-                        [path("post_song/", BASE.musiq.post_song, name="post_song"),]
+                        [path("post_song/", BASE.musiq.post_song, name="post_song")]
                     ),
-                ),
+                )
             ]
         ),
     ),

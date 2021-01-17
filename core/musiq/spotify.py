@@ -131,7 +131,7 @@ class SpotifySongProvider(SongProvider, Spotify):
                 # all tracks got filtered
                 return False
         else:
-            result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"},)
+            result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"})
         self.metadata["internal_url"] = result["uri"]
         self.metadata["external_url"] = result["external_urls"]["spotify"]
         self.metadata["artist"] = result["artists"][0]["name"]
@@ -240,7 +240,7 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
     def fetch_metadata(self) -> bool:
         if self.title is None:
             result = self.web_client.get(
-                f"playlists/{self.id}", params={"fields": "name", "limit": "50"},
+                f"playlists/{self.id}", params={"fields": "name", "limit": "50"}
             )
             self.title = result["name"]
 

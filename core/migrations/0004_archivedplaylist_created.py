@@ -6,9 +6,7 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("core", "0003_auto_20190912_2219"),
-    ]
+    dependencies = [("core", "0003_auto_20190912_2219")]
 
     operations = [
         migrations.AddField(
@@ -18,5 +16,5 @@ class Migration(migrations.Migration):
                 auto_now_add=True, default=django.utils.timezone.now
             ),
             preserve_default=False,
-        ),
+        )
     ]

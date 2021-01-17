@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("core", "0004_archivedplaylist_created"),
-    ]
+    dependencies = [("core", "0004_archivedplaylist_created")]
 
     operations = [
         migrations.AlterField(
             model_name="archivedplaylist",
             name="list_id",
             field=models.CharField(max_length=200),
-        ),
+        )
     ]

@@ -10,10 +10,7 @@ from django.http import JsonResponse
 
 def send_state_event(state: Dict[str, Any]) -> None:
     """Sends the given dictionary as a state update to all connected clients."""
-    data = {
-        "type": "state_update",
-        "state": state,
-    }
+    data = {"type": "state_update", "state": state}
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("state", data)
 

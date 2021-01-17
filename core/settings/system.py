@@ -96,10 +96,7 @@ class System:
         for extension in ["spotify", "enabled"]:
             try:
                 if parser[extension]["enabled"] == "true":
-                    extensions[extension] = (
-                        True,
-                        "Extension probably functional",
-                    )
+                    extensions[extension] = (True, "Extension probably functional")
             except KeyError:
                 extensions[extension] = (False, "Extension disabled")
         return extensions

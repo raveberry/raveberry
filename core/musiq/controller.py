@@ -5,10 +5,7 @@ from __future__ import annotations
 import re
 import subprocess
 from functools import wraps
-from typing import (
-    Callable,
-    TYPE_CHECKING,
-)
+from typing import Callable, TYPE_CHECKING
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import transaction

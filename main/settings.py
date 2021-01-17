@@ -82,9 +82,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-            ],
+            ]
         },
-    },
+    }
 ]
 
 CSRF_FAILURE_VIEW = "core.util.csrf_failure"
@@ -132,7 +132,7 @@ else:
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
@@ -171,9 +171,7 @@ if not os.path.exists(os.path.join(BASE_DIR, "static/admin")) and not MOCK:
     STATIC_ADMIN = os.path.join(DJANGO_PATH, "contrib/admin/static/admin")
     if DOCKER:
         # copy the files since nginx runs in another container
-        shutil.copytree(
-            STATIC_ADMIN, os.path.join(BASE_DIR, "static/admin"),
-        )
+        shutil.copytree(STATIC_ADMIN, os.path.join(BASE_DIR, "static/admin"))
         print("copied static admin files")
     else:
         # create symlink to admin static files if not present
@@ -204,7 +202,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {"hosts": [(REDIS_HOST, 6379)], "capacity": 1500, "expiry": 10},
-    },
+    }
 }
 
 # Logging
@@ -221,7 +219,7 @@ LOGGING = {
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
         "brief": {
-            "format": "%(module)s.%(funcName)s:%(lineno)s %(levelname)s  %(message)s",
+            "format": "%(module)s.%(funcName)s:%(lineno)s %(levelname)s  %(message)s"
         },
     },
     "handlers": {

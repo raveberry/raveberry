@@ -5,10 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("core", "0006_auto_20200129_2252"),
-    ]
+    dependencies = [("core", "0006_auto_20200129_2252")]
 
-    operations = [
-        migrations.RemoveField(model_name="playlistentry", name="song",),
-    ]
+    operations = [migrations.RemoveField(model_name="playlistentry", name="song")]

@@ -101,7 +101,7 @@ class Migration(migrations.Migration):
                 ("title", models.CharField(max_length=1000)),
                 ("duration", models.CharField(max_length=20)),
             ],
-            options={"ordering": ["index"],},
+            options={"ordering": ["index"]},
         ),
         migrations.CreateModel(
             name="Setting",

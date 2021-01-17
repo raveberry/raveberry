@@ -79,7 +79,7 @@ class MusicProvider:
         raise NotImplementedError()
 
     def request(
-        self, request_ip: str, archive: bool = True, manually_requested: bool = True,
+        self, request_ip: str, archive: bool = True, manually_requested: bool = True
     ) -> None:
         """Tries to request this resource.
         Uses the local cache if possible, otherwise tries to retrieve it online."""

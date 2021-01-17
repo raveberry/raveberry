@@ -158,7 +158,7 @@ class OAuthClient:
         self._expires = time.time() + result.get("expires_in", float("Inf"))
 
         if result.get("expires_in"):
-            logger.debug(f"Token expires in {result['expires_in']} seconds.",)
+            logger.debug(f"Token expires in {result['expires_in']} seconds.")
         if result.get("scope"):
             logger.debug(f"Token scopes: {result['scope']}")
 
@@ -511,7 +511,7 @@ class WebLink:
         # Strip out empty parts to ensure we are strict about URI parsing.
         parts = [p for p in parts if p.strip()]
 
-        if len(parts) == 2 and parts[0] in ("track", "album", "artist", "playlist",):
+        if len(parts) == 2 and parts[0] in ("track", "album", "artist", "playlist"):
             return cls(uri, LinkType(parts[0]), parts[1], None)
         elif len(parts) == 3 and parts[0] == "user" and parts[2] == "starred":
             if parsed_uri.scheme == "spotify":

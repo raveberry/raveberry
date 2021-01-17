@@ -22,7 +22,7 @@ class PlaylistProvider(MusicProvider):
 
     @staticmethod
     def create(
-        musiq: "Musiq", query: Optional[str] = None, key: Optional[int] = None,
+        musiq: "Musiq", query: Optional[str] = None, key: Optional[int] = None
     ) -> "PlaylistProvider":
         """Factory method to create a playlist provider.
         Both query and key need to be specified.
@@ -154,7 +154,7 @@ class PlaylistProvider(MusicProvider):
                 )
                 for index, url in enumerate(self.urls):
                     PlaylistEntry.objects.create(
-                        playlist=archived_playlist, index=index, url=url,
+                        playlist=archived_playlist, index=index, url=url
                     )
             else:
                 if archive:

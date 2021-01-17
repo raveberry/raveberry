@@ -10,11 +10,7 @@ from contextlib import contextmanager
 from threading import Event
 from threading import Lock
 from threading import Semaphore
-from typing import (
-    Iterator,
-    Optional,
-    TYPE_CHECKING,
-)
+from typing import Iterator, Optional, TYPE_CHECKING
 
 import requests
 from django.conf import settings

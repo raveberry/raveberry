@@ -9,15 +9,7 @@ import os
 import pickle
 import subprocess
 from contextlib import contextmanager
-from typing import (
-    Any,
-    Dict,
-    List,
-    Optional,
-    TYPE_CHECKING,
-    Iterator,
-    cast,
-)
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Iterator, cast
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
 
@@ -49,9 +41,7 @@ def youtube_session() -> Iterator[requests.Session]:
     except FileNotFoundError:
         pass
 
-    headers = {
-        "User-Agent": youtube_dl.utils.random_user_agent(),
-    }
+    headers = {"User-Agent": youtube_dl.utils.random_user_agent()}
     session.headers.update(headers)
     yield session
 

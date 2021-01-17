@@ -18,21 +18,14 @@ from core.models import CurrentSong
 from core.models import QueuedSong
 from core.musiq.controller import Controller
 from core.musiq.localdrive import LocalSongProvider
-from core.musiq.music_provider import (
-    MusicProvider,
-    WrongUrlError,
-    ProviderError,
-)
+from core.musiq.music_provider import MusicProvider, WrongUrlError, ProviderError
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 from core.musiq.playback import Playback
 from core.musiq.soundcloud import SoundcloudSongProvider, SoundcloudPlaylistProvider
 from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
 from core.musiq.suggestions import Suggestions
-from core.musiq.youtube import (
-    YoutubeSongProvider,
-    YoutubePlaylistProvider,
-)
+from core.musiq.youtube import YoutubeSongProvider, YoutubePlaylistProvider
 from core.state_handler import Stateful
 
 if TYPE_CHECKING:

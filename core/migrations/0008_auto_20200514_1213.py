@@ -5,9 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("core", "0007_remove_playlistentry_song"),
-    ]
+    dependencies = [("core", "0007_remove_playlistentry_song")]
 
     operations = [
         migrations.AlterField(

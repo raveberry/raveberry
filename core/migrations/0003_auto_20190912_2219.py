@@ -6,9 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("core", "0002_auto_20190909_1707"),
-    ]
+    dependencies = [("core", "0002_auto_20190909_1707")]
 
     operations = [
         migrations.CreateModel(
@@ -61,7 +59,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ["playlist", "index"],},
+            options={"ordering": ["playlist", "index"]},
         ),
         migrations.CreateModel(
             name="ArchivedPlaylistQuery",

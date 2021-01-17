@@ -5,10 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("core", "0008_auto_20200514_1213"),
-    ]
+    dependencies = [("core", "0008_auto_20200514_1213")]
 
-    operations = [
-        migrations.DeleteModel(name="Pad",),
-    ]
+    operations = [migrations.DeleteModel(name="Pad")]

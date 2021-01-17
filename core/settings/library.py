@@ -212,7 +212,7 @@ class Library:
             song_index = 0
             for external_url in song_urls:
                 PlaylistEntry.objects.create(
-                    playlist=playlist, index=song_index, url=external_url,
+                    playlist=playlist, index=song_index, url=external_url
                 )
                 files_added += 1
                 song_index += 1
