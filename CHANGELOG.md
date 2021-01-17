@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.8 - 2021-01-17
+
+- A backup stream can be provided in the settings that is played whenever the queue is empty
+- There should be no more notifications about updates when none are available (sorry)
+
 ## 0.7.7 - 2020-11-16
 
 - Remove CSRF checks for voting methods, as the Discord bot needs to access them.
