@@ -30,6 +30,8 @@
     urls['set_soundcloud_credentials'] = '{% url 'set_soundcloud_credentials' %}';
     urls['set_soundcloud_suggestions'] = '{% url 'set_soundcloud_suggestions' %}';
 
+    urls['set_backup_stream'] = '{% url 'set_backup_stream' %}';
+
 	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
 	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
 	urls['disconnect_bluetooth'] = '{% url 'disconnect_bluetooth' %}';
@@ -220,6 +222,22 @@
     <li class="list-group-item list_item centered">
         <button class="btn" id="set_soundcloud_credentials">Set Credentials</button>
     </li>
+</ul>
+
+<ul class="list-group">
+	<li class="list-group-item list_header">
+		Backup Stream
+	</li>
+	<li class="list-group-item">
+		Set an internet stream to be played when no other song is enqueued. Set empty to disable.
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Stream URL</span>
+		<input id="backup_stream"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="set_backup_stream">Set Backup Stream</button>
+	</li>
 </ul>
 
 <ul class="list-group system-install-only">

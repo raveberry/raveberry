@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
 
+from core.models import Setting
 from core.settings.settings import Settings
 from core.util import background_thread
 
@@ -23,8 +24,23 @@ class Sound:
 
     def __init__(self, base: "Base"):
         self.base = base
+        self.backup_stream = Settings.get_setting("backup_stream", "")
         self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None
         self.bluetooth_devices: List[Dict[str, str]] = []
+
+    @Settings.option
+    def set_voting_system(self, request: WSGIRequest) -> None:
+        """Enables or disables the voting system based on the given value."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="voting_system").update(value=enabled)
+        self.voting_system = enabled
+
+    @Settings.option
+    def set_backup_stream(self, request: WSGIRequest) -> None:
+        """Sets the given internet stream as backup stream."""
+        stream = request.POST.get("stream")
+        Setting.objects.filter(key="backup_stream").update(value=stream)
+        self.backup_stream = stream
 
     def _get_bluetoothctl_line(self) -> str:
         # Note: this variable is not guarded by a lock.

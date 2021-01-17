@@ -222,6 +222,11 @@ SETTINGS_URLS = [
         name="set_soundcloud_credentials",
     ),
     path(
+        "set_backup_stream/",
+        BASE.settings.sound.set_backup_stream,
+        name="set_backup_stream",
+    ),
+    path(
         "set_bluetooth_scanning/",
         BASE.settings.sound.set_bluetooth_scanning,
         name="set_bluetooth_scanning",

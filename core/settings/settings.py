@@ -110,6 +110,8 @@ class Settings(Stateful):
         state_dict["soundcloud_enabled"] = self.platforms.soundcloud_enabled
         state_dict["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions
 
+        state_dict["backup_stream"] = self.sound.backup_stream
+
         state_dict["bluetooth_scanning"] = self.sound.bluetoothctl is not None
         state_dict["bluetooth_devices"] = self.sound.bluetooth_devices
 

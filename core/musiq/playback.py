@@ -41,6 +41,7 @@ class Playback:
 
         self.queue = models.QueuedSong.objects
         self.alarm_playing: Event = Event()
+        self.backup_playing: Event = Event()
         self.running = True
 
         self.player: MopidyAPI = MopidyAPI(host=settings.MOPIDY_HOST)
@@ -66,7 +67,7 @@ class Playback:
             if allowed:
                 current_position = self.player.playback.get_time_position()
                 current_track = self.player.playback.get_current_track()
-                if current_track is None:
+                if current_track is None or self.backup_playing.is_set():
                     return 0
                 duration = current_track.length
         return 100 * current_position / duration
@@ -105,6 +106,13 @@ class Playback:
                 self.queue_semaphore.acquire()
                 if not self.running:
                     break
+
+                if self.backup_playing.is_set():
+                    # stop backup stream
+                    self.backup_playing.clear()
+                    with self.mopidy_command(important=True) as allowed:
+                        if allowed:
+                            self.player.playback.next()
 
                 # select the next song depending on settings
                 song: Optional[models.QueuedSong]
@@ -198,8 +206,6 @@ class Playback:
                 self.queue.enqueue(song_provider.get_metadata(), False)
                 self.queue_semaphore.release()
 
-            self.musiq.update_state()
-
             if (
                 self.musiq.base.user_manager.partymode_enabled()
                 and random.random() < self.musiq.base.settings.basic.alarm_probability
@@ -225,10 +231,20 @@ class Playback:
                 self.musiq.update_state()
                 self.alarm_playing.clear()
 
+            if not self.queue.exists() and self.musiq.base.settings.sound.backup_stream:
+                self.backup_playing.set()
+                # play backup stream
+                self.player.tracklist.add(
+                    uris=[self.musiq.base.settings.sound.backup_stream]
+                )
+                self.player.playback.play()
+
+            self.musiq.update_state()
+
     def _wait_until_song_end(self) -> bool:
         """Wait until the song is over.
         Returns True when finished without errors, False otherwise."""
-        # This is the event based approach. Unfortunately to error-prone.
+        # This is the event based approach. Unfortunately too error-prone.
         # playback_ended = Event()
         # @self.player.on_event('tracklist_changed')
         # def on_tracklist_change(event):

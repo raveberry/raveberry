@@ -156,6 +156,8 @@ class Controller:
         """Skips the current song and continues with the next one."""
         with self.playback.mopidy_command() as allowed:
             if allowed:
+                if self.playback.backup_playing.is_set():
+                    self.playback.backup_playing.clear()
                 self.playback.player.playback.next()
 
     @disabled_when_voting

@@ -27,6 +27,8 @@ specificState = function (newState) {
 
 	$('#soundcloud_enabled').prop("checked", newState.soundcloud_enabled);
 	$('#soundcloud_suggestions').val(newState.soundcloud_suggestions);
+	
+	$('#backup_stream').val(newState.backup_stream);
 
 	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
 	$.each(newState.bluetooth_devices, function(index, device) {
@@ -240,6 +242,16 @@ $(document).ready(function() {
 	$('#set_soundcloud_credentials').on('click tap', function() {
 		$.post(urls['set_soundcloud_credentials'], {
 			auth_token: $('#soundcloud_auth_token').val(),
+		}).done(function(response) {
+			successToast(response);
+		}).fail(function(response) {
+			errorToast(response.responseText);
+		});
+	});
+
+	$('#set_backup_stream').on('click tap', function() {
+		$.post(urls['set_backup_stream'], {
+			stream: $('#backup_stream').val(),
 		}).done(function(response) {
 			successToast(response);
 		}).fail(function(response) {

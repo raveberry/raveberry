@@ -262,6 +262,18 @@ class Musiq(Stateful):
                 "duration": 10,
                 "created": "",
             }
+        elif self.playback.backup_playing.is_set():
+            state_dict["current_song"] = {
+                "queue_key": -1,
+                "manually_requested": False,
+                "votes": None,
+                "internal_url": "",
+                "external_url": self.base.settings.sound.backup_stream,
+                "artist": "",
+                "title": "Backup Stream",
+                "duration": 60 * 60 * 24,
+                "created": "",
+            }
         else:
             state_dict["current_song"] = current_song
         state_dict["paused"] = self.playback.paused()
