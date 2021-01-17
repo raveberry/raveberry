@@ -103,10 +103,13 @@ class Youtube:
     def _get_initial_data(html: str) -> Dict[str, Any]:
         for line in html.split("\n"):
             line = line.strip()
-            prefix = 'window["ytInitialData"] = '
-            if line.startswith(prefix):
-                # strip assignment and semicolon
-                initial_data = line[len(prefix) : -1]
+            before = "var ytInitialData = "
+            after = ";</script>"
+            if before in line:
+                # extract json
+                initial_data = line[
+                    line.index(before) + len(before) : line.index(after)
+                ]
                 return json.loads(initial_data)
         raise ValueError("Could not parse initial data from html")
 
