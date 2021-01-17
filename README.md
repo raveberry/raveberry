@@ -113,7 +113,7 @@ Play all the files you already have in your local filesystem. Various filetypes 
 With `youtube-dl` as a media provider, all of Youtube is available to play.
 
 * **Spotify Support**:
-Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account.
+Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account. Spotify Premium is required.
 
 * **Privilege Levels**:
 Grant users additional permissions like playback control.

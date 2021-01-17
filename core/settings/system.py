@@ -111,7 +111,14 @@ class System:
         extensions = {}
         for line in log.split("\n")[::-1]:
             if "spotify" not in extensions:
-                if line.startswith("ERROR") and "spotify.session" in line:
+
+                if (
+                    line.startswith("ERROR")
+                    and "spotify.session" in line
+                    and "USER_NEEDS_PREMIUM"
+                ):
+                    extensions["spotify"] = (False, "Spotify Premium is required")
+                elif line.startswith("ERROR") and "spotify.session" in line:
                     extensions["spotify"] = (False, "User or Password are wrong")
                 elif line.startswith("ERROR") and "mopidy_spotify.web" in line:
                     extensions["spotify"] = (
