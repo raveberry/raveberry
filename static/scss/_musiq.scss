@@ -147,20 +147,32 @@ span.clearable input {
 	// css hack to center play button
 	margin-right: 31px;
 }
-#volume_slider_container {
+#additional_controls {
 	text-align: center;
+	display: flex;
+	justify-content: space-between;
 }
-#volume_slider_container > i {
-	display: inline-block;
-	font-size: xx-large;
-	margin: 0px 5px;
+#additional_controls i {
+	font-size: x-large;
+}
+#total_time_container {
+	display: flex;
+	width: 25%;
+}
+#total_time {
+	margin-left: 5px;
 }
 #volume_slider {
-	width: 70%;
 	max-width: 200px;
+	width: 80%;
 }
-#remove_all {
-	float: right;
+#volume_slider_container {
+	width: 50%;
+}
+#trash_container {
+	width: 25%;
+	display: flex;
+	justify-content: flex-end;
 }
 
 // song queue

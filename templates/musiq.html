@@ -87,12 +87,17 @@
 			<i class="fas fa-robot icon_disabled" id="request_radio"></i>
 		</div>
 	</li>
-	<li class="list-group-item" id="volume_slider_container"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
-		<i id="volume_indicator" class="fas fa-volume-down"></i>
-		<input type="range" id="volume_slider" min="0" max="1" step="0.01" readonly="readonly"/>
-		{% if is_admin %}<i class="fas fa-trash-alt icon_disabled" id="remove_all"></i>
-		{% else %}<i class="fas fa-volume-off" style="visibility: hidden;"></i>
-		{% endif %}
+	<li class="list-group-item" id="additional_controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+		<div id="total_time_container">
+			<i class="fas fa-clock"></i><span id="total_time">--:--</span>
+		</div>
+		<div id="volume_slider_container">
+			<i id="volume_indicator" class="fas fa-volume-down"></i>
+			<input type="range" id="volume_slider" min="0" max="1" step="0.01" readonly="readonly"/>
+		</div>
+		<div id="trash_container">
+			{% if is_admin %}<i class="fas fa-trash-alt icon_disabled" id="remove_all"></i>{% endif %}
+		</div>
 	</li>
 </ul>
 <ul class="list-group" id="song_queue">

@@ -237,18 +237,25 @@ class Musiq(Stateful):
         current_song: Optional[Dict[str, Any]]
         try:
             current_song = model_to_dict(CurrentSong.objects.get())
+            current_song["duration_formatted"] = song_utils.format_seconds(
+                current_song["duration"]
+            )
         except CurrentSong.DoesNotExist:
             current_song = None
+
         song_queue = []
+        total_time = 0
         all_songs = self.queue.all()
         if self.base.settings.basic.voting_system:
             all_songs = all_songs.order_by("-votes", "index")
         for song in all_songs:
             song_dict = model_to_dict(song)
+            total_time += song_dict["duration"]
             song_dict["duration_formatted"] = song_utils.format_seconds(
                 song_dict["duration"]
             )
             song_queue.append(song_dict)
+        state_dict["total_time_formatted"] = song_utils.format_seconds(total_time)
 
         if state_dict["alarm"]:
             state_dict["current_song"] = {

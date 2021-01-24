@@ -114,6 +114,8 @@ specificState = function (newState) {
 		$('#volume_indicator').addClass('fa-volume-up');
 	}
 
+	$('#total_time').text(state.total_time_formatted);
+
 	/*
 		<li class="list-group-item">
 			<div class="queue_entry">

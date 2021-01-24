@@ -115,3 +115,10 @@ Navigate with your browser to your fork on github and "compare & pull request"
 Give your PR a good title and description that we can see what you've added / fixed
 Check if the diff of your changes is what you expected
 Push the "Create pull request" button!
+
+## Modifying SCSS Files
+
+By default, scss files are not recompiled dynamically for performance reasons.
+If you want to change these files during development, set `SASS_PROCESSOR_ENABLED` in `main/settings.py` to True:
+`SASS_PROCESSOR_ENABLED = True`
+Now your changes will take effect immediately.
