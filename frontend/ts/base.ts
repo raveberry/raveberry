@@ -122,15 +122,15 @@ export function updateBaseState(newState) {
 }
 
 // this default behaviors can be overwritten by individual pages
-let specificState;
+let specificStates = [];
 export function registerSpecificState(f) {
-    specificState = f;
+	specificStates.push(f);
 }
 
 export function updateState(newState) {
 	updateBaseState(newState);
 
-	if (specificState !== undefined) {
+	for (let specificState of specificStates) {
 		specificState(newState);
 	}
 }
