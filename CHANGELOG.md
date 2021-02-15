@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.9 - 2021-02-15
+- Huge frontend rework
+	- Migration to Typescript
+	- Testing
+	- Reduced the size of the raveberry package
+- The total time of the queue is shown to users with moderator privileges.
+- A default favicon is specified, eliminating a 404.
+
 ## 0.7.8 - 2021-01-17
 
 - A backup stream can be provided in the settings that is played whenever the queue is empty
