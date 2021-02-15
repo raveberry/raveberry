@@ -93,7 +93,7 @@ class YoutubeTests(MusicTest):
             current_song["external_url"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
         self.assertIn("MC Thunder", current_song["title"])
-        self.assertEqual(current_song["duration"], 267)
+        self.assertEqual(current_song["duration"], 268)
 
     def test_url(self):
         self._post_request(
@@ -104,7 +104,7 @@ class YoutubeTests(MusicTest):
             current_song["external_url"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
         self.assertIn("MC Thunder", current_song["title"])
-        self.assertEqual(current_song["duration"], 267)
+        self.assertEqual(current_song["duration"], 268)
 
     # For some reason, youtube-dl is unable to handle playlist urls
     # def test_playlist_url(self):
