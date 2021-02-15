@@ -1,6 +1,17 @@
+import {registerSpecificState, updateBaseState} from "../base";
+import {showPlayButton, showPauseButton} from "./buttons";
+import * as jqueryProxy from 'jquery'
+const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+import * as Cookies from 'js-cookie'
+
+export let state = null;
 let animationInProgress = false;
 
-specificState = function (newState) {
+export function clearState() {
+	state = null;
+}
+
+export function updateState(newState) {
 	updateBaseState(newState);
 
 	if (!('current_song' in newState)) {
@@ -145,6 +156,7 @@ specificState = function (newState) {
 	// the running animation will end in the (then) current state
 	applyQueueChange(oldState, state);
 }
+registerSpecificState(updateState);
 
 function insertDisplayName(element, song) {
 	if (song.artist == null || song.artist == '') {
@@ -235,7 +247,7 @@ function rebuildSongQueue(newState) {
 	animationInProgress = false;
 	$('#song_queue').empty();
 	$.each(newState.song_queue, function(index, song) {
-		queueEntry = createQueueItem(song);
+		let queueEntry = createQueueItem(song);
 		queueEntry.appendTo($('#song_queue'));
 	});
 }
@@ -248,10 +260,10 @@ function applyQueueChange(oldState, newState) {
 		rebuildSongQueue(newState);
 	} else {
 		// find mapping from old to new indices
-		newIndices = []
+		let newIndices = []
 		let songCount = 0;
 		$.each(oldState.song_queue, function(oldIndex, song) {
-			newIndex = newState.song_queue.findIndex((other) => {
+			let newIndex = newState.song_queue.findIndex((other) => {
 				return other.id == song.id
 			});
 			newIndices.push(newIndex);
@@ -262,7 +274,7 @@ function applyQueueChange(oldState, newState) {
 			if (!newIndices.includes(newIndex)) {
 
 				// song was not present in old indices -> new song
-				queueEntry = createQueueItem(song);
+				let queueEntry = createQueueItem(song);
 				queueEntry.css('opacity', '0');
 
 				queueEntry.appendTo($('#song_queue'));
@@ -287,7 +299,7 @@ function applyQueueChange(oldState, newState) {
 			} else {
 				// skip items that don't move at all
 				if (newIndices[index] == index) {
-					return true;
+					return;
 				}
 				// item was moved
 				animationNeeded = true;
@@ -304,7 +316,7 @@ function applyQueueChange(oldState, newState) {
 			$('#song_queue>li').css('transition', 'none');
 			// update the queue to the now current state
 			rebuildSongQueue(state);
-		}, animationNeeded * transitionDuration * 1000);
+		}, (animationNeeded ? 1 : 0) * transitionDuration * 1000);
 
 	}
 }

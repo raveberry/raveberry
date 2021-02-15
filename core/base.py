@@ -46,7 +46,7 @@ class Base(Stateful):
 
     @classmethod
     def _get_apk_link(cls) -> str:
-        local_apk = os.path.join(settings.STATIC_ROOT, "apk/shareberry.apk")
+        local_apk = os.path.join(settings.STATIC_FILES, "apk/shareberry.apk")
         if os.path.isfile(local_apk):
             return os.path.join(settings.STATIC_URL, "apk/shareberry.apk")
         return "https://github.com/raveberry/shareberry/raw/master/app/release/shareberry.apk"

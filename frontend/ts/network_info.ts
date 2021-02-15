@@ -1,4 +1,9 @@
-$(document).ready(function() {
+import $ from "jquery";
+
+export function onReady() {
+	if (!window.location.pathname.endsWith('network_info/')) {
+		return;
+	}
     let password_plaintext = $("#password").text();
     if (password_plaintext != "Unknown") {
         let password_hidden = password_plaintext.replace(/./g, "•")
@@ -7,4 +12,6 @@ $(document).ready(function() {
             $("#password").text(password_plaintext);
         })
     }
-});
+}
+
+$(document).ready(onReady);

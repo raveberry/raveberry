@@ -1,4 +1,10 @@
-$(document).ready(function() {
+import {state} from "./update";
+import {keyOfElement, showPlayButton, showPauseButton, playlistEnabled, disablePlaylistMode} from "./buttons";
+import {infoToast, successToast, warningToast, errorToast} from "../base";
+import * as jqueryProxy from 'jquery'
+const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+
+export function onReady() {
 	$('#restart_song').on('click tap', function (e) {
 		$.post(urls['restart']);
 	});
@@ -64,4 +70,11 @@ $(document).ready(function() {
 		});
 	});
 
+}
+
+$(document).ready(() => {
+	if (!window.location.pathname.endsWith('musiq/')) {
+		return;
+	}
+	onReady();
 });

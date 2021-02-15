@@ -13,6 +13,3 @@ RUN apt-get update &&\
 # persist raveberry (build context) in container
 COPY . /opt/raveberry
 WORKDIR /opt/raveberry
-
-RUN yarn install &&\
-	scripts/clean_libs.sh

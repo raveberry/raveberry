@@ -1,4 +1,9 @@
-$(document).ready(function() {
+import {state} from "./update";
+import {keyOfElement} from "./buttons";
+import * as jqueryProxy from 'jquery'
+const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+
+export function onReady() {
 	// enable drag and drop for the song queue
 	$("#current_song").disableSelection();
 	$("#song_queue").disableSelection();
@@ -9,7 +14,7 @@ $(document).ready(function() {
 	$("#song_queue").sortable({ 
 		handle: '.queue_handle',
 		stop: function(e, ui) {
-			key = keyOfElement(ui.item);
+			let key = keyOfElement(ui.item);
 			let prev = ui.item.prev();
 			let prevKey = null;
 			if (prev.length)
@@ -20,8 +25,8 @@ $(document).ready(function() {
 				nextKey = keyOfElement(next);
 
 			// change our state so the animation does not trigger
-			newIndex = ui.item.index();
-			oldIndex = parseInt(ui.item.find('.queue_index').text()) - 1;
+			let newIndex = ui.item.index();
+			let oldIndex = parseInt(ui.item.find('.queue_index').text()) - 1;
 			let queueEntry = state.song_queue.splice(oldIndex, 1);
 			state.song_queue.splice(newIndex, 0, queueEntry[0]);
 
@@ -32,4 +37,11 @@ $(document).ready(function() {
 			});
 		},
 	});
+}
+
+$(document).ready(() => {
+	if (!window.location.pathname.endsWith('musiq/')) {
+		return;
+	}
+	onReady();
 });

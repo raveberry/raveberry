@@ -1,8 +1,6 @@
-const options = {
-    maxReconnectionDelay: 2000,
-	minReconnectionDelay: 100 + Math.random() * 1000,
-    connectionTimeout: 1000,
-};
+import ReconnectingWebSocket from "reconnecting-websocket";
+import {updateState, reconnect} from "./base.js";
+import $ from 'jquery';
 
 let socketUrl = window.location.host + '/state/';
 if (window.location.protocol == 'https:') {
@@ -10,7 +8,7 @@ if (window.location.protocol == 'https:') {
 } else {
 	socketUrl = 'ws://' + socketUrl;
 }
-let stateSocket = new ReconnectingWebSocket(socketUrl, [], options);
+let stateSocket = new ReconnectingWebSocket(socketUrl, [], {});
 
 stateSocket.addEventListener('message', (e) => {
 	let newState = JSON.parse(e.data);
@@ -32,10 +30,7 @@ stateSocket.addEventListener('open', (e) => {
 });
 
 stateSocket.addEventListener('close', (e) => {
-	if (e.code != 1000) {
-		// closed unexpectedly
-		$('#disconnected-banner').slideDown('fast');
-	}
+	$('#disconnected-banner').slideDown('fast');
 });
 
 $(window).on('beforeunload', function(){

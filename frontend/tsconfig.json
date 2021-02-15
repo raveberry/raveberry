@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"outDir": "./js",
+		"target": "es6",
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"lib": [
+			"dom",
+			"es7"
+		],
+		"paths": {
+			"@src/*": ["./ts/*"]
+		}
+	},
+	"include": ["./ts/**/*"]
+}

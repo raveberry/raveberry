@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block scripts %}
-<script>
+{% block js %}
 	urls['state'] = '{% url 'settings_state' %}';
 	urls['set_voting_system'] = '{% url 'set_voting_system' %}';
     urls['set_new_music_only'] = '{% url 'set_new_music_only' %}';
@@ -72,8 +71,6 @@
     urls['get_upgrade_config'] = '{% url 'get_upgrade_config' %}';
     urls['get_changelog'] = '{% url 'get_changelog' %}';
     urls['upgrade_raveberry'] = '{% url 'upgrade_raveberry' %}';
-</script>
-<script src="{% static "js/settings.js" %}"></script>
 {% endblock %}
 
 {% block content %}

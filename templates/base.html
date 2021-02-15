@@ -1,6 +1,4 @@
 {% load static %}
-{% load sass_tags %}
-{% load compress %}
 
 <!doctype html>
 <html lang="en">
@@ -9,23 +7,9 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-		<link id="active-stylesheet" rel="stylesheet" href="{% sass_src "scss/dark.scss" %}"/>
-		<link id="inactive-stylesheet" rel="stylesheet-disabled" href="{% sass_src "scss/light.scss" %}"/>
+		<link id="active-stylesheet" rel="stylesheet" href="{% static "dark.css" %}"/>
+		<link id="inactive-stylesheet" rel="stylesheet-disabled" href="{% static "light.css" %}"/>
 
-
-		<!-- Optional JavaScript for Bootstrap -->
-		<!-- jQuery first, then Popper.js (not used), then Bootstrap JS -->
-		{% compress js file %}
-		<script src="{% static "libs/jquery/dist/jquery.min.js" %}"></script>
-		<script src="{% static "libs/bootstrap/dist/js/bootstrap.min.js" %}"></script>
-		<script src="{% static "libs/jquery-ui-dist/jquery-ui.min.js" %}"></script>
-		<script src="{% static "libs/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js" %}"></script>
-		<script src="{% static "libs/jquerykeyframes/dist/jquery.keyframes.js" %}"></script>
-		<script src="{% static "libs/js-cookie/src/js.cookie.js" %}"></script>
-		<script src="{% static "libs/markdown-it/dist/markdown-it.min.js" %}"></script>
-		<script src="{% static "libs/reconnecting-websocket/dist/reconnecting-websocket-iife.min.js" %}"></script>
-		{% endcompress %}
-		{% compress js inline %}
 		<script>
 			CSRF_TOKEN = "{{ csrf_token }}";
 			urls = {
@@ -56,17 +40,13 @@
 			{% else %}
 			let CONTROLS_ENABLED = false;
 			{% endif %}
+			{% block js %}
+			{% endblock %}
 		</script>
-		{% endcompress %}
-		{% compress js file %}
-		<script src="{% static "js/base.js" %}"></script>
-		{% block scripts %}
-		{% endblock %}
-		<script src="{% static "js/events.js" %}"></script>
-		{% endcompress %}
+		<script src="{% static "bundle.js" %}"></script>
 
 		<title>Raveberry</title>
-		<link id="favicon" rel="shortcut icon" type="image/png" href=""/>
+		<link id="favicon" rel="shortcut icon" type="image/png" href="{% static "graphics/raveberry_dark.png" %}"/>
 	</head>
 	<body>
 		<div id="disconnected-banner" class="information-banner">

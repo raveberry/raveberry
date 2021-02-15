@@ -1,7 +1,15 @@
-let state = null;
+// https://github.com/rollup/rollup/issues/1267#issuecomment-296395734
+import * as jqueryProxy from 'jquery'
+const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+const jQuery = $;
+
+import 'bootstrap';
+import 'jquerykeyframes';
+import * as Cookies from 'js-cookie'
+
 let toastTimeout = 2000;
 let currentToastId = 0;
-function infoToast(firstLine, secondLine) {
+export function infoToast(firstLine, secondLine?) {
 	$('#info-toast').find('.toast-content').text(firstLine);
 	if (secondLine != null) {
 		$('#info-toast').find('.toast-content').append($('<br/>'));
@@ -18,7 +26,7 @@ function infoToast(firstLine, secondLine) {
 			$('#info-toast').fadeOut();
 	}, toastTimeout);
 }
-function successToast(firstLine, secondLine) {
+export function successToast(firstLine, secondLine?) {
 	$('#success-toast').find('.toast-content').text(firstLine);
 	if (secondLine != null) {
 		$('#success-toast').find('.toast-content').append($('<br/>'));
@@ -35,7 +43,7 @@ function successToast(firstLine, secondLine) {
 			$('#success-toast').fadeOut();
 	}, toastTimeout);
 }
-function warningToast(firstLine, secondLine, showBar) {
+export function warningToast(firstLine, secondLine?, showBar?) {
 	if (!showBar) {
 		$('#vote_timeout_bar').hide();
 	}
@@ -55,10 +63,10 @@ function warningToast(firstLine, secondLine, showBar) {
 			$('#warning-toast').fadeOut();
 	}, toastTimeout);
 }
-function warningToastWithBar(firstLine, secondLine) {
+export function warningToastWithBar(firstLine, secondLine?) {
 	warningToast(firstLine, secondLine, true);
 }
-function errorToast(firstLine, secondLine) {
+export function errorToast(firstLine, secondLine?) {
 	$('#error-toast').find('.toast-content').text(firstLine);
 	if (secondLine != null) {
 		$('#error-toast').find('.toast-content').append($('<br/>'));
@@ -75,7 +83,7 @@ function errorToast(firstLine, secondLine) {
 			$('#error-toast').fadeOut();
 	}, toastTimeout);
 }
-function updateBaseState(newState) {
+export function updateBaseState(newState) {
 	$('#users').text(newState.users);
 	$('#visitors').text(newState.visitors);
 	if (newState.lights_enabled) {
@@ -115,8 +123,11 @@ function updateBaseState(newState) {
 
 // this default behaviors can be overwritten by individual pages
 let specificState;
+export function registerSpecificState(f) {
+    specificState = f;
+}
 
-function updateState(newState) {
+export function updateState(newState) {
 	updateBaseState(newState);
 
 	if (specificState !== undefined) {
@@ -124,16 +135,16 @@ function updateState(newState) {
 	}
 }
 
-function getState() {
+export function getState() {
 	$.get(urls['state'], function(state) {
 		updateState(state);
 	});
 }
-function reconnect() {
+export function reconnect() {
 	getState();
 }
 
-function decideScrolling(span, seconds_per_pixel, static_seconds) {
+export function decideScrolling(span, seconds_per_pixel, static_seconds) {
 	let space_available = span.parent().width();
 	let space_needed = span.width();
 	if (space_available < space_needed) {
@@ -203,7 +214,7 @@ function toggle_theme() {
 		$('#light_theme').addClass('icon_disabled');
 		$('#dark_theme').removeClass('icon_disabled');
 		$('#dark_theme').addClass('icon_enabled');
-		if (state != null && !state.partymode) {
+		if ($('#navbar_icon').attr('src') != urls['party_icon']) {
 			$('#navbar_icon').attr('src', urls['normal_icon']);
 		}
 		$('#shareberry_icon').attr('src', urls['shareberry_dark_icon']);
@@ -212,7 +223,7 @@ function toggle_theme() {
 		$('#light_theme').addClass('icon_enabled');
 		$('#dark_theme').removeClass('icon_enabled');
 		$('#dark_theme').addClass('icon_disabled');
-		if (state != null && !state.partymode) {
+		if ($('#navbar_icon').attr('src') != urls['party_icon']) {
 			$('#navbar_icon').attr('src', urls['normal_light_icon']);
 		}
 		$('#shareberry_icon').attr('src', urls['shareberry_light_icon']);
@@ -271,7 +282,34 @@ function decideHashtagScrolling() {
 	decideScrolling($('#hashtag_text'), 0.030, 2);
 }
 
-$(document).ready(function() {
+export function handleUpdateBanner() {
+	$('#goto_update').on('click tap', function() {
+		location.href = '/settings/#show_changelog';
+		if (location.pathname.endsWith('/settings/')) {
+			location.reload();
+		}
+	})
+	$('#remind_updates').on('click tap', function() {
+		let tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+		Cookies.set('ignore_updates', '', {expires: tomorrow});
+		$('#update-banner').slideUp('fast');
+	})
+	$('#ignore_updates').on('click tap', function() {
+		Cookies.set('ignore_updates', '', {expires: 365});
+		$('#update-banner').slideUp('fast');
+	})
+	if (ADMIN) {
+		if (Cookies.get("ignore_updates") === undefined) {
+			$.get(urls['upgrade_available']).done(function(response) {
+				if (response) {
+					$('#update-banner').slideDown('fast');
+				}
+			})
+		}
+	}
+}
+
+export function onReady() {
 	// add the csrf token to every post request
 	$.ajaxPrefilter(function(options, originalOptions, jqXHR){
 		if (options.type.toLowerCase() === "post") {
@@ -423,28 +461,7 @@ $(document).ready(function() {
 	// request initial state update
 	getState();
 
-	$('#goto_update').on('click tap', function() {
-		location.href = '/settings/#show_changelog';
-		if (location.pathname.endsWith('/settings/')) {
-			location.reload();
-		}
-	})
-	$('#remind_updates').on('click tap', function() {
-		let tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-		Cookies.set('ignore_updates', '', {expires: tomorrow});
-		$('#update-banner').slideUp('fast');
-	})
-	$('#ignore_updates').on('click tap', function() {
-		Cookies.set('ignore_updates', '', {expires: 365});
-		$('#update-banner').slideUp('fast');
-	})
-	if (ADMIN) {
-		if (Cookies.get("ignore_updates") === undefined) {
-			$.get(urls['upgrade_available']).done(function(response) {
-				if (response) {
-					$('#update-banner').slideDown('fast');
-				}
-			})
-		}
-	}
-});
+	handleUpdateBanner();
+}
+
+$(document).ready(onReady);

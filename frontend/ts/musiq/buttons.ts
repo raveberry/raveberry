@@ -1,20 +1,27 @@
-function keyOfElement(element) {
+import {state} from "./update";
+import {infoToast, successToast, warningToast, errorToast} from "../base";
+import * as jqueryProxy from 'jquery'
+const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+import * as Cookies from 'js-cookie'
+
+
+export function keyOfElement(element) {
 	// takes a jquery element and returns the index of it in the song queue
-	index = element.closest('.queue_entry').parent().index();
+	let index = element.closest('.queue_entry').parent().index();
 	// if the element is currently being reordered, look into its index span for the index 
 	if (index == -1) {
-		el = element.find('.queue_index');
+		let el = element.find('.queue_index');
 		if (index.length == 0)
 			el = element.closest('.queue_entry').find('.queue_index');
 		index = el.text() - 1;
 	}
 	return state.song_queue[index].id;
 }
-function playlistEnabled() {
+export function playlistEnabled() {
 	return $('#playlist_mode').hasClass('icon_enabled');
 }
 
-function disablePlaylistMode() {
+export function disablePlaylistMode() {
 	$('#playlist_mode').removeClass('icon_enabled');
 	$('#playlist_mode').addClass('icon_disabled');
 	$('#request_radio').removeClass('icon_enabled');
@@ -22,19 +29,19 @@ function disablePlaylistMode() {
 	$('#remove_all').removeClass('icon_enabled');
 	$('#remove_all').addClass('icon_disabled');
 }
-function showPlayButton() {
+export function showPlayButton() {
 	$("#play").before($("#pause"));
 	setTimeout(function(){
 		$('#play_button_container').removeClass('morphed');
 	}, 50);
 }
-function showPauseButton() {
+export function showPauseButton() {
 	$("#pause").before($("#play"));
 	setTimeout(function(){
 		$('#play_button_container').addClass('morphed');
 	}, 50);
 }
-function request_archived_music(key, query, platform=Cookies.get('platform')) {
+export function request_archived_music(key, query, platform=Cookies.get('platform')) {
 	$.post(urls['request_music'],
 		{
 			key: key,
@@ -52,7 +59,7 @@ function request_archived_music(key, query, platform=Cookies.get('platform')) {
 	disablePlaylistMode();
 }
 
-function request_new_music(query, platform=Cookies.get('platform')) {
+export function request_new_music(query, platform=Cookies.get('platform')) {
 	$.post(urls['request_music'],
 		{
 			query: query,
@@ -81,7 +88,7 @@ function showTitleModal(element, url) {
 	$('#title_modal').modal('show');
 }
 
-$(document).ready(function() {
+export function onReady() {
 	$('#playlist_mode').on('click tap', function (e) {
 		if ($(this).hasClass('icon_disabled')) {
 			$(this).removeClass('icon_disabled');
@@ -98,7 +105,7 @@ $(document).ready(function() {
 	// the key of the song that was suggested via random suggest
 	let randomKey = null;
 	$('#random_suggestion').on('click tap', function() {
-		$.get(urls['random_suggestion'], { playlist: playlistEnabled() }, function(response) {
+		$.get(urls['random_suggestion'], { playlist: playlistEnabled() }).done(function(response) {
 			$('#music_input').val(response.suggestion).trigger('change');
 			randomKey = response.key;
 			// change the search icon into the go icon to indicate the absence of search
@@ -128,15 +135,16 @@ $(document).ready(function() {
 	});
 	$('#music_input').focus(function() {
 		showSearchIcon();
-		let content_length = $(this).val().length;
-		$(this)[0].setSelectionRange(content_length, content_length);
+		let el = $(this) as JQuery<HTMLInputElement>;
+		let content_length = (el.val() as string).length;
+		el[0].setSelectionRange(content_length, content_length);
 	});
 	$('#clearbutton').on('click tap', function() {
 		$(this).prev('input').val('').trigger('change').focus();
 	});
 	$("#music_input").on('change input copy paste cut', function() {
 		let icon = $(this).next('i');
-		if (!this.value) {
+		if (!(this as HTMLInputElement).value) {
 			icon.css('opacity', '0');
 		} else {
 			icon.css('opacity', '1');
@@ -191,4 +199,11 @@ $(document).ready(function() {
 	$('#title_modal .modal-content').on('click tap', function() {
 		$('#title_modal').modal('hide');
 	});
+}
+
+$(document).ready(() => {
+	if (!window.location.pathname.endsWith('musiq/')) {
+		return;
+	}
+	onReady();
 });

@@ -7,11 +7,9 @@ graft raveberry/scripts/
 graft raveberry/setup/
 graft raveberry/static/
 graft raveberry/templates/
-include raveberry/.yarnrc
 include raveberry/AUTHORS
 include raveberry/LICENSE
 include raveberry/manage.py
-include raveberry/package.json
 include raveberry/README.md
 include raveberry/requirements.txt
 include raveberry/VERSION

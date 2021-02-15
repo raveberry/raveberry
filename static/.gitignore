@@ -1,3 +1,5 @@
-/CACHE
 /admin
-/libs
+/bundle.js
+/*.css
+/*.css.map
+/*.woff2

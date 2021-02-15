@@ -84,20 +84,7 @@ If you need all dependencies (testing, visualization, type checking etc.), also 
 pip3 install -r requirements/dev.txt
 ```
 
-If you want to develop in the frontend (change scss files), enable the sass processor so changes are visible immediately.
-In `main/settings.py`, change the value of `SASS_PROCESSOR_ENABLED` from `False` to `True`.
-
 Start development server
-```
-bin/raveberry run
-```
-
-If you get a sass error, install yarn dependencies
-```
-yarn install
-```
-
-Now you should be able to run the development server again with
 ```
 bin/raveberry run
 ```
@@ -115,10 +102,3 @@ Navigate with your browser to your fork on github and "compare & pull request"
 Give your PR a good title and description that we can see what you've added / fixed
 Check if the diff of your changes is what you expected
 Push the "Create pull request" button!
-
-## Modifying SCSS Files
-
-By default, scss files are not recompiled dynamically for performance reasons.
-If you want to change these files during development, set `SASS_PROCESSOR_ENABLED` in `main/settings.py` to True:
-`SASS_PROCESSOR_ENABLED = True`
-Now your changes will take effect immediately.

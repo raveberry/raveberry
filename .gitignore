@@ -3,8 +3,6 @@
 
 /backup_*
 /db.sqlite3
-/yarn.lock
-/yarn-error.log
 
 /test_cache
 /test_library

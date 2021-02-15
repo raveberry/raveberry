@@ -1,4 +1,9 @@
-specificState = function (newState) {
+import {registerSpecificState, updateBaseState, infoToast, successToast, errorToast} from "./base.js";
+import $ from "jquery";
+import * as Cookies from 'js-cookie'
+import 'jquery-ui-dist/jquery-ui';
+
+registerSpecificState(function (newState) {
 	updateBaseState(newState);
 	if (!('voting_system' in newState)) {
 		// this state is not meant for a settings update
@@ -31,7 +36,7 @@ specificState = function (newState) {
 	$('#backup_stream').val(newState.backup_stream);
 
 	$('#bluetooth_scanning').prop("checked", newState.bluetooth_scanning);
-	$.each(newState.bluetooth_devices, function(index, device) {
+	$.each(newState.bluetooth_devices, function(index: number, device) {
 		if (device.address == $('.bluetooth_device').eq(index).children().last().attr('id'))
 			return true;
 		let li = $('<li/>')
@@ -81,9 +86,12 @@ specificState = function (newState) {
 	} else {
 		$('#update_information_policy option[value=no]').attr('selected','selected');
 	}
-}
+});
 
-$(document).ready(function() {
+export function onReady() {
+	if (!window.location.pathname.endsWith('settings/')) {
+		return;
+	}
 	$('#voting_system').change(function() {
 		$.post(urls['set_voting_system'], {
 			value: $(this).is(":checked"),
@@ -431,7 +439,7 @@ $(document).ready(function() {
 			$('#most_active_device').text(data['most_active_device']);
 			$('#request_activity').text(data['request_activity']);
 			$('#playlist').text(data['playlist']);
-			successToast();
+			successToast('');
 		}).fail(function(response) {
 			errorToast(response.responseText);
 		});
@@ -531,7 +539,7 @@ $(document).ready(function() {
 		});
 	});
 	$('#update_information_policy').on('change', function() {
-		if (this.value == 'yes') {
+		if ((<HTMLInputElement>this).value == 'yes') {
 		    Cookies.remove('ignore_updates');
 		} else {
 			Cookies.set('ignore_updates', '', {expires: 365});
@@ -587,4 +595,6 @@ $(document).ready(function() {
 			$('#changelog_modal').modal('show');
 		}, scrollDuration);
 	}
-});
+}
+
+$(document).ready(onReady);

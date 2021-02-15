@@ -1,10 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block scripts %}
-<script src="{% static "js/network_info.js" %}"></script>
-{% endblock %}
-
 {% block content %}
 {% if hotspot_enabled %}
 <ul class="list-group" id="network_info">

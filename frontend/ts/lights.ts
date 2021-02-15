@@ -1,4 +1,7 @@
-updateState = function (newState) {
+import {registerSpecificState, updateBaseState, successToast, errorToast} from "./base.js";
+import $ from 'jquery';
+
+registerSpecificState(function (newState) {
 	updateBaseState(newState);
 	if (!('ring_connected' in newState)) {
 		// this state is not meant for a lights update
@@ -49,9 +52,12 @@ updateState = function (newState) {
 	$('#screen_program').val(newState.screen_program);
 	$('#program_speed').val(newState.program_speed);
 	$('#fixed_color').val(newState.fixed_color);
-}
+});
 
-$(document).ready(function() {
+export function onReady() {
+	if (!window.location.pathname.endsWith('lights/')) {
+		return;
+	}
 	$('#ring_program').change(function() {
 		let selected = $("#ring_program option:selected").val();
 		$.post(urls['set_ring_program'], {
@@ -145,4 +151,6 @@ $(document).ready(function() {
 			value: $(this).val(),
 		});
 	});
-});
+}
+
+$(document).ready(onReady);

@@ -1,4 +1,12 @@
-$(document).ready(function() {
+import {keyOfElement} from "./buttons";
+import {state} from "./update";
+import {warningToastWithBar} from "../base";
+import * as jqueryProxy from 'jquery'
+const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+import * as Cookies from 'js-cookie'
+
+
+export function onReady() {
 	// Use a token bucket implementation to allow 10 Votes per minute.
     let maxTokens = 10;
     let currentTokens = maxTokens;
@@ -30,7 +38,7 @@ $(document).ready(function() {
 		return false;
 	}
 	function vote_down(button, key) {
-		votes = button.closest('.queue_entry').find('.queue_index');
+		let votes = button.closest('.queue_entry').find('.queue_index');
 		if (votes.length == 0) {
 			votes = button.siblings('#current_song_votes');
 		}
@@ -40,7 +48,7 @@ $(document).ready(function() {
 		});
 	}
 	function vote_up(button, key) {
-		votes = button.closest('.queue_entry').find('.queue_index');
+		let votes = button.closest('.queue_entry').find('.queue_index');
 		if (votes.length == 0) {
 			votes = button.siblings('#current_song_votes');
 		}
@@ -101,4 +109,11 @@ $(document).ready(function() {
 			vote_down($(this), key);
 		}
 	});
+}
+
+$(document).ready(() => {
+	if (!window.location.pathname.endsWith('musiq/')) {
+		return;
+	}
+	onReady();
 });

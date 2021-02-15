@@ -12,8 +12,6 @@ cd "$INSTALL_DIRECTORY"
 # basically some contents of the .gitignores
 rm -rf backup_*
 rm -f db.sqlite3
-rm -f yarn.lock
-rm -f yarn-error.log
 rm -f config/secret_key.txt
 rm -f config/homewifi
 rm -f config/youtube_cookies.pickle
