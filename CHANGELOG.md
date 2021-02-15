@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.10 - 2021-02-15
+- Bugfix: state was only updated on musiq page
+
 ## 0.7.9 - 2021-02-15
 - Huge frontend rework
 	- Migration to Typescript
