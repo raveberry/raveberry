@@ -1,17 +1,16 @@
-import $ from "jquery";
-
+/** Register input handlers. */
 export function onReady() {
-	if (!window.location.pathname.endsWith('network_info/')) {
-		return;
-	}
-    let password_plaintext = $("#password").text();
-    if (password_plaintext != "Unknown") {
-        let password_hidden = password_plaintext.replace(/./g, "•")
-        $("#password").text(password_hidden);
-        $("#show_password").on("click tap", function () {
-            $("#password").text(password_plaintext);
-        })
-    }
+  if (!window.location.pathname.endsWith('network_info/')) {
+    return;
+  }
+  const passwordPlaintext = $('#password').text();
+  if (passwordPlaintext != 'Unknown') {
+    const passwordHidden = passwordPlaintext.replace(/./g, '•');
+    $('#password').text(passwordHidden);
+    $('#show_password').on('click tap', function() {
+      $('#password').text(passwordPlaintext);
+    });
+  }
 }
 
 $(document).ready(onReady);

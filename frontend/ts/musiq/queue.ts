@@ -1,47 +1,46 @@
-import {state} from "./update";
-import {keyOfElement} from "./buttons";
-import * as jqueryProxy from 'jquery'
-const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
+import {state} from './update';
+import {keyOfElement} from './buttons';
 
+/** Allows reordering of the queue when not voting. */
 export function onReady() {
-	// enable drag and drop for the song queue
-	$("#current_song").disableSelection();
-	$("#song_queue").disableSelection();
+  // enable drag and drop for the song queue
+  if (VOTING_SYSTEM) {
+    return;
+  }
 
-	if (VOTING_SYSTEM)
-		return;
+  $('#song_queue').sortable({
+    handle: '.queue_handle',
+    stop: function(e, ui) {
+      const key = keyOfElement(ui.item);
+      const prev = ui.item.prev();
+      let prevKey = null;
+      if (prev.length) {
+        prevKey = keyOfElement(prev);
+      }
+      const next = ui.item.next();
+      let nextKey = null;
+      if (next.length) {
+        nextKey = keyOfElement(next);
+      }
 
-	$("#song_queue").sortable({ 
-		handle: '.queue_handle',
-		stop: function(e, ui) {
-			let key = keyOfElement(ui.item);
-			let prev = ui.item.prev();
-			let prevKey = null;
-			if (prev.length)
-				prevKey = keyOfElement(prev);
-			let next = ui.item.next();
-			let nextKey = null;
-			if (next.length)
-				nextKey = keyOfElement(next);
+      // change our state so the animation does not trigger
+      const newIndex = ui.item.index();
+      const oldIndex = parseInt(ui.item.find('.queue_index').text()) - 1;
+      const queueEntry = state.song_queue.splice(oldIndex, 1);
+      state.song_queue.splice(newIndex, 0, queueEntry[0]);
 
-			// change our state so the animation does not trigger
-			let newIndex = ui.item.index();
-			let oldIndex = parseInt(ui.item.find('.queue_index').text()) - 1;
-			let queueEntry = state.song_queue.splice(oldIndex, 1);
-			state.song_queue.splice(newIndex, 0, queueEntry[0]);
-
-			$.post(urls['reorder'], {
-				prev: prevKey,
-				element: key,
-				next: nextKey,
-			});
-		},
-	});
+      $.post(urls['reorder'], {
+        prev: prevKey,
+        element: key,
+        next: nextKey,
+      });
+    },
+  });
 }
 
 $(document).ready(() => {
-	if (!window.location.pathname.endsWith('musiq/')) {
-		return;
-	}
-	onReady();
+  if (!window.location.pathname.endsWith('musiq/')) {
+    return;
+  }
+  onReady();
 });

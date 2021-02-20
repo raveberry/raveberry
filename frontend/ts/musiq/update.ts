@@ -1,322 +1,340 @@
-import {registerSpecificState, updateBaseState} from "../base";
-import {showPlayButton, showPauseButton} from "./buttons";
-import * as jqueryProxy from 'jquery'
-const $: JQueryStatic = (<any>jqueryProxy).default || jqueryProxy
-import * as Cookies from 'js-cookie'
+import {registerSpecificState, updateBaseState} from '../base';
+import {showPlayButton, showPauseButton} from './buttons';
+import * as Cookies from 'js-cookie';
 
 export let state = null;
 let animationInProgress = false;
 
+/** Clear any stored state. */
 export function clearState() {
-	state = null;
+  state = null;
 }
 
+/** Update the musiq state.
+ * @param {Object} newState an object containing all state information */
 export function updateState(newState) {
-	updateBaseState(newState);
+  updateBaseState(newState);
 
-	if (!('current_song' in newState)) {
-		// this state is not meant for a musiq update
-		return;
-	}
-	// create deep copy
-	let oldState = null;
-	if (state != null) {
-		oldState = jQuery.extend(true, {}, state);
-	}
-	let currentSong = newState.current_song;
-	if (currentSong == null) {
-		state = newState;
-		$('#current_song_title').empty();
-		$('#current_song_title').append($('<em/>').text('Currently Empty'));
-		$('#current_song_title').trigger('change');
-		$('#current_song').removeClass('present');
-		$('#current_song').addClass('empty');
+  if (!('current_song' in newState)) {
+    // this state is not meant for a musiq update
+    return;
+  }
+  // create deep copy
+  let oldState = null;
+  if (state != null) {
+    oldState = jQuery.extend(true, {}, state);
+  }
+  const currentSong = newState.current_song;
+  if (currentSong == null) {
+    state = newState;
+    $('#current_song_title').empty();
+    $('#current_song_title').append($('<em/>').text('Currently Empty'));
+    $('#current_song_title').trigger('change');
+    $('#current_song').removeClass('present');
+    $('#current_song').addClass('empty');
 
-		$('#song_votes .vote_down').removeClass('pressed');
-		$('#song_votes .vote_up').removeClass('pressed');
-		$('#current_song_votes').text(0);
+    $('#song_votes .vote_down').removeClass('pressed');
+    $('#song_votes .vote_up').removeClass('pressed');
+    $('#current_song_votes').text(0);
 
-		$('#progress_bar').css('transition', 'none');
-		$('#progress_bar').css('width', '0%');
-		// Trigger a reflow, flushing the CSS changes
-		$('#progress_bar')[0].offsetHeight;
+    $('#progress_bar').css('transition', 'none');
+    $('#progress_bar').css('width', '0%');
+    // Trigger a reflow, flushing the CSS changes
+    $('#progress_bar')[0].offsetHeight;
 
-		showPlayButton();
-	} else {
-		state = newState;
+    showPlayButton();
+  } else {
+    state = newState;
 
-		if (oldState == null || 
-			oldState.current_song == null ||
-			oldState.current_song.id != state.current_song.id) {
-			insertDisplayName($('#current_song_title'), currentSong);
-			$('#current_song_title').trigger('change');
-		}
+    if (oldState == null ||
+      oldState.current_song == null ||
+      oldState.current_song.id != state.current_song.id) {
+      insertDisplayName($('#current_song_title'), currentSong);
+      $('#current_song_title').trigger('change');
+    }
 
-		let previous_vote = Cookies.get('vote_' + currentSong.queue_key);
-		if (previous_vote == '+') {
-			$('#song_votes .vote_up').addClass('pressed');
-			$('#song_votes .vote_down').removeClass('pressed');
-		} else if (previous_vote == '-') {
-			$('#song_votes .vote_down').addClass('pressed');
-			$('#song_votes .vote_up').removeClass('pressed');
-		} else {
-			$('#song_votes .vote_down').removeClass('pressed');
-			$('#song_votes .vote_up').removeClass('pressed');
-		}
+    const previousVote = Cookies.get('vote_' + currentSong.queue_key);
+    if (previousVote == '+') {
+      $('#song_votes .vote_up').addClass('pressed');
+      $('#song_votes .vote_down').removeClass('pressed');
+    } else if (previousVote == '-') {
+      $('#song_votes .vote_down').addClass('pressed');
+      $('#song_votes .vote_up').removeClass('pressed');
+    } else {
+      $('#song_votes .vote_down').removeClass('pressed');
+      $('#song_votes .vote_up').removeClass('pressed');
+    }
 
-		$('#current_song_votes').text(currentSong.votes);
+    $('#current_song_votes').text(currentSong.votes);
 
-		$('#progress_bar').css('transition', 'none');
-		$('#progress_bar').css('width', state.progress + '%');
-		// Trigger a reflow, flushing the CSS changes
-		$('#progress_bar')[0].offsetHeight;
+    $('#progress_bar').css('transition', 'none');
+    $('#progress_bar').css('width', state.progress + '%');
+    // Trigger a reflow, flushing the CSS changes
+    $('#progress_bar')[0].offsetHeight;
 
-		if (state.paused) {
-			showPlayButton();
-		} else {
-			showPauseButton();
+    if (state.paused) {
+      showPlayButton();
+    } else {
+      showPauseButton();
 
-			let duration = state.current_song.duration;
+      const duration = state.current_song.duration;
 
-			let played = state.progress / 100 * duration;
-			let left = duration - played;
+      const played = state.progress / 100 * duration;
+      const left = duration - played;
 
-			$('#progress_bar').css({
-				'transition': 'width ' + left + 's linear',
-				'width': '100%',
-			});
-		}
-	}
+      $('#progress_bar').css({
+        'transition': 'width ' + left + 's linear',
+        'width': '100%',
+      });
+    }
+  }
 
-	if (state.shuffle) {
-		$('#set_shuffle').removeClass('icon_disabled');
-		$('#set_shuffle').addClass('icon_enabled');
-	} else {
-		$('#set_shuffle').removeClass('icon_enabled');
-		$('#set_shuffle').addClass('icon_disabled');
-	}
-	if (state.repeat) {
-		$('#set_repeat').removeClass('icon_disabled');
-		$('#set_repeat').addClass('icon_enabled');
-	} else {
-		$('#set_repeat').removeClass('icon_enabled');
-		$('#set_repeat').addClass('icon_disabled');
-	}
-	if (state.autoplay) {
-		$('#set_autoplay').removeClass('icon_disabled');
-		$('#set_autoplay').addClass('icon_enabled');
-	} else {
-		$('#set_autoplay').removeClass('icon_enabled');
-		$('#set_autoplay').addClass('icon_disabled');
-	}
+  if (state.shuffle) {
+    $('#set_shuffle').removeClass('icon_disabled');
+    $('#set_shuffle').addClass('icon_enabled');
+  } else {
+    $('#set_shuffle').removeClass('icon_enabled');
+    $('#set_shuffle').addClass('icon_disabled');
+  }
+  if (state.repeat) {
+    $('#set_repeat').removeClass('icon_disabled');
+    $('#set_repeat').addClass('icon_enabled');
+  } else {
+    $('#set_repeat').removeClass('icon_enabled');
+    $('#set_repeat').addClass('icon_disabled');
+  }
+  if (state.autoplay) {
+    $('#set_autoplay').removeClass('icon_disabled');
+    $('#set_autoplay').addClass('icon_enabled');
+  } else {
+    $('#set_autoplay').removeClass('icon_enabled');
+    $('#set_autoplay').addClass('icon_disabled');
+  }
 
-	$('#volume_slider').val(state.volume);
-	if (state.volume == 0) {
-		$('#volume_indicator').addClass('fa-volume-off');
-		$('#volume_indicator').removeClass('fa-volume-down');
-		$('#volume_indicator').removeClass('fa-volume-up');
-	} else if (state.volume <= 0.5) {
-		$('#volume_indicator').removeClass('fa-volume-off');
-		$('#volume_indicator').addClass('fa-volume-down');
-		$('#volume_indicator').removeClass('fa-volume-up');
-	} else {
-		$('#volume_indicator').removeClass('fa-volume-off');
-		$('#volume_indicator').removeClass('fa-volume-down');
-		$('#volume_indicator').addClass('fa-volume-up');
-	}
+  $('#volume_slider').val(state.volume);
+  if (state.volume == 0) {
+    $('#volume_indicator').addClass('fa-volume-off');
+    $('#volume_indicator').removeClass('fa-volume-down');
+    $('#volume_indicator').removeClass('fa-volume-up');
+  } else if (state.volume <= 0.5) {
+    $('#volume_indicator').removeClass('fa-volume-off');
+    $('#volume_indicator').addClass('fa-volume-down');
+    $('#volume_indicator').removeClass('fa-volume-up');
+  } else {
+    $('#volume_indicator').removeClass('fa-volume-off');
+    $('#volume_indicator').removeClass('fa-volume-down');
+    $('#volume_indicator').addClass('fa-volume-up');
+  }
 
-	$('#total_time').text(state.total_time_formatted);
+  $('#total_time').text(state.total_time_formatted);
 
-	/*
-		<li class="list-group-item">
-			<div class="queue_entry">
-				<div class="download_icon queue_handle">
-					<div class="download_overlay"></div>
-					<img src="/static/graphics/download.png">
-				</div>
-				<div class="queue_index queue_handle"><fa-sort>{{ forloop.counter }}</div>
-				<div class="queue_title">{{ song.artist }} - {{ song.title }}</div>
-				<div class="queue_info">
-					<span class="queue_info_time">{{ song.duration_formatted }}</span>
-					<span class="queue_info_controls">
-						{% if voting_system %}
-						<i class="fas fa-chevron-circle-up vote_up"></i>
-						<i class="fas fa-chevron-circle-down vote_down"></i>
-						{% else %}
-						<i class="fas level-up-alt prioritize"></i>
-						<i class="fas fa-trash-alt remove"></i>
-						{% endif %}
-					</span>
-				</div>
-			</div>
-		</li>
-		*/
+  /*
+  <li class="list-group-item">
+    <div class="queue_entry">
+      <div class="download_icon queue_handle">
+        <div class="download_overlay"></div>
+        <img src="/static/graphics/download.png">
+      </div>
+      <div class="queue_index queue_handle"><fa-sort>{{ forloop.counter }}</div>
+      <div class="queue_title">{{ song.artist }} - {{ song.title }}</div>
+      <div class="queue_info">
+        <span class="queue_info_time">{{ song.duration_formatted }}</span>
+        <span class="queue_info_controls">
+          {% if voting_system %}
+          <i class="fas fa-chevron-circle-up vote_up"></i>
+          <i class="fas fa-chevron-circle-down vote_down"></i>
+          {% else %}
+          <i class="fas level-up-alt prioritize"></i>
+          <i class="fas fa-trash-alt remove"></i>
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </li>
+  */
 
-	// don't start a new animation when an old one is still in progress
-	// the running animation will end in the (then) current state
-	applyQueueChange(oldState, state);
+  // don't start a new animation when an old one is still in progress
+  // the running animation will end in the (then) current state
+  applyQueueChange(oldState, state);
 }
+
 registerSpecificState(updateState);
 
+/** Inserts the displayname of a song into an element.
+ * @param {HTMLElement} element the div the displayname should be inserted into
+ * @param {Object} song the song the info is taken from
+ */
 function insertDisplayName(element, song) {
-	if (song.artist == null || song.artist == '') {
-		element.text(song.title);
-	} else {
-		element.text(' – ' + song.title);
-		element.prepend($('<strong/>').text(song.artist));
-	}
+  if (song.artist == null || song.artist == '') {
+    element.text(song.title);
+  } else {
+    element.text(' – ' + song.title);
+    element.prepend($('<strong/>').text(song.artist));
+  }
 }
+
+/** Create a queue entry from the given song.
+ * @param {Object} song the song containing all information
+ * @return {Object} the created queue item
+ */
 function createQueueItem(song) {
-	let li = $('<li/>')
-		.addClass('list-group-item')
-	let entry_div = $('<div/>')
-		.addClass('queue_entry')
-		.appendTo(li);
-	let download_icon = $('<div/>')
-		.addClass('download_icon')
-		.addClass('queue_handle')
-		.appendTo(entry_div);
-	let download_overlay = $('<div/>')
-		.addClass('download_overlay')
-		.appendTo(download_icon);
-	let download_img = $('<img/>')
-		.attr('src', '/static/graphics/download.png')
-		.appendTo(download_icon);
-	let index = $('<div/>')
-		.addClass('queue_index')
-		.addClass('queue_handle')
-	if (VOTING_SYSTEM) {
-		index.text(song.votes)
-	} else {
-		index.text(song.index)
-	}
-	index.appendTo(entry_div);
-	if (song.internal_url) {
-		download_icon.hide();
-	} else {
-		index.hide();
-	}
-	let title = $('<div/>');
-	insertDisplayName(title, song);
-	title.addClass('queue_title')
-		.appendTo(entry_div);
-	let info = $('<div/>')
-		.addClass('queue_info')
-		.appendTo(entry_div);
-	let time = $('<span/>')
-		.addClass('queue_info_time')
-		.text(song.duration_formatted)
-		.appendTo(info);
-	let controls = $('<span/>')
-		.addClass('queue_info_controls')
-		.appendTo(info);
-	if (VOTING_SYSTEM) {
-		let previous_vote = Cookies.get('vote_' + song.id);
-		let up = $('<i/>')
-			.addClass('fas')
-			.addClass('fa-chevron-circle-up')
-			.addClass('vote_up');
-		if (previous_vote == '+') {
-			up.addClass('pressed');
-		}
-		up.appendTo(controls);
-		let down = $('<i/>')
-			.addClass('fas')
-			.addClass('fa-chevron-circle-down')
-			.addClass('vote_down');
-		if (previous_vote == '-') {
-			down.addClass('pressed');
-		}
-		down.appendTo(controls);
-	}
-	if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
-		let up = $('<i/>')
-			.addClass('fas')
-			.addClass('fa-level-up-alt')
-			.addClass('prioritize')
-			.appendTo(controls);
-		let down = $('<i/>')
-			.addClass('fas')
-			.addClass('fa-trash-alt')
-			.addClass('remove')
-			.appendTo(controls);
-	}
-	return li;
+  const li = $('<li/>')
+      .addClass('list-group-item');
+  const entryDiv = $('<div/>')
+      .addClass('queue_entry')
+      .appendTo(li);
+  const downloadIcon = $('<div/>')
+      .addClass('download_icon')
+      .addClass('queue_handle')
+      .appendTo(entryDiv);
+  $('<div/>')
+      .addClass('download_overlay')
+      .appendTo(downloadIcon);
+  $('<img/>')
+      .attr('src', '/static/graphics/download.png')
+      .appendTo(downloadIcon);
+  const index = $('<div/>')
+      .addClass('queue_index')
+      .addClass('queue_handle');
+  if (VOTING_SYSTEM) {
+    index.text(song.votes);
+  } else {
+    index.text(song.index);
+  }
+  index.appendTo(entryDiv);
+  if (song.internal_url) {
+    downloadIcon.hide();
+  } else {
+    index.hide();
+  }
+  const title = $('<div/>');
+  insertDisplayName(title, song);
+  title.addClass('queue_title')
+      .appendTo(entryDiv);
+  const info = $('<div/>')
+      .addClass('queue_info')
+      .appendTo(entryDiv);
+  $('<span/>')
+      .addClass('queue_info_time')
+      .text(song.duration_formatted)
+      .appendTo(info);
+  const controls = $('<span/>')
+      .addClass('queue_info_controls')
+      .appendTo(info);
+  if (VOTING_SYSTEM) {
+    const previousVote = Cookies.get('vote_' + song.id);
+    const up = $('<i/>')
+        .addClass('fas')
+        .addClass('fa-chevron-circle-up')
+        .addClass('vote_up');
+    if (previousVote == '+') {
+      up.addClass('pressed');
+    }
+    up.appendTo(controls);
+    const down = $('<i/>')
+        .addClass('fas')
+        .addClass('fa-chevron-circle-down')
+        .addClass('vote_down');
+    if (previousVote == '-') {
+      down.addClass('pressed');
+    }
+    down.appendTo(controls);
+  }
+  if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
+    $('<i/>')
+        .addClass('fas')
+        .addClass('fa-level-up-alt')
+        .addClass('prioritize')
+        .appendTo(controls);
+    $('<i/>')
+        .addClass('fas')
+        .addClass('fa-trash-alt')
+        .addClass('remove')
+        .appendTo(controls);
+  }
+  return li;
 }
+
+/** Apply the given state without any animation from scratch.
+ * @param {Object} newState the new state object
+ */
 function rebuildSongQueue(newState) {
-	animationInProgress = false;
-	$('#song_queue').empty();
-	$.each(newState.song_queue, function(index, song) {
-		let queueEntry = createQueueItem(song);
-		queueEntry.appendTo($('#song_queue'));
-	});
+  animationInProgress = false;
+  $('#song_queue').empty();
+  $.each(newState.song_queue, function(index, song) {
+    const queueEntry = createQueueItem(song);
+    queueEntry.appendTo($('#song_queue'));
+  });
 }
 
+/** Find the differences between the old and the new state, initiate animations.
+ * @param {Object} oldState the current state from which the animations start
+ * @param {Object} newState the new state to which it should be animated
+ */
 function applyQueueChange(oldState, newState) {
-	if (animationInProgress) return;
-	animationInProgress = true;
+  if (animationInProgress) return;
+  animationInProgress = true;
 
-	if (oldState == null) {
-		rebuildSongQueue(newState);
-	} else {
-		// find mapping from old to new indices
-		let newIndices = []
-		let songCount = 0;
-		$.each(oldState.song_queue, function(oldIndex, song) {
-			let newIndex = newState.song_queue.findIndex((other) => {
-				return other.id == song.id
-			});
-			newIndices.push(newIndex);
-		});
+  if (oldState == null) {
+    rebuildSongQueue(newState);
+  } else {
+    // find mapping from old to new indices
+    const newIndices = [];
+    $.each(oldState.song_queue, function(oldIndex, song) {
+      const newIndex = newState.song_queue.findIndex((other) => {
+        return other.id == song.id;
+      });
+      newIndices.push(newIndex);
+    });
 
-		// add new songs
-		$.each(newState.song_queue, function(newIndex, song) {
-			if (!newIndices.includes(newIndex)) {
+    // add new songs
+    $.each(newState.song_queue, function(newIndex, song) {
+      if (!newIndices.includes(newIndex)) {
+        // song was not present in old indices -> new song
+        const queueEntry = createQueueItem(song);
+        queueEntry.css('opacity', '0');
 
-				// song was not present in old indices -> new song
-				let queueEntry = createQueueItem(song);
-				queueEntry.css('opacity', '0');
+        queueEntry.appendTo($('#song_queue'));
+      }
+    });
 
-				queueEntry.appendTo($('#song_queue'));
-			}
-		});
+    // initiate transition to their new positions
+    let animationNeeded = false;
+    const transitionDuration = 0.5;
+    $('#song_queue>li').css('top', '0px');
+    $('#song_queue>li').css('transition',
+        'top ' + transitionDuration + 's ease, ' +
+        'opacity ' + transitionDuration + 's ease');
 
-		// initiate transition to their new positions
-		let animationNeeded = false;
-		let transitionDuration = 0.5;
-		$('#song_queue>li').css('top', '0px');
-		$('#song_queue>li').css('transition', 'top ' + transitionDuration + 's ease, '
-			+ 'opacity ' + transitionDuration + 's ease');
+    let liHeight = $('#song_queue>li').first().outerHeight();
+    liHeight -= parseFloat($('#song_queue>li').first()
+        .css('border-bottom-width'));
 
-		let liHeight = $('#song_queue>li').first().outerHeight();
-		liHeight -= parseFloat($('#song_queue>li').first().css('border-bottom-width'))
+    $('#song_queue>li').each(function(index, li) {
+      if (newIndices[index] == -1) {
+        // item was deleted
+        animationNeeded = true;
+        $(li).css('opacity', '0');
+      } else {
+        // skip items that don't move at all
+        if (newIndices[index] == index) {
+          return;
+        }
+        // item was moved
+        animationNeeded = true;
+        const delta = (newIndices[index] - index) * liHeight;
+        $(li).css('top', delta + 'px');
 
-		$('#song_queue>li').each(function(index, li) {
-			if (newIndices[index] == -1) {
-				// item was deleted
-				animationNeeded = true;
-				$(li).css('opacity', '0');
-			} else {
-				// skip items that don't move at all
-				if (newIndices[index] == index) {
-					return;
-				}
-				// item was moved
-				animationNeeded = true;
-				let delta = (newIndices[index] - index) * liHeight;
-				$(li).css('top', delta + 'px');
+        // make new songs visible
+        $(li).css('opacity', '1');
+      }
+    });
 
-				// make new songs visible
-				$(li).css('opacity', '1');
-			}
-		})
-
-		// update queue after animations
-		setTimeout(function () {
-			$('#song_queue>li').css('transition', 'none');
-			// update the queue to the now current state
-			rebuildSongQueue(state);
-		}, (animationNeeded ? 1 : 0) * transitionDuration * 1000);
-
-	}
+    // update queue after animations
+    setTimeout(function() {
+      $('#song_queue>li').css('transition', 'none');
+      // update the queue to the now current state
+      rebuildSongQueue(state);
+    }, (animationNeeded ? 1 : 0) * transitionDuration * 1000);
+  }
 }

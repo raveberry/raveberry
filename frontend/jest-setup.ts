@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 import * as fs from 'fs';
 import * as child from 'child_process';
 
@@ -6,7 +6,7 @@ import * as child from 'child_process';
 import * as $ from 'jquery';
 global['$'] = global['jQuery'] = $;
 
-global['CSRF_TOKEN'] = "";
+global['CSRF_TOKEN'] = '';
 global['urls'] = {};
 global['VOTING_SYSTEM'] = false;
 global['ADMIN'] = false;
@@ -14,9 +14,9 @@ global['CONTROLS_ENABLED'] = false;
 
 // create the css file if necessary
 try {
-	const stats = fs.statSync('../static/dark.css');
+  fs.statSync('../static/dark.css');
 } catch (err) {
-	if(err.code == 'ENOENT') {
-		child.spawnSync('yarn', ['sass', 'scss/dark.scss', '../static/dark.css'])
-	}
+  if (err.code == 'ENOENT') {
+    child.spawnSync('yarn', ['sass', 'scss/dark.scss', '../static/dark.css']);
+  }
 }
