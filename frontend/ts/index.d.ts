@@ -14,7 +14,6 @@ interface JQueryStatic {
 
 interface JQuery {
   toast(...any): any;
-
   modal(...any): any;
 }
 

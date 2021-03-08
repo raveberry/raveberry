@@ -132,7 +132,7 @@ class Controller:
     @Lights.option
     def set_wled_ip(self, request: WSGIRequest) -> None:
         """Updates the wled ip."""
-        value = request.POST.get("value")  # type: ignoretry:
+        value = request.POST.get("value")  # type: ignore
         try:
             socket.inet_aton(value)
         except socket.error:

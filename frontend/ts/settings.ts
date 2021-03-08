@@ -7,8 +7,7 @@ import {
 } from './base.js';
 import * as Cookies from 'js-cookie';
 import 'jquery-ui/ui/widgets/autocomplete';
-import 'jquery-ui/ui/widgets/datepicker';
-import marked from 'marked';
+import snarkdown from 'snarkdown';
 
 registerSpecificState(function(newState) {
   updateBaseState(newState);
@@ -436,10 +435,16 @@ export function onReady() {
 
   const today = new Date();
   const yesterday = new Date();
+  // https://stackoverflow.com/a/13052187
+  const toDateInputValue = function(date) {
+    const local = new Date(date);
+    local.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return local.toJSON().slice(0, 10);
+  };
   yesterday.setDate(today.getDate() - 1);
-  $('#startdate').val($.datepicker.formatDate('yy-mm-dd', yesterday));
+  $('#startdate').val(toDateInputValue(yesterday));
   $('#starttime').val('12:00');
-  $('#enddate').val($.datepicker.formatDate('yy-mm-dd', today));
+  $('#enddate').val(toDateInputValue(today));
   $('#endtime').val(today.toLocaleTimeString('en-GB', {
     hour: 'numeric',
     minute: 'numeric',
@@ -566,7 +571,7 @@ export function onReady() {
   });
   $('#open_changelog').on('click tap', function() {
     $.get(urls['get_changelog']).done(function(response) {
-      $('#changelog').html(marked(response));
+      $('#changelog').html(snarkdown(response));
     }).fail(function(response) {
       errorToast(response.responseText);
     });
@@ -596,7 +601,7 @@ export function onReady() {
   if (fragment == 'show_changelog') {
     $('#update-banner').remove();
     $.get(urls['get_changelog']).done(function(response) {
-      $('#changelog').html(marked(response));
+      $('#changelog').html(snarkdown(response));
       $.each(response.split('\n'), (_, line) => {
         const tokens = line.split(/\s+/);
         if (tokens[0] == '##') {

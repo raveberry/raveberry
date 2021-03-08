@@ -5,9 +5,9 @@
 
 ## 0.7.9 - 2021-02-15
 - Huge frontend rework
-	- Migration to Typescript
-	- Testing
-	- Reduced the size of the raveberry package
+* Migration to Typescript
+* Testing
+* Reduced the size of the raveberry package
 - The total time of the queue is shown to users with moderator privileges.
 - A default favicon is specified, eliminating a 404.
 
@@ -38,8 +38,8 @@
 ## 0.7.3 - 2020-08-20
 
 - Added two new options in the settings that modify search behavior.
-	- Additional keywords can be specified that are added to every query.
-	- A list of keywords can be given that will be used to filter results. No song containing any of these words will be enqueued (Only for Spotify and Soundcloud).
+* Additional keywords can be specified that are added to every query.
+* A list of keywords can be given that will be used to filter results. No song containing any of these words will be enqueued (Only for Spotify and Soundcloud).
 
 ## 0.7.2 - 2020-08-20
 
@@ -106,8 +106,8 @@
 - The config file is persisted during system installation. Now a custom config can be used during upgrade.
 - css files are published, removing the need of building them on device.
 - Dependencies were cleaned up.
-	- Packages that control leds are not required anymore (as one of them caused a segfault).
-	- libsass was removed, speeding up the docker build.
+* Packages that control leds are not required anymore (as one of them caused a segfault).
+* libsass was removed, speeding up the docker build.
 
 ## 0.6.7 - 2020-06-10
 
