@@ -1,6 +1,24 @@
 server {
 	listen 80 default_server;
 
+	gzip on;
+	gzip_vary on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_min_length 256;
+	gzip_types
+		text/plain
+		text/css
+		text/js
+		text/xml
+		text/javascript
+		application/javascript
+		application/x-javascript
+		application/json
+		application/xml
+		application/rss+xml
+		image/svg+xml/javascript;
+
 	access_log /var/log/nginx/raveberry.access.log;
 	error_log /var/log/nginx/raveberry.error.log;
 
