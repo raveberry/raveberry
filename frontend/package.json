@@ -39,7 +39,7 @@
   "scripts": {
     "js": "rm -f ../static/bundle.js && tsc && webpack --mode production && cp dist/bundle.js ../static/bundle.js",
     "css": "sass scss/light.scss dist/light.css && sass scss/dark.scss dist/dark.css && purgecss -c purgecss.config.js --css dist/dark.css -o ../static/dark.css && purgecss -c purgecss.config.js --css dist/light.css -o ../static/light.css",
-    "fonts": "cp node_modules/@fortawesome/fontawesome-free/webfonts/*.woff2 ../static/",
+    "fonts": "./subtype.sh",
     "watch-js": "rm -f ../static/bundle.js && mkdir -p dist && touch dist/bundle.js && ln dist/bundle.js ../static/bundle.js && tsc --watch & webpack --mode development --no-devtool --watch",
     "watch-css": "sass --watch scss/dark.scss ../static/dark.css",
     "test": "jest --runInBand",
