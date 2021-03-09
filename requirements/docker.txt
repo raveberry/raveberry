@@ -1,3 +1,2 @@
--r common.txt
-psycopg2
+-r prod.txt
 https://github.com/DarwinAwardWinner/rganalysis/archive/master.zip

@@ -1,6 +1,6 @@
 FROM python:3
 
-COPY common.txt docker.txt ./
+COPY common.txt prod.txt docker.txt ./
 
 RUN apt-get update &&\
 	apt-get install -y ffmpeg atomicparsley wget gnupg &&\

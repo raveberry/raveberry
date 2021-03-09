@@ -21,6 +21,7 @@ install:
 
 before_script:
   - yarn --cwd frontend build
+  - docker build -f docker/Dockerfile -t raveberry/raveberry .
   - docker build -f docker/tests.Dockerfile -t raveberry-test .
 
 script:
@@ -46,7 +47,7 @@ deploy:
 after_deploy:
   - cd raveberry
   # read and trim the version from the latest docker image
-  - DOCKER_VERSION=$(docker pull raveberry/raveberry >/dev/null && docker run --entrypoint /bin/cat raveberry/raveberry /opt/raveberry/VERSION | tr -d '[:space:]')
+  - DOCKER_VERSION=$(docker pull raveberry/raveberry >/dev/null && docker run raveberry/raveberry /bin/cat /opt/raveberry/VERSION | tr -d '[:space:]')
   # read and trim the version of this folder
   - PYPI_VERSION="$(cat VERSION | tr -d '[:space:]')"
   - echo $DOCKER_VERSION
