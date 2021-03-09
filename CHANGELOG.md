@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.11 - 2021-03-09
+
+- Linted typescript code
+- Reduced size of frontend bundle
+* Use less and smaller js libraries
+* Only ship used css and fonts
+- gzip enabled in nginx
+- docker: only nginx contains frontend code
+
 ## 0.7.10 - 2021-02-15
 - Bugfix: state was only updated on musiq page
 
