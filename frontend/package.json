@@ -12,13 +12,11 @@
     "snarkdown": "^2.0.0"
   },
   "devDependencies": {
-    "@popperjs/core": "^2.6.0",
     "@testing-library/dom": "^7.29.4",
     "@testing-library/jest-dom": "^5.11.9",
     "@types/bootstrap": "^5.0.4",
     "@types/jest": "^26.0.20",
     "@types/jquery": "^3.5.5",
-    "@types/jqueryui": "^1.12.14",
     "@types/js-cookie": "^2.2.6",
     "@types/punycode": "^2.1.0",
     "@types/reconnectingwebsocket": "^1.0.6",
@@ -27,7 +25,6 @@
     "eslint": "^7.20.0",
     "eslint-config-google": "^0.14.0",
     "jest": "^26.6.3",
-    "popper.js": "^1.16.0",
     "purgecss": "^4.0.2",
     "sass": "^1.32.5",
     "ts-jest": "^26.5.0",
