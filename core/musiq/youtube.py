@@ -89,12 +89,11 @@ class Youtube:
             "default_search": "auto",
             "postprocessors": [
                 {"key": "FFmpegMetadata"},
-                # https://github.com/ytdl-org/youtube-dl/pull/25717
-                # {
-                #     "key": "EmbedThumbnail",
-                #     # overwrite any thumbnails already present
-                #     "already_have_thumbnail": True,
-                # },
+                {
+                    "key": "EmbedThumbnail",
+                    # overwrite any thumbnails already present
+                    "already_have_thumbnail": True,
+                },
             ],
             "logger": YoutubeDLLogger(),
         }
