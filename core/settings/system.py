@@ -9,6 +9,7 @@ import subprocess
 import time
 from typing import Dict, TYPE_CHECKING, Tuple, Optional, List
 
+import cachetools.func
 import requests
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
@@ -255,6 +256,7 @@ class System:
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/shutdown_system"])
 
     @classmethod
+    @cachetools.func.ttl_cache(ttl=60 * 60 * 24)
     def _fetch_latest_version(cls) -> Optional[str]:
         """Looks up the newest version number from PyPi and returns it."""
         try:
