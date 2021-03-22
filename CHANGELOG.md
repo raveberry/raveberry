@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.12 - 2021-03-22
+
+- Checking the latest version does not prevent websockets from being opened
+- Songs are sortable again when not voting (library was missing)
+- Menu slide and modal background are not stripped from css anymore
+- Thumbnails of songs from youtube are embedded again
+
 ## 0.7.11 - 2021-03-09
 
 - Linted typescript code
