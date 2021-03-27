@@ -392,7 +392,7 @@ export function onReady() {
 
   // toggles the view between the hashtags text and the input form
   const hashtagToggler = function() {
-    if (input.css('max-width') == '0%') {
+    if (input.css('max-width') == '0') {
       // if the input is invisible, initiate the texts removal transition
       text.removeClass('shown');
       text.addClass('hidden');
@@ -409,7 +409,7 @@ export function onReady() {
   text.bind('transitionend', function() {
     // if the text finished its removal transition,
     // initiate the input's appearance
-    if (text.css('max-width') == '0%') {
+    if (text.css('max-width') == '0') {
       input.css('visibility', 'visible');
       input.removeClass('hidden');
       input.addClass('shown');
@@ -418,7 +418,7 @@ export function onReady() {
   input.bind('transitionend', function() {
     // if the input finished its removal transition,
     // initiate the text's appearance
-    if (input.css('max-width') == '0%') {
+    if (input.css('max-width') == '0') {
       input.css('visibility', 'hidden');
       text.removeClass('hidden');
       text.addClass('shown');
@@ -440,7 +440,7 @@ export function onReady() {
     hashtagToggler();
   };
   $('#hashtag_plus').on('click tap', function(e) {
-    if (text.css('max-width') == '0%') {
+    if (text.css('max-width') == '0') {
       submitHashtag();
     } else {
       hashtagToggler();
