@@ -39,11 +39,15 @@ class Platforms:
         self.youtube_suggestions = int(Settings.get_setting("youtube_suggestions", "2"))
 
         # Spotify has no python dependencies we could easily check.
-        self.spotify_available = (
-            settings.DOCKER
-            or "[spotify]"
-            in subprocess.check_output(["mopidy", "config"]).decode().splitlines()
-        )
+        try:
+            self.spotify_available = (
+                settings.DOCKER
+                or "[spotify]"
+                in subprocess.check_output(["mopidy", "config"]).decode().splitlines()
+            )
+        except FileNotFoundError:
+            # mopidy is not installed. Disable when mocking, enable otherwise
+            self.spotify_available = not settings.MOCK
         self.spotify_enabled = (
             Settings.get_setting("spotify_enabled", "False") == "True"
             and self.spotify_available
