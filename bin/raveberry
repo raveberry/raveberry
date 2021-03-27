@@ -241,6 +241,8 @@ Config-file location: """
             "ansible-playbook",
             "-i",
             "localhost,",
+            "-e",
+            "ansible_python_interpreter=auto",
             "--connection",
             "local",
             "setup/system_install.yaml",
