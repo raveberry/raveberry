@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.8.0 - 2021-03-27
+
+- _Big_ installation rewrite: ansible is used
+- Update through the webinterface is possible, but it will take some time. See the log in `/var/www`.
+- Config is now in .yaml format. Your old config is automatically migrated.
+
+- Dependencies: Package size reduced.
+* Spotify, YouTube and Soundcloud can be specified during install.
+* Unavailable platforms are marked in /settings.
+* Install and run dependencies separated.
+
+- mopidy config is not overwritten during install. Spotify credentials are kept across updates.
+- homewifi is respected during install.
+- CSS is minified.
+- QR codes are readable again (styles are not purged anymore).
+- Bluetooth scanning happens in a background thread, server does not hang anymore.
+- Icecast is enabled even if not configured during its install.
+- Key for remote access is stored in a static location.
+- `raveberry run` waits for mopidy before starting.
+
+- Visualization:
+* Can be installed on systems with desktop environment, open a window.
+* The window is closable. Closing will disable the screen program.
+
 ## 0.7.12 - 2021-03-22
 
 - Checking the latest version does not prevent websockets from being opened
