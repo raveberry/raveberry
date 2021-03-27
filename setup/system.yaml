@@ -6,47 +6,47 @@
 - name: Screen visualization
   when: config.screen_visualization
   block:
-    - name: Force hdmi hotplug
+    - name: "Screen visualization: Force hdmi hotplug"
       when: pi
       lineinfile:
         path: /boot/config.txt
         line: "hdmi_force_hotplug=1"
     # without access to renderD128 another slow method is used
-    - name: Rendering privileges
+    - name: "Screen visualization: Rendering privileges"
       user:
         name: www-data
         groups: render
         append: yes
 
-    - name: Start X on boot
+    - name: "Screen visualization: Start X on boot"
       when: not xsessions.stat.exists
       block:
-        - name: xinit service
+        - name: "Screen visualization: Start X on boot: xinit service"
           copy:
             src: files/xinit.service
             dest: /etc/systemd/system/xinit.service
-        - name: enable xinit
+        - name: "Screen visualization: Start X on boot: enable xinit"
           systemd:
             enabled: yes
             daemon_reload: yes
             name: xinit
 
-    - name: X privileges
+    - name: "Screen visualization: X privileges"
       # only the user can extend privileges to other users
       when: xsessions.stat.exists
       become: false
       block:
-        - name: get home
+        - name: "Screen visualization: X privileges: get home"
           shell: echo $HOME
           register: home
 
-        - name: xhost
+        - name: "Screen visualization: X privileges: xhost"
           # use host based access so we don't have to deal with .Xauthority cookies
           command: xhost +si:localuser:www-data
           environment:
             DISPLAY: :0
 
-        - name: .xsessionrc
+        - name: "Screen visualization: X privileges: .xsessionrc"
           lineinfile: 
             path: "{{ home.stdout }}/.xsessionrc"
             line: "xhost +si:localuser:www-data"
@@ -56,28 +56,28 @@
   # Led visualization only works on Raspberry Pis
   when: config.led_visualization and pi
   block:
-    - name: i2c
+    - name: "LED visualization: i2c"
       lineinfile:
         path: /boot/config.txt
         line: "dtparam=i2c_arm=on"
-    - name: spi
+    - name: "LED visualization: spi"
       lineinfile:
         path: /boot/config.txt
         line: "dtparam=spi=on"
 
-    - name: Core frequency
+    - name: "LED visualization: Core frequency"
       when: pi4
       block:
-        - name: core_freq
+        - name: "LED visualization: Core frequency: core_freq"
           lineinfile:
             path: /boot/config.txt
             line: "core_freq=500"
-        - name: core_freq_min
+        - name: "LED visualization: Core frequency: core_freq_min"
           lineinfile:
             path: /boot/config.txt
             line: "core_freq_min=500"
 
-    - name: Core frequency
+    - name: "LED visualization: Core frequency"
       when: not pi4
       lineinfile:
         path: /boot/config.txt
@@ -85,11 +85,11 @@
 
 - name: pulseaudio
   block:
-  - name: service
+  - name: "pulseaudio: service"
     copy:
       src: files/pulseaudio.service
       dest: /etc/systemd/system/pulseaudio.service
-  - name: config
+  - name: "pulseaudio: config"
     blockinfile:
       path: /etc/pulse/system.pa
       block: |
@@ -97,7 +97,7 @@
         load-module module-bluetooth-policy
         load-module module-bluetooth-discover
       marker: "# {mark} ANSIBLE MANAGED BLOCK modules"
-  - name: Add virtual cava sink
+  - name: "pulseaudio: Add virtual cava sink"
     when: config.led_visualization or config.screen_visualization
     blockinfile:
       path: /etc/pulse/system.pa
@@ -131,13 +131,13 @@
 - name: Cache directory
   when: config.cache_dir
   block:
-    - name: Create cache directory
+    - name: "Cache directory: Create cache directory"
       file:
         path: "{{ config.cache_dir }}"
         state: directory
         owner: www-data
         group: www-data
-    - name: Set cache directory path
+    - name: "Cache directory: Set cache directory path"
       copy:
         dest: "{{ config.install_directory }}/config/cache_dir"
         content: "{{ config.cache_dir }}"
@@ -145,28 +145,28 @@
 - name: Cache medium
   when: config.cache_medium
   block:
-    - name: get www-data uid
+    - name: "Cache medium: get www-data uid"
       user:
         name: www-data
       register: www_user
-    - name: get www-data gid
+    - name: "Cache medium: get www-data gid"
       group:
         name: www-data
       register: www_group
-    - name: Automount cache medium
+    - name: "Cache medium: Automount cache medium"
       mount:
         path: "/mnt/{{ config.cache_medium }}"
         src: 'LABEL="{{ config.cache_medium }}"'
         fstype: ntfs
         opts: "auto,nofail,noatime,rw,dmask=002,fmask=0113,gid={{ www_group.gid }},uid={{ www_user.uid }}"
         state: mounted
-    - name: Create cache directory
+    - name: "Cache medium: Create cache directory"
       file:
         path: "/mnt/{{ config.cache_medium }}/raveberry"
         state: directory
         owner: www-data
         group: www-data
-    - name: Set cache directory path
+    - name: "Cache medium: Set cache directory path"
       copy:
         dest: "{{ config.install_directory }}/config/cache_dir"
         content: "/mnt/{{ config.cache_medium }}/raveberry"

@@ -10,7 +10,8 @@ DJANGO_MOCK=1 python3 manage.py shell <<-EOF
 EOF
 if [[ ! -d static/bundle.js ]]; then
 	echo "building frontend"
-	cd frontend && yarn build && cd ..
+  	yarn --cwd frontend install
+  	yarn --cwd frontend build
 fi
 
 if [ "$ADMIN_PASSWORD" == "admin" ]; then

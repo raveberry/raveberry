@@ -8,7 +8,7 @@
 
 - name: Backup files
   block:
-    - name: Ensure directories exist
+    - name: "Backup files: Ensure directories exist"
       file:
         path: "{{ backup_dir.path }}/{{ item }}"
         state: directory
@@ -17,7 +17,7 @@
         - etc
         - etc/default
         - etc/pulse
-    - name: Copy files
+    - name: "Backup files: Copy files"
       copy:
         src: "{{ item }}"
         dest: "{{ backup_dir.path }}/{{ item }}"

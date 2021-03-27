@@ -12,13 +12,13 @@
 - name: Prepare database
   when: not config.db_backup and database.changed
   block:
-    - name: Apply migrations
+    - name: "Prepare database: Apply migrations"
       become_user: www-data
       command: python3 "{{ config.install_directory }}/manage.py" migrate
       environment:
         DJANGO_MOCK: 1
         DJANGO_POSTGRES: 1
-    - name: Create users
+    - name: "Prepare database: Create users"
       become_user: www-data
       command: python3 "{{ config.install_directory }}/manage.py" shell
       environment:
@@ -34,33 +34,33 @@
 - name: Restore backup
   when: config.db_backup
   block:
-    - name: Stop daphne
+    - name: "Restore backup: Stop daphne"
       systemd:
         state: stopped
         name: daphne
       # on the first install, this service is not yet running
       failed_when: no
-    - name: Backup old database
+    - name: "Restore backup: Backup old database"
       become_user: postgres
       postgresql_db:
         name: raveberry
         state: dump
         target: "{{ backup_dir.path }}/dbbackup"
-    - name: Delete old database
+    - name: "Restore backup: Delete old database"
       become_user: postgres
       postgresql_db:
         name: raveberry
         state: absent
-    - name: Create new database
+    - name: "Restore backup: Create new database"
       become_user: postgres
       postgresql_db:
         name: raveberry
         state: present
-    - name: Copy database backup to target
+    - name: "Restore backup: Copy database backup to target"
       copy:
         src: "{{ config.db_backup }}"
         dest: /tmp/dbbackup
-    - name: Restore backup
+    - name: "Restore backup: Restore backup"
       become_user: postgres
       postgresql_db:
         name: raveberry

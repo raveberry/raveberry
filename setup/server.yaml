@@ -23,35 +23,35 @@
 - name: Configure remote connection
   when: config.remote_key and config.remote_ip and config.remote_port and config.remote_url
   block:
-    - name: remote service
+    - name: "Configure remote connection: remote service"
       copy:
         src: files/remote.service
         dest: /etc/systemd/system/remote.service
-    - name: remote connect script
+    - name: "Configure remote connection: remote connect script"
       template:
         src: files/connect_to_remote
         dest: /usr/local/sbin/raveberry/connect_to_remote
         mode: +x
-    - name: Create .ssh folder for root
+    - name: "Configure remote connection: Create .ssh folder for root"
       file:
         path: /root/.ssh
         state: directory
         mode: 0700
-    - name: Copy ssh key
+    - name: "Configure remote connection: Copy ssh key"
       copy:
         src: "{{ config.remote_key }}"
         dest: "/root/.ssh/raveberry_remote"
         mode: 0600
-    - name: Create known hosts file
+    - name: "Configure remote connection: Create known hosts file"
       file:
         path: /root/.ssh/known_hosts
         state: touch
         mode: 0600
-    - name: Check if key for remote host exists
+    - name: "Configure remote connection: Check if key for remote host exists"
       command: ssh-keygen -F "{{ config.remote_ip }}"
       register: keygen
       failed_when: no
-    - name: Add host with custom SSH port
+    - name: "Configure remote connection: Add host with custom SSH port"
       when: keygen.rc != 0
       block:
         - name: Gather ssh keys

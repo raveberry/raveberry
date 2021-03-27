@@ -1,10 +1,10 @@
 - name: Set hostname
   when: config.hostname
   block:
-    - name: Set hostname
+    - name: "Set hostname: Set hostname"
       hostname:
         name: "{{ config.hostname }}"
-    - name: Set /etc/hosts
+    - name: "Set hostname: Set /etc/hosts"
       lineinfile:
         path: /etc/hosts
         regexp: '^127\.0\.1\.1'
@@ -33,71 +33,71 @@
   # -> don't configure the hotspot on systems without the required config file
   when: config.hotspot and dhcpcd_stat.stat.exists
   block:
-    - name: dhcpcd
+    - name: "Configure hotspot: dhcpcd"
       blockinfile:
         path: /etc/dhcpcd.conf
         block: "{{ lookup('file', 'files/dhcpcd.conf') }}"
 
-    - name: dnsmasq conf
+    - name: "Configure hotspot: dnsmasq conf"
       copy:
         src: files/dnsmasq.conf
         dest: /etc/dnsmasq.conf
-    - name: dnsmasq host
+    - name: "Configure hotspot: dnsmasq host"
       lineinfile:
         path: /etc/hosts.dnsmasq
         create: true
         line: "192.168.4.1  raveberry"
-    - name: dnsmasq remote url
+    - name: "Configure hotspot: dnsmasq remote url"
       when: config.remote_url
       lineinfile:
         path: /etc/hosts.dnsmasq
         line: "192.168.4.1  {{ config.remote_url }}"
 
-    - name: hostapd protected
+    - name: "Configure hotspot: hostapd protected"
       template:
         src: files/hostapd_protected.conf
         dest: /etc/hostapd/hostapd_protected.conf
-    - name: hostapd unprotected
+    - name: "Configure hotspot: hostapd unprotected"
       template:
         src: files/hostapd_unprotected.conf
         dest: /etc/hostapd/hostapd_unprotected.conf
-    - name: hostapd config
+    - name: "Configure hotspot: hostapd config"
       lineinfile:
         path: /etc/default/hostapd
         line: 'DAEMON_CONF="/etc/hostapd/hostapd_protected.conf"'
 
-    - name: homewifi ssid
+    - name: "Configure hotspot: homewifi ssid"
       copy:
         dest: "{{ config.install_directory }}/config/homewifi"
         content: "{{ config.homewifi }}"
-    - name: homewifi service
+    - name: "Configure hotspot: homewifi service"
       copy:
         src: files/homewifi.service
         dest: /etc/systemd/system/homewifi.service
-    - name: homewifi script
+    - name: "Configure hotspot: homewifi script"
       template:
         src: files/disable_hotspot_at_home
         dest: /usr/local/sbin/raveberry/disable_hotspot_at_home
         mode: +x
-    - name: enable homewifi
+    - name: "Configure hotspot: enable homewifi"
       systemd:
         enabled: yes
         daemon_reload: yes
         name: homewifi
 
-    - name: Configure forwarding
+    - name: "Configure hotspot: Configure forwarding"
       lineinfile:
         path: /etc/sysctl.conf
         line: "net.ipv4.ip_forward=1"
-    - name: Enable forwarding
+    - name: "Configure hotspot: Enable forwarding"
       command: /usr/local/sbin/raveberry/enable_tunneling
-    - name: Persist forwarding
+    - name: "Configure hotspot: Persist forwarding"
       lineinfile:
         path: /etc/rc.local
         line: "iptables-restore < /etc/iptables.ipv4.nat"
         insertbefore: '^exit 0'
 
-    - name: Replace interface names in system scripts
+    - name: "Configure hotspot: Replace interface names in system scripts"
       # If a hotspot is used, the internet is available on wlan1
       replace:
         path: "{{ item }}"
@@ -107,22 +107,22 @@
         - /usr/local/sbin/raveberry/connect_to_wifi
         - /usr/local/sbin/raveberry/list_available_ssids
 
-    - name: Unblock wlan
+    - name: "Configure hotspot: Unblock wlan"
       command: rfkill unblock wlan
-    - name: Restart dhcpcd
+    - name: "Configure hotspot: Restart dhcpcd"
       systemd:
         state: restarted
         daemon_reload: yes
         name: dhcpcd
-    - name: Restart hostapd
+    - name: "Configure hotspot: Restart hostapd"
       systemd:
         state: restarted
         name: hostapd
         masked: no
-    - name: Restart dnsmasq
+    - name: "Configure hotspot: Restart dnsmasq"
       systemd:
         state: restarted
         name: dnsmasq
-    - name: Disable hotspot at home
+    - name: "Configure hotspot: Disable hotspot at home"
       when: config.homewifi
       command: /usr/local/sbin/raveberry/disable_hotspot_at_home
