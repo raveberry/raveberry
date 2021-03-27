@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1 - 2021-03-27
+
+- python3 is used by bin/raveberry, even without ansible.cfg
+
 ## 0.8.0 - 2021-03-27
 
 - _Big_ installation rewrite: ansible is used
