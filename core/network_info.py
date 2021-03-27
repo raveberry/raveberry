@@ -60,10 +60,13 @@ class NetworkInfo(Stateful):
                 # Hotspot is enabled, show its info as well
                 context["hotspot_enabled"] = True
 
-                config = configparser.ConfigParser()
-                config.read(os.path.join(settings.BASE_DIR, "config/raveberry.ini"))
-                ssid = config.get("Hotspot", "hotspot_ssid")
-                password = config.get("Hotspot", "hotspot_password")
+                with open("/etc/hostapd/hostapd_protected.conf") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("ssid"):
+                            ssid = line.split("=")[1]
+                        if line.startswith("wpa_passphrase"):
+                            password = line.split("=")[1]
 
                 device = util.get_devices()[-1]
                 ip = util.ip_of_device(device)
@@ -89,7 +92,7 @@ class NetworkInfo(Stateful):
                 "/sbin/iwgetid --raw".split(), universal_newlines=True
             )[:-1]
             wifi_active = True
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             wifi_active = False
 
         if wifi_active:

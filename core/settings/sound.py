@@ -77,25 +77,32 @@ class Sound:
             self.bluetoothctl.stdin.write(b"devices\n")
             self.bluetoothctl.stdin.write(b"scan on\n")
             self.bluetoothctl.stdin.flush()
-            while True:
-                line = self._get_bluetoothctl_line()
-                if not line:
-                    break
-                # match old devices
-                match = re.match(r"Device (\S*) (.*)", line)
-                # match newly scanned devices
-                # We need the '.*' at the beginning of the line to account for control sequences
-                if not match:
-                    match = re.match(r".*\[NEW\] Device (\S*) (.*)", line)
-                if match:
-                    address = match.group(1)
-                    name = match.group(2)
-                    # filter unnamed devices
-                    # devices named after their address are no speakers
-                    if re.match("[A-Z0-9][A-Z0-9](-[A-Z0-9][A-Z0-9]){5}", name):
-                        continue
-                    self.bluetooth_devices.append({"address": address, "name": name})
-                    self.base.settings.update_state()
+
+            @background_thread
+            def do_scan():
+                while True:
+                    line = self._get_bluetoothctl_line()
+                    if not line:
+                        break
+                    # match old devices
+                    match = re.match(r"Device (\S*) (.*)", line)
+                    # match newly scanned devices
+                    # We need the '.*' at the beginning of the line to account for control sequences
+                    if not match:
+                        match = re.match(r".*\[NEW\] Device (\S*) (.*)", line)
+                    if match:
+                        address = match.group(1)
+                        name = match.group(2)
+                        # filter unnamed devices
+                        # devices named after their address are no speakers
+                        if re.match("[A-Z0-9][A-Z0-9](-[A-Z0-9][A-Z0-9]){5}", name):
+                            continue
+                        self.bluetooth_devices.append(
+                            {"address": address, "name": name}
+                        )
+                        self.base.settings.update_state()
+
+            do_scan()
         else:
             if self.bluetoothctl is None:
                 return HttpResponseBadRequest("Currently not scanning")

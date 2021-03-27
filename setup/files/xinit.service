@@ -2,6 +2,8 @@
 Description=xinit
 
 [Service]
+# Only console users or root can start X
+# systemd is not run in a console -> we have to use root
 ExecStart=/bin/bash -c '! xset q && xinit'
 
 [Install]

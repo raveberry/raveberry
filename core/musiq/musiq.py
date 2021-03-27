@@ -22,10 +22,7 @@ from core.musiq.music_provider import MusicProvider, WrongUrlError, ProviderErro
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 from core.musiq.playback import Playback
-from core.musiq.soundcloud import SoundcloudSongProvider, SoundcloudPlaylistProvider
-from core.musiq.spotify import SpotifySongProvider, SpotifyPlaylistProvider
 from core.musiq.suggestions import Suggestions
-from core.musiq.youtube import YoutubeSongProvider, YoutubePlaylistProvider
 from core.state_handler import Stateful
 
 if TYPE_CHECKING:
@@ -73,15 +70,33 @@ class Musiq(Stateful):
         if playlist:
             music_provider_class = PlaylistProvider
             local_provider_class = PlaylistProvider
-            soundcloud_provider_class = SoundcloudPlaylistProvider
-            spotify_provider_class = SpotifyPlaylistProvider
-            youtube_provider_class = YoutubePlaylistProvider
+            if self.base.settings.platforms.soundcloud_enabled:
+                from core.musiq.soundcloud import SoundcloudPlaylistProvider
+
+                soundcloud_provider_class = SoundcloudPlaylistProvider
+            if self.base.settings.platforms.spotify_enabled:
+                from core.musiq.spotify import SpotifyPlaylistProvider
+
+                spotify_provider_class = SpotifyPlaylistProvider
+            if self.base.settings.platforms.youtube_enabled:
+                from core.musiq.youtube import YoutubePlaylistProvider
+
+                youtube_provider_class = YoutubePlaylistProvider
         else:
             music_provider_class = SongProvider
             local_provider_class = LocalSongProvider
-            soundcloud_provider_class = SoundcloudSongProvider
-            spotify_provider_class = SpotifySongProvider
-            youtube_provider_class = YoutubeSongProvider
+            if self.base.settings.platforms.soundcloud_enabled:
+                from core.musiq.soundcloud import SoundcloudSongProvider
+
+                soundcloud_provider_class = SoundcloudSongProvider
+            if self.base.settings.platforms.spotify_enabled:
+                from core.musiq.spotify import SpotifySongProvider
+
+                spotify_provider_class = SpotifySongProvider
+            if self.base.settings.platforms.youtube_enabled:
+                from core.musiq.youtube import YoutubeSongProvider
+
+                youtube_provider_class = YoutubeSongProvider
 
         if key is not None:
             # an archived entry was requested.

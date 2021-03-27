@@ -1,0 +1,115 @@
+- name: Create raveberry user
+  become_user: postgres
+  postgresql_user:
+    name: raveberry
+    password: raveberry
+- name: Create raveberry database
+  become_user: postgres
+  postgresql_db:
+    name: raveberry
+  register: database
+
+- name: Prepare database
+  when: not config.db_backup and database.changed
+  block:
+    - name: Apply migrations
+      become_user: www-data
+      command: python3 "{{ config.install_directory }}/manage.py" migrate
+      environment:
+        DJANGO_MOCK: 1
+        DJANGO_POSTGRES: 1
+    - name: Create users
+      become_user: www-data
+      command: python3 "{{ config.install_directory }}/manage.py" shell
+      environment:
+        DJANGO_MOCK: 1
+        DJANGO_POSTGRES: 1
+      args:
+        stdin: |
+          from django.contrib.auth.models import User
+          User.objects.create_superuser('admin', email='', password='{{ lookup('env', 'ADMIN_PASSWORD') or 'admin' }}')
+          User.objects.create_user('mod', password='mod')
+      register: users
+
+- name: Restore backup
+  when: config.db_backup
+  block:
+    - name: Stop daphne
+      systemd:
+        state: stopped
+        name: daphne
+      # on the first install, this service is not yet running
+      failed_when: no
+    - name: Backup old database
+      become_user: postgres
+      postgresql_db:
+        name: raveberry
+        state: dump
+        target: "{{ backup_dir.path }}/dbbackup"
+    - name: Delete old database
+      become_user: postgres
+      postgresql_db:
+        name: raveberry
+        state: absent
+    - name: Create new database
+      become_user: postgres
+      postgresql_db:
+        name: raveberry
+        state: present
+    - name: Copy database backup to target
+      copy:
+        src: "{{ config.db_backup }}"
+        dest: /tmp/dbbackup
+    - name: Restore backup
+      become_user: postgres
+      postgresql_db:
+        name: raveberry
+        state: restore
+        target: /tmp/dbbackup
+
+- name: Get credentials
+  become_user: www-data
+  command: python3 "{{ config.install_directory }}/manage.py" shell
+  environment:
+    DJANGO_MOCK: 1
+    DJANGO_POSTGRES: 1
+  args:
+    stdin: |
+      from core.models import Setting
+      for key in ['spotify_username', 'spotify_password', 'spotify_client_id', 'spotify_client_secret', 'soundcloud_auth_token']:
+        try:
+          print(Setting.objects.get(key=key).value)
+        except Setting.DoesNotExist:
+          print('')
+      # https://github.com/ansible/ansible/issues/45367
+      # Empty lines are stripped from command output.
+      # Print a last nonempty line to preserve the previous ones
+      print('# End credentials')
+  register: credentials
+
+- name: Set output
+  command:
+    argv:
+      - /usr/local/sbin/raveberry/update_mopidy_config
+      - "{{ 'cava' if config.screen_visualization else 'regular' }}"
+      - "{{ credentials.stdout_lines[0] }}"
+      - "{{ credentials.stdout_lines[1] }}"
+      - "{{ credentials.stdout_lines[2] }}"
+      - "{{ credentials.stdout_lines[3] }}"
+      - "{{ credentials.stdout_lines[4] }}"
+- name: Enable and restart mopidy
+  systemd:
+    enabled: yes
+    state: restarted
+    name: mopidy
+
+- name: Initialize search engine
+  become_user: www-data
+  command: python3 "{{ config.install_directory }}/manage.py" "{{ item }}"
+  environment:
+    DJANGO_MOCK: 1
+    DJANGO_POSTGRES: 1
+  with_items:
+    - migrate
+    - installwatson
+    - buildwatson

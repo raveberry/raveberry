@@ -14,9 +14,6 @@ from watson import search as watson
 import core.musiq.song_utils as song_utils
 from core.models import ArchivedPlaylist, ArchivedSong
 from core.musiq.song_provider import SongProvider
-from core.musiq.soundcloud import Soundcloud
-from core.musiq.spotify import Spotify
-from core.musiq.youtube import Youtube
 
 if TYPE_CHECKING:
     from core.musiq.musiq import Musiq
@@ -67,6 +64,8 @@ class Suggestions:
                 platform_settings.spotify_enabled
                 and platform_settings.spotify_suggestions > 0
             ):
+                from core.musiq.spotify import Spotify
+
                 spotify_suggestions = Spotify().get_search_suggestions(
                     query, suggest_playlist
                 )
@@ -86,6 +85,8 @@ class Suggestions:
                 platform_settings.soundcloud_enabled
                 and platform_settings.soundcloud_suggestions > 0
             ):
+                from core.musiq.soundcloud import Soundcloud
+
                 soundcloud_suggestions = Soundcloud().get_search_suggestions(query)
                 soundcloud_suggestions = soundcloud_suggestions[
                     : platform_settings.soundcloud_suggestions
@@ -99,6 +100,8 @@ class Suggestions:
                 platform_settings.youtube_enabled
                 and platform_settings.youtube_suggestions > 0
             ):
+                from core.musiq.youtube import Youtube
+
                 youtube_suggestions = Youtube().get_search_suggestions(query)
                 youtube_suggestions = youtube_suggestions[
                     : platform_settings.youtube_suggestions

@@ -3,7 +3,7 @@ if [ "$EUID" -ne 0 ]
 then echo "Please run as root"
 	exit
 fi
-SSIDS=$(/sbin/iwlist wlan1 scan | grep "ESSID")
+SSIDS=$(/sbin/iwlist wlan0 scan | grep "ESSID")
 while read -r line; do
 	line=${line#*'"'}
 	line=${line%'"'*}

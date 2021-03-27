@@ -47,15 +47,22 @@ class PlaylistProvider(MusicProvider):
             from core.musiq.localdrive import LocalPlaylistProvider
 
             provider_class = LocalPlaylistProvider
-        elif playlist_type == "youtube":
+        elif (
+            musiq.base.settings.platforms.youtube_enabled and playlist_type == "youtube"
+        ):
             from core.musiq.youtube import YoutubePlaylistProvider
 
             provider_class = YoutubePlaylistProvider
-        elif playlist_type == "spotify":
+        elif (
+            musiq.base.settings.platforms.spotify_enabled and playlist_type == "spotify"
+        ):
             from core.musiq.spotify import SpotifyPlaylistProvider
 
             provider_class = SpotifyPlaylistProvider
-        elif playlist_type == "soundcloud":
+        elif (
+            musiq.base.settings.platforms.soundcloud_enabled
+            and playlist_type == "soundcloud"
+        ):
             from core.musiq.soundcloud import SoundcloudPlaylistProvider
 
             provider_class = SoundcloudPlaylistProvider

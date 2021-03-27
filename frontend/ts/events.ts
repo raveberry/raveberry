@@ -31,7 +31,3 @@ stateSocket.addEventListener('open', (e) => {
 stateSocket.addEventListener('close', (e) => {
   $('#disconnected-banner').slideDown('fast');
 });
-
-$(window).on('beforeunload', function() {
-  stateSocket.close();
-});

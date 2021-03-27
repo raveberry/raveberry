@@ -5,7 +5,7 @@ then echo "Please run as root"
 fi
 
 # try to read the homewifi file and exit if nonexistent
-HOMEWIFI=$(cat "$SERVER_ROOT/config/homewifi") 2>/dev/null || exit 0
+HOMEWIFI=$(cat "{{ config.install_directory }}/config/homewifi") 2>/dev/null || exit 0
 # wait until we can successfully ping the gateway
 NUM=60
 for i in $(seq 1 $NUM); do

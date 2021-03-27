@@ -1,3 +1,4 @@
+__pycache__
 *.pyc
 *.swp
 
@@ -8,8 +9,40 @@
 /test_library
 
 # mypy
-.mypy_cache/
-.dmypy.json
+/.mypy_cache/
+/.dmypy.json
 
-# virtual environment folder
+# python virtual environment
 .venv/
+
+# frontend libraries
+node_modules/
+# frontend generated files
+/frontend/js
+/frontend/dist
+/frontend/head.html
+/frontend/body.html
+
+
+# generated static files
+/static/admin
+/static/bundle.js
+/static/*.css
+/static/*.css.map
+/static/*.woff2
+/static/apk/shareberry.apk
+
+# generated frontend
+/frontend/js
+/frontend/dist
+/frontend/head.html
+/frontend/body.html
+
+# instance-specifig config files
+/config/secret_key.txt
+/config/homewifi
+/config/youtube_cookies.pickle
+/config/cache_dir
+
+# log files
+/logs/*.log

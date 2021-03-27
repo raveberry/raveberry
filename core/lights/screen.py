@@ -8,6 +8,10 @@ import os
 from core.lights.device import Device
 
 
+class RenderingStoppedException(Exception):
+    pass
+
+
 class Screen(Device):
     """This class provides an interface to control the screen."""
 
@@ -28,6 +32,9 @@ class Screen(Device):
         # pi3d needs X to work, so we check if it is running
         # set the DISPLAY environment variable so pi3d uses the correct X Display
         os.environ["DISPLAY"] = ":0"
+        # https://github.com/tipam/pi3d/issues/249
+        # from Ubuntu 20, EGL_PLATFORM needs to be explicitly set to x11
+        os.environ["EGL_PLATFORM"] = "x11"
 
         # don't offer this feature on raspberry pi 3
         try:

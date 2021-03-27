@@ -6,7 +6,7 @@ After=network.target
 PIDFile=/run/gunicorn/pid
 User=www-data
 Group=www-data
-WorkingDirectory=$SERVER_ROOT
+WorkingDirectory={{ config.install_directory }}
 Environment="DJANGO_SETTINGS_MODULE=main.settings"
 ExecStart=/usr/local/bin/gunicorn main.wsgi --bind 0.0.0.0:8000 --log-level error --log-file=- --workers 1 --worker-class gthread --threads 5 --preload
 

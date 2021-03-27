@@ -2,77 +2,79 @@
 # These default settings lead to a minimal installation.
 # So if you just want it to work you can leave it like it is
 
-[General]
+### General ###
 # Set the directory where raveberry will be installed to.
-install_directory = /opt/raveberry/
+install_directory: /opt/raveberry/
 # Changes the system's hostname. With this hostname the server will be accessible in the network. Leave blank to keep the system's hostname.
-hostname = raveberry
+hostname: raveberry
 
-[Modules]
-# Set the following values to 'True' or 'False' to enable or disable installation of these features.
+### Music sources ###
+# Play the audio of videos from YouTube.
+youtube: true
+# Play music from Spotify. A premium account is required.
+spotify: false
+# Play music from Soundcloud.
+soundcloud: false
+
+### Modules ###
+# Set the following values to 'true' or 'false' to enable or disable installation of these features.
 # Configures the system's audio visualization with HDMI output. Does not work on a Raspberry Pi 3.
-screen_visualization = False
+screen_visualization: false
 # Configures the system's audio visualization with LEDs. Disable if the necessary hardware is not present.
-led_visualization = False
+led_visualization: false
 # Normalize the volume of songs. Builds `audiotools` which takes some time on a Raspberry Pi.
-audio_normalization = False
+audio_normalization: false
 # Configures the system's WiFi hotspot. Only enable if a second wlan interface is present.
 # If enabled, consider performing the installation on a local session (not via ssh),
 # since this will restart networking, probably killing remote sessions.
-hotspot = False
+hotspot: false
 
-[Song Caching]
+### Song Caching ###
 # The directory to cache the songs into. Defaults to ~/Music/raveberry when left empty
-cache_dir =
-# If you have an external medium that you want to cache the songs into, you can specify it here
+cache_dir:
+# If you have an external medium that you want to cache the songs into, you can specify its label here
 # Leave empty if the directory should be placed in the local filesystem.
-# The medium should be formatted as NTFS. You might need to install the 'ntfs-3g' package.
-# The external medium will be mounted at /mnt/<Label>, so set cache_dir accordingly (e.g. /mnt/Stick/raveberry)
-cache_medium =
+# The medium should be formatted as NTFS
+# The external medium will be mounted at /mnt/<Label>, cache_dir is ignored
+cache_medium:
 
-[Hotspot]
+### Hotspot ###
 # Configuration concerning the Hotspot of your Raveberry (only if enabled in Modules above)
 # The SSID for the WiFi created by Raveberry.
 # Maximum 32 Characters, as per standard.
-hotspot_ssid = Raveberry
+hotspot_ssid: Raveberry
 # The password for the WiFi created by Raveberry. (The one people have to type in to connect to Raveberry)
 # As per WPA standard, this password needs to have a length between 8 and 63 characters.
-hotspot_password =
+hotspot_password:
 # If you don't want Raveberry to create a Hotspot in your Home WiFi (because you can access it there anyway),
 # you can specify the SSID of your home WiFi here. In this WiFi, Raveberry will not create a hotspot.
 # If not connected to this network (so either without connection or in other networks), it will still start the Hotspot.
 # Get the SSID of the network you are currently connected to with `iwgetid`.
 # Do not use quotes, just write the SSID, even if it contains spaces.
-homewifi =
+homewifi:
 
-[Remote]
+### Remote ###
 # In order to use this feature you need a server that:
 # * is reachable via a global url
 # * allows raveberry to connect via the given ssh key
 # * forwards traffic to raveberry (see an example nginx configuration in `/docs`
 # If you meet these requirements you can configure raveberry to be accessible from the web via the url.
 # Otherwise just leave them blank.
-# The path to the private key that is used to build the ssh tunnel to the remote server.
-remote_key =
+# The absolute path to the private key that is used to build the ssh tunnel to the remote server.
+remote_key:
 # The IP of the remote machine.
-remote_ip =
+remote_ip:
 # The port on the remote machine that the tunnel connects to.
-remote_port =
+remote_port:
 # The remote url that makes Raveberry accessible.
-remote_url =
+remote_url:
 
-[Backup]
+### Backup ###
 # If a past backup is present, its path can be specified here.
-db_backup =
+db_backup:
 # A command to backup the database. Leave blank if you think you don't need any backups.
 # The command will be executed every night
 # An example would be `sudo -u postgres pg_dump raveberry > /tmp/dbbackup`,
 # which would just write the database's entries to a file.
 # You can also provide the path to a script to perform additional actions.
-backup_command =
-
-[Development]
-# If you want to do some developing of Raveberry you can specify the Linux user that you want to debug with.
-# Otherwise just leave it blank.
-# This user is given permissions to access Raveberry's data.
-dev_user =
+backup_command:

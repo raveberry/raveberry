@@ -34,9 +34,3 @@ When sharing a link you can integrate the credentials directly like this:
 ### Disabling Authentication
 
 If you want to disable authentication completely, you need to edit icecast's config file located at `/etc/icecast2/icecast.xml` and remove the four lines of the `authentication` tag at the end of the file. For more information consult [icecast's documentation](https://www.icecast.org/docs/icecast-2.4.1/auth.html).
-
-### Docker
-
-If you want to enable or disable streaming with the docker setup, use the respective docker-compose files. The setting in the admin page does not toggle streaming. You can provide a custom icecast configuration in `icecast.docker-compose.yml` to tweak it.
-
-In the docker setup, authentication can be disabled by setting the `STREAM_NOAUTH` environment variable. Uncomment the corresponding line in the `icecast.docker-compose.yml` to persist the change.

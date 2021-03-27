@@ -11,7 +11,7 @@ At the top of the page three elements can be seen: The logo, the current hashtag
 
 In the dropdown menu you can see the number of currently active users, the number of total visitors and a sun and moon icon. With these two icons users can switch between the default dark mode and a bright mode of the page.
 
-In the middle of the page users can search for music. Their search terms are used to find the first Youtube video matching the search string. If the search term matches previously played songs, they will be suggested below.
+In the middle of the page users can search for music. Their search terms are used to find the first song matching the search string. If the search term matches previously played songs, they will be suggested below.
 
 To the left of the input field is a dice icon. When pressing this button a randomly selected song is inserted in the input field. It is chosen from all songs ever requested.
 

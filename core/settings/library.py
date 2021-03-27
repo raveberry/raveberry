@@ -154,7 +154,7 @@ class Library:
 
         self._create_playlists()
 
-        return HttpResponse(f"started creating playlsts. This could take a while")
+        return HttpResponse(f"started creating playlists. This could take a while")
 
     @background_thread
     def _create_playlists(self) -> None:

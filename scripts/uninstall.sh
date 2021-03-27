@@ -19,6 +19,9 @@ rm -rf /etc/nginx/sites-enabled/raveberry-static
 echo "services"
 rm -rf /etc/systemd/system/daphne.service
 rm -rf /etc/systemd/system/gunicorn.service
+rm -rf /etc/systemd/system/homewifi.service
+rm -rf /etc/systemd/system/pulseaudio.service
 rm -rf /etc/systemd/system/remote.service
+rm -rf /etc/systemd/system/xinit.service
 echo "Done!"
 echo "You may now delete this directory"

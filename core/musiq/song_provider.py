@@ -53,15 +53,18 @@ class SongProvider(MusicProvider):
             from core.musiq.localdrive import LocalSongProvider
 
             provider_class = LocalSongProvider
-        elif url_type == "youtube":
+        elif musiq.base.settings.platforms.youtube_enabled and url_type == "youtube":
             from core.musiq.youtube import YoutubeSongProvider
 
             provider_class = YoutubeSongProvider
-        elif url_type == "spotify":
+        elif musiq.base.settings.platforms.spotify_enabled and url_type == "spotify":
             from core.musiq.spotify import SpotifySongProvider
 
             provider_class = SpotifySongProvider
-        elif url_type == "soundcloud":
+        elif (
+            musiq.base.settings.platforms.soundcloud_enabled
+            and url_type == "soundcloud"
+        ):
             from core.musiq.soundcloud import SoundcloudSongProvider
 
             provider_class = SoundcloudSongProvider
@@ -110,15 +113,24 @@ class SongProvider(MusicProvider):
                 from core.musiq.localdrive import LocalSongProvider
 
                 return LocalSongProvider.get_id_from_external_url(self.query)
-            if url_type == "youtube":
+            if (
+                self.musiq.base.settings.platforms.youtube_enabled
+                and url_type == "youtube"
+            ):
                 from core.musiq.youtube import YoutubeSongProvider
 
                 return YoutubeSongProvider.get_id_from_external_url(self.query)
-            if url_type == "spotify":
+            if (
+                self.musiq.base.settings.platforms.spotify_enabled
+                and url_type == "spotify"
+            ):
                 from core.musiq.spotify import SpotifySongProvider
 
                 return SpotifySongProvider.get_id_from_external_url(self.query)
-            if url_type == "soundcloud":
+            if (
+                self.musiq.base.settings.platforms.soundcloud_enabled
+                and url_type == "soundcloud"
+            ):
                 from core.musiq.soundcloud import SoundcloudSongProvider
 
                 return SoundcloudSongProvider.get_id_from_external_url(self.query)

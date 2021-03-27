@@ -3,10 +3,10 @@
 
 from __future__ import annotations
 
-import configparser
 import os
 import socket
 import subprocess
+import yaml
 from functools import wraps
 from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, TypeVar
 
@@ -157,10 +157,14 @@ class Settings(Stateful):
             state_dict["system_install"] = False
         else:
             state_dict["system_install"] = True
-            config = configparser.ConfigParser()
-            config.read(os.path.join(settings.BASE_DIR, "config/raveberry.ini"))
-            state_dict["hotspot_configured"] = config.getboolean("Modules", "hotspot")
-            state_dict["remote_configured"] = config["Remote"]["remote_key"] != ""
+            with open(os.path.join(settings.BASE_DIR, "config/raveberry.yaml")) as f:
+                config = yaml.safe_load(f)
+            state_dict["hotspot_configured"] = config["hotspot"]
+            state_dict["remote_configured"] = config["remote_key"] is not None
+
+        state_dict["youtube_available"] = self.platforms.youtube_available
+        state_dict["spotify_available"] = self.platforms.spotify_available
+        state_dict["soundcloud_available"] = self.platforms.soundcloud_available
 
         return state_dict
 

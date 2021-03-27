@@ -4,8 +4,8 @@ cssfile="./node_modules/@fortawesome/fontawesome-free/css/all.css"
 webfontdir="./node_modules/@fortawesome/fontawesome-free/webfonts"
 
 if ! type fonttools &>/dev/null ; then
-    echo "fonttools is not available."
-    echo "Did you forget activating your venv?"
+    echo "fonttools is not available. Install with:"
+    echo "pip3 install fonttools[woff]"
     exit 1
 fi
 

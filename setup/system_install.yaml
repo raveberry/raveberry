@@ -1,0 +1,63 @@
+- name: System Install of Raveberry
+  hosts: all
+  become: yes
+  vars:
+    - src_dir: "{{ playbook_dir }}/../"
+
+  tasks:
+  - name: Read Raspberry Pi model
+    slurp:
+      src: /proc/device-tree/model
+    register: pi_model
+    failed_when: no
+
+  - name: Set Raspberry Pi facts
+    set_fact:
+      pi: "{{ (((pi_model | default({})).content | default({})) | b64decode) != '' }}"
+      pi4: "{{ (((pi_model | default({})).content | default({})) | b64decode).startswith('Raspberry') }}"
+
+  - name: Load config
+    include_vars:
+      file: ../config/raveberry.yaml
+      name: config
+
+  # https://github.com/ansible/ansible-modules-core/issues/18#issuecomment-135728786
+  - name: Set correct ssh key path
+    when: ansible_ssh_private_key_file is defined
+    set_fact:
+      ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_file | realpath }}"
+
+  - name: Create target install directory
+    file:
+      path: "{{ config.install_directory }}"
+      state: directory
+
+  - name: Copy Raveberry files to the remote
+    synchronize:
+      src: "{{ src_dir }}"
+      dest: "{{ config.install_directory }}"
+      owner: no
+      group: no
+      # https://stackoverflow.com/questions/13713101/rsync-exclude-according-to-gitignore-hgignore-svnignore-like-filter-c
+      rsync_opts:
+        - "--include=static/*.js"
+        - "--include=static/*.css"
+        - "--include=static/*.woff2"
+        - "--exclude=.git"
+        - "--filter=dir-merge,- .gitignore"
+
+  - import_tasks: install_dependencies.yaml
+
+  # should be run after dependencies are installed
+  # so changed default configs are backed up
+  - import_tasks: backup.yaml
+
+  - import_tasks: system.yaml
+
+  # needs to be run after system.yaml so mopidy.conf is present
+  # the config is then updated with values from the database
+  - import_tasks: database.yaml
+
+  - import_tasks: network.yaml
+
+  - import_tasks: server.yaml

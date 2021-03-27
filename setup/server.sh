@@ -12,11 +12,6 @@ envsubst < setup/gunicorn.service '$SERVER_ROOT' > /etc/systemd/system/gunicorn.
 
 if [ ! -z "$REMOTE_KEY" ] && [ ! -z "$REMOTE_IP" ] && [ ! -z REMOTE_PORT ] && [ ! -z "$REMOTE_URL" ]; then
 	echo "remote..."
-	if [ "${REMOTE_KEY:0:1}" = "/" ]; then
-		export KEY_LOCATION=$REMOTE_KEY
-	else
-		export KEY_LOCATION="$SERVER_ROOT/$REMOTE_KEY"
-	fi
 	cp setup/remote.service /etc/systemd/system/remote.service
 	envsubst < setup/connect_to_remote '$REMOTE_IP $REMOTE_PORT $KEY_LOCATION' > /usr/local/sbin/raveberry/connect_to_remote
 	chmod +x /usr/local/sbin/raveberry/connect_to_remote

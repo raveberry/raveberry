@@ -6,7 +6,7 @@ After=network.target
 PIDFile=/run/daphne/pid
 User=www-data
 Group=www-data
-WorkingDirectory=$SERVER_ROOT
+WorkingDirectory={{ config.install_directory }}
 Environment="DJANGO_SETTINGS_MODULE=main.settings"
 ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application
 ExecReload=/bin/kill -s HUP $MAINPID

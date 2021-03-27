@@ -21,6 +21,7 @@ from core.lights.programs import Cava
 from core.lights.programs import Disabled
 from core.lights.programs import Fixed
 from core.lights.programs import Rainbow
+from core.lights.screen import RenderingStoppedException
 from core.models import Setting
 from core.state_handler import Stateful
 from core.util import background_thread
@@ -142,7 +143,10 @@ class Lights(Stateful):
                 self.alarm_program.compute()
 
                 if self.screen.program.name != "Disabled":
-                    self.screen.program.draw()
+                    try:
+                        self.screen.program.draw()
+                    except RenderingStoppedException:
+                        self.controller.set_program(self.screen, self.disabled_program)
 
                 self.ring.program.compute()
                 if self.wled.program != self.ring.program:

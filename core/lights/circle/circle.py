@@ -23,6 +23,7 @@ import time
 from django.conf import settings
 
 from core.lights.programs import ScreenProgram
+from core.lights.screen import RenderingStoppedException
 
 if TYPE_CHECKING:
     from core.lights.lights import Lights
@@ -183,26 +184,37 @@ class Circle(ScreenProgram):
 
         # Setup display and initialise pi3d
         self.display = pi3d.Display.create(
-            w=self.width, h=self.height, window_title="Raveberry"
+            w=self.width, h=self.height, window_title="Raveberry"  # , use_glx=True
         )
         # error 0x500 after Display create
         # error = opengles.glGetError()
         # Set a pink background color so mistakes are clearly visible
         # self.display.set_background(1, 0, 1, 1)
+
+        # with an alpha value of 1 flat glx renders the window transparently for some reason
+        # so instead we use a value slightly smaller than 1
+        # self.display.set_background(0, 0, 0, 0.999)
         self.display.set_background(0, 0, 0, 1)
 
         # print OpenGL Version, useful for debugging
         # import ctypes
+
+        # from pi3d.constants import GL_VERSION
+
         # def print_char_p(addr):
-        #    g = (ctypes.c_char*32).from_address(addr)
-        #    i = 0
-        #    while True:
-        #        c = g[i]
-        #        if c == b'\x00':
-        #            break
-        #        sys.stdout.write(c.decode())
-        #        i += 1
-        #    sys.stdout.write('\n')
+        #     g = (ctypes.c_char * 32).from_address(addr)
+        #     i = 0
+        #     while True:
+        #         try:
+        #             c = g[i]
+        #         except IndexError:
+        #             break
+        #         if c == b"\x00":
+        #             break
+        #         sys.stdout.write(c.decode())
+        #         i += 1
+        #     sys.stdout.write("\n")
+
         # print_char_p(opengles.glGetString(GL_VERSION))
 
         # Visualization is split into five parts:
@@ -346,6 +358,9 @@ class Circle(ScreenProgram):
             sprite.unif[uniform] = self.uniform_values[uniform]
 
     def draw(self) -> None:
+        """Renders one frame of the visualization.
+        Raises a RenderingStoppedException if pi3d does no rendering anymore.
+        (most probably because the window was closed)"""
         import numpy as np
         from scipy.ndimage.filters import gaussian_filter
         from pi3d.Camera import Camera
@@ -375,7 +390,10 @@ class Circle(ScreenProgram):
 
         then = time.time()
 
-        self.display.loop_running()
+        # loop_running does all of pi3d's logic and needs to be called every frame
+        if not self.display.loop_running():
+            raise RenderingStoppedException
+
         now = self.display.time
         self.time_delta = now - self.last_loop
         self.last_loop = now
@@ -593,8 +611,8 @@ class Circle(ScreenProgram):
     def stop(self) -> None:
         # clean up the display. after stopping the main loop has to be called once more
         self.display.stop()
+        # loop running calls destroy after being stopped, no need to do it explicitly
         self.display.loop_running()
-        self.display.destroy()
         self.cava.release()
 
 
@@ -626,7 +644,10 @@ def main() -> None:
 
     while True:
         computation_start = time.time()
-        circle.draw()
+        try:
+            circle.draw()
+        except RenderingStoppedException:
+            break
         mock_cava.current_frame = [
             0.5 * (1 + math.sin(-4 * circle.time_elapsed + 0.5 * i))
             for i in range(len(mock_cava.current_frame))
@@ -650,6 +671,6 @@ def main() -> None:
 if __name__ == "__main__":
     # overwrite the settings to have it point to the correct directories
     settings = type(  # type: ignore # pylint: disable=invalid-name
-        "obj", (object,), {"BASE_DIR": "../../..", "STATIC_ROOT": "../../../static"}
+        "obj", (object,), {"BASE_DIR": "../../..", "STATIC_FILES": "../../../static"}
     )
     main()

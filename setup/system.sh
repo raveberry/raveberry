@@ -91,6 +91,7 @@ if [[ ! -z "$CACHE_MEDIUM" ]]; then
 		CACHE_DIR="/mnt/$CACHE_MEDIUM"
 	fi
 	mkdir -p "$CACHE_DIR"
+	# without eval: UUID=$(blkid -o value --match-tag UUID --match-token LABEL="$CACHE_MEDIUM")
 	eval $(blkid --match-token LABEL="$CACHE_MEDIUM" -o export | grep UUID)
 	cp --parents /etc/fstab $BACKUP_DIR/
 

@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+NUM=60
+for i in $(seq 1 $NUM); do
+	ping -c 1 -W 1 {{ config.remote_ip }} > /dev/null && break
+	sleep 1
+done
+[ $i -lt $NUM ] && /usr/bin/autossh -i /root/.ssh/raveberry_remote -N -R 127.0.0.1:{{ config.remote_port }}:localhost:80 raveberry@{{ config.remote_ip }}

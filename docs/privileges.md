@@ -2,15 +2,12 @@
 
 (Urls like `/login` refer to Raveberry's pages, so enter `http://raveberry/login` to access them.)
 
-Complementing Raveberry's [base functionality](functionality.md), additional features are available to logged in users. By visiting the `/login` page, multiple privilege levels can be obtained. Since logins tend to happen quite rarely, this page is not linked from the main page. You can log in with one of the following users and the respective passwords you assigned to them. The default passwords for the `mod` and the `pad` user are `mod` and `pad`. If you want to change these (you should), login to djangos administration page at `/admin` and click on 'Users', the name of the user you want to change and then the small link below the password hash. There you can set a new password.
+Complementing Raveberry's [base functionality](functionality.md), additional features are available to logged in users. By visiting the `/login` page, multiple privilege levels can be obtained. Since logins tend to happen quite rarely, this page is not linked from the main page. You can log in with one of the following users and the respective passwords you assigned to them. The default passwords for the `mod` user is `mod`. If you want to change it (you should), login to django's administration page at `/admin` and click on 'Users', then 'mod' and then the small link below the password hash. There you can set a new password.
 
 ## Mod
 The `mod` user is able to change the playback. They can change the volume, seek the current song or skip it. They are also allowed to remove songs from the queue regardless of their score. Mods can also control the LEDs.
 
 With mod privileges, playlists can be requested as well. A new icon appears next to the dice that enables playlist mode. Subsequent searches will then lead to each song of the playlist being added after one another. Additionally, a robot icon will appear that can be used to add Youtube's recommendations for the currently playing song.
-
-## Pad
-The `pad` user has all the privileges the `mod` user has. Additionally, they have access to `/pad`. This page features a simple text area to store plaintext. Useful for sharing links, contact information etc.
 
 ## Admin
 The `admin` user has full access to the page. This user is automatically the superuser for the webframework. By visiting `/admin` they can edit the database and change user passwords. In addition to all previously mentioned permissions, this user can access `/settings`. On this page, the following settings can be changed:
@@ -41,8 +38,11 @@ The `admin` user has full access to the page. This user is automatically the sup
 
 At the bottom of the settings page, the system can be configured in various ways:
 
+* **Streaming**:
+Configures whether audio should be made available at `/stream`. See [base functionality](streaming.md) for further information.
+
 * **Events**:
-Configures whether live updates with websockets are active. Internally this option changes the deployment between `daphne` (websockets suported) and `gunicorn` (websockets disabled). Since websockets require a lot of computation on server side, disabling them can reduce strain on the CPU. However, this also diminishes user experience significantly.
+Configures whether live updates with websockets are active. Internally this option changes the deployment between `daphne` (websockets supported) and `gunicorn` (websockets disabled). Since websockets require a lot of computation on server side, disabling them can reduce strain on the CPU. However, this also diminishes user experience significantly.
 
 * **Hotspot**:
 Configures whether the raveberry casts its own WiFi network.

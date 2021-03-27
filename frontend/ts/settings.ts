@@ -90,6 +90,22 @@ registerSpecificState(function(newState) {
       $('.remote-functionality').attr('disabled-note',
           'Please configure remote during installation to use this feature.');
     }
+
+    if (!newState.youtube_available) {
+      $('.youtube-functionality').addClass('is-disabled');
+      $('.youtube-functionality').attr('disabled-note',
+          'Please configure youtube during installation to use this feature.');
+    }
+    if (!newState.spotify_available) {
+      $('.spotify-functionality').addClass('is-disabled');
+      $('.spotify-functionality').attr('disabled-note',
+          'Please configure spotify during installation to use this feature.');
+    }
+    if (!newState.soundcloud_available) {
+      $('.soundcloud-functionality').addClass('is-disabled');
+      $('.soundcloud-functionality').attr('disabled-note',
+          'Please configure soundcloud during installation to use this feature.');
+    }
   }
 
   if (Cookies.get('ignore_updates') === undefined) {

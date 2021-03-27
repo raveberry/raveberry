@@ -1,0 +1,247 @@
+- name: Check if any xsessions are present
+  stat:
+    path: /usr/share/xsessions
+  register: xsessions
+
+- name: Screen visualization
+  when: config.screen_visualization
+  block:
+    - name: Force hdmi hotplug
+      when: pi
+      lineinfile:
+        path: /boot/config.txt
+        line: "hdmi_force_hotplug=1"
+    # without access to renderD128 another slow method is used
+    - name: Rendering privileges
+      user:
+        name: www-data
+        groups: render
+        append: yes
+
+    - name: Start X on boot
+      when: not xsessions.stat.exists
+      block:
+        - name: xinit service
+          copy:
+            src: files/xinit.service
+            dest: /etc/systemd/system/xinit.service
+        - name: enable xinit
+          systemd:
+            enabled: yes
+            daemon_reload: yes
+            name: xinit
+
+    - name: X privileges
+      # only the user can extend privileges to other users
+      when: xsessions.stat.exists
+      become: false
+      block:
+        - name: get home
+          shell: echo $HOME
+          register: home
+
+        - name: xhost
+          # use host based access so we don't have to deal with .Xauthority cookies
+          command: xhost +si:localuser:www-data
+          environment:
+            DISPLAY: :0
+
+        - name: .xsessionrc
+          lineinfile: 
+            path: "{{ home.stdout }}/.xsessionrc"
+            line: "xhost +si:localuser:www-data"
+            create: true
+
+- name: LED visualization
+  # Led visualization only works on Raspberry Pis
+  when: config.led_visualization and pi
+  block:
+    - name: i2c
+      lineinfile:
+        path: /boot/config.txt
+        line: "dtparam=i2c_arm=on"
+    - name: spi
+      lineinfile:
+        path: /boot/config.txt
+        line: "dtparam=spi=on"
+
+    - name: Core frequency
+      when: pi4
+      block:
+        - name: core_freq
+          lineinfile:
+            path: /boot/config.txt
+            line: "core_freq=500"
+        - name: core_freq_min
+          lineinfile:
+            path: /boot/config.txt
+            line: "core_freq_min=500"
+
+    - name: Core frequency
+      when: not pi4
+      lineinfile:
+        path: /boot/config.txt
+        line: "core_freq=250"
+
+- name: pulseaudio
+  block:
+  - name: service
+    copy:
+      src: files/pulseaudio.service
+      dest: /etc/systemd/system/pulseaudio.service
+  - name: config
+    blockinfile:
+      path: /etc/pulse/system.pa
+      block: |
+        load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1
+        load-module module-bluetooth-policy
+        load-module module-bluetooth-discover
+      marker: "# {mark} ANSIBLE MANAGED BLOCK modules"
+  - name: Add virtual cava sink
+    when: config.led_visualization or config.screen_visualization
+    blockinfile:
+      path: /etc/pulse/system.pa
+      block: |
+        load-module module-null-sink sink_name=cava
+        update-sink-proplist cava device.description="virtual sink for cava"
+        set-default-sink 0
+      marker: "# {mark} ANSIBLE MANAGED BLOCK virtual sink"
+
+- name: mopidy config skeleton
+  copy:
+    src: files/mopidy.conf
+    dest: /etc/mopidy/mopidy.conf
+# output is set in database.yaml
+
+- name: Set max volume to 100%
+  command: "{{ item }}"
+  with_items:
+    # Built in output of a Raspberry Pi
+    - amixer -q -c 0 sset HDMI 100%
+    # Built in output of a Raspberry Pi
+    - amixer -q -c 0 sset Headphone 100%
+    - amixer -q -c 1 sset Headphone 100%
+    # output of an external sound card
+    - amixer -q -c 1 sset Speaker 100%
+    - amixer -q -c 2 sset Speaker 100%
+  # if amixer is not installed the outputs have different names anyway
+  # if the specified names are wrong, no harm is done as well
+  failed_when: no
+
+- name: Cache directory
+  when: config.cache_dir
+  block:
+    - name: Create cache directory
+      file:
+        path: "{{ config.cache_dir }}"
+        state: directory
+        owner: www-data
+        group: www-data
+    - name: Set cache directory path
+      copy:
+        dest: "{{ config.install_directory }}/config/cache_dir"
+        content: "{{ config.cache_dir }}"
+
+- name: Cache medium
+  when: config.cache_medium
+  block:
+    - name: get www-data uid
+      user:
+        name: www-data
+      register: www_user
+    - name: get www-data gid
+      group:
+        name: www-data
+      register: www_group
+    - name: Automount cache medium
+      mount:
+        path: "/mnt/{{ config.cache_medium }}"
+        src: 'LABEL="{{ config.cache_medium }}"'
+        fstype: ntfs
+        opts: "auto,nofail,noatime,rw,dmask=002,fmask=0113,gid={{ www_group.gid }},uid={{ www_user.uid }}"
+        state: mounted
+    - name: Create cache directory
+      file:
+        path: "/mnt/{{ config.cache_medium }}/raveberry"
+        state: directory
+        owner: www-data
+        group: www-data
+    - name: Set cache directory path
+      copy:
+        dest: "{{ config.install_directory }}/config/cache_dir"
+        content: "/mnt/{{ config.cache_medium }}/raveberry"
+
+- name: Led permissions for www-data
+  when: config.led_visualization
+  user:
+    name: www-data
+    groups: spi,gpio,i2c
+    append: yes
+- name: Audio permissions for www-data
+  user:
+    name: www-data
+    groups: audio,pulse,pulse-access
+    append: yes
+- name: Bluetooth permissions for www-data
+  user:
+    name: www-data
+    groups: bluetooth
+    append: yes
+- name: Bluetooth permissions for pulse
+  user:
+    name: pulse
+    groups: bluetooth
+    append: yes
+- name: Cache directory access permissions for mopidy
+  user:
+    name: mopidy
+    groups: www-data
+    append: yes
+
+- name: www-data home permissions
+  file:
+    path: /var/www
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+- name: www-data raveberry directory permissions
+  file:
+    path: "{{ config.install_directory }}"
+    state: directory
+    recurse: yes
+    # a local library link - if given - should not be recursively updated
+    follow: no
+    owner: www-data
+    group: www-data
+
+- name: Allow www-data passwordless sudo to system scripts
+  lineinfile:
+    dest: /etc/sudoers
+    line: "www-data ALL=NOPASSWD:/usr/local/sbin/raveberry/*"
+    validate: visudo -cf %s
+
+- name: Enable and restart pulseaudio
+  systemd:
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+    name: pulseaudio
+
+- name: Periodic youtube-dl updates
+  when: config.youtube is not defined or config.youtube
+  cron:
+    name: "update youtube-dl"
+    hour: "6"
+    minute: "0"
+    user: root
+    job: "/usr/bin/pip3 install -U youtube-dl"
+
+- name: Periodic backup script
+  when: config.backup_command
+  cron:
+    name: "Raveberry backup"
+    hour: "5"
+    minute: "0"
+    user: root
+    job: "{{ config.backup_command }}"

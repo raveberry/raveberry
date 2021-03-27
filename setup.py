@@ -7,12 +7,15 @@ with open("raveberry/README.md") as f:
     long_description = f.read()
 
 with open("raveberry/requirements/common.txt") as f:
-    required_packages = f.read().splitlines()
+    run_packages = f.read().splitlines()
+with open("raveberry/requirements/youtube.txt") as f:
+    run_packages.extend(f.read().splitlines())
+
+with open("raveberry/requirements/install.txt") as f:
+    install_packages = f.read().splitlines()
 
 with open("raveberry/requirements/screenvis.txt") as f:
-    screenvis_packages = [
-        line for line in f.read().splitlines() if not line.startswith("-r")
-    ]
+    screenvis_packages = f.read().splitlines()
 
 setuptools.setup(
     name="raveberry",
@@ -32,7 +35,10 @@ setuptools.setup(
     packages=["raveberry"],
     include_package_data=True,
     python_requires=">=3.7",
-    install_requires=required_packages,
-    extras_require={"screenvis": screenvis_packages},
+    extras_require={
+        "install": install_packages,
+        "run": run_packages,
+        "screenvis": screenvis_packages,
+    },
     scripts=["raveberry/bin/raveberry"],
 )

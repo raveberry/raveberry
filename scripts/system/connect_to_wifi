@@ -26,4 +26,4 @@ if [ $? -eq 1 ]; then
 	exit 1
 fi
 echo "$entry" | sudo tee -a /etc/wpa_supplicant/wpa_supplicant.conf
-wpa_cli -i wlan1 reconfigure
+wpa_cli -i wlan0 reconfigure

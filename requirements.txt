@@ -1,2 +1,0 @@
-# mirror prod
--r requirements/prod.txt

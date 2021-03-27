@@ -5,14 +5,22 @@ then echo "Please run as root"
 fi
 
 if (( $# != 6 )); then
-    echo "usage: $0 <config_tempate> <spotify_username> <spotify_password> <spotify_client_id> <spotify_client_secret> <soundcloud_auth_token>"
+    echo "usage: $0 regular|cava|icecast <spotify_username> <spotify_password> <spotify_client_id> <spotify_client_secret> <soundcloud_auth_token>"
 	exit 1
 fi
 
-export SPOTIFY_USERNAME="$2"
-export SPOTIFY_PASSWORD="$3"
-export SPOTIFY_CLIENT_ID="$4"
-export SPOTIFY_CLIENT_SECRET="$5"
-export SOUNDCLOUD_AUTH_TOKEN="$6"
+if [[ "$1" == "regular" ]]; then
+	OUTPUT='rgvolume ! audioconvert ! audioresample ! pulsesink server=127.0.0.1'
+elif [[ "$1" == "cava" ]]; then
+	OUTPUT='rgvolume ! audioconvert ! audioresample ! tee name=t ! queue ! pulsesink server=127.0.0.1 device=cava t. ! queue max-size-bytes=85000000 max-size-buffers=0 max-size-time=0 ! pulsesink server=127.0.0.1 ts-offset=85000000'
+elif [[ "$1" == "icecast" ]]; then
+	OUTPUT='rgvolume ! audioconvert ! audioresample ! lamemp3enc ! shout2send async=false mount=stream'
+fi
 
-envsubst < $1 > /etc/mopidy/mopidy.conf
+sed -i -r -e "s/(^output\s*=).*/\1 $OUTPUT/" /etc/mopidy/mopidy.conf
+
+sed -i -r -e "s/(^username\s*=).*/\1 $2/" /etc/mopidy/mopidy.conf
+sed -i -r -e "s/(^password\s*=).*/\1 $3/" /etc/mopidy/mopidy.conf
+sed -i -r -e "s/(^client_id\s*=).*/\1 $4/" /etc/mopidy/mopidy.conf
+sed -i -r -e "s/(^client_secret\s*=).*/\1 $5/" /etc/mopidy/mopidy.conf
+sed -i -r -e "s/(^auth_token\s*=).*/\1 $6/" /etc/mopidy/mopidy.conf

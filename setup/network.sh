@@ -24,9 +24,9 @@ if [ -z "$HOTSPOT" ]; then
 	rm /usr/local/sbin/raveberry/disable_hotspot
 	rm /usr/local/sbin/raveberry/enable_homewifi
 	rm /usr/local/sbin/raveberry/disable_homewifi
-	# Without a seperate hotspot, the internet is available on wlan0
-	sed -i s/wlan1/wlan0/ /usr/local/sbin/raveberry/connect_to_wifi
 else
+	# With a seperate hotspot, the internet is available on wlan1
+	sed -i s/wlan0/wlan1/ /usr/local/sbin/raveberry/connect_to_wifi
 	systemctl stop dnsmasq
 	systemctl stop hostapd
 

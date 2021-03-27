@@ -4,4 +4,4 @@ then echo "Please run as root"
 	exit
 fi
 
-systemctl restart xinit
+[ $(systemctl list-unit-files xinit.service | wc -l) -gt 3 ] && systemctl restart xinit

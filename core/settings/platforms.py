@@ -1,7 +1,9 @@
 """This module handles all settings regarding the music platforms."""
 from __future__ import annotations
 
+import importlib
 import os
+import subprocess
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -25,11 +27,26 @@ class Platforms:
 
         self.local_enabled = os.path.islink(Library.get_library_path())
 
-        self.youtube_enabled = Settings.get_setting("youtube_enabled", "True") == "True"
+        # in the docker container all dependencies are installed
+        self.youtube_available = (
+            settings.DOCKER or importlib.util.find_spec("youtube_dl") is not None
+        )
+        # the _enabled check is the second expression so the databes entry gets created in any case
+        self.youtube_enabled = (
+            Settings.get_setting("youtube_enabled", "True") == "True"
+            and self.youtube_available
+        )
         self.youtube_suggestions = int(Settings.get_setting("youtube_suggestions", "2"))
 
+        # Spotify has no python dependencies we could easily check.
+        self.spotify_available = (
+            settings.DOCKER
+            or "[spotify]"
+            in subprocess.check_output(["mopidy", "config"]).decode().splitlines()
+        )
         self.spotify_enabled = (
             Settings.get_setting("spotify_enabled", "False") == "True"
+            and self.spotify_available
         )
         self.spotify_suggestions = int(Settings.get_setting("spotify_suggestions", "2"))
         self.spotify_username = Settings.get_setting("spotify_username", "")
@@ -37,8 +54,12 @@ class Platforms:
         self.spotify_client_id = Settings.get_setting("spotify_client_id", "")
         self.spotify_client_secret = Settings.get_setting("spotify_client_secret", "")
 
+        self.soundcloud_available = (
+            settings.DOCKER or importlib.util.find_spec("soundcloud") is not None
+        )
         self.soundcloud_enabled = (
             Settings.get_setting("soundcloud_enabled", "False") == "True"
+            and self.soundcloud_available
         )
         self.soundcloud_suggestions = int(
             Settings.get_setting("soundcloud_suggestions", "2")

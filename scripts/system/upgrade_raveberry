@@ -8,5 +8,6 @@ if (( $# != 1 )); then
 	exit 1
 fi
 
-pip3 install -U raveberry
-raveberry system-install --config-file "$1" --confirm-config > "/var/www/raveberry_install_log_$(date +%Y-%m-%d-%H:%M:%S)" 2>&1
+LOGFILE="/var/www/raveberry_install_log_$(date +%Y-%m-%d-%H:%M:%S)"
+pip3 install -U raveberry[install] >> "$LOGFILE" 2>&1
+raveberry system-install --config-file "$1" --confirm-config >> "$LOGFILE" 2>&1

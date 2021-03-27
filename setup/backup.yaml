@@ -1,0 +1,38 @@
+- name: Create backup folder
+  file:
+    path: "{{ config.install_directory }}/backup_{{ ansible_date_time.iso8601 }}"
+    state: directory
+    # postgres user needs to write into the folder
+    mode: o+w
+  register: backup_dir
+
+- name: Backup files
+  block:
+    - name: Ensure directories exist
+      file:
+        path: "{{ backup_dir.path }}/{{ item }}"
+        state: directory
+      with_items:
+        - boot
+        - etc
+        - etc/default
+        - etc/pulse
+    - name: Copy files
+      copy:
+        src: "{{ item }}"
+        dest: "{{ backup_dir.path }}/{{ item }}"
+        remote_src: yes
+      with_items:
+        - /boot/config.txt
+        - /etc/default/hostapd
+        - /etc/dhcpcd.conf
+        - /etc/dnsmasq.conf
+        - /etc/hosts
+        - /etc/pulse/system.pa
+        - /etc/rc.local
+        - /etc/sudoers
+        - /etc/sysctl.conf
+        - /etc/hostname
+        - /etc/fstab
+      # not all of these files exist on every system
+      failed_when: no

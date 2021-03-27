@@ -5,7 +5,8 @@ then echo "Please run as root"
 fi
 
 if [ -f /etc/default/icecast2 ]; then
-	sed -i.bak 's/ENABLE=false/ENABLE=true/' /etc/default/icecast2
+	sed -i.bak '/ENABLE=false/d' /etc/default/icecast2
+	echo 'ENABLE=true' >> /etc/default/icecast2
 fi
 
 if [ ! -f /usr/share/icecast2/web/silence.mp3 ]; then

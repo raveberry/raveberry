@@ -3,6 +3,7 @@ module.exports = {
   content: ['ts/**/*.ts', '../templates/*.html'],
   safelist: [
     'collapsing', // menu transition
-    'modal-backdrop' // dimmed background behind modals
+    'modal-backdrop', // dimmed background behind modals
+    'svg' // network info qr codes
   ],
 }

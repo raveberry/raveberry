@@ -28,4 +28,5 @@ Sometimes a restart is required.
 sudo systemctl restart <service>
 ```
 
-If you notice that some features do not work at all, they may have been installed incorrectly. Then you might have to trace the scripts in `setup/` and check if all steps executed correctly.
+If you notice that some features do not work at all, they may have been installed incorrectly.
+Try reinstalling Raveberry and see if you encounter any errors during the relevant tasks.

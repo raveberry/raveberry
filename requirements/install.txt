@@ -1,0 +1,2 @@
+ansible>=3.1.0
+pyyaml>=5.4.1

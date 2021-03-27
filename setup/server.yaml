@@ -1,0 +1,76 @@
+- name: Remove default nginx config
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+- name: events nginx config
+  template:
+    src: files/raveberry-events
+    dest: /etc/nginx/sites-available/raveberry-events
+- name: static nginx config
+  template:
+    src: files/raveberry-static
+    dest: /etc/nginx/sites-available/raveberry-static
+
+- name: daphne service
+  template:
+    src: files/daphne.service
+    dest: /etc/systemd/system/daphne.service
+- name: gunicorn service
+  template:
+    src: files/gunicorn.service
+    dest: /etc/systemd/system/gunicorn.service
+
+- name: Configure remote connection
+  when: config.remote_key and config.remote_ip and config.remote_port and config.remote_url
+  block:
+    - name: remote service
+      copy:
+        src: files/remote.service
+        dest: /etc/systemd/system/remote.service
+    - name: remote connect script
+      template:
+        src: files/connect_to_remote
+        dest: /usr/local/sbin/raveberry/connect_to_remote
+        mode: +x
+    - name: Create .ssh folder for root
+      file:
+        path: /root/.ssh
+        state: directory
+        mode: 0700
+    - name: Copy ssh key
+      copy:
+        src: "{{ config.remote_key }}"
+        dest: "/root/.ssh/raveberry_remote"
+        mode: 0600
+    - name: Create known hosts file
+      file:
+        path: /root/.ssh/known_hosts
+        state: touch
+        mode: 0600
+    - name: Check if key for remote host exists
+      command: ssh-keygen -F "{{ config.remote_ip }}"
+      register: keygen
+      failed_when: no
+    - name: Add host with custom SSH port
+      when: keygen.rc != 0
+      block:
+        - name: Gather ssh keys
+          command: ssh-keyscan -H "{{ config.remote_ip }}"
+          register: keyscan
+        - name: Add keys to known hosts
+          blockinfile:
+            path: /root/.ssh/known_hosts
+            block: "{{ keyscan.stdout }}"
+
+- name: Reload systemd daemon config
+  systemd:
+    daemon_reload: yes
+
+- name: Info
+  debug:
+    # If the user initiated the upgrade through the webinterface,
+    # The last task will kill the install. Show a confirmation message.
+    msg: Installation complete!
+
+- name: Start the server
+  command: /usr/local/sbin/raveberry/enable_events

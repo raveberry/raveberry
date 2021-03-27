@@ -1,0 +1,189 @@
+# add mopidy's repository for its newest version and extensions
+# https://docs.mopidy.com/en/latest/installation/debian/
+- name: Add mopidy gpg key
+  apt_key:
+    url: https://apt.mopidy.com/mopidy.gpg
+- name: Add mopidy repository
+  apt_repository:
+    # from https://apt.mopidy.com/buster.list
+    repo: deb https://apt.mopidy.com/ buster main contrib non-free
+
+- name: Install apt dependencies (may take some time)
+  apt:
+    update_cache: yes
+    pkg:
+    # python package management
+    - python3-pip
+    # webserver
+    - nginx
+    # player
+    - mopidy
+    - pulseaudio
+    # m4a playback
+    - gstreamer1.0-plugins-bad
+    # bluetooth playback
+    - pulseaudio-module-bluetooth
+    # database
+    - postgresql
+    - libpq-dev # required for psycopg2
+    # channel layer
+    - redis-server
+    # remote connection
+    - autossh
+    # https://stackoverflow.com/questions/25751085/postgresql-failing-peer-authentication-with-ansible
+    # needed for postgresql_db
+    - acl
+
+- name: Install python dependencies (may take some time)
+  pip:
+    requirements: "{{ config.install_directory }}/requirements/prod.txt"
+
+- name: Install Youtube dependencies
+  when: config.youtube is not defined or config.youtube
+  block:
+    - name: Install apt dependencies
+      apt:
+        pkg:
+        #audio conversion
+        - ffmpeg
+        #thumbnail embedding
+        - atomicparsley
+    - name: Install python dependencies
+      pip:
+        requirements: "{{ config.install_directory }}/requirements/youtube.txt"
+
+- name: Install Spotify dependencies
+  when: config.spotify is defined and config.spotify
+  block:
+    - name: Install apt dependencies
+      apt:
+        pkg:
+        - mopidy-spotify
+        - libspotify-dev
+    - name: Install python dependencies
+      pip:
+        requirements: "{{ config.install_directory }}/requirements/spotify.txt"
+
+- name: Install Soundcloud dependencies
+  when: config.soundcloud is defined and config.soundcloud
+  block:
+    - name: Install apt dependencies
+      apt:
+        pkg:
+        - mopidy-soundcloud
+    - name: Install python dependencies
+      pip:
+        requirements: "{{ config.install_directory }}/requirements/soundcloud.txt"
+
+
+- name: Install hotspot dependencies
+  when: config.hotspot
+  apt:
+    pkg:
+    - dnsmasq
+    - hostapd
+    - rfkill
+
+- name: Install screen visualization dependencies
+  when: config.screen_visualization
+  block:
+    - name: Install apt dependencies
+      apt:
+        pkg:
+        # these packages are installed via apt because pip ships too new versions
+        - python3-numpy
+        - python3-scipy
+        - python3-pil
+        - mesa-utils # graphics drivers
+        - mesa-utils-extra # contains libgles2
+        - xorg # X is needed for displaying
+    - name: Install python dependencies
+      pip:
+        name: pi3d
+
+- name: Install led visualization dependencies
+  when: config.led_visualization
+  pip:
+    requirements: "{{ config.install_directory }}/requirements/ledvis.txt"
+
+- name: Check if cava executable is present
+  shell: type cava
+  register: type_cava
+  changed_when: no
+  failed_when: no
+
+- name: Install cava
+  when: (config.led_visualization or config.screen_visualization) and type_cava.rc != 0
+  block:
+    # from https://github.com/karlstav/cava
+    - name: Install apt dependencies
+      apt:
+        pkg:
+          - git
+          - libfftw3-dev
+          - libasound2-dev
+          - libncursesw5-dev
+          - libpulse-dev
+          - libtool
+          - m4
+          - automake
+          - libtool
+    - name: Git checkout
+      git:
+        repo: https://github.com/karlstav/cava
+        dest: /opt/cava
+    - name: Build
+      command: chdir=/opt/cava/ {{ item }}
+      with_items:
+      - ./autogen.sh
+      - ./configure
+      - make
+      - make install
+
+- name: Check if rganalysis executable is present
+  shell: type rganalysis
+  register: type_rganalysis
+  changed_when: no
+  failed_when: no
+
+- name: Install rganalysis
+  when: config.audio_normalization and type_rganalysis.rc != 0
+  block:
+    - name: Download audiotools
+      get_url:
+        url: https://downloads.sourceforge.net/project/audiotools/audiotools/3.1.1/audiotools-3.1.1.tar.gz
+        dest: /tmp/audiotools-3.1.1.tar.gz
+    - name: Unzip audiotools
+      unarchive:
+        src: /tmp/audiotools-3.1.1.tar.gz
+        dest: /opt/
+        remote_src: yes
+    - name: Build audiotools
+      command: chdir=/opt/audiotools-3.1.1/ {{ item }}
+      with_items:
+      - python3 setup.py build
+      - python3 setup.py install
+    - name: Download faad2
+      get_url:
+        url: http://downloads.sourceforge.net/sourceforge/faac/faad2-2.7.tar.bz2
+        dest: /tmp/faad2-2.7.tar.bz2
+    - name: Unzip faad2
+      unarchive:
+        src: /tmp/faad2-2.7.tar.bz2
+        dest: /opt/
+        remote_src: yes
+    - name: Build
+      command: chdir=/opt/faad2-2.7/ {{ item }}
+      with_items:
+      - ./configure
+      - make install
+    - name: Install rganalysis
+      pip:
+        name: https://github.com/DarwinAwardWinner/rganalysis/archive/master.zip
+
+- name: Install system scripts
+  copy:
+    src: "{{ config.install_directory }}/scripts/system/"
+    remote_src: yes
+    dest: /usr/local/sbin/raveberry/
+    mode: +x

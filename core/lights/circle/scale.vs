@@ -2,9 +2,9 @@
 
 precision mediump float;
 
-attribute vec3 vertex;
-attribute vec3 normal;
-attribute vec2 texcoord;
+in vec3 vertex;
+in vec3 normal;
+in vec2 texcoord;
 
 uniform vec3 unif[20];
 

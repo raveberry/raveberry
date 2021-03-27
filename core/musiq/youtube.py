@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import pickle
+import shutil
 import subprocess
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Iterator, cast
@@ -71,6 +72,8 @@ class YoutubeDLLogger:
 class Youtube:
     """This class contains code for both the song and playlist provider"""
 
+    atomicparsley_available = shutil.which("AtomicParsley") is not None
+
     @staticmethod
     def get_ydl_opts() -> Dict[str, Any]:
         """This method returns a dictionary containing sensible defaults for youtube-dl options.
@@ -79,6 +82,15 @@ class Youtube:
             --no-playlist --no-cache-dir --write-thumbnail --default-search auto \
             --add-metadata --embed-thumbnail
         """
+        postprocessors = [{"key": "FFmpegMetadata"}]
+        if Youtube.atomicparsley_available:
+            postprocessors.append(
+                {
+                    "key": "EmbedThumbnail",
+                    # overwrite any thumbnails already present
+                    "already_have_thumbnail": True,
+                }
+            )
         return {
             "format": "bestaudio[ext=m4a]/best[ext=m4a]",
             "outtmpl": os.path.join(settings.SONGS_CACHE_DIR, "%(id)s.%(ext)s"),
@@ -87,14 +99,7 @@ class Youtube:
             "no_color": True,
             "writethumbnail": True,
             "default_search": "auto",
-            "postprocessors": [
-                {"key": "FFmpegMetadata"},
-                {
-                    "key": "EmbedThumbnail",
-                    # overwrite any thumbnails already present
-                    "already_have_thumbnail": True,
-                },
-            ],
+            "postprocessors": postprocessors,
             "logger": YoutubeDLLogger(),
         }
 

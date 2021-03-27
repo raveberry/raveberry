@@ -7,7 +7,7 @@ import re
 import shutil
 import subprocess
 import time
-from typing import Dict, TYPE_CHECKING, Tuple, Optional, List
+from typing import Dict, TYPE_CHECKING, Tuple, Optional
 
 import cachetools.func
 import requests
@@ -27,24 +27,18 @@ class System:
     """This class is responsible for handling settings changes related to system configuration."""
 
     @staticmethod
-    def _get_mopidy_config() -> str:
-        if shutil.which("cava"):
-            # if cava is installed, use the visualization config for mopidy
-            config_file = os.path.join(settings.BASE_DIR, "setup/mopidy_cava.conf")
-        else:
-            config_file = os.path.join(settings.BASE_DIR, "setup/mopidy.conf")
-        return config_file
-
-    @staticmethod
-    def update_mopidy_config(config_file=None,) -> None:
+    def update_mopidy_config(output=None) -> None:
         """Updates mopidy's config with the credentials stored in the database.
         If no config_file is given, the default one is used."""
         if settings.DOCKER:
             # raveberry cannot restart mopidy in the docker setup
             return
 
-        if config_file is None:
-            config_file = System._get_mopidy_config()
+        if not output:
+            if shutil.which("cava"):
+                output = "cava"
+            else:
+                output = "regular"
 
         spotify_username = Settings.get_setting("spotify_username", "")
         spotify_password = Settings.get_setting("spotify_password", "")
@@ -56,7 +50,7 @@ class System:
             [
                 "sudo",
                 "/usr/local/sbin/raveberry/update_mopidy_config",
-                config_file,
+                output,
                 spotify_username,
                 spotify_password,
                 spotify_client_id,
@@ -94,10 +88,12 @@ class System:
         parser = configparser.ConfigParser()
         parser.read_string(config)
         extensions = {}
-        for extension in ["spotify", "enabled"]:
+        for extension in ["spotify", "soundcloud"]:
             try:
                 if parser[extension]["enabled"] == "true":
                     extensions[extension] = (True, "Extension probably functional")
+                else:
+                    extensions[extension] = (False, "Extension disabled")
             except KeyError:
                 extensions[extension] = (False, "Extension disabled")
         return extensions
@@ -175,8 +171,7 @@ class System:
             return HttpResponseBadRequest("Please install icecast2")
 
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_streaming"])
-        config_file = os.path.join(settings.BASE_DIR, "setup/mopidy_icecast.conf")
-        self.update_mopidy_config(config_file)
+        self.update_mopidy_config(output="icecast")
         return HttpResponse()
 
     @Settings.option
@@ -304,7 +299,7 @@ class System:
     @Settings.option
     def get_upgrade_config(self, _request: WSGIRequest) -> HttpResponse:
         """Returns the config that will be used for the upgrade."""
-        with open(os.path.join(settings.BASE_DIR, "config/raveberry.ini")) as f:
+        with open(os.path.join(settings.BASE_DIR, "config/raveberry.yaml")) as f:
             config = f.read()
         lines = config.splitlines()
         lines = [line for line in lines if not line.startswith("#")]
@@ -320,7 +315,7 @@ class System:
                 [
                     "sudo",
                     "/usr/local/sbin/raveberry/upgrade_raveberry",
-                    os.path.join(settings.BASE_DIR, "config/raveberry.ini"),
+                    os.path.join(settings.BASE_DIR, "config/raveberry.yaml"),
                 ]
             )
 
