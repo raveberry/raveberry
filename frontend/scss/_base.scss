@@ -117,34 +117,6 @@
 	color: yellow;
 }
 
-#presence {
-	width: 25%;
-	max-width: 80px;
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	display: none;
-}
-#presence>div {
-	margin: 3px;
-}
-.presence_circle {
-	height: 25px;
-	width: 25px;
-	line-height: 25px;
-	text-align: center;
-	border-radius: 50%;
-}
-.presence_circle.present {
-	background-color: theme-color("green");
-}
-.presence_circle.absent {
-	background-color: theme-color("red");
-}
-#additional_presence {
-	color: theme-color('normal-text');
-}
-
 #content {
 	padding: 8px;
 }
