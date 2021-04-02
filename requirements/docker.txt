@@ -1,2 +1,2 @@
 -r prod.txt
-https://github.com/DarwinAwardWinner/rganalysis/archive/master.zip
+https://github.com/DarwinAwardWinner/rganalysis/archive/refs/tags/v3.6.zip

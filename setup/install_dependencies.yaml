@@ -181,7 +181,7 @@
       - make install
     - name: "Install rganalysis: Install rganalysis"
       pip:
-        name: https://github.com/DarwinAwardWinner/rganalysis/archive/master.zip
+        name: https://github.com/DarwinAwardWinner/rganalysis/archive/refs/tags/v3.6.zip
 
 - name: Install system scripts
   copy:
