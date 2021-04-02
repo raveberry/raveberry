@@ -1,2 +1,6 @@
 #!/bin/bash
-! grep -q 'hostapd_protected' /etc/default/hostapd
+if [ -f /etc/default/hostapd ]; then
+        ! grep -q 'hostapd_protected' /etc/default/hostapd
+else
+        exit 0
+fi
