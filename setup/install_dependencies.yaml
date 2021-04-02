@@ -151,34 +151,34 @@
 - name: Install rganalysis
   when: config.audio_normalization and type_rganalysis.rc != 0
   block:
-    - name: "Install rganalysis: Download audiotools"
-      get_url:
-        url: https://downloads.sourceforge.net/project/audiotools/audiotools/3.1.1/audiotools-3.1.1.tar.gz
-        dest: /tmp/audiotools-3.1.1.tar.gz
-    - name: "Install rganalysis: Unzip audiotools"
-      unarchive:
-        src: /tmp/audiotools-3.1.1.tar.gz
-        dest: /opt/
-        remote_src: yes
-    - name: "Install rganalysis: Build audiotools"
-      command: chdir=/opt/audiotools-3.1.1/ {{ item }}
-      with_items:
-      - python3 setup.py build
-      - python3 setup.py install
+    - name: "Install rganalysis: Install apt dependencies"
+      apt:
+        pkg:
+          - audiotools
+          - libfaad2  # prerequisite for faad install
+    # install faad to analyze aac files
+    # version 2.7 is required,
+    # because newer version don't work with multiple tracks
+    # https://github.com/knik0/faad2/issues/71
+    # an old .deb from ubuntu 14 is used to avoid manual compilation
+    - name: "Install rganalysis: Uninstall new faad"
+      apt:
+        pkg:
+          - faad
+        state: absent
     - name: "Install rganalysis: Download faad2"
+      when: ansible_facts['architecture'] == 'x86_64'
       get_url:
-        url: http://downloads.sourceforge.net/sourceforge/faac/faad2-2.7.tar.bz2
-        dest: /tmp/faad2-2.7.tar.bz2
-    - name: "Install rganalysis: Unzip faad2"
-      unarchive:
-        src: /tmp/faad2-2.7.tar.bz2
-        dest: /opt/
-        remote_src: yes
-    - name: "Install rganalysis: Build"
-      command: chdir=/opt/faad2-2.7/ {{ item }}
-      with_items:
-      - ./configure
-      - make install
+        url: http://launchpadlibrarian.net/335256796/faad_2.7-8+deb7u1build0.14.04.1_amd64.deb
+        dest: /tmp/faad2.deb
+    - name: "Install rganalysis: Download faad2"
+      when: ansible_facts['architecture'] == 'armv7l'
+      get_url:
+        url: http://launchpadlibrarian.net/335256808/faad_2.7-8+deb7u1build0.14.04.1_armhf.deb
+        dest: /tmp/faad2.deb
+    - name: "Install rganalysis: Install faad2"
+      apt:
+        deb: /tmp/faad2.deb
     - name: "Install rganalysis: Install rganalysis"
       pip:
         name: https://github.com/DarwinAwardWinner/rganalysis/archive/refs/tags/v3.6.zip
