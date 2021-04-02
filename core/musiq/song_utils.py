@@ -11,6 +11,7 @@ from main import settings
 if TYPE_CHECKING:
     from typing_extensions import TypedDict
     from core.musiq.music_provider import ArchivedPlaylist
+    from core.musiq.musiq import Musiq
 
     Metadata = TypedDict(  # pylint: disable=invalid-name
         "Metadata",
@@ -105,12 +106,15 @@ def get_metadata(path: str) -> "Metadata":
     return metadata
 
 
-def contains_keywords(title: str, keywords: str) -> bool:
+def is_forbidden(musiq: "Musiq", s: str) -> bool:
+    # We can't access the variable in settings/basic.py
+    # since we are in a static context without a reference to bes
+    keywords = musiq.base.settings.basic.forbidden_keywords
     words = re.split(r"[,\s]+", keywords.strip())
     # delete empty matches
     words = [word for word in words if word]
 
     for word in words:
-        if re.search(word, title, re.IGNORECASE):
+        if re.search(word, s, re.IGNORECASE):
             return True
     return False

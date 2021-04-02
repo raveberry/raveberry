@@ -67,7 +67,7 @@ class Suggestions:
                 from core.musiq.spotify import Spotify
 
                 spotify_suggestions = Spotify().get_search_suggestions(
-                    query, suggest_playlist
+                    self.musiq, query, suggest_playlist
                 )
                 spotify_suggestions = spotify_suggestions[
                     : platform_settings.spotify_suggestions
@@ -87,7 +87,9 @@ class Suggestions:
             ):
                 from core.musiq.soundcloud import Soundcloud
 
-                soundcloud_suggestions = Soundcloud().get_search_suggestions(query)
+                soundcloud_suggestions = Soundcloud().get_search_suggestions(
+                    self.musiq, query
+                )
                 soundcloud_suggestions = soundcloud_suggestions[
                     : platform_settings.soundcloud_suggestions
                 ]

@@ -37,14 +37,18 @@ class Soundcloud:
         If not, it is created using the client-id from mopidy-soundcloud."""
         return Soundcloud._get_web_client()
 
-    def get_search_suggestions(self, query: str) -> List[str]:
+    def get_search_suggestions(self, musiq: Musiq, query: str) -> List[str]:
         """Returns a list of suggested items for the given query."""
 
         response = self.web_client.get(
             f"https://api-v2.soundcloud.com/search/queries", q=query
         )
 
-        suggestions = [item.query for item in response.collection]
+        suggestions = [
+            item.query
+            for item in response.collection
+            if not song_utils.is_forbidden(musiq, item.query)
+        ]
         return suggestions
 
 
@@ -85,11 +89,14 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
 
             # apply the filterlist from the settings
             for item in results:
-                if not song_utils.contains_keywords(
-                    item.title, self.musiq.base.settings.basic.forbidden_keywords
-                ):
-                    result = item
-                    break
+                artist = item.user["username"]
+                title = item.title
+                if song_utils.is_forbidden(
+                    self.musiq, artist
+                ) or song_utils.is_forbidden(self.musiq, title):
+                    continue
+                result = item
+                break
             else:
                 # all tracks got filtered
                 return False

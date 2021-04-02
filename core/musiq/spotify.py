@@ -39,7 +39,7 @@ class Spotify:
         return Spotify._web_client
 
     def get_search_suggestions(
-        self, query: str, playlist: bool
+        self, musiq: Musiq, query: str, playlist: bool
     ) -> List[Tuple[str, str]]:
         """Returns a list of suggested items for the given query.
         Returns playlists if :param playlist: is True, songs otherwise."""
@@ -66,10 +66,15 @@ class Spotify:
                 displayname = title
             else:
                 artist = item["artists"][0]["name"]
+                # apply filter from the settings
+                if song_utils.is_forbidden(musiq, artist) or song_utils.is_forbidden(
+                    musiq, title
+                ):
+                    continue
                 displayname = song_utils.displayname(artist, title)
             suggestions.append((displayname, external_url))
 
-        # remove duplicates
+        # remove duplicates and filter by keywords
         chosen_displaynames = set()
         unique_suggestions = []
         for suggestion in suggestions:
@@ -122,11 +127,14 @@ class SpotifySongProvider(SongProvider, Spotify):
 
             # apply the filterlist from the settings
             for item in results["tracks"]["items"]:
-                if not song_utils.contains_keywords(
-                    item["name"], self.musiq.base.settings.basic.forbidden_keywords
-                ):
-                    result = item
-                    break
+                artist = item["artists"][0]["name"]
+                title = item["name"]
+                if song_utils.is_forbidden(
+                    self.musiq, artist
+                ) or song_utils.is_forbidden(self.musiq, title):
+                    continue
+                result = item
+                break
             else:
                 # all tracks got filtered
                 return False
