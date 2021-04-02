@@ -34,6 +34,12 @@
     # needed for postgresql_db
     - acl
 
+# update pip so cryptography wheels can be installed
+- name: pip self-update
+  pip:
+    name: pip
+    state: latest
+
 - name: Install python dependencies (may take some time)
   pip:
     requirements: "{{ config.install_directory }}/requirements/prod.txt"
