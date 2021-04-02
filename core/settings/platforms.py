@@ -43,7 +43,11 @@ class Platforms:
             self.spotify_available = (
                 settings.DOCKER
                 or "[spotify]"
-                in subprocess.check_output(["mopidy", "config"]).decode().splitlines()
+                in subprocess.check_output(
+                    ["mopidy", "config"], stderr=subprocess.DEVNULL
+                )
+                .decode()
+                .splitlines()
             )
         except FileNotFoundError:
             # mopidy is not installed. Disable when mocking, enable otherwise
