@@ -148,9 +148,14 @@ class Suggestions:
 
             for search_result in search_results:
                 song_info = search_result.meta
-                provider = SongProvider.create(
-                    self.musiq, external_url=song_info["url"]
-                )
+                try:
+                    provider = SongProvider.create(
+                        self.musiq, external_url=song_info["url"]
+                    )
+                except NotImplementedError:
+                    # For this song a provider is necessary that is not available
+                    # e.g. the song was played before, but the provider was disabled
+                    continue
                 cached = provider.check_cached()
                 # don't suggest local songs if they are not cached (=not at expected location)
                 if not cached and provider.type == "local":
