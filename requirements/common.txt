@@ -6,6 +6,7 @@ django-watson>=1.5.5
 mopidyapi>=1.0.0
 mutagen>=1.42.0
 python-dateutil>=2.8.0
-pyyaml>=5.4.1
+# newer pyyaml don't have wheels on piwheels
+pyyaml==5.4
 qrcode>=6.1
 requests>=2.22.0

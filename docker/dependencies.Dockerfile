@@ -1,10 +1,9 @@
-FROM python:3
+FROM debian:buster
 
 COPY common.txt prod.txt docker.txt ./
 
 RUN apt-get update &&\
-	apt-get install -y ffmpeg atomicparsley wget gnupg \
-		build-essential libssl-dev libffi-dev python3-dev rustc cargo &&\
+	apt-get install -y python3-pip ffmpeg atomicparsley wget gnupg audiotools libfaad2 libpq-dev &&\
 	apt-get clean
 
 # cryptography install failed even with rust installed. don't use rust for now
