@@ -106,88 +106,87 @@ class YoutubeTests(MusicTest):
         self.assertIn("MC Thunder", current_song["title"])
         self.assertAlmostEqual(current_song["duration"], 267, delta=1)
 
-    # For some reason, youtube-dl is unable to handle playlist urls
-    # def test_playlist_url(self):
-    #     self._post_request(
-    #         "request_music",
-    #         "https://www.youtube.com/playlist?list=PLvYcr2tNZuRquz0NQmBFF6ZhqFHSeOrbk",
-    #         playlist=True,
-    #     )
-    #     state = self._poll_musiq_state(
-    #         lambda state: state["current_song"]
-    #         and len(state["song_queue"]) == 2
-    #         and all(song["internal_url"] for song in state["song_queue"]),
-    #         timeout=60,
-    #     )
-    #     self.assertEqual(
-    #         state["current_song"]["external_url"],
-    #         "https://www.youtube.com/watch?v=d0KWiDGi_ek",
-    #     )
-    #     self.assertEqual(
-    #         state["song_queue"][0]["external_url"],
-    #         "https://www.youtube.com/watch?v=jcfcZfgyzm8",
-    #     )
-    #     self.assertEqual(
-    #         state["song_queue"][1]["external_url"],
-    #         "https://www.youtube.com/watch?v=47P6CI7V8gM",
-    #     )
-    #
-    # def test_playlist_query(self):
-    #     self._post_request("request_music", "Muse Resistance Album", playlist=True)
-    #     state = self._poll_musiq_state(
-    #         lambda state: state["current_song"]
-    #         and len(state["song_queue"]) == 2
-    #         and all(song["internal_url"] for song in state["song_queue"]),
-    #         timeout=60,
-    #     )
-    #     self.assertEqual(
-    #         state["current_song"]["external_url"],
-    #         "https://www.youtube.com/watch?v=d0KWiDGi_ek",
-    #     )
-    #     self.assertEqual(
-    #         state["song_queue"][0]["external_url"],
-    #         "https://www.youtube.com/watch?v=jcfcZfgyzm8",
-    #     )
-    #     self.assertEqual(
-    #         state["song_queue"][1]["external_url"],
-    #         "https://www.youtube.com/watch?v=47P6CI7V8gM",
-    #     )
+    def test_playlist_url(self):
+        self._post_request(
+            "request_music",
+            "https://www.youtube.com/playlist?list=PLvYcr2tNZuRquz0NQmBFF6ZhqFHSeOrbk",
+            playlist=True,
+        )
+        state = self._poll_musiq_state(
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 2
+            and all(song["internal_url"] for song in state["song_queue"]),
+            timeout=60,
+        )
+        expected_playlist = [
+            "https://www.youtube.com/watch?v=d0KWiDGi_ek",
+            "https://www.youtube.com/watch?v=jcfcZfgyzm8",
+            "https://www.youtube.com/watch?v=47P6CI7V8gM",
+        ]
+        # The first song that is downloaded will be played.
+        # This is not necessarily the first one in the playlist.
+        self.assertIn(state["current_song"]["external_url"], expected_playlist)
+        expected_playlist.remove(state["current_song"]["external_url"])
+        actual_playlist = [
+            state["song_queue"][0]["external_url"],
+            state["song_queue"][1]["external_url"],
+        ]
+        # make sure the remaining songs are in expected order
+        self.assertEqual(actual_playlist, expected_playlist)
 
-    # currently, no compactAutoplayRenderer is accessible in travis builds
-    # def test_autoplay(self):
-    #     self._post_request(
-    #         "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
-    #     )
-    #     self._poll_current_song()
-    #     self.client.post(reverse("set_autoplay"), {"value": "true"})
-    #     # make sure a song was downloaded into the queue
-    #     state = self._poll_musiq_state(
-    #         lambda state: len(state["song_queue"]) == 1
-    #         and state["song_queue"][0]["internal_url"],
-    #         timeout=15,
-    #     )
-    #     old_id = state["song_queue"][0]["id"]
+    def test_playlist_query(self):
+        self._post_request("request_music", "Muse Resistance Album", playlist=True)
+        state = self._poll_musiq_state(
+            lambda state: state["current_song"]
+            and len(state["song_queue"]) == 2
+            and all(song["internal_url"] for song in state["song_queue"]),
+            timeout=60,
+        )
+        expected_playlist = [
+            "https://www.youtube.com/watch?v=d0KWiDGi_ek",
+            "https://www.youtube.com/watch?v=jcfcZfgyzm8",
+            "https://www.youtube.com/watch?v=47P6CI7V8gM",
+        ]
+        self.assertIn(state["current_song"]["external_url"], expected_playlist)
+        expected_playlist.remove(state["current_song"]["external_url"])
+        actual_playlist = [
+            state["song_queue"][0]["external_url"],
+            state["song_queue"][1]["external_url"],
+        ]
+        self.assertEqual(actual_playlist, expected_playlist)
 
-    #     self.client.post(reverse("skip_song"))
-    #     # make sure another song is enqueued
-    #     self._poll_musiq_state(
-    #         lambda state: len(state["song_queue"]) == 1
-    #         and state["song_queue"][0]["internal_url"]
-    #         and state["song_queue"][0]["id"] != old_id,
-    #         timeout=15,
-    #     )
+    def test_autoplay(self):
+        self._post_request(
+            "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
+        )
+        self._poll_current_song()
+        self.client.post(reverse("set_autoplay"), {"value": "true"})
+        # make sure a song was downloaded into the queue
+        state = self._poll_musiq_state(
+            lambda state: len(state["song_queue"]) == 1
+            and state["song_queue"][0]["internal_url"],
+            timeout=15,
+        )
+        old_id = state["song_queue"][0]["id"]
 
-    # youtube-dl can not download
-    # https://github.com/ytdl-org/youtube-dl/issues/25465
-    # def test_radio(self):
-    #     self._post_request(
-    #         "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
-    #     )
-    #     self._poll_current_song()
-    #     self._post_request("request_radio")
-    #     # ensure that enough songs are enqueued
-    #     self._poll_musiq_state(
-    #         lambda state: len(state["song_queue"]) == 3
-    #         and all(song["internal_url"] for song in state["song_queue"]),
-    #         timeout=60,
-    #     )
+        self.client.post(reverse("skip_song"))
+        # make sure another song is enqueued
+        self._poll_musiq_state(
+            lambda state: len(state["song_queue"]) == 1
+            and state["song_queue"][0]["internal_url"]
+            and state["song_queue"][0]["id"] != old_id,
+            timeout=15,
+        )
+
+    def test_radio(self):
+        self._post_request(
+            "request_music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
+        )
+        self._poll_current_song()
+        self._post_request("request_radio")
+        # ensure that enough songs are enqueued
+        self._poll_musiq_state(
+            lambda state: len(state["song_queue"]) == 3
+            and all(song["internal_url"] for song in state["song_queue"]),
+            timeout=60,
+        )

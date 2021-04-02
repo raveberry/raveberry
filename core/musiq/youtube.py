@@ -35,6 +35,13 @@ def youtube_session() -> Iterator[requests.Session]:
 
     pickle_file = os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle")
 
+    session = requests.session()
+    # Have youtube-dl deal with consent cookies etc to setup a valid session
+    extractor = youtube_dl.extractor.youtube.YoutubeIE()
+    extractor._downloader = youtube_dl.YoutubeDL()
+    extractor.initialize()
+    session.cookies.update(extractor._downloader.cookiejar)
+
     try:
         if os.path.getsize(pickle_file) > 0:
             with open(pickle_file, "rb") as f:
@@ -108,12 +115,11 @@ class Youtube:
         for line in html.split("\n"):
             line = line.strip()
             before = "var ytInitialData = "
-            after = ";</script>"
+            after = ";</"
             if before in line:
                 # extract json
-                initial_data = line[
-                    line.index(before) + len(before) : line.index(after)
-                ]
+                line = line[line.index(before) + len(before) :]
+                initial_data = line[: line.index(after)]
                 return json.loads(initial_data)
         raise ValueError("Could not parse initial data from html")
 
@@ -260,18 +266,17 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
         initial_data = Youtube._get_initial_data(response.text)
 
+        with open("initial.json", "w") as f:
+            json.dump(initial_data, f)
+
         path = [
             "contents",
             "twoColumnWatchNextResults",
-            "secondaryResults",
-            "secondaryResults",
-            "results",
+            "autoplay",
+            "autoplay",
+            "sets",
             0,
-            "compactAutoplayRenderer",
-            "contents",
-            0,
-            "compactVideoRenderer",
-            "navigationEndpoint",
+            "autoplayVideo",
             "commandMetadata",
             "webCommandMetadata",
             "url",
@@ -362,10 +367,19 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
             self.ydl_opts[
                 "playlistend"
             ] = self.musiq.base.settings.basic.max_playlist_items
+            # radios are not viewable with the /playlist?list= url,
+            # create a video watch url with the radio list
+            query_url = (
+                "https://www.youtube.com/watch?v=" + self.id[2:] + "&list=" + self.id
+            )
+        else:
+            # if only given the id, youtube-dl returns an info dict resolving this id to a url.
+            # we want to receive the playlist entries directly, so we query the playlist url
+            query_url = "https://www.youtube.com/playlist?list=" + self.id
 
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-                info_dict = ydl.extract_info(self.id, download=False)
+                info_dict = ydl.extract_info(query_url)
         except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.error = e
             return False
