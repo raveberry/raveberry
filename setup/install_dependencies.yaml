@@ -1,3 +1,9 @@
+- name: Install gpg
+  apt:
+    update_cache: yes
+    pkg:
+      - gpg
+
 # add mopidy's repository for its newest version and extensions
 # https://docs.mopidy.com/en/latest/installation/debian/
 - name: Add mopidy gpg key
@@ -10,7 +16,6 @@
 
 - name: Install apt dependencies (may take some time)
   apt:
-    update_cache: yes
     pkg:
     # python package management
     - python3-pip
