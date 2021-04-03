@@ -32,7 +32,7 @@ class Basic:
         self.people_to_party = int(Settings.get_setting("people_to_party", "3"))
         self.alarm_probability = float(Settings.get_setting("alarm_probability", "0"))
         self.downvotes_to_kick = int(Settings.get_setting("downvotes_to_kick", "2"))
-        self.max_download_size = int(Settings.get_setting("max_download_size", "10"))
+        self.max_download_size = float(Settings.get_setting("max_download_size", "0"))
         self.max_playlist_items = int(Settings.get_setting("max_playlist_items", "10"))
         self.additional_keywords = Settings.get_setting("additional_keywords", "")
         self.forbidden_keywords = Settings.get_setting("forbidden_keywords", "")
@@ -106,7 +106,7 @@ class Basic:
     @Settings.option
     def set_max_download_size(self, request: WSGIRequest) -> None:
         """Sets the maximum amount of MB that are allowed for a song that needs to be downloaded."""
-        value = int(request.POST.get("value"))  # type: ignore
+        value = float(request.POST.get("value"))  # type: ignore
         Setting.objects.filter(key="max_download_size").update(value=value)
         self.max_download_size = value
 
