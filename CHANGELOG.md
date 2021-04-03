@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.1 - 2021-04-03
+## 0.8.2 - 2021-04-03
 
 - Youtube playlists, radio and autoplay work again
 - Spotify can play albums and artist's top tracks
