@@ -68,7 +68,7 @@ def format_seconds(seconds: int) -> str:
 
     formatted = ""
     if hours > 0:
-        formatted += "{:02d}:".format(int(hours))
+        formatted += "{:d}:".format(int(hours))
     formatted += "{0:02d}:{1:02d}".format(int(minutes), int(seconds))
     return formatted
 
