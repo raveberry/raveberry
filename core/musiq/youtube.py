@@ -174,20 +174,15 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
         # this value is not an exact match, but it's a good approximation
         if "entries" in self.info_dict:
-            self.info_dict = self.info_dict["entries"][0]
+            try:
+                self.info_dict = self.info_dict["entries"][0]
+            except IndexError:
+                self.error = "No song found"
+                return False
 
         self.id = self.info_dict["id"]
 
-        size = self.info_dict["filesize"]
-        max_size = self.musiq.base.settings.basic.max_download_size * 1024 * 1024
-        if (
-            max_size != 0
-            and self.check_cached() is None
-            and (size is not None and size > max_size)
-        ):
-            self.error = "Song too long"
-            return False
-        return True
+        return self.check_not_too_large(self.info_dict["filesize"])
 
     def _download(self) -> bool:
         error = None

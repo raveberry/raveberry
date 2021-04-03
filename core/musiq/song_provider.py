@@ -163,6 +163,17 @@ class SongProvider(MusicProvider):
     def check_cached(self) -> bool:
         raise NotImplementedError()
 
+    def check_not_too_large(self, size: Optional[int]) -> bool:
+        max_size = self.musiq.base.settings.basic.max_download_size * 1024 * 1024
+        if (
+            max_size != 0
+            and not self.check_cached()
+            and (size is not None and size > max_size)
+        ):
+            self.error = "Song too long"
+            return False
+        return True
+
     def check_available(self) -> bool:
         raise NotImplementedError()
 

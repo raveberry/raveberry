@@ -110,7 +110,12 @@ class SpotifySongProvider(SongProvider, Spotify):
         return False
 
     def check_available(self) -> bool:
-        return self.gather_metadata()
+        if not self.gather_metadata():
+            return False
+        # the default bitrate of mopidy-spotify is 160kbps
+        # estimate the size of a song by multiplying with its duration
+        size = self.metadata["duration"] * 160 / 8 * 1000
+        return self.check_not_too_large(size)
 
     def gather_metadata(self) -> bool:
         """Fetches metadata for this song's uri from Spotify."""
