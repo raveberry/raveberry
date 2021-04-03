@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.1 - 2021-04-03
+
+- Youtube playlists, radio and autoplay work again
+- Spotify can play albums and artist's top tracks
+- Download limit applies to spotify songs
+- Keyword filter is applied to artist and in suggestions, instead of only to the title
+- Keyword filter is applied to youtube and local requests
+- Tools for normalization are installed from packages instead of built from source (speeds up system installation)
+- Docker version can normalize m4a files
+- Dependencies container uses piwheels, significantly speeding up cross-architecture buidl
+
 ## 0.8.1 - 2021-03-27
 
 - python3 is used by bin/raveberry, even without ansible.cfg
