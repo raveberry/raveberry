@@ -2,12 +2,10 @@
 
 set -e
 
-echo "${@}"
-
 # initialize the database if the container is run with django related commands
 if [[ "$1" == *"daphne" || "${@}" == *"manage.py"* ]]; then
 
-	DJANGO_MOCK=1 DJANGO_POSTGRES=1 python manage.py migrate --noinput
+	DJANGO_MOCK=1 DJANGO_POSTGRES=1 python3 manage.py migrate --noinput
 
 	# create users in the database
 	DJANGO_MOCK=1 DJANGO_POSTGRES=1 python3 manage.py shell <<-EOF
