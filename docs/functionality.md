@@ -15,4 +15,4 @@ In the middle of the page users can search for music. Their search terms are use
 
 To the left of the input field is a dice icon. When pressing this button a randomly selected song is inserted in the input field. It is chosen from all songs ever requested.
 
-Next to each song in the queue as well as below the current song are two icons. With these up and down arrows, songs can be voted up or down. When the current song is over, it will be continued with the one with the most votes. If a song reaches a vote count of minus three (by default), it will be removed.
+Next to each song in the queue as well as below the current song are two icons. With these up and down arrows, songs can be voted up or down. When the current song is over, it will be continued with the one with the most votes. If a song reaches a vote count of minus two (by default), it will be removed.
