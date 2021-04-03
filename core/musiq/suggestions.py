@@ -150,6 +150,12 @@ class Suggestions:
 
             for search_result in search_results:
                 song_info = search_result.meta
+
+                if song_utils.is_forbidden(
+                    self.musiq, song_info["artist"]
+                ) or song_utils.is_forbidden(self.musiq, song_info["title"]):
+                    continue
+
                 try:
                     provider = SongProvider.create(
                         self.musiq, external_url=song_info["url"]
