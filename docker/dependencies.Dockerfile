@@ -1,6 +1,6 @@
 FROM debian:buster
 
-COPY common.txt prod.txt docker.txt ./
+COPY common.txt youtube.txt spotify.txt soundcloud.txt prod.txt docker.txt ./
 
 RUN apt-get update &&\
 	apt-get install -y python3-pip ffmpeg atomicparsley wget gnupg audiotools libfaad2 libpq-dev &&\
