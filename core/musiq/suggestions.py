@@ -104,7 +104,9 @@ class Suggestions:
             ):
                 from core.musiq.youtube import Youtube
 
-                youtube_suggestions = Youtube().get_search_suggestions(query)
+                youtube_suggestions = Youtube().get_search_suggestions(
+                    self.musiq, query
+                )
                 youtube_suggestions = youtube_suggestions[
                     : platform_settings.youtube_suggestions
                 ]

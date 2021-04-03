@@ -3,7 +3,6 @@ import {
   requestArchivedMusic,
   playlistEnabled,
 } from './buttons';
-import * as Cookies from 'js-cookie';
 import 'jquery-ui/ui/version';
 import 'jquery-ui/ui/widget';
 import 'jquery-ui/ui/position';
@@ -79,10 +78,7 @@ export function onReady() {
           .append('<i class="fas fa-search suggestion_type"></i>')
           .append(term)
           .append(additionalKeywords);
-      if (Cookies.get('platform') == 'spotify' ||
-          Cookies.get('platform') == 'soundcloud') {
-        suggestionDiv.append(forbiddenKeywords);
-      }
+      suggestionDiv.append(forbiddenKeywords);
       return $('<li class="ui-menu-item-with-icon"></li>')
           .data('item.autocomplete', item)
           .append(suggestionDiv)

@@ -124,7 +124,7 @@ class Youtube:
         raise ValueError("Could not parse initial data from html")
 
     @staticmethod
-    def get_search_suggestions(query: str) -> List[str]:
+    def get_search_suggestions(musiq: Musiq, query: str) -> List[str]:
         """Returns a list of suggestions for the given query from Youtube."""
         with youtube_session() as session:
             params = {
@@ -140,7 +140,11 @@ class Youtube:
         suggestions = suggestions[1]
         # suggestions are given as tuples
         # extract the string and skip the query if it occurs identically
-        suggestions = [entry[0] for entry in suggestions if entry[0] != query]
+        suggestions = [
+            entry[0]
+            for entry in suggestions
+            if entry[0] != query and not song_utils.is_forbidden(musiq, entry[0])
+        ]
         return suggestions
 
 
@@ -165,20 +169,28 @@ class YoutubeSongProvider(SongProvider, Youtube):
         return os.path.isfile(self._get_path())
 
     def check_available(self) -> bool:
-        try:
-            with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-                self.info_dict = ydl.extract_info(self.query, download=False)
-        except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
-            self.error = e
-            return False
 
-        # this value is not an exact match, but it's a good approximation
-        if "entries" in self.info_dict:
+        # directly use the search extractors entry function so we can process each result
+        # as soon as it's available instead of waiting for all of them
+        extractor = youtube_dl.extractor.youtube.YoutubeSearchIE()
+        extractor._downloader = youtube_dl.YoutubeDL(self.ydl_opts)
+        extractor.initialize()
+        for entry in extractor._entries(self.query, 50):
+            if song_utils.is_forbidden(self.musiq, entry["title"]):
+                continue
             try:
-                self.info_dict = self.info_dict["entries"][0]
-            except IndexError:
-                self.error = "No song found"
-                return False
+                with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+                    self.info_dict = ydl.extract_info(entry["id"], download=False)
+                break
+            except (
+                youtube_dl.utils.ExtractorError,
+                youtube_dl.utils.DownloadError,
+            ) as e:
+                logging.warning("error during availability check for %s:", entry["id"])
+                logging.warning(e)
+        else:
+            self.error = "All results filtered"
+            return False
 
         self.id = self.info_dict["id"]
 
@@ -357,7 +369,7 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
         return list_id
 
     def fetch_metadata(self) -> bool:
-        # in case of a radio playist, restrict the number of songs that are downloaded
+        # in case of a radio playlist, restrict the number of songs that are downloaded
         if self.is_radio():
             self.ydl_opts[
                 "playlistend"
@@ -374,7 +386,7 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
 
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-                info_dict = ydl.extract_info(query_url)
+                info_dict = ydl.extract_info(query_url, download=False)
         except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
             self.error = e
             return False
