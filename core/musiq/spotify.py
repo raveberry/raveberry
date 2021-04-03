@@ -142,14 +142,19 @@ class SpotifySongProvider(SongProvider, Spotify):
                 break
             else:
                 # all tracks got filtered
+                self.error = "All results filtered"
                 return False
         else:
             result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"})
-        self.metadata["internal_url"] = result["uri"]
-        self.metadata["external_url"] = result["external_urls"]["spotify"]
-        self.metadata["artist"] = result["artists"][0]["name"]
-        self.metadata["title"] = result["name"]
-        self.metadata["duration"] = result["duration_ms"] / 1000
+        try:
+            self.metadata["internal_url"] = result["uri"]
+            self.metadata["external_url"] = result["external_urls"]["spotify"]
+            self.metadata["artist"] = result["artists"][0]["name"]
+            self.metadata["title"] = result["name"]
+            self.metadata["duration"] = result["duration_ms"] / 1000
+        except KeyError:
+            self.error = "No song found"
+            return False
         return True
 
     def get_metadata(self) -> "Metadata":
@@ -215,7 +220,11 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
 
     @staticmethod
     def get_id_from_external_url(url: str) -> Optional[str]:
-        if not url.startswith("https://open.spotify.com/playlist/"):
+        if not (
+            url.startswith("https://open.spotify.com/playlist/")
+            or url.startswith("https://open.spotify.com/artist/")
+            or url.startswith("https://open.spotify.com/album/")
+        ):
             return None
         return urlparse(url).path.split("/")[-1]
 
@@ -223,7 +232,21 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
         self, musiq: "Musiq", query: Optional[str], key: Optional[int]
     ) -> None:
         self.type = "spotify"
-        super().__init__(musiq, query, key)
+        # can be one of playlists, artists or albums
+        # defaults to playlist, only changes if an artist or album is found during search_id
+        # this type is not reflected in list_id. Thus, ArchivedPlaylist entries do not know
+        # what kind of collection of songs they are.
+        # This is considered acceptable, generating external urls from playlist is never required
+        # and finding cached lists still works as extracted ids still match
+        self._spotify_endpoint = "playlists"
+        if query:
+            if query.startswith("https://open.spotify.com/playlist/"):
+                self._spotify_endpoint = "playlists"
+            elif query.startswith("https://open.spotify.com/artist/"):
+                self._spotify_endpoint = "artists"
+            elif query.startswith("https://open.spotify.com/album/"):
+                self._spotify_endpoint = "albums"
+            super().__init__(musiq, query, key)
 
     def search_id(self) -> Optional[str]:
         result = self.web_client.get(
@@ -232,15 +255,24 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
                 "q": self.query,
                 "limit": "1",
                 "market": "from_token",
-                "type": "playlist",
+                "type": "artist,album,playlist",
             },
         )
 
         try:
-            list_info = result["playlists"]["items"][0]
+            list_info = result["artists"]["items"][0]
+            self._spotify_endpoint = "artists"
         except IndexError:
-            self.error = "No playlist found"
-            return None
+            try:
+                list_info = result["albums"]["items"][0]
+                self._spotify_endpoint = "albums"
+            except IndexError:
+                try:
+                    list_info = result["playlists"]["items"][0]
+                    self._spotify_endpoint = "playlists"
+                except IndexError:
+                    self.error = "No playlist found"
+                    return None
 
         list_id = list_info["id"]
         self.title = list_info["name"]
@@ -253,23 +285,47 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
     def fetch_metadata(self) -> bool:
         if self.title is None:
             result = self.web_client.get(
-                f"playlists/{self.id}", params={"fields": "name", "limit": "50"}
+                f"{self._spotify_endpoint}/{self.id}", params={"fields": "name"}
             )
             self.title = result["name"]
 
         # download at most 50 tracks for a playlist (spotifys maximum)
         # for more tracks paging would need to be implemented
-        result = self.web_client.get(
-            f"playlists/{self.id}/tracks",
-            params={
-                "fields": "items(track(external_urls(spotify)))",
-                "limit": "50",
-                "market": "from_token",
-            },
-        )
-
-        track_infos = result["items"]
-        for track_info in track_infos:
-            self.urls.append(track_info["track"]["external_urls"]["spotify"])
+        if self._spotify_endpoint == "playlists":
+            result = self.web_client.get(
+                f"playlists/{self.id}/tracks",
+                params={
+                    "fields": "items(track(external_urls(spotify)))",
+                    "limit": "50",
+                    "market": "from_token",
+                },
+            )
+            track_infos = result["items"]
+            for track_info in track_infos:
+                self.urls.append(track_info["track"]["external_urls"]["spotify"])
+        elif self._spotify_endpoint == "artists":
+            result = self.web_client.get(
+                f"artists/{self.id}/top-tracks",
+                params={
+                    "fields": "tracks(external_urls(spotify))",
+                    "limit": "50",
+                    "market": "from_token",
+                },
+            )
+            tracks = result["tracks"]
+            for track in tracks:
+                self.urls.append(track["external_urls"]["spotify"])
+        elif self._spotify_endpoint == "albums":
+            result = self.web_client.get(
+                f"albums/{self.id}/tracks",
+                params={
+                    "fields": "items(external_urls(spotify))",
+                    "limit": "50",
+                    "market": "from_token",
+                },
+            )
+            tracks = result["items"]
+            for track in tracks:
+                self.urls.append(track["external_urls"]["spotify"])
 
         return True
