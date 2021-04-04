@@ -7,8 +7,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-		<link id="active-stylesheet" rel="stylesheet" href="{% static "dark.css" %}"/>
-		<link id="inactive-stylesheet" rel="stylesheet-disabled" href="{% static "light.css" %}"/>
+		<link rel="stylesheet" href="{% static "style.css" %}"/>
 
 		<script>
 			CSRF_TOKEN = "{{ csrf_token }}";
@@ -17,12 +16,6 @@
 				'state': '{% url 'base_state' %}',
 				'submit_hashtag': '{% url 'submit_hashtag' %}',
 				'set_lights_shortcut': '{% url 'set_lights_shortcut' %}',
-				'dark_icon': '{% static "graphics/raveberry_dark.png" %}',
-				'normal_icon': '{% static "graphics/raveberry_normal.png" %}',
-				'normal_light_icon': '{% static "graphics/raveberry_normal_light.png" %}',
-				'party_icon': '{% static "graphics/raveberry_rainbow.gif" %}',
-				'shareberry_light_icon': '{% static "graphics/shareberry_dark.png" %}',
-				'shareberry_dark_icon': '{% static "graphics/shareberry_normal.png" %}',
 				'upgrade_available': '{% url 'upgrade_available' %}',
 			};
 			{% if voting_system %}
@@ -49,7 +42,7 @@
 		<script src="{% static "bundle.js" %}"></script>
 
 		<title>Raveberry</title>
-		<link id="favicon" rel="shortcut icon" type="image/png" href="{% static "graphics/raveberry_dark.png" %}"/>
+		<link id="favicon" rel="shortcut icon" href="{% static "raveberry.svg" %}"/>
 	</head>
 	<body>
 		<div id="disconnected-banner" class="information-banner">
@@ -69,7 +62,9 @@
         </div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
-				<img id="navbar_icon" height="30" alt="" onerror="this.style.visibility='hidden'" src="{% static "graphics/raveberry_normal.png" %}">
+				<svg id="navbar_icon" height="35px" width="38.8px">
+					<use href="{% static "raveberry.svg" %}#icon"></use>
+				</svg>
 			</a>
 			<div id="hashtag_container">
 				<input id="hashtag_input" class="hidden">
@@ -121,7 +116,9 @@
                         {%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon_disabled"></i>{%endif%}
 					</div>
 					<a href="{{ apk_link }}" download>
-						<img id="shareberry_icon" height="30" alt="" onerror="this.style.visibility='hidden'" src="{% static "graphics/shareberry_normal.png" %}">
+						<svg id="shareberry_icon" height="35px" width="35px">
+							<use href="{% static "shareberry.svg" %}#icon"></use>
+						</svg>
 					</a>
 				</div>
                 <div class="menu_row">

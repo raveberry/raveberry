@@ -124,9 +124,7 @@ export function updateBaseState(newState) {
     $('#lights_indicator').addClass('icon_disabled');
   }
   if (newState.partymode) {
-    $('#favicon').attr('href', urls['party_icon']);
-    $('#navbar_icon').attr('src', urls['party_icon']);
-    $('#navbar_icon').css('visibility', 'visible');
+    $('#navbar_icon').addClass('partymode');
     if (newState.alarm) {
       $('body').addClass('alarm');
       $('#progress_bar').addClass('alarm');
@@ -135,13 +133,7 @@ export function updateBaseState(newState) {
       $('#progress_bar').removeClass('alarm');
     }
   } else {
-    $('#favicon').attr('href', urls['dark_icon']);
-    if ($('#light_theme').hasClass('icon_enabled')) {
-      $('#navbar_icon').attr('src', urls['normal_light_icon']);
-    } else {
-      $('#navbar_icon').attr('src', urls['normal_icon']);
-    }
-    $('#navbar_icon').css('visibility', 'visible');
+    $('#navbar_icon').removeClass('partymode');
   }
 
   if (Cookies.get('platform') === undefined) {
@@ -253,29 +245,21 @@ function updatePlatformClasses() {
 
 /** Toggles between light and dark mode. */
 function toggleTheme() {
-  const oldStyleLink = $('#active-stylesheet').attr('href');
-  const newStyleLink = $('#inactive-stylesheet').attr('href');
-  if ($('#light_theme').hasClass('icon_enabled')) {
+  if ($('html').hasClass('light')) {
+    $('html').removeClass('light');
+
     $('#light_theme').removeClass('icon_enabled');
     $('#light_theme').addClass('icon_disabled');
     $('#dark_theme').removeClass('icon_disabled');
     $('#dark_theme').addClass('icon_enabled');
-    if ($('#navbar_icon').attr('src') != urls['party_icon']) {
-      $('#navbar_icon').attr('src', urls['normal_icon']);
-    }
-    $('#shareberry_icon').attr('src', urls['shareberry_dark_icon']);
   } else {
+    $('html').addClass('light');
+
     $('#light_theme').removeClass('icon_disabled');
     $('#light_theme').addClass('icon_enabled');
     $('#dark_theme').removeClass('icon_enabled');
     $('#dark_theme').addClass('icon_disabled');
-    if ($('#navbar_icon').attr('src') != urls['party_icon']) {
-      $('#navbar_icon').attr('src', urls['normal_light_icon']);
-    }
-    $('#shareberry_icon').attr('src', urls['shareberry_light_icon']);
   }
-  $('#active-stylesheet').attr('href', newStyleLink);
-  $('#inactive-stylesheet').attr('href', oldStyleLink);
 }
 
 /** Updates the height of the container so toasts always show at the bottom. */
@@ -363,6 +347,15 @@ export function handleUpdateBanner() {
 
 /** General setup of the page. */
 export function onReady() {
+  if (Cookies.get('theme') == 'light') {
+    $('html').addClass('light');
+    $('#light_theme').addClass('icon_enabled');
+    $('#dark_theme').addClass('icon_disabled');
+  } else {
+    $('#light_theme').addClass('icon_disabled');
+    $('#dark_theme').addClass('icon_enabled');
+  }
+
   // add the csrf token to every post request
   $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
     if (options.type.toLowerCase() === 'post') {
@@ -392,7 +385,7 @@ export function onReady() {
 
   // toggles the view between the hashtags text and the input form
   const hashtagToggler = function() {
-    if (input.css('max-width') == '0') {
+    if (input.css('max-width').startsWith('0')) {
       // if the input is invisible, initiate the texts removal transition
       text.removeClass('shown');
       text.addClass('hidden');
@@ -409,7 +402,7 @@ export function onReady() {
   text.bind('transitionend', function() {
     // if the text finished its removal transition,
     // initiate the input's appearance
-    if (text.css('max-width') == '0') {
+    if (text.css('max-width').startsWith('0')) {
       input.css('visibility', 'visible');
       input.removeClass('hidden');
       input.addClass('shown');
@@ -418,7 +411,7 @@ export function onReady() {
   input.bind('transitionend', function() {
     // if the input finished its removal transition,
     // initiate the text's appearance
-    if (input.css('max-width') == '0') {
+    if (input.css('max-width').startsWith('0')) {
       input.css('visibility', 'hidden');
       text.removeClass('hidden');
       text.addClass('shown');
@@ -440,7 +433,7 @@ export function onReady() {
     hashtagToggler();
   };
   $('#hashtag_plus').on('click tap', function(e) {
-    if (text.css('max-width') == '0') {
+    if (text.css('max-width').startsWith('0')) {
       submitHashtag();
     } else {
       hashtagToggler();
@@ -458,22 +451,6 @@ export function onReady() {
       value: !$(this).hasClass('icon_enabled'),
     });
   });
-
-
-  if ($('#active-stylesheet').attr('href').endsWith('dark.css')) {
-    $('#light_theme').addClass('icon_disabled');
-    $('#dark_theme').addClass('icon_enabled');
-    if (Cookies.get('theme') == 'light') {
-      toggleTheme();
-    }
-  } else {
-    $('#light_theme').addClass('icon_enabled');
-    $('#dark_theme').addClass('icon_disabled');
-    $('#navbar_icon').attr('src', urls['normal_light_icon']);
-    if (Cookies.get('theme') == 'dark') {
-      toggleTheme();
-    }
-  }
 
   $('#light_theme').on('click tap', function() {
     if ($(this).hasClass('icon_enabled')) {

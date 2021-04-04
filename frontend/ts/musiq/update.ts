@@ -5,6 +5,15 @@ import * as Cookies from 'js-cookie';
 export let state = null;
 let animationInProgress = false;
 
+const downloadSvg = `
+<svg version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+ <g>
+  <path d="m41.5 8v40h-16.5l25 25 25-25h-16.5v-40z"/>
+  <rect x="17.5" y="86.5" width="65" height="8.5"/>
+ </g>
+</svg>`;
+
+
 /** Clear any stored state. */
 export function clearState() {
   state = null;
@@ -133,7 +142,9 @@ export function updateState(newState) {
     <div class="queue_entry">
       <div class="download_icon queue_handle">
         <div class="download_overlay"></div>
-        <img src="/static/graphics/download.png">
+        <svg>
+          <!-- downloadSvg -->
+        </svg>
       </div>
       <div class="queue_index queue_handle"><fa-sort>{{ forloop.counter }}</div>
       <div class="queue_title">{{ song.artist }} - {{ song.title }}</div>
@@ -190,9 +201,9 @@ function createQueueItem(song) {
   $('<div/>')
       .addClass('download_overlay')
       .appendTo(downloadIcon);
-  $('<img/>')
-      .attr('src', '/static/graphics/download.png')
-      .appendTo(downloadIcon);
+
+  $(downloadSvg).appendTo(downloadIcon);
+
   const index = $('<div/>')
       .addClass('queue_index')
       .addClass('queue_handle');

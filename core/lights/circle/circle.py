@@ -293,7 +293,7 @@ class Circle(ScreenProgram):
         self.logo.positionZ(0)
 
         logo_image = Image.open(
-            os.path.join(settings.STATIC_FILES, "graphics/raveberry_square.png")
+            os.path.join(settings.BASE_DIR, "core/lights/circle/raveberry.png")
         )
         self.logo_array = np.frombuffer(logo_image.tobytes(), dtype=np.uint8)
         self.logo_array = self.logo_array.reshape(
