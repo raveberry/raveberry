@@ -273,7 +273,6 @@ function rebuildSongQueue(newState) {
  */
 function applyQueueChange(oldState, newState) {
   if (animationInProgress) return;
-  animationInProgress = true;
 
   if (oldState == null) {
     rebuildSongQueue(newState);
@@ -330,11 +329,16 @@ function applyQueueChange(oldState, newState) {
       }
     });
 
-    // update queue after animations
-    setTimeout(function() {
+    if (animationNeeded) {
+      animationInProgress = true;
+      // update queue after animations
+      setTimeout(function() {
+        $('#song_queue>li').css('transition', 'none');
+        // update the queue to the now current state
+        rebuildSongQueue(state);
+      }, transitionDuration * 1000);
+    } else {
       $('#song_queue>li').css('transition', 'none');
-      // update the queue to the now current state
-      rebuildSongQueue(state);
-    }, (animationNeeded ? 1 : 0) * transitionDuration * 1000);
+    }
   }
 }
