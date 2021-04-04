@@ -27,6 +27,11 @@ export function onReady() {
       // change our state so the animation does not trigger
       const newIndex = ui.item.index();
       const oldIndex = parseInt(ui.item.find('.queue_index').text()) - 1;
+      if (newIndex == oldIndex) {
+        return;
+      }
+
+      // remove the entry from its old position
       const queueEntry = state.song_queue.splice(oldIndex, 1);
       state.song_queue.splice(newIndex, 0, queueEntry[0]);
 
