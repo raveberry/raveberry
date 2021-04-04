@@ -33,7 +33,12 @@ export function onReady() {
 
       // remove the entry from its old position
       const queueEntry = state.song_queue.splice(oldIndex, 1);
+      // and insert it in the new position
       state.song_queue.splice(newIndex, 0, queueEntry[0]);
+      // update the indices of all items
+      $('#song_queue>li .queue_index').each(function(index, el) {
+        $(el).text(index+1);
+      });
 
       $.post(urls['reorder'], {
         prev: prevKey,
