@@ -1,40 +1,69 @@
 // basic theming
+@import "imports";
+
+// https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
+// light theme is the default, preference would only say 'dark' if the user explicitly set it
+// dark should be the default for Raveberry, so we can't use preferences without js logic
+
+// default
+:root {
+	--background: #1e2127;
+	--list-border: #272a32;
+	--elevated-background: #2d3039;
+	--silent-text: #6c757d;
+	--normal-text: #9198aa;
+}
+html.light {
+  --background: #ffffff;
+  --list-border: #ced4da;
+  --elevated-background: #f7f7f7;
+  --silent-text: #999999;
+  --normal-text: #495057;
+}
+
+:root {
+	--accent: #1997c6;
+	--blue: #1997c6;
+	--green: #1bc98e;
+	--yellow: #e4d836;
+	--red: #e64759;
+	--contrast: #ffffff;
+	//--upvote: #cc3700;
+	//--downvote: #5a75cc;
+	--upvote: #1bc98e;
+	--downvote: #e64759;
+}
+
 body {
-	background-color: theme-color("background");
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
+	background-color: var(--background);
+	user-select: none;
 }
 .bg-dark {
-	background-color: theme-color("background") !important;
+	background-color: var(--background) !important;
 }
 .list-group-item {
-	background-color: theme-color("elevated-background");
-	color: theme-color("normal-text");
+	background-color: var(--elevated-background);
+	color: var(--normal-text);
 }
 
 // icon colors
 .fas {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 }
 .fab {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 }
 .fas:active {
-	color: theme-color("silent-text");
+	color: var(--silent-text);
 }
 .fas.icon_disabled {
-	color: theme-color("silent-text");
+	color: var(--silent-text);
 }
 .fab.icon_disabled {
-	color: theme-color("silent-text");
+	color: var(--silent-text);
 }
 .fas.icon_enabled {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 }
 
 // information banner
@@ -49,16 +78,16 @@ body {
 	display: none;
 }
 .information-banner > i {
-	color: theme-color("elevated-background");
+	color: var(--elevated-background);
 }
 #disconnected-banner {
-	background-color: theme-color("red");
+	background-color: var(--red);
 }
 #reconnected-banner {
-	background-color: theme-color("green");
+	background-color: var(--green);
 }
 #update-banner {
-	background-color: theme-color("yellow");
+	background-color: var(--yellow);
 }
 #update_banner_buttons > span {
 	display: inline-block;
@@ -95,25 +124,25 @@ body {
 	font-size: x-large;
 }
 .toast.error i {
-	color: theme-color("red");
+	color: var(--red);
 }
 .toast.warning i {
-	color: theme-color("yellow");
+	color: var(--yellow);
 }
 .toast.success i {
-	color: theme-color("green");
+	color: var(--green);
 }
 .toast.info i {
-	color: theme-color("blue");
+	color: var(--blue);
 }
 .toast .toast-header {
-	color: theme-color("normal-text");
-	border-color: theme-color("list-border");
-	background-color: theme-color("elevated-background");
+	color: var(--normal-text);
+	border-color: var(--list-border);
+	background-color: var(--elevated-background);
 }
 .toast .toast-body {
-	color: theme-color("normal-text");
-	background-color: theme-color("elevated-background");
+	color: var(--normal-text);
+	background-color: var(--elevated-background);
 }
 
 // modals
@@ -124,8 +153,8 @@ body {
 	align-items: center;
 
 	padding: 5px;
-	background-color: theme-color("elevated-background");
-	color: theme-color("normal-text");
+	background-color: var(--elevated-background);
+	color: var(--normal-text);
 }
 
 // input feedback ripple effect
@@ -211,8 +240,8 @@ body {
 }
 
 .btn {
-	background-color: theme-color("accent");
-	color: theme-color("elevated-background");
+	background-color: var(--accent);
+	color: var(--elevated-background);
 }
 
 .autoscrolling_container {

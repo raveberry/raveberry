@@ -77,7 +77,7 @@ span.clearable input {
 	word-break: break-all;
 }
 .autocomplete_info {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 	flex: 0 0 auto;
 	padding-left: 5px;
 }
@@ -91,12 +91,12 @@ span.clearable input {
 }
 .additional_keywords {
 	padding-left: 5px;
-	color: theme-color("silent-text");
+	color: var(--silent-text);
 	font-style: italic;
 }
 .forbidden_keywords {
 	padding-left: 5px;
-	color: theme-color("silent-text");
+	color: var(--silent-text);
 	text-decoration: line-through;
 }
 
@@ -115,7 +115,7 @@ span.clearable input {
 }
 #progress_bar_container>.progress {
 	height: 5px;
-	background-color: theme-color("list-border");
+	background-color: var(--list-border);
 }
 #progress_bar {
 	width: 0%;
@@ -193,10 +193,9 @@ $entry_height: 50px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	fill: var(--normal-text);
 }
-.download_icon img {
-	max-height: 100%;
-	max-width: 100%;
+.download_icon svg {
 	height: 70%;
 }
 .download_overlay {
@@ -204,7 +203,7 @@ $entry_height: 50px;
 	width: 100%;
 	height: 100%;
     animation: downloading 2s linear infinite;
-	background: linear-gradient(transparent 50%, theme-color("elevated-background") 0%);
+	background: linear-gradient(transparent 50%, var(--elevated-background) 0%);
 	background-size: 200% 200%;
 }
 @keyframes downloading {
@@ -243,10 +242,10 @@ $entry_height: 50px;
 }
 
 .vote_up.pressed {
-	color: theme-color("upvote");
+	color: var(--upvote);
 }
 .vote_down.pressed {
-	color: theme-color("downvote");
+	color: var(--downvote);
 }
 
 #vote_timeout {

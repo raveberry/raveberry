@@ -4,10 +4,31 @@
 }
 .navbar-brand {
 	margin: 0px;
+	padding: 0px;
 }
 .navbar-toggler {
-	background-color: theme-color("elevated-background");
-	border-color: theme-color("list-border");
+	background-color: var(--elevated-background);
+	border-color: var(--list-border);
+}
+#navbar_icon {
+	fill: var(--normal-text);
+}
+#navbar_icon.partymode {
+	animation: rainbow 2.1s linear infinite;
+}
+@keyframes rainbow {
+	/* Only specifying two keyframes does not result in a rainbow.
+	Probably rgb values are interpolated. */
+	from, to { fill: hsl(324, 13%, 62%); }
+	10%      { fill: hsl(360, 13%, 62%); }
+	20%      { fill: hsl( 36, 13%, 62%); }
+	30%      { fill: hsl( 72, 13%, 62%); }
+	40%      { fill: hsl(108, 13%, 62%); }
+	50%      { fill: hsl(144, 13%, 62%); }
+	60%      { fill: hsl(180, 13%, 62%); }
+	70%      { fill: hsl(216, 13%, 62%); }
+	80%      { fill: hsl(252, 13%, 62%); }
+	90%      { fill: hsl(288, 13%, 62%); }
 }
 
 .alarm {
@@ -15,15 +36,15 @@
 }
 
 @keyframes fade {
-	  0% {background-color: theme-color("background");}
+	  0% {background-color: var(--background)}
 	/*
-	 18% {background-color: theme-color("red");}
-	 48% {background-color: theme-color("red");}
+	 18% {background-color: var(--red)}
+	 48% {background-color: var(--red)}
 	 */
 	 18% {background-color: red;}
 	 48% {background-color: red;}
-	 80% {background-color: theme-color("background");}
-	100% {background-color: theme-color("background");}
+	 80% {background-color: var(--background)}
+	100% {background-color: var(--background)}
 }
 
 #hashtag_container {
@@ -31,11 +52,11 @@
 	text-align: center;
 }
 #hashtag_container>i {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 	display: inline-block;
 }
 #hashtag_text_container {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 	vertical-align: middle;
 	display: inline-block;
 
@@ -81,12 +102,12 @@
 	padding: 5px;
 }
 #users {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 }
 
 #visitors_container {
 	width: 50%;
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -117,6 +138,10 @@
 	color: yellow;
 }
 
+#shareberry_icon {
+	fill: var(--normal-text);
+}
+
 #content {
 	padding: 8px;
 }
@@ -141,5 +166,5 @@
 }
 
 .unlink {
-	color: theme-color("normal-text");
+	color: var(--normal-text);
 }

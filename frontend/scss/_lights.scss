@@ -4,5 +4,5 @@ input[type="color"] {
 }
 
 .disabled .list_header {
-	color: theme-color("silent-text");
+	color: var(--silent-text);
 }

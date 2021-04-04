@@ -39,10 +39,10 @@
   },
   "scripts": {
     "js": "rm -f ../static/bundle.js && tsc && webpack --mode production && cp dist/bundle.js ../static/bundle.js",
-    "css": "for style in 'light' 'dark'; do sass scss/$style.scss dist/$style.css && purgecss -c purgecss.config.js --css dist/$style.css -o dist/$style.purged.css && postcss dist/$style.purged.css > ../static/$style.css; done",
+    "css": "sass scss/style.scss dist/style.css && purgecss -c purgecss.config.js --css dist/style.css -o dist/style.purged.css && postcss dist/style.purged.css > ../static/style.css",
     "fonts": "./subtype.sh",
     "watch-js": "rm -f ../static/bundle.js && mkdir -p dist && touch dist/bundle.js && ln dist/bundle.js ../static/bundle.js && tsc --watch & webpack --mode development --no-devtool --watch",
-    "watch-css": "sass --watch scss/dark.scss ../static/dark.css",
+    "watch-css": "sass --watch scss/style.scss ../static/style.css",
     "test": "jest --runInBand",
     "build": "yarn js && yarn css && yarn fonts"
   }
