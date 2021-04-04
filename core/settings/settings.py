@@ -56,7 +56,6 @@ class Settings(Stateful):
         """A decorator that makes sure that only the admin changes a setting."""
 
         def _decorator(self: T, request: WSGIRequest) -> HttpResponse:
-            # don't allow option changes during alarm
             if not self.base.user_manager.is_admin(request.user):
                 return HttpResponseForbidden()
             response = func(self, request)
