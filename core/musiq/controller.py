@@ -52,7 +52,6 @@ def disabled_when_voting(func: Callable) -> Callable:
         ):
             return HttpResponseForbidden()
         func(self, request, *args, **kwargs)
-        self.musiq.update_state()
         return HttpResponse()
 
     return wraps(func)(_decorator)
