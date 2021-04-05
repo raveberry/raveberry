@@ -273,9 +273,6 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
         initial_data = Youtube._get_initial_data(response.text)
 
-        with open("initial.json", "w") as f:
-            json.dump(initial_data, f)
-
         path = [
             "contents",
             "twoColumnWatchNextResults",
