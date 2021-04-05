@@ -63,9 +63,9 @@ Passwordless sudo is default on a Raspberry Pi. For most other systems, sudo req
 
 ## First Steps
 
-After the installation has finished `http://raveberry/` is up and ready to play music (go ahead and try now!). If this does not take you to the musiq landing page, try `http://raveberry.local/` or the IP of the device (`hostname -I` to find out).
+After the installation has finished `http://raveberry.local/` is up and ready to play music (go ahead and try now!). If this does not take you to the musiq landing page, use the IP of the device (`hostname -I` to find out).
 
-You can visit `http://raveberry/login/` and log in as the `admin` user with your provided admin password. If you take a look at `http://raveberry/settings` (which is also linked from the dropdown) you can see various configuration possibilities. For more information about these settings and privileges in general refer to [`docs/privileges.md`](docs/privileges.md).
+You can visit `http://raveberry.local/login/` and log in as the `admin` user with your provided admin password. If you take a look at `http://raveberry.local/settings` (which is also linked from the dropdown) you can see various configuration possibilities. For more information about these settings and privileges in general refer to [`docs/privileges.md`](docs/privileges.md).
 
 An introduction to basic functionality can be found in [`docs/functionality.md`](docs/functionality.md). Or just visit find out for yourself ; )
 

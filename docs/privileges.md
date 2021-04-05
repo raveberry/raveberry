@@ -1,6 +1,6 @@
 # Privileges
 
-(Urls like `/login` refer to Raveberry's pages, so enter `http://raveberry/login` to access them.)
+(Urls like `/login` refer to Raveberry's pages, so enter `http://raveberry.local/login` to access them.)
 
 Complementing Raveberry's [base functionality](functionality.md), additional features are available to logged in users. By visiting the `/login` page, multiple privilege levels can be obtained. Since logins tend to happen quite rarely, this page is not linked from the main page. You can log in with one of the following users and the respective passwords you assigned to them. The default passwords for the `mod` user is `mod`. If you want to change it (you should), login to django's administration page at `/admin` and click on 'Users', then 'mod' and then the small link below the password hash. There you can set a new password.
 

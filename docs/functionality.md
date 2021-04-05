@@ -2,7 +2,7 @@
 
 In this file the basic functionality of Raveberry is explained.
 
-Raveberry can be accessed by typing 'http://raveberry/' into your browser's address bar. If this does not work, make sure the accessing device is in the same network as Raveberry and the protocol is specified. To avoid DNS issues you can also try entering 'http://raveberry.local/' or its IP, e.g. 'http://192.168.1.42/'.
+Raveberry can be accessed by typing 'http://raveberry.local/' into your browser's address bar. If this does not work, make sure the accessing device is in the same network as Raveberry and the protocol is specified. To avoid DNS issues you can also try entering 'http://raveberry/' or its IP, e.g. 'http://192.168.1.42/'.
 
 At the top of the page three elements can be seen: The logo, the current hashtag and a burger menu.  
 * The logo acts as a link to the mainpage. If enough people are active, it changes to a colorful version.

@@ -2,7 +2,7 @@
 
 Raveberry can stream its audio output via [icecast](https://icecast.org/).
 
-In order to enable streaming, you can go to the settings page (`https://raveberry/settings`) when logged in as admin and click "Enable Streaming".
+In order to enable streaming, you can go to the settings page (`http://raveberry.local/settings`) when logged in as admin and click "Enable Streaming".
 Note that you need to have the `icecast2` package installed. Raveberry will tell you to do this, but not perform the installation automatically.
 On Raspbian, run `sudo apt-get install icecast2`. You will be prompted to set an admin password during installation. Although recommended, it is not required for Raveberry to stream. If you don't use the default _source_ password (different from the admin password), you need to specify it in `/opt/raveberry/setup/mopidy_icecast.conf` like this:
 ```
@@ -11,7 +11,7 @@ output = lamemp3enc ! shout2send async=false mount=stream password=<password>
 
 After enabling streaming in the `/settings` page, icecast will be configured and started. Mopidy will be configured to output to the icecast stream instead of the local speakers.
 
-The stream is available at `http://raveberry:8000/stream` (original icecast stream) and `http://raveberry/stream` (routed to icecast by nginx).
+The stream is available at `http://raveberry.local:8000/stream` (original icecast stream) and `http://raveberry.local/stream` (routed to icecast by nginx).
 
 Since ogg streams have been reported to [cause problems](https://github.com/mopidy/mopidy/issues/1623), an mp3 stream is used.
 
@@ -24,12 +24,12 @@ As streaming relies on system services, it will not work when using `raveberry r
 ### Authentication
 
 By default, the stream is password protected with these credentials:  
-Username: `raveberry`  
-Password: `raveberry`  
-You can change this through icecast's admin interface at `http://raveberry:8000/admin`. Note that the stream needs to be playing for you to be able to configure it.
+Username: `raveberry`
+Password: `raveberry`
+You can change this through icecast's admin interface at `http://raveberry.local:8000/admin`. Note that the stream needs to be playing for you to be able to configure it.
 
 When sharing a link you can integrate the credentials directly like this:  
-`https://raveberry:raveberry@raveberry/stream`
+`https://raveberry:raveberry@raveberry.local/stream`
 
 ### Disabling Authentication
 
