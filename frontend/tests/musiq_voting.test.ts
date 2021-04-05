@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	util.clearCookies();
+  localStorage.clear()
 });
 
 test.each(['.vote_up', '.vote_down'])

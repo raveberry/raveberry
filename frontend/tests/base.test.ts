@@ -1,6 +1,5 @@
 import * as base from '@src/base';
 import * as util from './util';
-import * as Cookies from 'js-cookie';
 
 beforeAll(() => {
 	util.render_template('base.html', {"local_enabled": true, "youtube_enabled": true});
@@ -11,7 +10,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	util.clearCookies();
+	localStorage.clear();
 });
 
 test.each([
@@ -36,7 +35,7 @@ test('base state is updated', () => {
 		"default_platform": "youtube",
 	}
 	base.updateBaseState(state);
-	expect($('#favicon').attr('href')).toEqual(urls['party_icon']);
+	expect($('#navbar_icon')[0]).toHaveClass('partymode');
 	expect($('#users')[0]).toHaveTextContent('7');
 	expect($('#visitors')[0]).toHaveTextContent('318');
 	expect($('#lights_indicator')[0]).toHaveClass('icon_enabled');
@@ -54,13 +53,13 @@ test('hashtag is submitted', () => {
 	expect(post.mock.calls[0]).toEqual([urls['submit_hashtag'], {'hashtag': 'raveberry'}]);
 });
 
-test('platform cookies are set', () => {
+test('platform are set in storage', () => {
 	base.onReady();
-	expect(Cookies.get('platform')).toBeUndefined();
+	expect(base.localStorageGet('platform')).toBeNull();
 	$('#local').click();
-	expect(Cookies.get('platform')).toEqual('local');
+	expect(base.localStorageGet('platform')).toEqual('local');
 	$('#youtube').click();
-	expect(Cookies.get('platform')).toEqual('youtube');
+	expect(base.localStorageGet('platform')).toEqual('youtube');
 });
 
 test.each([
@@ -71,13 +70,13 @@ test.each([
 ])('update notifications', (isAdmin, updatesIgnored, updateAvailable, bannerShouldBeShown) => {
 	ADMIN = isAdmin;
 	if (updatesIgnored)
-		Cookies.set('ignore_updates', '');
+		base.localStorageSet('ignore_updates', '');
 
 	// create a promise that will be returned
 	// the test will only complete after this promise resolved
 	// this way, we can wait for the $.get function to finish
 	let done;
-	let p = new Promise((resolve) => {
+	new Promise((resolve) => {
 		done = resolve;
 	});
 
@@ -91,20 +90,19 @@ test.each([
 	}
 
 	const get = jest.fn().mockImplementation(() => {
-		setImmediate(() => {
+		setTimeout(() => {
 			check();
-		})
+		}, 50);
 		return $.Deferred().resolve(updateAvailable);
 	});
 
 	$.get = get;
 	base.handleUpdateBanner();
 
-	// get is called if the admin does not have the cookie set.
-	// in this case we return the promise, otherwise we return immediately
-	if (isAdmin && !updatesIgnored) {
-		return p;
-	} else {
+	// get is called if the admin does not have the value in local storage.
+	// in this case we check when the get returns
+  // for all other cases, directly check here
+	if (!isAdmin || updatesIgnored) {
 		check();
 	}
 });

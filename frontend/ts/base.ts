@@ -1,9 +1,55 @@
 import 'bootstrap';
 import 'jquerykeyframes';
-import * as Cookies from 'js-cookie';
 
 const toastTimeout = 2000;
 let currentToastId = 0;
+
+/** Stores the given key value pair in local storage with an expiry date.
+ * @param {string} key the key of the value to store
+ * @param {string} value the value to store for the key
+ * @param {number} [ttl] the number of days after which this entry expires
+ */
+export function localStorageSet(key, value, ttl?) {
+  let expiryTime = null;
+  if (ttl != null) {
+    const date = new Date();
+    date.setDate(date.getDate() + ttl);
+    expiryTime = date.getTime();
+  }
+
+  const item = {
+    value: value,
+    expiry: expiryTime,
+  };
+  localStorage.setItem(key, JSON.stringify(item));
+}
+/** Retrieves the value for the given key from local storage,
+ * respecting the expiration time.
+ * @param {string} key the key of the value to retrieve
+ * @return {?string} value value or null if expired or not stored
+ */
+export function localStorageGet(key) {
+  const itemStr = localStorage.getItem(key);
+  // if the item doesn't exist, return null
+  if (!itemStr) {
+    return null;
+  }
+  const item = JSON.parse(itemStr);
+  if (item.expiry) {
+    const now = new Date();
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+  }
+  return item.value;
+}
+/** Deletes the entry for the given key from local storage.
+ * @param {string} key the key to remove
+ */
+export function localStorageRemove(key) {
+  localStorage.removeItem(key);
+}
 
 /** Shows a toast to inform the user.
  * @param {string} firstLine the main content of the toast
@@ -136,8 +182,8 @@ export function updateBaseState(newState) {
     $('#navbar_icon').removeClass('partymode');
   }
 
-  if (Cookies.get('platform') === undefined) {
-    Cookies.set('platform', newState.default_platform, {expires: 1});
+  if (localStorageGet('platform') === null) {
+    localStorageSet('platform', newState.default_platform, 1);
   }
 
   updatePlatformClasses();
@@ -218,7 +264,7 @@ export function decideScrolling(span, secondsPerPixel, staticSeconds) {
   }
 }
 
-/** Reads the preferred platform from the cookies and updates the icons. */
+/** Reads the preferred platform from local storage and updates the icons. */
 function updatePlatformClasses() {
   $('#local').removeClass('icon_enabled');
   $('#youtube').removeClass('icon_enabled');
@@ -228,16 +274,16 @@ function updatePlatformClasses() {
   $('#youtube').addClass('icon_disabled');
   $('#spotify').addClass('icon_disabled');
   $('#soundcloud').addClass('icon_disabled');
-  if (Cookies.get('platform') == 'local') {
+  if (localStorageGet('platform') == 'local') {
     $('#local').removeClass('icon_disabled');
     $('#local').addClass('icon_enabled');
-  } else if (Cookies.get('platform') == 'youtube') {
+  } else if (localStorageGet('platform') == 'youtube') {
     $('#youtube').removeClass('icon_disabled');
     $('#youtube').addClass('icon_enabled');
-  } else if (Cookies.get('platform') == 'spotify') {
+  } else if (localStorageGet('platform') == 'spotify') {
     $('#spotify').removeClass('icon_disabled');
     $('#spotify').addClass('icon_enabled');
-  } else if (Cookies.get('platform') == 'soundcloud') {
+  } else if (localStorageGet('platform') == 'soundcloud') {
     $('#soundcloud').removeClass('icon_disabled');
     $('#soundcloud').addClass('icon_enabled');
   }
@@ -326,16 +372,15 @@ export function handleUpdateBanner() {
     }
   });
   $('#remind_updates').on('click tap', function() {
-    const tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-    Cookies.set('ignore_updates', '', {expires: tomorrow});
+    localStorageSet('ignore_updates', '', 1);
     $('#update-banner').slideUp('fast');
   });
   $('#ignore_updates').on('click tap', function() {
-    Cookies.set('ignore_updates', '', {expires: 365});
+    localStorageSet('ignore_updates', '', 365);
     $('#update-banner').slideUp('fast');
   });
   if (ADMIN) {
-    if (Cookies.get('ignore_updates') === undefined) {
+    if (localStorageGet('ignore_updates') === null) {
       $.get(urls['upgrade_available']).done(function(response) {
         if (response) {
           $('#update-banner').slideDown('fast');
@@ -347,7 +392,7 @@ export function handleUpdateBanner() {
 
 /** General setup of the page. */
 export function onReady() {
-  if (Cookies.get('theme') == 'light') {
+  if (localStorageGet('theme') == 'light') {
     $('html').addClass('light');
     $('#light_theme').addClass('icon_enabled');
     $('#dark_theme').addClass('icon_disabled');
@@ -457,42 +502,42 @@ export function onReady() {
       return;
     }
     toggleTheme();
-    Cookies.set('theme', 'light', {expires: 7});
+    localStorageSet('theme', 'light');
   });
   $('#dark_theme').on('click tap', function() {
     if ($(this).hasClass('icon_enabled')) {
       return;
     }
     toggleTheme();
-    Cookies.set('theme', 'dark', {expires: 7});
+    localStorageSet('theme', 'dark');
   });
 
   $('#local').on('click tap', function() {
     if ($(this).hasClass('icon_enabled')) {
       return;
     }
-    Cookies.set('platform', 'local', {expires: 1});
+    localStorageSet('platform', 'local', 1);
     updatePlatformClasses();
   });
   $('#youtube').on('click tap', function() {
     if ($(this).hasClass('icon_enabled')) {
       return;
     }
-    Cookies.set('platform', 'youtube', {expires: 1});
+    localStorageSet('platform', 'youtube', 1);
     updatePlatformClasses();
   });
   $('#spotify').on('click tap', function() {
     if ($(this).hasClass('icon_enabled')) {
       return;
     }
-    Cookies.set('platform', 'spotify', {expires: 1});
+    localStorageSet('platform', 'spotify', 1);
     updatePlatformClasses();
   });
   $('#soundcloud').on('click tap', function() {
     if ($(this).hasClass('icon_enabled')) {
       return;
     }
-    Cookies.set('platform', 'soundcloud', {expires: 1});
+    localStorageSet('platform', 'soundcloud', 1);
     updatePlatformClasses();
   });
 

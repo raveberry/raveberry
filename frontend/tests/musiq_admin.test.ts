@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	util.clearCookies();
+  localStorage.clear();
 });
 
 test('remove all', () => {

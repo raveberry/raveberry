@@ -1,6 +1,8 @@
 import {state} from './update';
-import {infoToast, successToast, warningToast, errorToast} from '../base';
-import * as Cookies from 'js-cookie';
+import {
+  localStorageGet, localStorageSet,
+  infoToast, successToast, warningToast, errorToast,
+} from '../base';
 
 /** Finds the song key to a given HTML element.
  * @param {HTMLElement} element an element that is part of a queue entry
@@ -60,7 +62,7 @@ export function showPauseButton() {
  * @param {string} platform the platform the music should be played from
  */
 export function requestArchivedMusic(key, query,
-    platform = Cookies.get('platform')) {
+    platform = localStorageGet('platform')) {
   $.post(urls['request_music'],
       {
         key: key,
@@ -69,7 +71,7 @@ export function requestArchivedMusic(key, query,
         platform: platform,
       }).done(function(response) {
     successToast(response.message, '"' + query + '"');
-    Cookies.set('vote_' + response.key, '+', {expires: 7});
+    localStorageSet('vote_' + response.key, '+', 7);
   }).fail(function(response) {
     errorToast(response.responseText, '"' + query + '"');
   });
@@ -82,7 +84,7 @@ export function requestArchivedMusic(key, query,
  * @param {string} query the query that is searched for
  * @param {string} platform the platform the music should be played from
  */
-export function requestNewMusic(query, platform = Cookies.get('platform')) {
+export function requestNewMusic(query, platform = localStorageGet('platform')) {
   $.post(urls['request_music'],
       {
         query: query,
@@ -90,7 +92,7 @@ export function requestNewMusic(query, platform = Cookies.get('platform')) {
         platform: platform,
       }).done(function(response) {
     successToast(response.message, '"' + query + '"');
-    Cookies.set('vote_' + response.key, '+', {expires: 7});
+    localStorageSet('vote_' + response.key, '+', 7);
   }).fail(function(response) {
     errorToast(response.responseText, '"' + query + '"');
   });

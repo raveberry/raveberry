@@ -1,6 +1,5 @@
-import {registerSpecificState, updateBaseState} from '../base';
+import {localStorageGet, registerSpecificState, updateBaseState} from '../base';
 import {showPlayButton, showPauseButton} from './buttons';
-import * as Cookies from 'js-cookie';
 
 export let state = null;
 let animationInProgress = false;
@@ -62,7 +61,7 @@ export function updateState(newState) {
       $('#current_song_title').trigger('change');
     }
 
-    const previousVote = Cookies.get('vote_' + currentSong.queue_key);
+    const previousVote = localStorageGet('vote_' + currentSong.queue_key);
     if (previousVote == '+') {
       $('#song_votes .vote_up').addClass('pressed');
       $('#song_votes .vote_down').removeClass('pressed');
@@ -233,7 +232,7 @@ function createQueueItem(song) {
       .addClass('queue_info_controls')
       .appendTo(info);
   if (VOTING_SYSTEM) {
-    const previousVote = Cookies.get('vote_' + song.id);
+    const previousVote = localStorageGet('vote_' + song.id);
     const up = $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-up')

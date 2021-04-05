@@ -1,11 +1,13 @@
 import {
+  localStorageGet,
+  localStorageSet,
+  localStorageRemove,
   registerSpecificState,
   updateBaseState,
   infoToast,
   successToast,
   errorToast,
 } from './base.js';
-import * as Cookies from 'js-cookie';
 import 'jquery-ui/ui/widgets/autocomplete';
 import snarkdown from 'snarkdown';
 
@@ -108,7 +110,7 @@ registerSpecificState(function(newState) {
     }
   }
 
-  if (Cookies.get('ignore_updates') === undefined) {
+  if (localStorageGet('ignore_updates') === null) {
     $('#update_information_policy option[value=yes]')
         .attr('selected', 'selected');
   } else {
@@ -580,9 +582,9 @@ export function onReady() {
   });
   $('#update_information_policy').on('change', function() {
     if ((<HTMLInputElement> this).value == 'yes') {
-      Cookies.remove('ignore_updates');
+      localStorageRemove('ignore_updates');
     } else {
-      Cookies.set('ignore_updates', '', {expires: 365});
+      localStorageSet('ignore_updates', '', 365);
     }
   });
   $('#open_changelog').on('click tap', function() {

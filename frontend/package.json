@@ -7,7 +7,6 @@
     "jquery": "^3.4.1",
     "jquery-ui": "^1.12.1",
     "jquerykeyframes": "^1.0.7",
-    "js-cookie": "^2.2.0",
     "reconnecting-websocket": "^4.1.10",
     "snarkdown": "^2.0.0"
   },
@@ -17,7 +16,6 @@
     "@types/bootstrap": "^5.0.4",
     "@types/jest": "^26.0.20",
     "@types/jquery": "^3.5.5",
-    "@types/js-cookie": "^2.2.6",
     "@types/punycode": "^2.1.0",
     "@types/reconnectingwebsocket": "^1.0.6",
     "@typescript-eslint/eslint-plugin": "^4.15.1",

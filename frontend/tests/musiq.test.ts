@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	util.clearCookies();
+  localStorage.clear();
 });
 
 test('autocomplete list', () => {

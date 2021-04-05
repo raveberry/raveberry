@@ -1,7 +1,6 @@
 import {keyOfElement} from './buttons';
 import {state} from './update';
-import {warningToastWithBar} from '../base';
-import * as Cookies from 'js-cookie';
+import {localStorageSet, warningToastWithBar} from '../base';
 
 /** Adds handlers to buttons that are visible when voting is enabled. */
 export function onReady() {
@@ -83,7 +82,7 @@ export function onReady() {
     const other = $(this).siblings('.vote_down');
     if ($(this).hasClass('pressed')) {
       $(this).removeClass('pressed');
-      Cookies.set('vote_' + key, '0', {expires: 7});
+      localStorageSet('vote_' + key, '0', 7);
       voteDown($(this), key);
     } else {
       $(this).addClass('pressed');
@@ -91,7 +90,7 @@ export function onReady() {
         other.removeClass('pressed');
         voteUp($(this), key);
       }
-      Cookies.set('vote_' + key, '+', {expires: 7});
+      localStorageSet('vote_' + key, '+', 7);
       voteUp($(this), key);
     }
   });
@@ -111,7 +110,7 @@ export function onReady() {
     const other = $(this).siblings('.vote_up');
     if ($(this).hasClass('pressed')) {
       $(this).removeClass('pressed');
-      Cookies.set('vote_' + key, '0', {expires: 7});
+      localStorageSet('vote_' + key, '0', 7);
       voteUp($(this), key);
     } else {
       $(this).addClass('pressed');
@@ -119,7 +118,7 @@ export function onReady() {
         other.removeClass('pressed');
         voteDown($(this), key);
       }
-      Cookies.set('vote_' + key, '-', {expires: 7});
+      localStorageSet('vote_' + key, '-', 7);
       voteDown($(this), key);
     }
   });
