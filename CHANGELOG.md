@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3 - 2021-04-05
+
+- Use svg graphics
+- Use localStorage instead of cookies
+- Removed some unnecessary state updates
+
 ## 0.8.2 - 2021-04-03
 
 - Youtube playlists, radio and autoplay work again
