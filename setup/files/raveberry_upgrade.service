@@ -1,0 +1,9 @@
+[Unit]
+Description=test install
+
+[Service]
+# Type=oneshot would wait for the script to exit
+# as we use this service to start a long running process in the background,
+# we use Type=simple so `systemctl start` returns immediately
+Type=simple
+ExecStart=/usr/local/sbin/raveberry/upgrade_raveberry "{{ config.install_directory }}/config/raveberry.yaml"

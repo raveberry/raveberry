@@ -309,16 +309,6 @@ class System:
     def upgrade_raveberry(self, _request: WSGIRequest) -> HttpResponse:
         """Performs an upgrade of raveberry."""
 
-        @background_thread
-        def do_upgrade() -> None:
-            subprocess.call(
-                [
-                    "sudo",
-                    "/usr/local/sbin/raveberry/upgrade_raveberry",
-                    os.path.join(settings.BASE_DIR, "config/raveberry.yaml"),
-                ]
-            )
-
-        do_upgrade()
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/start_upgrade_service"])
 
         return HttpResponse("Upgrading... Look for logs in /var/www/")

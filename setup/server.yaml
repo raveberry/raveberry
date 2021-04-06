@@ -19,6 +19,10 @@
   template:
     src: files/gunicorn.service
     dest: /etc/systemd/system/gunicorn.service
+- name: upgrade service
+  template:
+    src: files/raveberry_upgrade.service
+    dest: /etc/systemd/system/raveberry_upgrade.service
 
 - name: Configure remote connection
   when: config.remote_key and config.remote_ip and config.remote_port and config.remote_url
@@ -65,12 +69,6 @@
 - name: Reload systemd daemon config
   systemd:
     daemon_reload: yes
-
-- name: Info
-  debug:
-    # If the user initiated the upgrade through the webinterface,
-    # The last task will kill the install. Show a confirmation message.
-    msg: Installation complete!
 
 - name: Start the server
   command: /usr/local/sbin/raveberry/enable_events
