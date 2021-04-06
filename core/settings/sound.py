@@ -133,23 +133,24 @@ class Sound:
             if self.bluetoothctl is not None:
                 self._stop_bluetoothctl()
 
-        self.bluetoothctl.stdin.write(b"pair " + address.encode() + b"\n")
-        self.bluetoothctl.stdin.flush()
-        while True:
-            line = self._get_bluetoothctl_line()
-            if not line:
-                break
-            if re.match(".*Device " + address + " not available", line):
-                error = "Device unavailable"
-                break
-            if re.match(".*Failed to pair: org.bluez.Error.AlreadyExists", line):
-                break
-            if re.match(".*Pairing successful", line):
-                break
+        # Sometimes, pairing hangs forever. Since connecting alone is enough, skip pairing.
+        # self.bluetoothctl.stdin.write(b"pair " + address.encode() + b"\n")
+        # self.bluetoothctl.stdin.flush()
+        # while True:
+        #     line = self._get_bluetoothctl_line()
+        #     if not line:
+        #         break
+        #     if re.match(".*Device " + address + " not available", line):
+        #         error = "Device unavailable"
+        #         break
+        #     if re.match(".*Failed to pair: org.bluez.Error.AlreadyExists", line):
+        #         break
+        #     if re.match(".*Pairing successful", line):
+        #         break
 
-        if error:
-            self._stop_bluetoothctl()
-            return HttpResponseBadRequest(error)
+        # if error:
+        #     self._stop_bluetoothctl()
+        #     return HttpResponseBadRequest(error)
 
         self.bluetoothctl.stdin.write(b"connect " + address.encode() + b"\n")
         self.bluetoothctl.stdin.flush()
