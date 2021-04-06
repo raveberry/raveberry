@@ -255,8 +255,9 @@ class System:
     def _fetch_latest_version(cls) -> Optional[str]:
         """Looks up the newest version number from PyPi and returns it."""
         try:
+            # https://github.com/pypa/pip/issues/9139
             subprocess.run(
-                "pip3 install raveberry==nonexistingversion".split(),
+                "pip3 install --use-deprecated=legacy-resolver raveberry==nonexistingversion".split(),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
@@ -276,7 +277,7 @@ class System:
     def upgrade_available(self, _request: WSGIRequest) -> HttpResponse:
         latest_version = self._fetch_latest_version()
         current_version = settings.VERSION
-        if latest_version != current_version:
+        if latest_version and latest_version != current_version:
             return JsonResponse(True, safe=False)
         return JsonResponse(False, safe=False)
 
