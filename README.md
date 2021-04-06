@@ -57,8 +57,10 @@ You can also install Raveberry on a remote machine you have ssh access to:
 ```
 pip3 install raveberry[install]
 cd "$(pip3 show pi3d | grep Location: | sed 's/.*: //')/raveberry"
-ansible-playbook --user <user> --key-file <private_key> -i <ip>, setup/system_install.yaml
+ansible-playbook --user <user> --key-file <private_key> -i <ip>, -e "config_file=/path/to/raveberry.yaml" setup/system_install.yaml
 ```
+If omitted, `config_file` defaults to `config/raveberry.yaml`. `--user` and `--key-file` can be omitted if the target host is configured in your ssh config.
+
 Passwordless sudo is default on a Raspberry Pi. For most other systems, sudo requires a password, then you have to add `--ask-become-pass`.
 
 ## First Steps

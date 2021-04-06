@@ -18,7 +18,7 @@
 
   - name: Load config
     include_vars:
-      file: ../config/raveberry.yaml
+      file: "{{ (config_file | default('../config/raveberry.yaml')) }}"
       name: config
 
   # https://github.com/ansible/ansible-modules-core/issues/18#issuecomment-135728786
@@ -45,6 +45,11 @@
         - "--include=static/*.woff2"
         - "--exclude=.git"
         - "--filter=dir-merge,- .gitignore"
+
+  - name: Copy Raveberry config to the remote
+    copy:
+      src: "{{ (config_file | default('../config/raveberry.yaml')) }}"
+      dest: "{{ config.install_directory }}/config/raveberry.yaml"
 
   - import_tasks: install_dependencies.yaml
 
