@@ -254,24 +254,32 @@ class System:
     @cachetools.func.ttl_cache(ttl=60 * 60 * 24)
     def _fetch_latest_version(cls) -> Optional[str]:
         """Looks up the newest version number from PyPi and returns it."""
-        try:
-            # https://github.com/pypa/pip/issues/9139
-            subprocess.run(
-                "pip3 install --use-deprecated=legacy-resolver raveberry==nonexistingversion".split(),
+        # https://github.com/pypa/pip/issues/9139
+        p = subprocess.run(
+            "pip3 install --use-deprecated=legacy-resolver raveberry==nonexistingversion".split(),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+        )
+        if p.returncode == 2:
+            # pip does not now the --use-deprecated=legacy-resolver
+            # probably an older version that does not need it
+            p = subprocess.run(
+                "pip3 install raveberry==nonexistingversion".split(),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
-                check=True,
             )
-        except subprocess.CalledProcessError as e:
-            # parse the newest verson from pip output
-            for line in e.stderr.splitlines():
-                if "from versions" in line:
-                    versions = [re.sub(r"[^0-9.]", "", token) for token in line.split()]
-                    versions = [version for version in versions if version]
-                    latest_version = versions[-1]
-                    return latest_version
-        return None
+
+        # parse the newest verson from pip output
+        for line in p.stderr.splitlines():
+            if "from versions" in line:
+                versions = [re.sub(r"[^0-9.]", "", token) for token in line.split()]
+                versions = [version for version in versions if version]
+                latest_version = versions[-1]
+                return latest_version
+        else:
+            return None
 
     @Settings.option
     def upgrade_available(self, _request: WSGIRequest) -> HttpResponse:
