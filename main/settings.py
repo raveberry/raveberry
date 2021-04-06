@@ -34,6 +34,7 @@ except FileNotFoundError:
     VERSION = "undefined"
 
 DEBUG = bool(os.environ.get("DJANGO_DEBUG"))
+TESTING = "test" in sys.argv
 
 DOCKER = "DOCKER" in os.environ
 DOCKER_ICECAST = "DOCKER_ICECAST" in os.environ
@@ -237,7 +238,7 @@ LOGGING = {
     },
     "root": {
         "handlers": ["infofile", "errorfile", "console"]
-        if DEBUG
+        if DEBUG or TESTING
         else ["infofile", "errorfile", "docker"]
         if DOCKER
         else ["infofile", "errorfile"],
@@ -268,7 +269,7 @@ if not MOCK:
         print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
 
 # use a different cache directory for testing
-if "test" in sys.argv:
+if TESTING:
     SONGS_CACHE_DIR = TEST_CACHE_DIR
 
 pathlib.Path(SONGS_CACHE_DIR).mkdir(parents=True, exist_ok=True)
