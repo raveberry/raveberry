@@ -193,16 +193,16 @@ def system_install(config_confirmed=False):
 
     import yaml
 
-    print(
-        """You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
-Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
-Config-file location: """
-        + used_config
-    )
-    if not module_used:
-        print("Using folder: " + raveberry_directory)
-
     if not config_confirmed:
+        print(
+            """You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
+    Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
+    Config-file location: """
+            + used_config
+        )
+        if not module_used:
+            print("Using folder: " + raveberry_directory)
+
         answer = input(
             "Is this the configuration you want to install raveberry with? [Y/n] "
         )
