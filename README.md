@@ -98,11 +98,14 @@ docker-compose pull
 * **Live Updates**:
 Web page content is updated instantly using websockets.
 
-* **Streaming Support**:
+* **Remote Streaming**:
 With `icecast`, it is possible to remotely listen to Raveberry. See [`docs/streaming.md`](docs/streaming.md).
 
 * **Bluetooth Support**:
 Use your bluetooth speakers with Raveberry, removing the need for an audio cable.
+
+* **HiFiBerry Support**:
+Attach your [HiFiBerry](https://www.hifiberry.com/) board for a high quality audio experience.
 
 * **Hotspot**:
 Provides a WiFi network for access in areas without proper infrastructure. Can double as a repeater.
