@@ -22,14 +22,19 @@ install:
 
 before_script:
   - yarn --cwd frontend build
+  # test in a separate folder so generated files don't end up in the package
+  - cp -r "$TRAVIS_BUILD_DIR" "$HOME/raveberry_test"
+  - cd "$HOME/raveberry_test"
   - docker build -f docker/Dockerfile -t raveberry/raveberry .
   - docker build -f docker/tests.Dockerfile -t raveberry-test .
 
 script:
   - yarn --cwd frontend test
   - docker-compose -f tests/docker-compose.yml up --exit-code-from daphne
+  - diff -r "$TRAVIS_BUILD_DIR" "$HOME/raveberry_test"
 
 before_deploy:
+  - cd "$TRAVIS_BUILD_DIR"
   - mkdir raveberry
   # move all files except those needed for packaging
   - mv `\ls -A1 | grep -v -E '(setup.py|MANIFEST.in|raveberry)'` raveberry
