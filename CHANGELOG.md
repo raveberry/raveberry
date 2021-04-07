@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.4 - 2021-04-07
+
+- Raveberry is upgraded by a system service, making it finish reliably
+- Remove false positives for new versions (pip changed its interface)
+- Testing in CI is done in a separate folder, .pyc files are not packaged anymore
+- Search engine is only initialized in new databases, speeding up installation
+- Due to issues during pairing, devices are connected to directly
+- Tested HiFiBerry (it works)
+- Config file can be specified in remote installs
+- Log to console when testing
+
+
 ## 0.8.3 - 2021-04-05
 
 - Use svg graphics
