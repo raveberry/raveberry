@@ -31,7 +31,6 @@ before_script:
 script:
   - yarn --cwd frontend test
   - docker-compose -f tests/docker-compose.yml up --exit-code-from daphne
-  - diff -r "$TRAVIS_BUILD_DIR" "$HOME/raveberry_test"
 
 before_deploy:
   - cd "$TRAVIS_BUILD_DIR"
