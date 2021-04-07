@@ -2,7 +2,7 @@ FROM raveberry/raveberry-dependencies
 
 WORKDIR /opt/raveberry
 
-RUN pip install -U youtube-dl &&\
+RUN pip install -U -r /youtube.txt &&\
 	rm -rf ~/.cache/pip &&\
 	mkdir logs
 
