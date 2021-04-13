@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+# https://github.com/badaix/snapcast/issues/737
+sysctl fs.protected_fifos=0 >/dev/null
+[ -f /etc/sysctl.d/snapcast-unprotect-fifo.conf ] || echo "fs.protected_fifos = 0" > /etc/sysctl.d/snapcast-unprotect-fifo.conf
+
+systemctl enable snapserver
+systemctl restart snapserver

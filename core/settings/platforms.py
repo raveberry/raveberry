@@ -146,7 +146,7 @@ class Platforms:
             value=self.spotify_client_secret
         )
 
-        self.settings.system.update_mopidy_config()
+        self.settings.system.update_mopidy_config("pulse")
         return HttpResponse("Updated credentials")
 
     @Settings.option
@@ -177,5 +177,5 @@ class Platforms:
             value=self.soundcloud_auth_token
         )
 
-        self.settings.system.update_mopidy_config()
+        self.settings.system.update_mopidy_config("pulse")
         return HttpResponse("Updated credentials")

@@ -98,7 +98,7 @@ class MusicProvider:
                 # add the additional keywords from the settings before checking
                 self.query += " " + self.musiq.base.settings.basic.additional_keywords
             if not self.check_available():
-                raise ProviderError()
+                raise ProviderError(self.error)
 
             # overwrite the enqueue function and make the resource available before calling it
             def fetch_enqueue() -> None:
@@ -120,7 +120,7 @@ class MusicProvider:
                 archived_song = ArchivedSong.objects.get(url=self.get_external_url())
                 if archived_song.counter > 0:
                     self.error = "Only new music is allowed!"
-                    raise ProviderError()
+                    raise ProviderError(self.error)
             except ArchivedSong.DoesNotExist:
                 pass
 

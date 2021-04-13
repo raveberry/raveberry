@@ -23,14 +23,14 @@ class System:
     """This class is responsible for handling settings changes related to system configuration."""
 
     @staticmethod
-    def update_mopidy_config(output=None) -> None:
+    def update_mopidy_config(output: str) -> None:
         """Updates mopidy's config with the credentials stored in the database.
         If no config_file is given, the default one is used."""
         if settings.DOCKER:
             # raveberry cannot restart mopidy in the docker setup
             return
 
-        if not output:
+        if output == "pulse":
             if shutil.which("cava"):
                 output = "cava"
             else:
@@ -54,7 +54,6 @@ class System:
                 soundcloud_auth_token,
             ]
         )
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
         time.sleep(3)
 
     def __init__(self, settings: Settings):
@@ -151,31 +150,6 @@ class System:
             if "soundcloud" not in extensions:
                 extensions["soundcloud"] = (True, "No info found, enabling te be safe")
         return extensions
-
-    @Settings.option
-    def enable_streaming(self, _request: WSGIRequest) -> HttpResponse:
-        """Enable icecast streaming."""
-        icecast_exists = False
-        for line in subprocess.check_output(
-            "systemctl list-unit-files --full --all".split(), universal_newlines=True
-        ).splitlines():
-            if "icecast2.service" in line:
-                icecast_exists = True
-                break
-
-        if not icecast_exists:
-            return HttpResponseBadRequest("Please install icecast2")
-
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_streaming"])
-        self.update_mopidy_config(output="icecast")
-        return HttpResponse()
-
-    @Settings.option
-    def disable_streaming(self, _request: WSGIRequest) -> HttpResponse:
-        """Disable icecast streaming."""
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_streaming"])
-        self.update_mopidy_config()
-        return HttpResponse()
 
     @Settings.option
     def disable_events(self, _request: WSGIRequest) -> None:

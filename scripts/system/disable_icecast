@@ -5,4 +5,4 @@ then echo "Please run as root"
 fi
 
 systemctl stop icecast2
-systemctl disable icecast2
+systemctl is-enabled icecast2 &>/dev/null && systemctl disable icecast2 2>/dev/null

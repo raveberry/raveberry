@@ -76,11 +76,11 @@ class Settings(Stateful):
         self.base = base
         self.basic = Basic(self)
         self.platforms = Platforms(self)
-        self.system = System(self)
         self.sound = Sound(self)
         self.wifi = Wifi(self)
         self.library = Library(self)
         self.analysis = Analysis(self)
+        self.system = System(self)
 
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
@@ -112,6 +112,8 @@ class Settings(Stateful):
         state_dict["bluetooth_scanning"] = self.sound.bluetoothctl is not None
         state_dict["bluetooth_devices"] = self.sound.bluetooth_devices
 
+        state_dict["output"] = self.sound.output
+
         try:
             with open(os.path.join(settings.BASE_DIR, "config/homewifi")) as f:
                 state_dict["homewifi_ssid"] = f.read()
@@ -119,16 +121,6 @@ class Settings(Stateful):
             state_dict["homewifi_ssid"] = ""
 
         state_dict["scan_progress"] = self.library.scan_progress
-
-        if settings.DOCKER and not settings.DOCKER_ICECAST:
-            # icecast is definitely disabled
-            streaming_enabled = False
-        else:
-            # the icecast service reports as active even if it is internally disabled.
-            # check if its port is used to determine if it's running
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                streaming_enabled = sock.connect_ex((settings.ICECAST_HOST, 8000)) == 0
-        state_dict["streaming_enabled"] = streaming_enabled
 
         try:
             state_dict["homewifi_enabled"] = (

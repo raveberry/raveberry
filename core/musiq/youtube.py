@@ -189,7 +189,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
                 logging.warning("error during availability check for %s:", entry["id"])
                 logging.warning(e)
         else:
-            self.error = "All results filtered"
+            self.error = "No songs found"
             return False
 
         self.id = self.info_dict["id"]

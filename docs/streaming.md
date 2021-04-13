@@ -2,12 +2,9 @@
 
 Raveberry can stream its audio output via [icecast](https://icecast.org/).
 
-In order to enable streaming, you can go to the settings page (`http://raveberry.local/settings`) when logged in as admin and click "Enable Streaming".
+In order to enable streaming, you can go to the settings page (`http://raveberry.local/settings`) when logged in as admin and select "icecast" as sound output.
 Note that you need to have the `icecast2` package installed. Raveberry will tell you to do this, but not perform the installation automatically.
-On Raspbian, run `sudo apt-get install icecast2`. You will be prompted to set an admin password during installation. Although recommended, it is not required for Raveberry to stream. If you don't use the default _source_ password (different from the admin password), you need to specify it in `/opt/raveberry/setup/mopidy_icecast.conf` like this:
-```
-output = lamemp3enc ! shout2send async=false mount=stream password=<password>
-```
+On Raspbian, run `sudo apt-get install icecast2`. You will be prompted to set an admin password during installation. Although recommended, it is not required for Raveberry to stream.
 
 After enabling streaming in the `/settings` page, icecast will be configured and started. Mopidy will be configured to output to the icecast stream instead of the local speakers.
 

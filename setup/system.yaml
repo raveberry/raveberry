@@ -104,7 +104,6 @@
       block: |
         load-module module-null-sink sink_name=cava
         update-sink-proplist cava device.description="virtual sink for cava"
-        set-default-sink 0
       marker: "# {mark} ANSIBLE MANAGED BLOCK virtual sink"
 
 - name: mopidy config skeleton

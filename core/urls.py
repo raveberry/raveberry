@@ -242,12 +242,8 @@ SETTINGS_URLS = [
         BASE.settings.sound.disconnect_bluetooth,
         name="disconnect_bluetooth",
     ),
-    path("output_devices/", BASE.settings.sound.output_devices, name="output_devices"),
-    path(
-        "set_output_device/",
-        BASE.settings.sound.set_output_device,
-        name="set_output_device",
-    ),
+    path("list_outputs/", BASE.settings.sound.list_outputs, name="list_outputs"),
+    path("set_output/", BASE.settings.sound.set_output, name="set_output"),
     path(
         "available_ssids/", BASE.settings.wifi.available_ssids, name="available_ssids"
     ),
@@ -280,16 +276,6 @@ SETTINGS_URLS = [
         name="create_playlists",
     ),
     path("analyse/", BASE.settings.analysis.analyse, name="analyse"),
-    path(
-        "disable_streaming/",
-        BASE.settings.system.disable_streaming,
-        name="disable_streaming",
-    ),
-    path(
-        "enable_streaming/",
-        BASE.settings.system.enable_streaming,
-        name="enable_streaming",
-    ),
     path("disable_events/", BASE.settings.system.disable_events, name="disable_events"),
     path("enable_events/", BASE.settings.system.enable_events, name="enable_events"),
     path(

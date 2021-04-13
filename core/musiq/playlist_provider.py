@@ -95,6 +95,7 @@ class PlaylistProvider(MusicProvider):
             except (KeyError, ArchivedPlaylist.DoesNotExist):
                 return False
         self.id = archived_playlist.list_id
+        self.title = archived_playlist.title
         self.key = archived_playlist.id
         self.urls = [entry.url for entry in archived_playlist.entries.all()]
         return True
@@ -185,7 +186,11 @@ class PlaylistProvider(MusicProvider):
 
             try:
                 song_provider.request("", archive=False, manually_requested=False)
-            except ProviderError:
+            except ProviderError as e:
+                logging.warning(
+                    "Error while enqueuing playlist %s: %s", self.title, self.id
+                )
+                logging.exception(e)
                 continue
 
             if settings.DEBUG:

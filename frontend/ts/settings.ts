@@ -65,12 +65,13 @@ registerSpecificState(function(newState) {
     li.insertBefore($('#connect_bluetooth').parent());
   });
 
+  $('#output').val(newState.output);
+
   $('#homewifi_enabled').text(newState.homewifi_enabled);
   $('#homewifi_ssid').val(newState.homewifi_ssid);
 
   $('#scan_progress').text(newState.scan_progress);
 
-  $('#streaming_enabled').text(newState.streaming_enabled);
   $('#events_enabled').text(newState.events_enabled);
   $('#hotspot_enabled').text(newState.hotspot_enabled);
   $('#wifi_protected').text(newState.wifi_protected);
@@ -330,9 +331,9 @@ export function onReady() {
     });
   });
 
-  $('#output_device').focus(function() {
-    $.get(urls['output_devices']).done(function(devices) {
-      $('#output_device').autocomplete({
+  $('#output').focus(function() {
+    $.get(urls['list_outputs']).done(function(devices) {
+      $('#output').autocomplete({
         // always show all possible output devices,
         // regardless of current input content
         source: function(request, response) {
@@ -340,13 +341,13 @@ export function onReady() {
         },
         minLength: 0,
       });
-      $('#output_device').autocomplete('search');
+      $('#output').autocomplete('search');
     });
   });
-  $('#set_output_device').on('click tap', function() {
-    const selected = $('#output_device').val();
-    $.post(urls['set_output_device'], {
-      device: selected,
+  $('#set_output').on('click tap', function() {
+    const selected = $('#output').val();
+    $.post(urls['set_output'], {
+      output: selected,
     }, function(response) {
       successToast(response);
     }).fail(function(response) {
@@ -494,20 +495,6 @@ export function onReady() {
     temp.remove();
   });
 
-  $('#disable_streaming').on('click tap', function() {
-    $.post(urls['disable_streaming']).done(function() {
-      successToast('');
-    }).fail(function(response) {
-      errorToast(response.responseText);
-    });
-  });
-  $('#enable_streaming').on('click tap', function() {
-    $.post(urls['enable_streaming']).done(function() {
-      successToast('');
-    }).fail(function(response) {
-      errorToast(response.responseText);
-    });
-  });
   $('#disable_events').on('click tap', function() {
     $.post(urls['disable_events']).done(function() {
       successToast('');

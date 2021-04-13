@@ -35,8 +35,8 @@
 	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
 	urls['disconnect_bluetooth'] = '{% url 'disconnect_bluetooth' %}';
 
-    urls['output_devices'] = '{% url 'output_devices' %}';
-    urls['set_output_device'] = '{% url 'set_output_device' %}';
+    urls['list_outputs'] = '{% url 'list_outputs' %}';
+    urls['set_output'] = '{% url 'set_output' %}';
 
 	urls['available_ssids'] = '{% url 'available_ssids' %}';
 	urls['connect_to_wifi'] = '{% url 'connect_to_wifi' %}';
@@ -51,8 +51,6 @@
 
 	urls['analyse'] = '{% url 'analyse' %}';
 
-    urls['disable_streaming'] = '{% url 'disable_streaming' %}';
-    urls['enable_streaming'] = '{% url 'enable_streaming' %}';
 	urls['disable_events'] = '{% url 'disable_events' %}';
 	urls['enable_events'] = '{% url 'enable_events' %}';
 	urls['disable_hotspot'] = '{% url 'disable_hotspot' %}';
@@ -262,11 +260,11 @@
         Sound Output
     </li>
     <li class="list-group-item list_item">
-        <span class="description">Output Device</span>
-        <input id="output_device"/>
+        <span class="description">Output</span>
+        <input id="output"/>
     </li>
     <li class="list-group-item list_item centered">
-        <button class="btn" id="set_output_device">Set Output Device</button>
+        <button class="btn" id="set_output">Set Output</button>
     </li>
 </ul>
 
@@ -387,16 +385,6 @@
 	</li>
 </ul>
 
-<ul class="list-group system-install-only">
-    <li class="list-group-item list_item">
-        <span class="description">Streaming Enabled:</span>
-        <div id="streaming_enabled"></div>
-    </li>
-    <li class="list-group-item list_item">
-        <button class="btn" id="disable_streaming">Disable Streaming</button>
-        <button class="btn" id="enable_streaming">Enable Streaming</button>
-    </li>
-</ul>
 <ul class="list-group system-install-only">
 	<li class="list-group-item list_item">
 		<span class="description">Events Enabled:</span>

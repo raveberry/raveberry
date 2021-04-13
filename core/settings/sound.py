@@ -11,19 +11,18 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import JsonResponse
 
+from core import util
 from core.models import Setting
 from core.settings.settings import Settings
 from core.util import background_thread
-
-if TYPE_CHECKING:
-    from core.base import Base
 
 
 class Sound:
     """This class is responsible for handling settings changes related to sound output."""
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self.output = Settings.get_setting("sound_output", "")
         self.backup_stream = Settings.get_setting("backup_stream", "")
         self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None
         self.bluetooth_devices: List[Dict[str, str]] = []
@@ -100,7 +99,7 @@ class Sound:
                         self.bluetooth_devices.append(
                             {"address": address, "name": name}
                         )
-                        self.base.settings.update_state()
+                        self.settings.update_state()
 
             do_scan()
         else:
@@ -213,7 +212,7 @@ class Sound:
         return HttpResponse("Disconnected")
 
     @Settings.option
-    def output_devices(self, _request: WSGIRequest) -> JsonResponse:
+    def list_outputs(self, _request: WSGIRequest) -> JsonResponse:
         """Returns a list of all sound output devices currently available."""
         output = subprocess.check_output(
             "pactl list short sinks".split(),
@@ -221,28 +220,63 @@ class Sound:
             universal_newlines=True,
         )
         tokenized_lines = [line.split() for line in output.splitlines()]
-        sinks = [sink[1] for sink in tokenized_lines if len(sink) >= 2]
+
+        sinks = ["icecast", "snapcast"]
+        sinks.extend([sink[1] for sink in tokenized_lines if len(sink) >= 2])
+
         return JsonResponse(sinks, safe=False)
 
-    @Settings.option
-    def set_output_device(self, request: WSGIRequest) -> HttpResponse:
-        """Sets the given device as default output device."""
-        device = request.POST.get("device")
-        if not device:
-            return HttpResponseBadRequest("No device selected")
+    def _set_output(self, output: str) -> HttpResponse:
+        icecast_installed = util.service_installed("icecast2")
+        snapcast_installed = util.service_installed("snapserver")
 
-        try:
-            subprocess.run(
-                ["pactl", "set-default-sink", device],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                env={"PULSE_SERVER": "127.0.0.1"},
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            return HttpResponseBadRequest(e.stderr)
-        # restart mopidy to apply audio device change
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
+        if output == "icecast":
+            if not icecast_installed:
+                return HttpResponseBadRequest("Please install icecast2")
+
+            subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_icecast"])
+            mopidy_output = "icecast"
+        elif output == "snapcast":
+            if not snapcast_installed:
+                return HttpResponseBadRequest("Please install snapserver")
+
+            subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_snapcast"])
+            mopidy_output = "snapcast"
+        else:
+            try:
+                subprocess.run(
+                    ["pactl", "set-default-sink", output],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                    env={"PULSE_SERVER": "127.0.0.1"},
+                    check=True,
+                )
+                mopidy_output = "pulse"
+            except subprocess.CalledProcessError as e:
+                return HttpResponseBadRequest(e.stderr)
+
+        if icecast_installed and output != "icecast":
+            subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_icecast"])
+        if snapcast_installed and output != "snapcast":
+            subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_snapcast"])
+
+        self.settings.system.update_mopidy_config(mopidy_output)
+
         return HttpResponse(
-            f"Set default output. Restarting the current song might be necessary."
+            "Output was set. Restarting the current song might be necessary."
         )
+
+    @Settings.option
+    def set_output(self, request: WSGIRequest) -> HttpResponse:
+        """Sets the given device as default output device."""
+        output = request.POST.get("output")
+        if not output:
+            return HttpResponseBadRequest("No output selected")
+
+        if output == self.output:
+            return HttpResponseBadRequest("Output unchanged")
+
+        Setting.objects.filter(key="sound_output").update(value=output)
+        self.output = output
+
+        return self._set_output(output)
