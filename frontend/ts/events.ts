@@ -8,6 +8,7 @@ if (window.location.protocol == 'https:') {
   socketUrl = 'ws://' + socketUrl;
 }
 const stateSocket = new ReconnectingWebSocket(socketUrl, [], {});
+let unloading = false;
 
 stateSocket.addEventListener('message', (e) => {
   const newState = JSON.parse(e.data);
@@ -29,5 +30,11 @@ stateSocket.addEventListener('open', (e) => {
 });
 
 stateSocket.addEventListener('close', (e) => {
+  if (unloading)
+    return;
   $('#disconnected-banner').slideDown('fast');
 });
+
+addEventListener("beforeunload", () => {
+  unloading = true;
+}, {capture: true});
