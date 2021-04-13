@@ -17,10 +17,6 @@ from django.http import HttpResponse, JsonResponse
 from django.http import HttpResponseBadRequest
 
 from core.settings.settings import Settings
-from core.util import background_thread
-
-if TYPE_CHECKING:
-    from core.base import Base
 
 
 class System:
@@ -61,8 +57,8 @@ class System:
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
         time.sleep(3)
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     def check_mopidy_extensions(self) -> Dict[str, Tuple[bool, str]]:
         """Returns a dict indicating for each extension whether it is enabled

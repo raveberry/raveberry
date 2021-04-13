@@ -21,15 +21,12 @@ from core.models import PlayLog
 from core.models import RequestLog
 from core.settings.settings import Settings
 
-if TYPE_CHECKING:
-    from core.base import Base
-
 
 class Analysis:
     """This class is responsible for handling the analysis."""
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     @Settings.option
     def analyse(self, request: WSGIRequest) -> HttpResponse:

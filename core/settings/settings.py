@@ -4,14 +4,12 @@
 from __future__ import annotations
 
 import os
-import socket
 import subprocess
 import yaml
 from functools import wraps
 from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, TypeVar
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
@@ -56,10 +54,10 @@ class Settings(Stateful):
         """A decorator that makes sure that only the admin changes a setting."""
 
         def _decorator(self: T, request: WSGIRequest) -> HttpResponse:
-            if not self.base.user_manager.is_admin(request.user):
+            if not self.settings.base.user_manager.is_admin(request.user):
                 return HttpResponseForbidden()
             response = func(self, request)
-            self.base.settings.update_state()
+            self.settings.update_state()
             if response is not None:
                 return response
             return HttpResponse()
@@ -76,13 +74,13 @@ class Settings(Stateful):
         from core.settings.system import System
 
         self.base = base
-        self.basic = Basic(base)
-        self.platforms = Platforms(base)
-        self.sound = Sound(base)
-        self.wifi = Wifi(base)
-        self.library = Library(base)
-        self.analysis = Analysis(base)
-        self.system = System(base)
+        self.basic = Basic(self)
+        self.platforms = Platforms(self)
+        self.system = System(self)
+        self.sound = Sound(self)
+        self.wifi = Wifi(self)
+        self.library = Library(self)
+        self.analysis = Analysis(self)
 
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()

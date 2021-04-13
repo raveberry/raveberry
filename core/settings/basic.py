@@ -10,15 +10,12 @@ from django.core.handlers.wsgi import WSGIRequest
 from core.models import Setting
 from core.settings.settings import Settings
 
-if TYPE_CHECKING:
-    from core.base import Base
-
 
 class Basic:
     """This class is responsible for handling basic setting changes."""
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
         self.voting_system = Settings.get_setting("voting_system", "False") == "True"
         self.new_music_only = Settings.get_setting("new_music_only", "False") == "True"
@@ -139,4 +136,4 @@ class Basic:
     @Settings.option
     def update_user_count(self, _request: WSGIRequest) -> None:
         """Force an update on the active user count."""
-        self.base.user_manager.update_user_count()
+        self.settings.base.user_manager.update_user_count()

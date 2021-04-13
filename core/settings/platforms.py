@@ -6,7 +6,7 @@ import os
 import subprocess
 from typing import TYPE_CHECKING
 
-from django.conf import settings
+from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -15,21 +15,18 @@ from core.models import Setting
 from core.settings.library import Library
 from core.settings.settings import Settings
 
-if TYPE_CHECKING:
-    from core.base import Base
-
 
 class Platforms:
     """This class is responsible for handling setting changes related to music platforms."""
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
         self.local_enabled = os.path.islink(Library.get_library_path())
 
         # in the docker container all dependencies are installed
         self.youtube_available = (
-            settings.DOCKER or importlib.util.find_spec("youtube_dl") is not None
+            conf.DOCKER or importlib.util.find_spec("youtube_dl") is not None
         )
         # the _enabled check is the second expression so the databes entry gets created in any case
         self.youtube_enabled = (
@@ -41,7 +38,7 @@ class Platforms:
         # Spotify has no python dependencies we could easily check.
         try:
             self.spotify_available = (
-                settings.DOCKER
+                conf.DOCKER
                 or "[spotify]"
                 in subprocess.check_output(
                     ["mopidy", "config"], stderr=subprocess.DEVNULL
@@ -63,7 +60,7 @@ class Platforms:
         self.spotify_client_secret = Settings.get_setting("spotify_client_secret", "")
 
         self.soundcloud_available = (
-            settings.DOCKER or importlib.util.find_spec("soundcloud") is not None
+            conf.DOCKER or importlib.util.find_spec("soundcloud") is not None
         )
         self.soundcloud_enabled = (
             Settings.get_setting("soundcloud_enabled", "False") == "True"
@@ -90,12 +87,12 @@ class Platforms:
 
     def _set_extension_enabled(self, extension, enabled) -> HttpResponse:
         if enabled:
-            if settings.DOCKER:
+            if conf.DOCKER:
                 response = HttpResponse(
                     "Make sure you provided mopidy with correct credentials."
                 )
             else:
-                extensions = self.base.settings.system.check_mopidy_extensions()
+                extensions = self.settings.system.check_mopidy_extensions()
                 functional, message = extensions[extension]
                 if not functional:
                     return HttpResponseBadRequest(message)
@@ -149,7 +146,7 @@ class Platforms:
             value=self.spotify_client_secret
         )
 
-        self.base.settings.system.update_mopidy_config()
+        self.settings.system.update_mopidy_config()
         return HttpResponse("Updated credentials")
 
     @Settings.option
@@ -180,5 +177,5 @@ class Platforms:
             value=self.soundcloud_auth_token
         )
 
-        self.base.settings.system.update_mopidy_config()
+        self.settings.system.update_mopidy_config()
         return HttpResponse("Updated credentials")

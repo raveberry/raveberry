@@ -19,15 +19,12 @@ from core.models import ArchivedSong, ArchivedPlaylist, PlaylistEntry
 from core.settings.settings import Settings
 from core.util import background_thread
 
-if TYPE_CHECKING:
-    from core.base import Base
-
 
 class Library:
     """This class is responsible for handling settings changes related to the local library."""
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
         self.scan_progress = "0 / 0 / 0"
 
     @staticmethod
@@ -68,7 +65,7 @@ class Library:
         library_path = os.path.abspath(library_path)
 
         self.scan_progress = "0 / 0 / 0"
-        self.base.settings.update_state()
+        self.settings.update_state()
 
         self._scan_library(library_path)
 
@@ -87,7 +84,7 @@ class Library:
             if now - last_update > update_frequency:
                 last_update = now
                 self.scan_progress = f"{filecount} / 0 / 0"
-                self.base.settings.update_state()
+                self.settings.update_state()
             if os.path.abspath(dirpath) == os.path.abspath(settings.SONGS_CACHE_DIR):
                 # do not add files handled by raveberry as local files
                 continue
@@ -103,7 +100,7 @@ class Library:
         logging.info("started scanning in %s", library_path)
 
         self.scan_progress = f"{filecount} / 0 / 0"
-        self.base.settings.update_state()
+        self.settings.update_state()
 
         files_scanned = 0
         files_added = 0
@@ -115,7 +112,7 @@ class Library:
             if now - last_update > update_frequency:
                 last_update = now
                 self.scan_progress = f"{filecount} / {files_scanned} / {files_added}"
-                self.base.settings.update_state()
+                self.settings.update_state()
             for filename in filenames:
                 files_scanned += 1
                 path = os.path.join(dirpath, filename)
@@ -138,7 +135,7 @@ class Library:
 
         assert files_scanned == filecount
         self.scan_progress = f"{filecount} / {files_scanned} / {files_added}"
-        self.base.settings.update_state()
+        self.settings.update_state()
 
         logging.info("done scanning in %s", library_path)
 
@@ -150,7 +147,7 @@ class Library:
             return HttpResponseBadRequest("No library set")
 
         self.scan_progress = f"0 / 0 / 0"
-        self.base.settings.update_state()
+        self.settings.update_state()
 
         self._create_playlists()
 
@@ -168,7 +165,7 @@ class Library:
         logging.info("started creating playlists in %s", library_path)
 
         self.scan_progress = f"{local_files} / 0 / 0"
-        self.base.settings.update_state()
+        self.settings.update_state()
 
         scan_start = time.time()
         last_update = scan_start
@@ -182,7 +179,7 @@ class Library:
                 self.scan_progress = (
                     f"{local_files} / {files_processed} / {files_added}"
                 )
-                self.base.settings.update_state()
+                self.settings.update_state()
 
             song_urls = []
             # unfortunately there is no way to access track numbers accross different file types
@@ -218,4 +215,4 @@ class Library:
                 song_index += 1
 
         self.scan_progress = f"{local_files} / {files_processed} / {files_added}"
-        self.base.settings.update_state()
+        self.settings.update_state()

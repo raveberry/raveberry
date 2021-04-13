@@ -14,15 +14,12 @@ from django.http import JsonResponse
 
 from core.settings.settings import Settings
 
-if TYPE_CHECKING:
-    from core.base import Base
-
 
 class Wifi:
     """This class is responsible for handling settings changes related to wifi."""
 
-    def __init__(self, base: "Base"):
-        self.base = base
+    def __init__(self, settings: Settings):
+        self.settings = settings
 
     @Settings.option
     def available_ssids(self, _request: WSGIRequest) -> JsonResponse:
