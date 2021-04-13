@@ -36,6 +36,8 @@ export function disablePlaylistMode() {
   $('#playlist_mode').addClass('icon_disabled');
   $('#request_radio').removeClass('icon_enabled');
   $('#request_radio').addClass('icon_disabled');
+  $('#shuffle_all').removeClass('icon_enabled');
+  $('#shuffle_all').addClass('icon_disabled');
   $('#remove_all').removeClass('icon_enabled');
   $('#remove_all').addClass('icon_disabled');
 }
@@ -125,6 +127,8 @@ export function onReady() {
       $(this).addClass('icon_enabled');
       $('#request_radio').removeClass('icon_disabled');
       $('#request_radio').addClass('icon_enabled');
+      $('#shuffle_all').removeClass('icon_disabled');
+      $('#shuffle_all').addClass('icon_enabled');
       $('#remove_all').removeClass('icon_disabled');
       $('#remove_all').addClass('icon_enabled');
       warningToast('Use this power wisely');
@@ -212,6 +216,18 @@ export function onReady() {
     $.post(urls['set_volume'], {
       value: $(this).val(),
     });
+  });
+  $('#shuffle_all').on('click tap', function() {
+    if (!playlistEnabled()) {
+      warningToast('Please enable playlists to use this');
+      return;
+    }
+    $.post(urls['shuffle_all']).done(function(response) {
+      successToast(response);
+    }).fail(function(response) {
+      errorToast(response.responseText);
+    });
+    disablePlaylistMode();
   });
   $('#remove_all').on('click tap', function() {
     if (!playlistEnabled()) {

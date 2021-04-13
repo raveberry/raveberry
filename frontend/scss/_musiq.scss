@@ -169,7 +169,11 @@ span.clearable input {
 #volume_slider_container {
 	width: 50%;
 }
-#trash_container {
+#queue_controls i {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+#queue_controls {
 	width: 25%;
 	display: flex;
 	justify-content: flex-end;

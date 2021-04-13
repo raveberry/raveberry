@@ -21,6 +21,7 @@
     urls['set_autoplay'] = '{% url 'set_autoplay' %}';
     urls['request_radio'] = '{% url 'request_radio' %}';
     urls['set_volume'] = '{% url 'set_volume' %}';
+	urls['shuffle_all'] = '{% url 'shuffle_all' %}';
     urls['remove_all'] = '{% url 'remove_all' %}';
 
     urls['prioritize'] = '{% url 'prioritize_song' %}';
@@ -53,7 +54,7 @@
 		<div class="progress">
 			<div id="progress_bar" class="progress-bar">
 			</div>
-		</div> 
+		</div>
 	</li>
 	<li class="list-group-item" id="song_votes"{% if not voting_system or controls_enabled %} style="display: none"{%endif%}>
 		<i class="fas fa-chevron-circle-up vote_up"></i>
@@ -86,8 +87,11 @@
 			<i id="volume_indicator" class="fas fa-volume-down"></i>
 			<input type="range" id="volume_slider" min="0" max="1" step="0.01" readonly="readonly"/>
 		</div>
-		<div id="trash_container">
-			{% if is_admin %}<i class="fas fa-trash-alt icon_disabled" id="remove_all"></i>{% endif %}
+		<div id="queue_controls">
+			{% if is_admin %}
+				<i class="fas fa-random icon_disabled" id="shuffle_all"></i>
+				<i class="fas fa-trash-alt icon_disabled" id="remove_all"></i>
+			{% endif %}
 		</div>
 	</li>
 </ul>

@@ -33,6 +33,7 @@ MUSIQ_URLS = [
     path("set_autoplay/", BASE.musiq.controller.set_autoplay, name="set_autoplay"),
     path("request_radio/", BASE.musiq.request_radio, name="request_radio"),
     path("set_volume/", BASE.musiq.controller.set_volume, name="set_volume"),
+    path("shuffle_all/", BASE.musiq.controller.shuffle_all, name="shuffle_all"),
     path("remove_all/", BASE.musiq.controller.remove_all, name="remove_all"),
     path("prioritize/", BASE.musiq.controller.prioritize, name="prioritize_song"),
     path("remove/", BASE.musiq.controller.remove, name="remove_song"),

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 from typing import Optional, Tuple, TYPE_CHECKING
 
 from django.db import models
@@ -158,6 +159,15 @@ class SongQueue(models.Manager):
 
         to_reorder.index = new_index
         to_reorder.save()
+
+    @transaction.atomic
+    def shuffle(self) -> None:
+        """Assigns a random index to every song in the queue."""
+        indices = list(range(1, self.count() + 1))
+        random.shuffle(indices)
+        for song, index in zip(self.all(), indices):
+            song.index = index
+            song.save()
 
     @transaction.atomic
     def vote_up(self, key: int) -> None:

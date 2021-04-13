@@ -212,6 +212,15 @@ class Controller:
 
     @disabled_when_voting
     @control
+    def shuffle_all(self, request: WSGIRequest) -> HttpResponse:
+        """Shuffles the queue. Only admin is permitted to do this."""
+        if not self.musiq.base.user_manager.is_admin(request.user):
+            return HttpResponseForbidden()
+        self.playback.queue.shuffle()
+        return HttpResponse()
+
+    @disabled_when_voting
+    @control
     def remove_all(self, request: WSGIRequest) -> HttpResponse:
         """Empties the queue. Only admin is permitted to do this."""
         if not self.musiq.base.user_manager.is_admin(request.user):
