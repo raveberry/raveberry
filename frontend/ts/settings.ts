@@ -11,7 +11,7 @@ import {
 import 'jquery-ui/ui/widgets/autocomplete';
 import snarkdown from 'snarkdown';
 
-registerSpecificState(function(newState) {
+function updateState(newState) {
   updateBaseState(newState);
   if (!('voting_system' in newState)) {
     // this state is not meant for a settings update
@@ -118,13 +118,14 @@ registerSpecificState(function(newState) {
     $('#update_information_policy option[value=no]')
         .attr('selected', 'selected');
   }
-});
+}
 
 /** Add input handlers. */
 export function onReady() {
   if (!window.location.pathname.endsWith('settings/')) {
     return;
   }
+  registerSpecificState(updateState);
   $('#voting_system').change(function() {
     $.post(urls['set_voting_system'], {
       value: $(this).is(':checked'),

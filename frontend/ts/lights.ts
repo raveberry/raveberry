@@ -6,7 +6,7 @@ import {
 } from './base.js';
 
 
-registerSpecificState(function(newState) {
+function updateState(newState) {
   updateBaseState(newState);
   if (!('ring_connected' in newState)) {
     // this state is not meant for a lights update
@@ -57,13 +57,14 @@ registerSpecificState(function(newState) {
   $('#screen_program').val(newState.screen_program);
   $('#program_speed').val(newState.program_speed);
   $('#fixed_color').val(newState.fixed_color);
-});
+}
 
 /** Register input handlers. */
 export function onReady() {
   if (!window.location.pathname.endsWith('lights/')) {
     return;
   }
+  registerSpecificState(updateState);
   $('#ring_program').change(function() {
     const selected = $('#ring_program option:selected').val();
     $.post(urls['set_ring_program'], {

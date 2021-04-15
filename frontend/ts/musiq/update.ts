@@ -168,8 +168,6 @@ export function updateState(newState) {
   applyQueueChange(oldState, state);
 }
 
-registerSpecificState(updateState);
-
 /** Inserts the displayname of a song into an element.
  * @param {HTMLElement} element the div the displayname should be inserted into
  * @param {Object} song the song the info is taken from
@@ -352,3 +350,10 @@ function applyQueueChange(oldState, newState) {
     }
   }
 }
+
+$(document).ready(() => {
+  if (!window.location.pathname.endsWith('musiq/')) {
+    return;
+  }
+  registerSpecificState(updateState);
+});
