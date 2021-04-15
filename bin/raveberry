@@ -195,17 +195,14 @@ def system_install(config_confirmed=False):
 
     if not config_confirmed:
         print(
-            """You are about to install raveberry system-wide. This will make it start on boot and enable features specified in the config file.
-    Depending on your configuration, this will alter some system files. (Although everything *should* work fine, backups are recommended)
-    Config-file location: """
-            + used_config
+            f"""This install will change system files, backups are recommended.
+For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config before continuing.
+    config: {used_config}"""
         )
         if not module_used:
             print("Using folder: " + raveberry_directory)
 
-        answer = input(
-            "Is this the configuration you want to install raveberry with? [Y/n] "
-        )
+        answer = input("Continue? [Y/n] ")
         while answer not in ["", "Y", "y", "Yes", "yes", "N", "n", "No", "no"]:
             answer = input('Please answers "yes" or "no": ')
         if answer in ["N", "n", "No", "no"]:

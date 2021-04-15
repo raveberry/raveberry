@@ -33,9 +33,10 @@ pip3 install raveberry[install]
 raveberry system-install
 ```
 
+If you get `raveberry: command not found` you need to run `export PATH="$HOME/.local/bin:$PATH"`.
 Raveberry was developed for the Raspberry Pi. If you need help setting yours up up, visit [this guide](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up).
 
-You can customize your installation with the config file at [`config/raveberry.yaml`](config/raveberry.yaml). The installer will ask you to confirm the config file it uses.
+The installer will ask you to confirm the config file it uses. The default install supports YouTube and local files. To customize (e.g. to use Spotify), cancel the installation, edit the config at the provided path and rerun `raveberry system-install`.
 
 Although everything *should* work fine, I recommend taking a backup of your system. On a Raspberry Pi this can be done by creating a copy of its SD card.
 
