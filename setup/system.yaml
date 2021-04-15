@@ -89,6 +89,12 @@
     copy:
       src: files/pulseaudio.service
       dest: /etc/systemd/system/pulseaudio.service
+  # https://wiki.archlinux.org/index.php/PulseAudio/Troubleshooting#Glitches.2C_skips_or_crackling
+  - name: "pulseaudio: disable timer based scheduling"
+    lineinfile:
+      path: /etc/pulse/system.pa
+      regexp: "^load-module module-udev-detect"
+      line: "load-module module-udev-detect tsched=0"
   - name: "pulseaudio: config"
     blockinfile:
       path: /etc/pulse/system.pa
