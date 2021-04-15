@@ -100,6 +100,9 @@ export function onReady() {
     } else if (item.type.startsWith('soundcloud')) {
       icon.addClass('fab')
           .addClass('fa-soundcloud');
+    } else if (item.type.startsWith('playlog')) {
+      icon.addClass('fas')
+          .addClass('fa-wrench');
     }
 
     let counter = '(' + item.counter + ')';

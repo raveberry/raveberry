@@ -494,6 +494,19 @@ export function onReady() {
     document.execCommand('copy');
     temp.remove();
   });
+  $('#save_as_playlist').on('click tap', function() {
+    $.post(urls['save_as_playlist'], {
+      startdate: $('#startdate').val(),
+      starttime: $('#starttime').val(),
+      enddate: $('#enddate').val(),
+      endtime: $('#endtime').val(),
+      name: $('#saved_playlist_name').val(),
+    }).done(function() {
+      successToast('');
+    }).fail(function(response) {
+      errorToast(response.responseText);
+    });
+  });
 
   $('#disable_events').on('click tap', function() {
     $.post(urls['disable_events']).done(function() {

@@ -50,6 +50,7 @@
     urls['create_playlists'] = '{% url 'create_playlists' %}';
 
 	urls['analyse'] = '{% url 'analyse' %}';
+	urls['save_as_playlist'] = '{% url 'save_as_playlist' %}';
 
 	urls['disable_events'] = '{% url 'disable_events' %}';
 	urls['enable_events'] = '{% url 'enable_events' %}';
@@ -382,6 +383,13 @@
 	</li>
 	<li class="list-group-item list_item centered">
 		<button class="btn" id="copy_playlist">Copy</button>
+	</li>
+	<li class="list-group-item list_item">
+		<span class="description">Playlist Name</span>
+		<input id="saved_playlist_name" autocomplete="off"/>
+	</li>
+	<li class="list-group-item list_item centered">
+		<button class="btn" id="save_as_playlist">Save as Playlist</button>
 	</li>
 </ul>
 

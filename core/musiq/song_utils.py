@@ -50,6 +50,9 @@ def determine_url_type(url: str) -> str:
 def determine_playlist_type(archived_playlist: "ArchivedPlaylist") -> str:
     """Uses the url of the first song in the playlist
     to determine the platform where the playlist is from."""
+    if archived_playlist.list_id.startswith("playlog"):
+        # The playlist was created from play logs and may contain various song types.
+        return "playlog"
     first_song = archived_playlist.entries.first()
     if not first_song:
         raise ValueError("Playlist contains no songs.")

@@ -276,6 +276,11 @@ SETTINGS_URLS = [
         name="create_playlists",
     ),
     path("analyse/", BASE.settings.analysis.analyse, name="analyse"),
+    path(
+        "save_as_playlist/",
+        BASE.settings.analysis.save_as_playlist,
+        name="save_as_playlist",
+    ),
     path("disable_events/", BASE.settings.system.disable_events, name="disable_events"),
     path("enable_events/", BASE.settings.system.enable_events, name="enable_events"),
     path(

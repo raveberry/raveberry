@@ -66,6 +66,12 @@ class PlaylistProvider(MusicProvider):
             from core.musiq.soundcloud import SoundcloudPlaylistProvider
 
             provider_class = SoundcloudPlaylistProvider
+        elif playlist_type == "playlog":
+            # The playlist may contain various song types, but all of them will be archived.
+            # We can use the local playlist provider to enqueue them.
+            from core.musiq.localdrive import LocalPlaylistProvider
+
+            provider_class = LocalPlaylistProvider
         if not provider_class:
             raise NotImplementedError(f"No provider for given playlist: {query}, {key}")
         provider = provider_class(musiq, query, key)
@@ -182,13 +188,17 @@ class PlaylistProvider(MusicProvider):
             if index == self.musiq.base.settings.basic.max_playlist_items:
                 break
             # request every url in the playlist as their own url
-            song_provider = SongProvider.create(self.musiq, external_url=external_url)
-
             try:
+                song_provider = SongProvider.create(
+                    self.musiq, external_url=external_url
+                )
                 song_provider.request("", archive=False, manually_requested=False)
-            except ProviderError as e:
+            except (ProviderError, NotImplementedError) as e:
                 logging.warning(
-                    "Error while enqueuing playlist %s: %s", self.title, self.id
+                    "Error while enqueuing url %s to playlist %s: %s",
+                    external_url,
+                    self.title,
+                    self.id,
                 )
                 logging.exception(e)
                 continue

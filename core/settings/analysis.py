@@ -2,9 +2,8 @@
 from __future__ import annotations
 
 import math
-import subprocess
-from datetime import timedelta
-from typing import Dict, TYPE_CHECKING, Optional, List
+from datetime import datetime, timedelta
+from typing import Tuple
 
 from dateutil import tz
 from django.conf import settings
@@ -17,7 +16,7 @@ from django.utils import dateparse
 from django.utils import timezone
 
 import core.musiq.song_utils as song_utils
-from core.models import PlayLog
+from core.models import PlayLog, ArchivedPlaylist, PlaylistEntry
 from core.models import RequestLog
 from core.settings.settings import Settings
 
@@ -28,26 +27,35 @@ class Analysis:
     def __init__(self, settings: Settings):
         self.settings = settings
 
-    @Settings.option
-    def analyse(self, request: WSGIRequest) -> HttpResponse:
-        """Perform an analysis of the database in the given timeframe."""
+    def _parse_datetimes(self, request: WSGIRequest) -> Tuple[datetime, datetime]:
         startdate = request.POST.get("startdate")
         starttime = request.POST.get("starttime")
         enddate = request.POST.get("enddate")
         endtime = request.POST.get("endtime")
         if not startdate or not starttime or not enddate or not endtime:
-            return HttpResponseBadRequest("All fields are required")
+            raise ValueError("All fields are required")
 
         start = dateparse.parse_datetime(startdate + "T" + starttime)
         end = dateparse.parse_datetime(enddate + "T" + endtime)
 
         if start is None or end is None:
-            return HttpResponseBadRequest("invalid start-/endtime given")
+            raise ValueError("invalid start-/endtime given")
         if start >= end:
-            return HttpResponseBadRequest("start has to be before end")
+            raise ValueError("start has to be before end")
 
         start = timezone.make_aware(start)
         end = timezone.make_aware(end)
+
+        return start, end
+
+    @Settings.option
+    def analyse(self, request: WSGIRequest) -> HttpResponse:
+        """Perform an analysis of the database in the given timeframe."""
+
+        try:
+            start, end = self._parse_datetimes(request)
+        except ValueError as e:
+            return HttpResponseBadRequest(e.args[0])
 
         played = (
             PlayLog.objects.all().filter(created__gte=start).filter(created__lt=end)
@@ -127,3 +135,40 @@ class Analysis:
         response["playlist"] = playlist
 
         return JsonResponse(response)
+
+    @Settings.option
+    def save_as_playlist(self, request: WSGIRequest) -> HttpResponse:
+        """Save the songs in the given timeframe as a playlist with the given name."""
+
+        try:
+            start, end = self._parse_datetimes(request)
+        except ValueError as e:
+            return HttpResponseBadRequest(e.args[0])
+
+        name = request.POST.get("name")
+        if not name:
+            return HttpResponseBadRequest("Name required")
+
+        played = (
+            PlayLog.objects.all().filter(created__gte=start).filter(created__lt=end)
+        )
+
+        list_id = f"playlog {str(start).replace(' ','T')} {str(end).replace(' ', 'T')}"
+
+        playlist, created = ArchivedPlaylist.objects.get_or_create(
+            list_id=list_id, title=name, counter=0
+        )
+        if not created:
+            return HttpResponseBadRequest(
+                "Playlist for the given timeframe already exists"
+            )
+
+        song_index = 0
+        for log in played:
+            external_url = log.song.url
+            PlaylistEntry.objects.create(
+                playlist=playlist, index=song_index, url=external_url
+            )
+            song_index += 1
+
+        return HttpResponse()
