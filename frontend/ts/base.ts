@@ -157,21 +157,21 @@ export function errorToast(firstLine, secondLine?) {
 }
 
 /** Updates the page's base content. Shared across all pages.
- * @param {Object} newState the new state that is used
+ * @param {Object} state the new state that is used
  */
-export function updateBaseState(newState) {
-  $('#users').text(newState.users);
-  $('#visitors').text(newState.visitors);
-  if (newState.lights_enabled) {
+export function updateBaseState(state) {
+  $('#users').text(state.users);
+  $('#visitors').text(state.visitors);
+  if (state.lights_enabled) {
     $('#lights_indicator').addClass('icon_enabled');
     $('#lights_indicator').removeClass('icon_disabled');
   } else {
     $('#lights_indicator').removeClass('icon_enabled');
     $('#lights_indicator').addClass('icon_disabled');
   }
-  if (newState.partymode) {
+  if (state.partymode) {
     $('#navbar_icon').addClass('partymode');
-    if (newState.alarm) {
+    if (state.alarm) {
       $('body').addClass('alarm');
       $('#progress_bar').addClass('alarm');
     } else {
@@ -183,7 +183,7 @@ export function updateBaseState(newState) {
   }
 
   if (localStorageGet('platform') === null) {
-    localStorageSet('platform', newState.default_platform, 1);
+    localStorageSet('platform', state.default_platform, 1);
   }
 
   updatePlatformClasses();

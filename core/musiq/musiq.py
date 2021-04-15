@@ -249,6 +249,8 @@ class Musiq(Stateful):
 
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
+
+        musiq_state = {}
         current_song: Optional[Dict[str, Any]]
         try:
             current_song = model_to_dict(CurrentSong.objects.get())
@@ -270,10 +272,10 @@ class Musiq(Stateful):
                 song_dict["duration"]
             )
             song_queue.append(song_dict)
-        state_dict["total_time_formatted"] = song_utils.format_seconds(total_time)
+        musiq_state["total_time_formatted"] = song_utils.format_seconds(total_time)
 
         if state_dict["alarm"]:
-            state_dict["current_song"] = {
+            musiq_state["current_song"] = {
                 "queue_key": -1,
                 "manually_requested": False,
                 "votes": None,
@@ -285,7 +287,7 @@ class Musiq(Stateful):
                 "created": "",
             }
         elif self.playback.backup_playing.is_set():
-            state_dict["current_song"] = {
+            musiq_state["current_song"] = {
                 "queue_key": -1,
                 "manually_requested": False,
                 "votes": None,
@@ -297,12 +299,14 @@ class Musiq(Stateful):
                 "created": "",
             }
         else:
-            state_dict["current_song"] = current_song
-        state_dict["paused"] = self.playback.paused()
-        state_dict["progress"] = self.playback.progress()
-        state_dict["shuffle"] = self.controller.shuffle
-        state_dict["repeat"] = self.controller.repeat
-        state_dict["autoplay"] = self.controller.autoplay
-        state_dict["volume"] = self.controller.volume
-        state_dict["song_queue"] = song_queue
+            musiq_state["current_song"] = current_song
+        musiq_state["paused"] = self.playback.paused()
+        musiq_state["progress"] = self.playback.progress()
+        musiq_state["shuffle"] = self.controller.shuffle
+        musiq_state["repeat"] = self.controller.repeat
+        musiq_state["autoplay"] = self.controller.autoplay
+        musiq_state["volume"] = self.controller.volume
+        musiq_state["song_queue"] = song_queue
+
+        state_dict["musiq"] = musiq_state
         return state_dict

@@ -1,4 +1,4 @@
-import {localStorageGet, registerSpecificState, updateBaseState} from '../base';
+import {localStorageGet, registerSpecificState} from '../base';
 import {showPlayButton, showPauseButton} from './buttons';
 
 export let state = null;
@@ -30,9 +30,9 @@ export function updateState(newState) {
   if (state != null) {
     oldState = jQuery.extend(true, {}, state);
   }
-  const currentSong = newState.current_song;
+  const currentSong = newState.musiq.current_song;
   if (currentSong == null) {
-    state = newState;
+    state = newState.musiq;
     $('#current_song_title').empty();
     $('#current_song_title').append($('<em/>').text('Currently Empty'));
     $('#current_song_title').trigger('change');
@@ -50,7 +50,7 @@ export function updateState(newState) {
 
     showPlayButton();
   } else {
-    state = newState;
+    state = newState.musiq;
 
     if (oldState == null ||
       oldState.current_song == null ||

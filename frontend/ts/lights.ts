@@ -1,6 +1,5 @@
 import {
   registerSpecificState,
-  updateBaseState,
   successToast,
   errorToast,
 } from './base.js';
@@ -14,50 +13,28 @@ function updateState(state) {
     return;
   }
 
-  if (newState.ring_connected) {
-    $('#ring_options').removeClass('disabled');
-    $('#ring_options .list_item').show();
-  } else {
-    $('#ring_options').addClass('disabled');
-    $('#ring_options .list_item').hide();
-  }
-  if (newState.wled_connected) {
-    $('#wled_options').removeClass('disabled');
-    $('#wled_options .list_item').show();
-  } else {
-    $('#wled_options').addClass('disabled');
-    $('#wled_options .list_item').hide();
-  }
-  if (newState.strip_connected) {
-    $('#strip_options').removeClass('disabled');
-    $('#strip_options .list_item').show();
-  } else {
-    $('#strip_options').addClass('disabled');
-    $('#strip_options .list_item').hide();
-  }
-  if (newState.screen_connected) {
-    $('#screen_options').removeClass('disabled');
-    $('#screen_options .list_item').show();
-  } else {
-    $('#screen_options').addClass('disabled');
-    $('#screen_options .list_item').hide();
+  for (const key in state.lights) {
+    if (!state.lights.hasOwnProperty(key)) {
+      continue;
+    }
+    const value = state.lights[key];
+    const element = $('#' + key );
+    if (element.is(':checkbox')) {
+      element.prop('checked', value);
+    } else if (element.is('input')) {
+      element.val(value);
+    }
   }
 
-
-  $('#ring_program').val(newState.ring_program);
-  $('#ring_brightness').val(newState.ring_brightness);
-  $('#ring_monochrome').prop('checked', newState.ring_monochrome);
-  $('#wled_led_count').val(newState.wled_led_count);
-  $('#wled_ip').val(newState.wled_ip);
-  $('#wled_port').val(newState.wled_port);
-  $('#wled_program').val(newState.wled_program);
-  $('#wled_brightness').val(newState.wled_brightness);
-  $('#wled_monochrome').prop('checked', newState.wled_monochrome);
-  $('#strip_program').val(newState.strip_program);
-  $('#strip_brightness').val(newState.strip_brightness);
-  $('#screen_program').val(newState.screen_program);
-  $('#program_speed').val(newState.program_speed);
-  $('#fixed_color').val(newState.fixed_color);
+  for (const leds of ['ring', 'wled', 'strip', 'screen']) {
+    if (state.lights[leds + '_connected']) {
+      $('#' + leds + '_options').removeClass('disabled');
+      $('#' + leds + '_options .list_item').show();
+    } else {
+      $('#' + leds + '_options').addClass('disabled');
+      $('#' + leds + '_options .list_item').hide();
+    }
+  }
 }
 
 /** Register input handlers. */

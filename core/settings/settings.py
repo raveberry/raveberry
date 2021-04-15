@@ -84,77 +84,80 @@ class Settings(Stateful):
 
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
-        state_dict["voting_system"] = self.basic.voting_system
-        state_dict["new_music_only"] = self.basic.new_music_only
-        state_dict["logging_enabled"] = self.basic.logging_enabled
-        state_dict["online_suggestions"] = self.basic.online_suggestions
-        state_dict["number_of_suggestions"] = self.basic.number_of_suggestions
-        state_dict["people_to_party"] = self.basic.people_to_party
-        state_dict["alarm_probability"] = self.basic.alarm_probability
-        state_dict["downvotes_to_kick"] = self.basic.downvotes_to_kick
-        state_dict["max_download_size"] = self.basic.max_download_size
-        state_dict["additional_keywords"] = self.basic.additional_keywords
-        state_dict["forbidden_keywords"] = self.basic.forbidden_keywords
-        state_dict["max_playlist_items"] = self.basic.max_playlist_items
-        state_dict["has_internet"] = self.basic.has_internet
 
-        state_dict["youtube_enabled"] = self.platforms.youtube_enabled
-        state_dict["youtube_suggestions"] = self.platforms.youtube_suggestions
+        settings_state = {}
+        settings_state["voting_system"] = self.basic.voting_system
+        settings_state["new_music_only"] = self.basic.new_music_only
+        settings_state["logging_enabled"] = self.basic.logging_enabled
+        settings_state["online_suggestions"] = self.basic.online_suggestions
+        settings_state["number_of_suggestions"] = self.basic.number_of_suggestions
+        settings_state["people_to_party"] = self.basic.people_to_party
+        settings_state["alarm_probability"] = self.basic.alarm_probability
+        settings_state["downvotes_to_kick"] = self.basic.downvotes_to_kick
+        settings_state["max_download_size"] = self.basic.max_download_size
+        settings_state["additional_keywords"] = self.basic.additional_keywords
+        settings_state["forbidden_keywords"] = self.basic.forbidden_keywords
+        settings_state["max_playlist_items"] = self.basic.max_playlist_items
+        settings_state["has_internet"] = self.basic.has_internet
 
-        state_dict["spotify_enabled"] = self.platforms.spotify_enabled
-        state_dict["spotify_suggestions"] = self.platforms.spotify_suggestions
+        settings_state["youtube_enabled"] = self.platforms.youtube_enabled
+        settings_state["youtube_suggestions"] = self.platforms.youtube_suggestions
 
-        state_dict["soundcloud_enabled"] = self.platforms.soundcloud_enabled
-        state_dict["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions
+        settings_state["spotify_enabled"] = self.platforms.spotify_enabled
+        settings_state["spotify_suggestions"] = self.platforms.spotify_suggestions
 
-        state_dict["backup_stream"] = self.sound.backup_stream
+        settings_state["soundcloud_enabled"] = self.platforms.soundcloud_enabled
+        settings_state["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions
 
-        state_dict["bluetooth_scanning"] = self.sound.bluetoothctl is not None
-        state_dict["bluetooth_devices"] = self.sound.bluetooth_devices
+        settings_state["backup_stream"] = self.sound.backup_stream
 
-        state_dict["output"] = self.sound.output
+        settings_state["bluetooth_scanning"] = self.sound.bluetoothctl is not None
+        settings_state["bluetooth_devices"] = self.sound.bluetooth_devices
+
+        settings_state["output"] = self.sound.output
 
         try:
             with open(os.path.join(settings.BASE_DIR, "config/homewifi")) as f:
-                state_dict["homewifi_ssid"] = f.read()
+                settings_state["homewifi_ssid"] = f.read()
         except FileNotFoundError:
-            state_dict["homewifi_ssid"] = ""
+            settings_state["homewifi_ssid"] = ""
 
-        state_dict["scan_progress"] = self.library.scan_progress
+        settings_state["scan_progress"] = self.library.scan_progress
 
         try:
-            state_dict["homewifi_enabled"] = (
+            settings_state["homewifi_enabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/homewifi_enabled"]) != 0
             )
-            state_dict["events_enabled"] = (
+            settings_state["events_enabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/events_enabled"]) != 0
             )
-            state_dict["hotspot_enabled"] = (
+            settings_state["hotspot_enabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/hotspot_enabled"]) != 0
             )
-            state_dict["wifi_protected"] = (
+            settings_state["wifi_protected"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/wifi_protected"]) != 0
             )
-            state_dict["tunneling_enabled"] = (
+            settings_state["tunneling_enabled"] = (
                 subprocess.call(["sudo", "/usr/local/sbin/raveberry/tunneling_enabled"])
                 != 0
             )
-            state_dict["remote_enabled"] = (
+            settings_state["remote_enabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
             )
         except FileNotFoundError:
-            state_dict["system_install"] = False
+            settings_state["system_install"] = False
         else:
-            state_dict["system_install"] = True
+            settings_state["system_install"] = True
             with open(os.path.join(settings.BASE_DIR, "config/raveberry.yaml")) as f:
                 config = yaml.safe_load(f)
-            state_dict["hotspot_configured"] = config["hotspot"]
-            state_dict["remote_configured"] = config["remote_key"] is not None
+            settings_state["hotspot_configured"] = config["hotspot"]
+            settings_state["remote_configured"] = config["remote_key"] is not None
 
-        state_dict["youtube_available"] = self.platforms.youtube_available
-        state_dict["spotify_available"] = self.platforms.spotify_available
-        state_dict["soundcloud_available"] = self.platforms.soundcloud_available
+        settings_state["youtube_configured"] = self.platforms.youtube_available
+        settings_state["spotify_configured"] = self.platforms.spotify_available
+        settings_state["soundcloud_configured"] = self.platforms.soundcloud_available
 
+        state_dict["settings"] = settings_state
         return state_dict
 
     def index(self, request: WSGIRequest) -> HttpResponse:

@@ -242,26 +242,30 @@ class Lights(Stateful):
 
     def state_dict(self) -> Dict[str, Any]:
         state_dict = self.base.state_dict()
-        state_dict["ring_connected"] = self.ring.initialized
-        state_dict["ring_program"] = self.ring.program.name
-        state_dict["ring_brightness"] = self.ring.brightness
-        state_dict["ring_monochrome"] = self.ring.monochrome
-        state_dict["wled_led_count"] = self.wled.led_count
-        state_dict["wled_ip"] = self.wled.ip
-        state_dict["wled_port"] = self.wled.port
-        state_dict["wled_connected"] = self.wled.initialized
-        state_dict["wled_program"] = self.wled.program.name
-        state_dict["wled_brightness"] = self.wled.brightness
-        state_dict["wled_monochrome"] = self.wled.monochrome
-        state_dict["strip_connected"] = self.strip.initialized
-        state_dict["strip_program"] = self.strip.program.name
-        state_dict["strip_brightness"] = self.strip.brightness
-        state_dict["screen_connected"] = self.screen.initialized
-        state_dict["screen_program"] = self.screen.program.name
-        state_dict["program_speed"] = self.program_speed
-        state_dict["fixed_color"] = "#{:02x}{:02x}{:02x}".format(
+
+        lights_state = {}
+        lights_state["ring_connected"] = self.ring.initialized
+        lights_state["ring_program"] = self.ring.program.name
+        lights_state["ring_brightness"] = self.ring.brightness
+        lights_state["ring_monochrome"] = self.ring.monochrome
+        lights_state["wled_led_count"] = self.wled.led_count
+        lights_state["wled_ip"] = self.wled.ip
+        lights_state["wled_port"] = self.wled.port
+        lights_state["wled_connected"] = self.wled.initialized
+        lights_state["wled_program"] = self.wled.program.name
+        lights_state["wled_brightness"] = self.wled.brightness
+        lights_state["wled_monochrome"] = self.wled.monochrome
+        lights_state["strip_connected"] = self.strip.initialized
+        lights_state["strip_program"] = self.strip.program.name
+        lights_state["strip_brightness"] = self.strip.brightness
+        lights_state["screen_connected"] = self.screen.initialized
+        lights_state["screen_program"] = self.screen.program.name
+        lights_state["program_speed"] = self.program_speed
+        lights_state["fixed_color"] = "#{:02x}{:02x}{:02x}".format(
             *(int(val * 255) for val in self.fixed_color)
         )
+
+        state_dict["lights"] = lights_state
         return state_dict
 
     def index(self, request: WSGIRequest) -> HttpResponse:

@@ -3,7 +3,6 @@ import {
   localStorageSet,
   localStorageRemove,
   registerSpecificState,
-  updateBaseState,
   infoToast,
   successToast,
   errorToast,
@@ -19,33 +18,25 @@ function updateState(state) {
     return;
   }
 
-  $('#voting_system').prop('checked', newState.voting_system);
-  $('#new_music_only').prop('checked', newState.new_music_only);
-  $('#logging_enabled').prop('checked', newState.logging_enabled);
-  $('#online_suggestions').prop('checked', newState.online_suggestions);
-  $('#number_of_suggestions').val(newState.number_of_suggestions);
-  $('#people_to_party').val(newState.people_to_party);
-  $('#alarm_probability').val(newState.alarm_probability);
-  $('#downvotes_to_kick').val(newState.downvotes_to_kick);
-  $('#max_download_size').val(newState.max_download_size);
-  $('#max_playlist_items').val(newState.max_playlist_items);
-  $('#additional_keywords').val(newState.additional_keywords);
-  $('#forbidden_keywords').val(newState.forbidden_keywords);
-  $('#has_internet').prop('checked', newState.has_internet);
+  for (const key in state.settings) {
+    // Almost all keys in the state dictionary have a corresponding html element.
+    // Iterate through all of the keys and update the respective element.
+    // Keys with no corresponding element are updated afterwards.
+    if (!state.settings.hasOwnProperty(key)) {
+      continue;
+    }
+    const value = state.settings[key];
+    const element = $('#' + key );
+    if (element.is(':checkbox')) {
+      element.prop('checked', value);
+    } else if (element.is('input')) {
+      element.val(value);
+    } else if (element.is('div')) {
+      element.text(value);
+    }
+  }
 
-  $('#youtube_enabled').prop('checked', newState.youtube_enabled);
-  $('#youtube_suggestions').val(newState.youtube_suggestions);
-
-  $('#spotify_enabled').prop('checked', newState.spotify_enabled);
-  $('#spotify_suggestions').val(newState.spotify_suggestions);
-
-  $('#soundcloud_enabled').prop('checked', newState.soundcloud_enabled);
-  $('#soundcloud_suggestions').val(newState.soundcloud_suggestions);
-
-  $('#backup_stream').val(newState.backup_stream);
-
-  $('#bluetooth_scanning').prop('checked', newState.bluetooth_scanning);
-  $.each(newState.bluetooth_devices, function(index: number, device) {
+  $.each(state.settings.bluetooth_devices, function(index: number, device) {
     if (device.address ==$('.bluetooth_device').eq(index)
         .children().last().attr('id')) {
       return true;
@@ -66,49 +57,17 @@ function updateState(state) {
     li.insertBefore($('#connect_bluetooth').parent());
   });
 
-  $('#output').val(newState.output);
-
-  $('#homewifi_enabled').text(newState.homewifi_enabled);
-  $('#homewifi_ssid').val(newState.homewifi_ssid);
-
-  $('#scan_progress').text(newState.scan_progress);
-
-  $('#events_enabled').text(newState.events_enabled);
-  $('#hotspot_enabled').text(newState.hotspot_enabled);
-  $('#wifi_protected').text(newState.wifi_protected);
-  $('#tunneling_enabled').text(newState.tunneling_enabled);
-  $('#remote_enabled').text(newState.remote_enabled);
-
-  if (!newState.system_install) {
+  if (!state.settings.system_install) {
     $('.system-install-only').addClass('is-disabled');
     $('.system-install-only').attr('disabled-note',
         'This feature is only available in a system install.');
   } else {
-    if (!newState.hotspot_configured) {
-      $('.hotspot-functionality').addClass('is-disabled');
-      $('.hotspot-functionality').attr('disabled-note',
-          'Please configure hotspot during installation to use this feature.');
-    }
-    if (!newState.remote_configured) {
-      $('.remote-functionality').addClass('is-disabled');
-      $('.remote-functionality').attr('disabled-note',
-          'Please configure remote during installation to use this feature.');
-    }
-
-    if (!newState.youtube_available) {
-      $('.youtube-functionality').addClass('is-disabled');
-      $('.youtube-functionality').attr('disabled-note',
-          'Please configure youtube during installation to use this feature.');
-    }
-    if (!newState.spotify_available) {
-      $('.spotify-functionality').addClass('is-disabled');
-      $('.spotify-functionality').attr('disabled-note',
-          'Please configure spotify during installation to use this feature.');
-    }
-    if (!newState.soundcloud_available) {
-      $('.soundcloud-functionality').addClass('is-disabled');
-      $('.soundcloud-functionality').attr('disabled-note',
-          'Please configure soundcloud during installation to use this feature.');
+    for (const module of ['hotspot', 'remote', 'youtube', 'spotify', 'soundcloud']) {
+      if (!state.settings[module + '_configured']) {
+        $('.' + module + '-functionality').addClass('is-disabled');
+        $('.' + module + '-functionality').attr('disabled-note',
+            'Please configure ' + module + ' during installation to use this feature.');
+      }
     }
   }
 
