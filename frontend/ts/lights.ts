@@ -6,9 +6,10 @@ import {
 } from './base.js';
 
 
-function updateState(newState) {
-  updateBaseState(newState);
-  if (!('ring_connected' in newState)) {
+/** Update the lights state.
+ * @param {Object} state an object containing all state information */
+function updateState(state) {
+  if (!('lights' in state)) {
     // this state is not meant for a lights update
     return;
   }

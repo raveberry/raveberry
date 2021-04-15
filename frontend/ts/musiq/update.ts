@@ -21,9 +21,7 @@ export function clearState() {
 /** Update the musiq state.
  * @param {Object} newState an object containing all state information */
 export function updateState(newState) {
-  updateBaseState(newState);
-
-  if (!('current_song' in newState)) {
+  if (!('musiq' in newState)) {
     // this state is not meant for a musiq update
     return;
   }

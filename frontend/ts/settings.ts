@@ -11,9 +11,10 @@ import {
 import 'jquery-ui/ui/widgets/autocomplete';
 import snarkdown from 'snarkdown';
 
-function updateState(newState) {
-  updateBaseState(newState);
-  if (!('voting_system' in newState)) {
+/** Update the settings state.
+ * @param {Object} state an object containing all state information */
+function updateState(state) {
+  if (!('settings' in state)) {
     // this state is not meant for a settings update
     return;
   }
