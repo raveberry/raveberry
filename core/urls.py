@@ -13,6 +13,16 @@ from core.base import Base
 
 BASE = Base()
 
+BASE_URLS = [
+    path("state/", BASE.get_state, name="base_state"),
+    path("submit_hashtag/", BASE.submit_hashtag, name="submit_hashtag"),
+    path(
+        "upgrade_available/",
+        BASE.settings.system.upgrade_available,
+        name="upgrade_available",
+    ),
+]
+
 MUSIQ_URLS = [
     path("state/", BASE.musiq.get_state, name="musiq_state"),
     path(
@@ -287,8 +297,16 @@ SETTINGS_URLS = [
         "disable_hotspot/", BASE.settings.system.disable_hotspot, name="disable_hotspot"
     ),
     path("enable_hotspot/", BASE.settings.system.enable_hotspot, name="enable_hotspot"),
-    path("unprotect_wifi/", BASE.settings.system.unprotect_wifi, name="unprotect_wifi"),
-    path("protect_wifi/", BASE.settings.system.protect_wifi, name="protect_wifi"),
+    path(
+        "disable_wifi_protection/",
+        BASE.settings.system.disable_wifi_protection,
+        name="disable_wifi_protection",
+    ),
+    path(
+        "enable_wifi_protection/",
+        BASE.settings.system.enable_wifi_protection,
+        name="enable_wifi_protection",
+    ),
     path(
         "disable_tunneling/",
         BASE.settings.system.disable_tunneling,
@@ -310,11 +328,6 @@ SETTINGS_URLS = [
         "get_latest_version/",
         BASE.settings.system.get_latest_version,
         name="get_latest_version",
-    ),
-    path(
-        "upgrade_available/",
-        BASE.settings.system.upgrade_available,
-        name="upgrade_available",
     ),
     path(
         "get_upgrade_config/",
@@ -344,8 +357,7 @@ urlpatterns = [
         "ajax/",
         include(
             [
-                path("state/", BASE.get_state, name="base_state"),
-                path("submit_hashtag/", BASE.submit_hashtag, name="submit_hashtag"),
+                path("", include(BASE_URLS)),
                 path("musiq/", include(MUSIQ_URLS)),
                 path("lights/", include(LIGHTS_URLS)),
                 path("settings/", include(SETTINGS_URLS)),

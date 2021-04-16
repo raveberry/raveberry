@@ -28,10 +28,15 @@ class Analysis:
         self.settings = settings
 
     def _parse_datetimes(self, request: WSGIRequest) -> Tuple[datetime, datetime]:
-        startdate = request.POST.get("startdate")
-        starttime = request.POST.get("starttime")
-        enddate = request.POST.get("enddate")
-        endtime = request.POST.get("endtime")
+        if request.method == "GET":
+            params = request.GET
+        else:
+            params = request.POST
+
+        startdate = params.get("startdate")
+        starttime = params.get("starttime")
+        enddate = params.get("enddate")
+        endtime = params.get("endtime")
         if not startdate or not starttime or not enddate or not endtime:
             raise ValueError("All fields are required")
 

@@ -69,7 +69,7 @@ class Wifi:
     def set_homewifi_ssid(self, request: WSGIRequest) -> HttpResponse:
         """Set the home network.
         The hotspot will not be created if connected to this wifi."""
-        homewifi_ssid = request.POST.get("homewifi_ssid")
+        homewifi_ssid = request.POST.get("value")
         if homewifi_ssid is None:
             return HttpResponseBadRequest("homewifi ssid was not supplied.")
         with open(os.path.join(settings.BASE_DIR, "config/homewifi"), "w+") as f:

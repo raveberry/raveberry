@@ -172,15 +172,15 @@ class System:
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_hotspot"])
 
     @Settings.option
-    def unprotect_wifi(self, _request: WSGIRequest) -> None:
+    def disable_wifi_protection(self, _request: WSGIRequest) -> None:
         """Disable password protection of the hotspot, making it public."""
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/unprotect_wifi"])
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_wifi_protection"])
 
     @Settings.option
-    def protect_wifi(self, _request: WSGIRequest) -> None:
+    def enable_wifi_protection(self, _request: WSGIRequest) -> None:
         """Enable password protection of the hotspot.
         The password was defined during setup."""
-        subprocess.call(["sudo", "/usr/local/sbin/raveberry/protect_wifi"])
+        subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_wifi_protection"])
 
     @Settings.option
     def disable_tunneling(self, _request: WSGIRequest) -> None:

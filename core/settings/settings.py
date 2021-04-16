@@ -134,8 +134,9 @@ class Settings(Stateful):
             settings_state["hotspot_enabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/hotspot_enabled"]) != 0
             )
-            settings_state["wifi_protected"] = (
-                subprocess.call(["/usr/local/sbin/raveberry/wifi_protected"]) != 0
+            settings_state["wifi_protection_enabled"] = (
+                subprocess.call(["/usr/local/sbin/raveberry/wifi_protection_enabled"])
+                != 0
             )
             settings_state["tunneling_enabled"] = (
                 subprocess.call(["sudo", "/usr/local/sbin/raveberry/tunneling_enabled"])

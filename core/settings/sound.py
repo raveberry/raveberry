@@ -37,7 +37,7 @@ class Sound:
     @Settings.option
     def set_backup_stream(self, request: WSGIRequest) -> None:
         """Sets the given internet stream as backup stream."""
-        stream = request.POST.get("stream")
+        stream = request.POST.get("value")
         Setting.objects.filter(key="backup_stream").update(value=stream)
         self.backup_stream = stream
 
@@ -102,11 +102,12 @@ class Sound:
                         self.settings.update_state()
 
             do_scan()
+            return HttpResponse("Started scanning")
         else:
             if self.bluetoothctl is None:
                 return HttpResponseBadRequest("Currently not scanning")
             self._stop_bluetoothctl()
-        return HttpResponse()
+            return HttpResponse("Stopped scanning")
 
     @Settings.option
     def connect_bluetooth(self, request: WSGIRequest) -> HttpResponse:
@@ -269,7 +270,7 @@ class Sound:
     @Settings.option
     def set_output(self, request: WSGIRequest) -> HttpResponse:
         """Sets the given device as default output device."""
-        output = request.POST.get("output")
+        output = request.POST.get("value")
         if not output:
             return HttpResponseBadRequest("No output selected")
 

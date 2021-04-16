@@ -86,7 +86,7 @@ class Controller:
         self.lights.fixed_color = color
 
     def _handle_program_request(self, device: Device, request: WSGIRequest) -> None:
-        program_name = request.POST.get("program")
+        program_name = request.POST.get("value")
         if not program_name:
             return
         program = self.lights.all_programs[program_name]

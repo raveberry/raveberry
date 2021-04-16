@@ -1,7 +1,7 @@
 import {
   registerSpecificState,
   successToast,
-  errorToast,
+  errorToast, infoToast,
 } from './base.js';
 
 
@@ -23,6 +23,8 @@ function updateState(state) {
       element.prop('checked', value);
     } else if (element.is('input')) {
       element.val(value);
+    } else if (element.is('select')) {
+      element.val(value);
     }
   }
 
@@ -43,98 +45,59 @@ export function onReady() {
     return;
   }
   registerSpecificState(updateState);
-  $('#ring_program').change(function() {
-    const selected = $('#ring_program option:selected').val();
-    $.post(urls['set_ring_program'], {
-      program: selected,
-    });
-  });
-  $('#ring_brightness').change(function() {
-    $.post(urls['set_ring_brightness'], {
-      value: $(this).val(),
-    });
-  });
-  $('#ring_monochrome').change(function() {
-    $.post(urls['set_ring_monochrome'], {
-      value: $(this).is(':checked'),
-    });
-  });
 
-
-  $('#wled_led_count').change(function() {
-    $.post(urls['set_wled_led_count'], {
-      value: $(this).val(),
-    }).done(function() {
-      successToast('');
-    });
-  });
-  $('#wled_ip').change(function() {
-    $.post(urls['set_wled_ip'], {
-      value: $(this).val(),
-    }).done(function() {
-      successToast('');
-    });
-  });
-  $('#wled_port').change(function() {
-    $.post(urls['set_wled_port'], {
-      value: $(this).val(),
-    }).done(function() {
-      successToast('');
-    });
-  });
-  $('#wled_program').change(function() {
-    const selected = $('#wled_program option:selected').val();
-    $.post(urls['set_wled_program'], {
-      program: selected,
-    });
-  });
-  $('#wled_brightness').change(function() {
-    $.post(urls['set_wled_brightness'], {
-      value: $(this).val(),
-    });
-  });
-  $('#wled_monochrome').change(function() {
-    $.post(urls['set_wled_monochrome'], {
-      value: $(this).is(':checked'),
-    });
-  });
-
-
-  $('#strip_program').change(function() {
-    const selected = $('#strip_program option:selected').val();
-    $.post(urls['set_strip_program'], {
-      program: selected,
-    });
-  });
-  $('#strip_brightness').change(function() {
-    $.post(urls['set_strip_brightness'], {
-      value: $(this).val(),
-    });
-  });
-
-  $('#adjust_screen').on('click tap', function() {
-    $.get(urls['adjust_screen']).done(function() {
-      successToast('');
+  /** Post the given data to the given url
+   * @param {string} url the endpoint for the post
+   * @param {function=} prePost a function that is called before the request.
+   *                           needs to return the data that is transferred. */
+  function post(url, prePost = () => {
+    return {};
+  }) {
+    const data = prePost();
+    $.post(url, data).done(function(response) {
+      successToast(response);
     }).fail(function(response) {
       errorToast(response.responseText);
     });
-  });
-  $('#screen_program').change(function() {
-    const selected = $('#screen_program option:selected').val();
-    $.post(urls['set_screen_program'], {
-      program: selected,
-    });
-  });
+    infoToast('');
+  }
 
-  $('#program_speed').change(function() {
-    $.post(urls['set_program_speed'], {
-      value: $(this).val(),
-    });
-  });
-  $('#fixed_color').change(function() {
-    $.post(urls['set_fixed_color'], {
-      value: $(this).val(),
-    });
+  for (const key in urls['lights']) {
+    if (!urls['lights'].hasOwnProperty(key)) {
+      continue;
+    }
+    const url = urls['lights'][key];
+
+    // all set_x urls post some data and show a toast with the result.
+    // most of them are inputs or checkboxes with a simple 'value' field.
+    // add this behavior to each of these elements
+    console.log(url);
+    if (key.startsWith('set_')) {
+      const id = key.substr('set_'.length);
+      const element = $('#' + id);
+      element.change(function() {
+        let prePost;
+        if (element.is(':checkbox')) {
+          prePost = () => {
+            return {value: element.is(':checked')};
+          };
+        } else if (element.is('input')) {
+          prePost = () => {
+            return {value: element.val()};
+          };
+        } else if (element.is('select')) {
+          prePost = () => {
+            const selected = $('#' + id + ' option:selected').val();
+            return {value: selected};
+          };
+        }
+        post(url, prePost);
+      });
+    }
+  }
+
+  $('#adjust_screen').on('click tap', function() {
+    post(urls['lights']['adjust_screen']);
   });
 }
 

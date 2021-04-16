@@ -3,73 +3,75 @@
 
 {% block js %}
 	urls['state'] = '{% url 'settings_state' %}';
-	urls['set_voting_system'] = '{% url 'set_voting_system' %}';
-    urls['set_new_music_only'] = '{% url 'set_new_music_only' %}';
-	urls['set_logging_enabled'] = '{% url 'set_logging_enabled' %}';
-    urls['set_online_suggestions'] = '{% url 'set_online_suggestions' %}';
-    urls['set_number_of_suggestions'] = '{% url 'set_number_of_suggestions' %}';
-	urls['set_people_to_party'] = '{% url 'set_people_to_party' %}';
-	urls['set_alarm_probability'] = '{% url 'set_alarm_probability' %}';
-	urls['set_downvotes_to_kick'] = '{% url 'set_downvotes_to_kick' %}';
-	urls['set_max_download_size'] = '{% url 'set_max_download_size' %}';
-	urls['set_max_playlist_items'] = '{% url 'set_max_playlist_items' %}';
-    urls['set_additional_keywords'] = '{% url 'set_additional_keywords' %}';
-    urls['set_forbidden_keywords'] = '{% url 'set_forbidden_keywords' %}';
-	urls['check_internet'] = '{% url 'check_internet' %}';
-	urls['update_user_count'] = '{% url 'update_user_count' %}';
+	urls['settings'] = {
+		'set_voting_system': '{% url 'set_voting_system' %}',
+		'set_new_music_only': '{% url 'set_new_music_only' %}',
+		'set_logging_enabled': '{% url 'set_logging_enabled' %}',
+		'set_online_suggestions': '{% url 'set_online_suggestions' %}',
+		'set_number_of_suggestions': '{% url 'set_number_of_suggestions' %}',
+		'set_people_to_party': '{% url 'set_people_to_party' %}',
+		'set_alarm_probability': '{% url 'set_alarm_probability' %}',
+		'set_downvotes_to_kick': '{% url 'set_downvotes_to_kick' %}',
+		'set_max_download_size': '{% url 'set_max_download_size' %}',
+		'set_max_playlist_items': '{% url 'set_max_playlist_items' %}',
+		'set_additional_keywords': '{% url 'set_additional_keywords' %}',
+		'set_forbidden_keywords': '{% url 'set_forbidden_keywords' %}',
+		'check_internet': '{% url 'check_internet' %}',
+		'update_user_count': '{% url 'update_user_count' %}',
 
-    urls['set_youtube_enabled'] = '{% url 'set_youtube_enabled' %}';
-    urls['set_youtube_suggestions'] = '{% url 'set_youtube_suggestions' %}';
+		'set_youtube_enabled': '{% url 'set_youtube_enabled' %}',
+		'set_youtube_suggestions': '{% url 'set_youtube_suggestions' %}',
 
-    urls['set_spotify_enabled'] = '{% url 'set_spotify_enabled' %}';
-	urls['set_spotify_credentials'] = '{% url 'set_spotify_credentials' %}';
-    urls['set_spotify_suggestions'] = '{% url 'set_spotify_suggestions' %}';
+		'set_spotify_enabled': '{% url 'set_spotify_enabled' %}',
+		'set_spotify_credentials': '{% url 'set_spotify_credentials' %}',
+		'set_spotify_suggestions': '{% url 'set_spotify_suggestions' %}',
 
-    urls['set_soundcloud_enabled'] = '{% url 'set_soundcloud_enabled' %}';
-    urls['set_soundcloud_credentials'] = '{% url 'set_soundcloud_credentials' %}';
-    urls['set_soundcloud_suggestions'] = '{% url 'set_soundcloud_suggestions' %}';
+		'set_soundcloud_enabled': '{% url 'set_soundcloud_enabled' %}',
+		'set_soundcloud_credentials': '{% url 'set_soundcloud_credentials' %}',
+		'set_soundcloud_suggestions': '{% url 'set_soundcloud_suggestions' %}',
 
-    urls['set_backup_stream'] = '{% url 'set_backup_stream' %}';
+		'set_backup_stream': '{% url 'set_backup_stream' %}',
 
-	urls['set_bluetooth_scanning'] = '{% url 'set_bluetooth_scanning' %}';
-	urls['connect_bluetooth'] = '{% url 'connect_bluetooth' %}';
-	urls['disconnect_bluetooth'] = '{% url 'disconnect_bluetooth' %}';
+		'set_bluetooth_scanning': '{% url 'set_bluetooth_scanning' %}',
+		'connect_bluetooth': '{% url 'connect_bluetooth' %}',
+		'disconnect_bluetooth': '{% url 'disconnect_bluetooth' %}',
 
-    urls['list_outputs'] = '{% url 'list_outputs' %}';
-    urls['set_output'] = '{% url 'set_output' %}';
+		'list_outputs': '{% url 'list_outputs' %}',
+		'set_output': '{% url 'set_output' %}',
 
-	urls['available_ssids'] = '{% url 'available_ssids' %}';
-	urls['connect_to_wifi'] = '{% url 'connect_to_wifi' %}';
-	urls['enable_homewifi'] = '{% url 'enable_homewifi' %}';
-	urls['disable_homewifi'] = '{% url 'disable_homewifi' %}';
-	urls['stored_ssids'] = '{% url 'stored_ssids' %}';
-	urls['set_homewifi_ssid'] = '{% url 'set_homewifi_ssid' %}';
+		'available_ssids': '{% url 'available_ssids' %}',
+		'connect_to_wifi': '{% url 'connect_to_wifi' %}',
+		'enable_homewifi': '{% url 'enable_homewifi' %}',
+		'disable_homewifi': '{% url 'disable_homewifi' %}',
+		'stored_ssids': '{% url 'stored_ssids' %}',
+		'set_homewifi_ssid': '{% url 'set_homewifi_ssid' %}',
 
-    urls['list_subdirectories'] = '{% url 'list_subdirectories' %}';
-    urls['scan_library'] = '{% url 'scan_library' %}';
-    urls['create_playlists'] = '{% url 'create_playlists' %}';
+		'list_subdirectories': '{% url 'list_subdirectories' %}',
+		'scan_library': '{% url 'scan_library' %}',
+		'create_playlists': '{% url 'create_playlists' %}',
 
-	urls['analyse'] = '{% url 'analyse' %}';
-	urls['save_as_playlist'] = '{% url 'save_as_playlist' %}';
+		'analyse': '{% url 'analyse' %}',
+		'save_as_playlist': '{% url 'save_as_playlist' %}',
 
-	urls['disable_events'] = '{% url 'disable_events' %}';
-	urls['enable_events'] = '{% url 'enable_events' %}';
-	urls['disable_hotspot'] = '{% url 'disable_hotspot' %}';
-	urls['enable_hotspot'] = '{% url 'enable_hotspot' %}';
-	urls['unprotect_wifi'] = '{% url 'unprotect_wifi' %}';
-	urls['protect_wifi'] = '{% url 'protect_wifi' %}';
-	urls['disable_tunneling'] = '{% url 'disable_tunneling' %}';
-	urls['enable_tunneling'] = '{% url 'enable_tunneling' %}';
-	urls['disable_remote'] = '{% url 'disable_remote' %}';
-	urls['enable_remote'] = '{% url 'enable_remote' %}';
-	urls['reboot_server'] = '{% url 'reboot_server' %}';
-	urls['reboot_system'] = '{% url 'reboot_system' %}';
-	urls['shutdown_system'] = '{% url 'shutdown_system' %}';
+		'disable_events': '{% url 'disable_events' %}',
+		'enable_events': '{% url 'enable_events' %}',
+		'disable_hotspot': '{% url 'disable_hotspot' %}',
+		'enable_hotspot': '{% url 'enable_hotspot' %}',
+		'disable_wifi_protection': '{% url 'disable_wifi_protection' %}',
+		'enable_wifi_protection': '{% url 'enable_wifi_protection' %}',
+		'disable_tunneling': '{% url 'disable_tunneling' %}',
+		'enable_tunneling': '{% url 'enable_tunneling' %}',
+		'disable_remote': '{% url 'disable_remote' %}',
+		'enable_remote': '{% url 'enable_remote' %}',
+		'reboot_server': '{% url 'reboot_server' %}',
+		'reboot_system': '{% url 'reboot_system' %}',
+		'shutdown_system': '{% url 'shutdown_system' %}',
 
-    urls['get_latest_version'] = '{% url 'get_latest_version' %}';
-    urls['get_upgrade_config'] = '{% url 'get_upgrade_config' %}';
-    urls['get_changelog'] = '{% url 'get_changelog' %}';
-    urls['upgrade_raveberry'] = '{% url 'upgrade_raveberry' %}';
+		'get_latest_version': '{% url 'get_latest_version' %}',
+		'get_upgrade_config': '{% url 'get_upgrade_config' %}',
+		'get_changelog': '{% url 'get_changelog' %}',
+		'upgrade_raveberry': '{% url 'upgrade_raveberry' %}',
+	};
 {% endblock %}
 
 {% block content %}
@@ -242,7 +244,7 @@
 	</li>
 	<li class="list-group-item list_item">
 		<span class="description">Scanning</span>
-		<input type="checkbox" id="bluetooth_scanning" autocomplete="off"/>
+		<input type="checkbox" id="set_bluetooth_scanning" autocomplete="off"/>
 	</li>
 	<!--
 	<li class="list-group-item list_item">
@@ -295,9 +297,6 @@
 	<li class="list-group-item list_item">
 		<span class="description">Home Wifi SSID</span>
 		<input id="homewifi_ssid"/>
-	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="set_homewifi_ssid">Set Home Wifi</button>
 	</li>
 </ul>
 
@@ -419,8 +418,8 @@
 		<div id="wifi_protected"></div>
 	</li>
 	<li class="list-group-item list_item">
-		<button class="btn" id="unprotect_wifi">Unprotect Wifi</button>
-		<button class="btn" id="protect_wifi">Protect Wifi</button>
+		<button class="btn" id="disable_wifi_protection">Unprotect Wifi</button>
+		<button class="btn" id="enable_wifi_protection">Protect Wifi</button>
 	</li>
 </ul>
 <ul class="list-group system-install-only hotspot-functionality">
