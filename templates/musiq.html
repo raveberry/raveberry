@@ -6,29 +6,11 @@
     let FORBIDDEN_KEYWORDS = '{{ forbidden_keywords }}';
 
     urls['state'] = '{% url 'musiq_state' %}';
-    urls['random_suggestion'] = '{% url 'random_suggestion' %}';
-    urls['request_music'] = '{% url 'request_music' %}';
-    urls['get_suggestions'] = '{% url 'get_suggestions' %}';
-
-    urls['restart'] = '{% url 'restart' %}';
-    urls['seek_backward'] = '{% url 'seek_backward' %}';
-    urls['play'] = '{% url 'play' %}';
-    urls['pause'] = '{% url 'pause' %}';
-    urls['seek_forward'] = '{% url 'seek_forward' %}';
-    urls['skip'] = '{% url 'skip' %}';
-    urls['set_shuffle'] = '{% url 'set_shuffle' %}';
-    urls['set_repeat'] = '{% url 'set_repeat' %}';
-    urls['set_autoplay'] = '{% url 'set_autoplay' %}';
-    urls['request_radio'] = '{% url 'request_radio' %}';
-    urls['set_volume'] = '{% url 'set_volume' %}';
-	urls['shuffle_all'] = '{% url 'shuffle_all' %}';
-    urls['remove_all'] = '{% url 'remove_all' %}';
-
-    urls['prioritize'] = '{% url 'prioritize' %}';
-    urls['remove'] = '{% url 'remove' %}';
-    urls['reorder'] = '{% url 'reorder' %}';
-    urls['vote_up'] = '{% url 'vote_up' %}';
-    urls['vote_down'] = '{% url 'vote_down' %}';
+	urls['musiq'] = {
+	{% for path in urls %}
+		'{{ path.name }}': '/ajax/musiq/{{ path.pattern }}',
+	{% endfor %}
+	};
 {% endblock %}
 
 {% block content %}

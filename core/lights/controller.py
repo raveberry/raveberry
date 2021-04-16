@@ -50,7 +50,7 @@ class Controller:
             device.clear()
 
     @Lights.option
-    def set_lights_shortcut(self, request: WSGIRequest) -> None:
+    def _set_lights_shortcut(self, request: WSGIRequest) -> None:
         """Stores the current lights state and restores the previous one."""
         should_enable = request.POST.get("value") == "true"
         is_enabled = (

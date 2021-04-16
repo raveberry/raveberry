@@ -6,13 +6,14 @@ import logging
 import threading
 import time
 from functools import wraps
-from typing import Callable, Dict, Any, Optional, TYPE_CHECKING, cast, Tuple, TypeVar
+from typing import Callable, Dict, Any, Optional, TYPE_CHECKING, TypeVar, List
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
+from django.urls import URLPattern
 
 from core.lights.circle.circle import Circle
 from core.lights.programs import Adaptive, LedProgram, ScreenProgram, VizProgram
@@ -78,9 +79,11 @@ class Lights(Stateful):
         from core.lights.strip import Strip
         from core.lights.screen import Screen
 
+        self.base = base
+        self.urlpatterns: List[URLPattern] = []
+
         self.seconds_per_frame = 1 / self.UPS
 
-        self.base = base
         self.controller = Controller(self)
 
         # if the led loop is running
@@ -276,6 +279,7 @@ class Lights(Stateful):
         ):
             return redirect("login")
         context = self.base.context(request)
+        context["urls"] = self.urlpatterns
         # programs that have a strip_color or ring_color function are color programs
         # programs that have a draw function are screen programs
         context["color_program_names"] = [

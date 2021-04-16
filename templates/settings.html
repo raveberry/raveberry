@@ -4,73 +4,9 @@
 {% block js %}
 	urls['state'] = '{% url 'settings_state' %}';
 	urls['settings'] = {
-		'set_voting_system': '{% url 'set_voting_system' %}',
-		'set_new_music_only': '{% url 'set_new_music_only' %}',
-		'set_logging_enabled': '{% url 'set_logging_enabled' %}',
-		'set_online_suggestions': '{% url 'set_online_suggestions' %}',
-		'set_number_of_suggestions': '{% url 'set_number_of_suggestions' %}',
-		'set_people_to_party': '{% url 'set_people_to_party' %}',
-		'set_alarm_probability': '{% url 'set_alarm_probability' %}',
-		'set_downvotes_to_kick': '{% url 'set_downvotes_to_kick' %}',
-		'set_max_download_size': '{% url 'set_max_download_size' %}',
-		'set_max_playlist_items': '{% url 'set_max_playlist_items' %}',
-		'set_additional_keywords': '{% url 'set_additional_keywords' %}',
-		'set_forbidden_keywords': '{% url 'set_forbidden_keywords' %}',
-		'check_internet': '{% url 'check_internet' %}',
-		'update_user_count': '{% url 'update_user_count' %}',
-
-		'set_youtube_enabled': '{% url 'set_youtube_enabled' %}',
-		'set_youtube_suggestions': '{% url 'set_youtube_suggestions' %}',
-
-		'set_spotify_enabled': '{% url 'set_spotify_enabled' %}',
-		'set_spotify_credentials': '{% url 'set_spotify_credentials' %}',
-		'set_spotify_suggestions': '{% url 'set_spotify_suggestions' %}',
-
-		'set_soundcloud_enabled': '{% url 'set_soundcloud_enabled' %}',
-		'set_soundcloud_credentials': '{% url 'set_soundcloud_credentials' %}',
-		'set_soundcloud_suggestions': '{% url 'set_soundcloud_suggestions' %}',
-
-		'set_backup_stream': '{% url 'set_backup_stream' %}',
-
-		'set_bluetooth_scanning': '{% url 'set_bluetooth_scanning' %}',
-		'connect_bluetooth': '{% url 'connect_bluetooth' %}',
-		'disconnect_bluetooth': '{% url 'disconnect_bluetooth' %}',
-
-		'list_outputs': '{% url 'list_outputs' %}',
-		'set_output': '{% url 'set_output' %}',
-
-		'available_ssids': '{% url 'available_ssids' %}',
-		'connect_to_wifi': '{% url 'connect_to_wifi' %}',
-		'enable_homewifi': '{% url 'enable_homewifi' %}',
-		'disable_homewifi': '{% url 'disable_homewifi' %}',
-		'stored_ssids': '{% url 'stored_ssids' %}',
-		'set_homewifi_ssid': '{% url 'set_homewifi_ssid' %}',
-
-		'list_subdirectories': '{% url 'list_subdirectories' %}',
-		'scan_library': '{% url 'scan_library' %}',
-		'create_playlists': '{% url 'create_playlists' %}',
-
-		'analyse': '{% url 'analyse' %}',
-		'save_as_playlist': '{% url 'save_as_playlist' %}',
-
-		'disable_events': '{% url 'disable_events' %}',
-		'enable_events': '{% url 'enable_events' %}',
-		'disable_hotspot': '{% url 'disable_hotspot' %}',
-		'enable_hotspot': '{% url 'enable_hotspot' %}',
-		'disable_wifi_protection': '{% url 'disable_wifi_protection' %}',
-		'enable_wifi_protection': '{% url 'enable_wifi_protection' %}',
-		'disable_tunneling': '{% url 'disable_tunneling' %}',
-		'enable_tunneling': '{% url 'enable_tunneling' %}',
-		'disable_remote': '{% url 'disable_remote' %}',
-		'enable_remote': '{% url 'enable_remote' %}',
-		'reboot_server': '{% url 'reboot_server' %}',
-		'reboot_system': '{% url 'reboot_system' %}',
-		'shutdown_system': '{% url 'shutdown_system' %}',
-
-		'get_latest_version': '{% url 'get_latest_version' %}',
-		'get_upgrade_config': '{% url 'get_upgrade_config' %}',
-		'get_changelog': '{% url 'get_changelog' %}',
-		'upgrade_raveberry': '{% url 'upgrade_raveberry' %}',
+	{% for path in urls %}
+		'{{ path.name }}': '/ajax/settings/{{ path.pattern }}',
+	{% endfor %}
 	};
 {% endblock %}
 

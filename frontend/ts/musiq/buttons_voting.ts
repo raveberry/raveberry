@@ -47,7 +47,7 @@ export function onReady() {
       votes = button.siblings('#current_song_votes');
     }
     votes.text(parseInt(votes.text()) - 1);
-    $.post(urls['vote_down'], {
+    $.post(urls['musiq']['vote_down'], {
       key: key,
     });
   }
@@ -61,7 +61,7 @@ export function onReady() {
       votes = button.siblings('#current_song_votes');
     }
     votes.text(parseInt(votes.text()) + 1);
-    $.post(urls['vote_up'], {
+    $.post(urls['musiq']['vote_up'], {
       key: key,
     });
   }

@@ -4,21 +4,9 @@
 {% block js %}
 	urls['state'] = '{% url 'lights_state' %}';
 	urls['lights'] = {
-		'set_ring_program': '{% url 'set_ring_program' %}',
-		'set_ring_brightness': '{% url 'set_ring_brightness' %}',
-		'set_ring_monochrome': '{% url 'set_ring_monochrome' %}',
-		'set_wled_led_count': '{% url 'set_wled_led_count' %}',
-		'set_wled_ip': '{% url 'set_wled_ip' %}',
-		'set_wled_port': '{% url 'set_wled_port' %}',
-		'set_wled_program': '{% url 'set_wled_program' %}',
-		'set_wled_brightness': '{% url 'set_wled_brightness' %}',
-		'set_wled_monochrome': '{% url 'set_wled_monochrome' %}',
-		'set_strip_program': '{% url 'set_strip_program' %}',
-		'set_strip_brightness': '{% url 'set_strip_brightness' %}',
-		'adjust_screen': '{% url 'adjust_screen' %}',
-		'set_screen_program': '{% url 'set_screen_program' %}',
-		'set_program_speed': '{% url 'set_program_speed' %}',
-		'set_fixed_color': '{% url 'set_fixed_color' %}',
+	{% for path in urls %}
+		'{{ path.name }}': '/ajax/lights/{{ path.pattern }}',
+	{% endfor %}
 	};
 {% endblock %}
 

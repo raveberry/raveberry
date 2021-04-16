@@ -40,7 +40,7 @@ export function onReady() {
         $(el).text(index+1);
       });
 
-      $.post(urls['reorder'], {
+      $.post(urls['musiq']['reorder'], {
         prev: prevKey,
         element: key,
         next: nextKey,

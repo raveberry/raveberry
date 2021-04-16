@@ -65,7 +65,7 @@ export function showPauseButton() {
  */
 export function requestArchivedMusic(key, query,
     platform = localStorageGet('platform')) {
-  $.post(urls['request_music'],
+  $.post(urls['musiq']['request_music'],
       {
         key: key,
         query: query,
@@ -87,7 +87,7 @@ export function requestArchivedMusic(key, query,
  * @param {string} platform the platform the music should be played from
  */
 export function requestNewMusic(query, platform = localStorageGet('platform')) {
-  $.post(urls['request_music'],
+  $.post(urls['musiq']['request_music'],
       {
         query: query,
         playlist: playlistEnabled(),
@@ -139,7 +139,7 @@ export function onReady() {
   // the key of the song that was suggested via random suggest
   let randomKey = null;
   $('#random_suggestion').on('click tap', function() {
-    $.get(urls['random_suggestion'], {playlist: playlistEnabled()}).done(
+    $.get(urls['musiq']['random_suggestion'], {playlist: playlistEnabled()}).done(
         function(response) {
           $('#music_input').val(response.suggestion)
               .trigger('change');
@@ -213,7 +213,7 @@ export function onReady() {
   });
 
   $('#volume_slider').change(function() {
-    $.post(urls['set_volume'], {
+    $.post(urls['musiq']['set_volume'], {
       value: $(this).val(),
     });
   });
@@ -222,7 +222,7 @@ export function onReady() {
       warningToast('Please enable playlists to use this');
       return;
     }
-    $.post(urls['shuffle_all']).done(function(response) {
+    $.post(urls['musiq']['shuffle_all']).done(function(response) {
       successToast(response);
     }).fail(function(response) {
       errorToast(response.responseText);
@@ -234,7 +234,7 @@ export function onReady() {
       warningToast('Please enable playlists to use this');
       return;
     }
-    $.post(urls['remove_all']).done(function(response) {
+    $.post(urls['musiq']['remove_all']).done(function(response) {
       successToast(response);
     }).fail(function(response) {
       errorToast(response.responseText);

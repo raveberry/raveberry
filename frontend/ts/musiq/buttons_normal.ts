@@ -11,42 +11,42 @@ import {infoToast, successToast, warningToast, errorToast} from '../base';
 /** Adds handlers to buttons that are visible when voting is disabled. */
 export function onReady() {
   $('#restart_song').on('click tap', function(e) {
-    $.post(urls['restart']);
+    $.post(urls['musiq']['restart']);
   });
   $('#seek_backward').on('click tap', function(e) {
-    $.post(urls['seek_backward']);
+    $.post(urls['musiq']['seek_backward']);
   });
   $('#play').on('click tap', function(e) {
     // don't allow play command without a song
     if (state == null || state.current_song == null) return;
     showPauseButton();
-    $.post(urls['play']);
+    $.post(urls['musiq']['play']);
   });
   $('#pause').on('click tap', function(e) {
     showPlayButton();
-    $.post(urls['pause']);
+    $.post(urls['musiq']['pause']);
   });
   $('#seek_forward').on('click tap', function(e) {
-    $.post(urls['seek_forward']);
+    $.post(urls['musiq']['seek_forward']);
   });
   $('#skip_song').on('click tap', function(e) {
-    $.post(urls['skip']);
+    $.post(urls['musiq']['skip']);
   });
   $('#set_shuffle').on('click tap', function(e) {
     // send True if it is currently disabled to enable it and vice versa
-    $.post(urls['set_shuffle'],
+    $.post(urls['musiq']['set_shuffle'],
         {
           value: $(this).hasClass('icon_disabled'),
         });
   });
   $('#set_repeat').on('click tap', function(e) {
-    $.post(urls['set_repeat'],
+    $.post(urls['musiq']['set_repeat'],
         {
           value: $(this).hasClass('icon_disabled'),
         });
   });
   $('#set_autoplay').on('click tap', function(e) {
-    $.post(urls['set_autoplay'],
+    $.post(urls['musiq']['set_autoplay'],
         {
           value: $(this).hasClass('icon_disabled'),
         });
@@ -56,7 +56,7 @@ export function onReady() {
       warningToast('Please enable playlists to use this');
       return;
     }
-    $.post(urls['request_radio']).done(function(response) {
+    $.post(urls['musiq']['request_radio']).done(function(response) {
       successToast(response);
     }).fail(function(response) {
       errorToast(response.responseText);
@@ -65,12 +65,12 @@ export function onReady() {
     disablePlaylistMode();
   });
   $('#song_queue').on('click tap', '.prioritize', function() {
-    $.post(urls['prioritize'], {
+    $.post(urls['musiq']['prioritize'], {
       key: keyOfElement($(this)),
     });
   });
   $('#song_queue').on('click tap', '.remove', function() {
-    $.post(urls['remove'], {
+    $.post(urls['musiq']['remove'], {
       key: keyOfElement($(this)),
     });
   });

@@ -11,7 +11,7 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponseBadRequest
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from django.urls import URLPattern
 
 import core.musiq.song_utils as song_utils
 from core.models import CurrentSong
@@ -34,6 +34,7 @@ class Musiq(Stateful):
 
     def __init__(self, base: "Base") -> None:
         self.base = base
+        self.urlpatterns: List[URLPattern] = []
 
         self.suggestions = Suggestions(self)
 
@@ -219,6 +220,7 @@ class Musiq(Stateful):
     def index(self, request: WSGIRequest) -> HttpResponse:
         """Renders the /musiq page."""
         context = self.base.context(request)
+        context["urls"] = self.urlpatterns
         context["additional_keywords"] = self.base.settings.basic.additional_keywords
         context["forbidden_keywords"] = self.base.settings.basic.forbidden_keywords
         return render(request, "musiq.html", context)

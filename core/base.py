@@ -2,7 +2,7 @@
 
 import os
 import random
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
@@ -11,7 +11,7 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import reverse, URLPattern
 
 import core.models as models
 from core.lights.lights import Lights
@@ -27,6 +27,7 @@ class Base(Stateful):
     """This class contains methods that are needed by all pages."""
 
     def __init__(self) -> None:
+        self.urlpatterns: List[URLPattern] = []
         self.settings = Settings(self)
         self.user_manager = UserManager(self)
         self.lights = Lights(self)
@@ -68,6 +69,7 @@ class Base(Stateful):
         Increments the visitors counter."""
         self._increment_counter()
         return {
+            "base_urls": self.urlpatterns,
             "voting_system": self.settings.basic.voting_system,
             "hashtag": self._get_random_hashtag(),
             "controls_enabled": self.user_manager.has_controls(request.user),
@@ -119,6 +121,10 @@ class Base(Stateful):
         if self.user_manager.is_admin(request.user):
             return HttpResponseRedirect(reverse("settings"))
         return HttpResponseRedirect(reverse("musiq"))
+
+    @Lights.option
+    def set_lights_shortcut(self, request: WSGIRequest) -> None:
+        return self.lights.controller._set_lights_shortcut(request)
 
     @Settings.option
     def upgrade_available(self, _request: WSGIRequest) -> HttpResponse:

@@ -70,8 +70,11 @@ def get_paths(objs: List[Any]) -> List[URLPattern]:
 
 
 base_paths = get_paths([BASE])
+BASE.urlpatterns = base_paths
 musiq_paths = get_paths([BASE.musiq, BASE.musiq.controller, BASE.musiq.suggestions])
+BASE.musiq.urlpatterns = musiq_paths
 lights_paths = get_paths([BASE.lights.controller])
+BASE.lights.urlpatterns = lights_paths
 settings_paths = get_paths(
     [
         BASE.settings.basic,
@@ -83,6 +86,7 @@ settings_paths = get_paths(
         BASE.settings.system,
     ]
 )
+BASE.settings.urlpatterns = settings_paths
 
 urlpatterns.append(
     path(

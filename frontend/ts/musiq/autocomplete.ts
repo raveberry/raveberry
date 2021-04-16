@@ -15,7 +15,7 @@ import 'jquery-ui/ui/widgets/autocomplete';
 export function onReady() {
   $('.autocomplete').autocomplete({
     source: function(request, response) {
-      $.get(urls['get_suggestions'], {
+      $.get(urls['musiq']['get_suggestions'], {
         'term': request.term,
         'playlist': playlistEnabled(),
       }).done(function(suggestions) {

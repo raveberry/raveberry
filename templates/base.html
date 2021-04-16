@@ -12,10 +12,9 @@
 		<script>
 			CSRF_TOKEN = "{{ csrf_token }}";
 			urls = {
-				/* the state url is changed by every page so it receives their specific state */
-				'submit_hashtag': '{% url 'submit_hashtag' %}',
-				'set_lights_shortcut': '{% url 'set_lights_shortcut' %}',
-				'upgrade_available': '{% url 'upgrade_available' %}',
+			{% for path in base_urls %}
+			  '{{ path.name }}': '/ajax/{{ path.pattern }}',
+			{% endfor %}
 			};
 			{% if voting_system %}
 			let VOTING_SYSTEM = true;

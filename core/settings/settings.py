@@ -7,13 +7,14 @@ import os
 import subprocess
 import yaml
 from functools import wraps
-from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, TypeVar
+from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, TypeVar, List
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
+from django.urls import URLPattern
 
 from core.models import Setting
 from core.state_handler import Stateful
@@ -74,6 +75,7 @@ class Settings(Stateful):
         from core.settings.system import System
 
         self.base = base
+        self.urlpatterns: List[URLPattern] = []
         self.basic = Basic(self)
         self.platforms = Platforms(self)
         self.sound = Sound(self)
@@ -166,6 +168,7 @@ class Settings(Stateful):
         if not self.base.user_manager.is_admin(request.user):
             return redirect("login")
         context = self.base.context(request)
+        context["urls"] = self.urlpatterns
         library_path = self.library.get_library_path()
         if os.path.islink(library_path):
             context["local_library"] = os.readlink(library_path)
