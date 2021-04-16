@@ -9,12 +9,13 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseRedirect
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
 import core.models as models
 from core.lights.lights import Lights
+from core.musiq.api import Api
 from core.musiq.musiq import Musiq
 from core.network_info import NetworkInfo
 from core.settings.settings import Settings
@@ -31,6 +32,7 @@ class Base(Stateful):
         self.lights = Lights(self)
         self.musiq = Musiq(self)
         self.network_info = NetworkInfo(self)
+        self.api = Api(self)
 
     def start(self) -> None:
         self.lights.start()
@@ -117,3 +119,11 @@ class Base(Stateful):
         if self.user_manager.is_admin(request.user):
             return HttpResponseRedirect(reverse("settings"))
         return HttpResponseRedirect(reverse("musiq"))
+
+    @Settings.option
+    def upgrade_available(self, _request: WSGIRequest) -> HttpResponse:
+        latest_version = self.settings.system._fetch_latest_version()
+        current_version = settings.VERSION
+        if latest_version and latest_version != current_version:
+            return JsonResponse(True, safe=False)
+        return JsonResponse(False, safe=False)

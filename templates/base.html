@@ -13,7 +13,6 @@
 			CSRF_TOKEN = "{{ csrf_token }}";
 			urls = {
 				/* the state url is changed by every page so it receives their specific state */
-				'state': '{% url 'base_state' %}',
 				'submit_hashtag': '{% url 'submit_hashtag' %}',
 				'set_lights_shortcut': '{% url 'set_lights_shortcut' %}',
 				'upgrade_available': '{% url 'upgrade_available' %}',

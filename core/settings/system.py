@@ -7,7 +7,7 @@ import re
 import shutil
 import subprocess
 import time
-from typing import Dict, TYPE_CHECKING, Tuple, Optional
+from typing import Dict, Tuple, Optional
 
 import cachetools.func
 import requests
@@ -250,14 +250,6 @@ class System:
                 return latest_version
         else:
             return None
-
-    @Settings.option
-    def upgrade_available(self, _request: WSGIRequest) -> HttpResponse:
-        latest_version = self._fetch_latest_version()
-        current_version = settings.VERSION
-        if latest_version and latest_version != current_version:
-            return JsonResponse(True, safe=False)
-        return JsonResponse(False, safe=False)
 
     @Settings.option
     def get_latest_version(self, _request: WSGIRequest) -> HttpResponse:

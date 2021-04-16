@@ -8,14 +8,14 @@
     urls['state'] = '{% url 'musiq_state' %}';
     urls['random_suggestion'] = '{% url 'random_suggestion' %}';
     urls['request_music'] = '{% url 'request_music' %}';
-    urls['suggestions'] = '{% url 'suggestions' %}';
+    urls['get_suggestions'] = '{% url 'get_suggestions' %}';
 
-    urls['restart'] = '{% url 'restart_song' %}';
+    urls['restart'] = '{% url 'restart' %}';
     urls['seek_backward'] = '{% url 'seek_backward' %}';
-    urls['play'] = '{% url 'play_song' %}';
-    urls['pause'] = '{% url 'pause_song' %}';
+    urls['play'] = '{% url 'play' %}';
+    urls['pause'] = '{% url 'pause' %}';
     urls['seek_forward'] = '{% url 'seek_forward' %}';
-    urls['skip'] = '{% url 'skip_song' %}';
+    urls['skip'] = '{% url 'skip' %}';
     urls['set_shuffle'] = '{% url 'set_shuffle' %}';
     urls['set_repeat'] = '{% url 'set_repeat' %}';
     urls['set_autoplay'] = '{% url 'set_autoplay' %}';
@@ -24,11 +24,11 @@
 	urls['shuffle_all'] = '{% url 'shuffle_all' %}';
     urls['remove_all'] = '{% url 'remove_all' %}';
 
-    urls['prioritize'] = '{% url 'prioritize_song' %}';
-    urls['remove'] = '{% url 'remove_song' %}';
-    urls['reorder'] = '{% url 'reorder_song' %}';
-    urls['vote_up'] = '{% url 'vote_up_song' %}';
-    urls['vote_down'] = '{% url 'vote_down_song' %}';
+    urls['prioritize'] = '{% url 'prioritize' %}';
+    urls['remove'] = '{% url 'remove' %}';
+    urls['reorder'] = '{% url 'reorder' %}';
+    urls['vote_up'] = '{% url 'vote_up' %}';
+    urls['vote_down'] = '{% url 'vote_down' %}';
 {% endblock %}
 
 {% block content %}
