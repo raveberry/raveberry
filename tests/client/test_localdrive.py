@@ -13,7 +13,7 @@ class LocaldriveTests(MusicTest):
     def test_suggested_song(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("suggestions"), {"term": "sk8board", "playlist": "false"}
+                reverse("get_suggestions"), {"term": "sk8board", "playlist": "false"}
             ).content
         )[-1]
         self.client.post(
@@ -25,8 +25,8 @@ class LocaldriveTests(MusicTest):
                 "platform": "local",
             },
         )
-        state = self._poll_musiq_state(lambda state: state["current_song"])
-        current_song = state["current_song"]
+        state = self._poll_musiq_state(lambda state: state["musiq"]["current_song"])
+        current_song = state["musiq"]["current_song"]
         self.assertEqual(
             current_song["external_url"], "local_library/Techno/Sk8board.mp3"
         )
@@ -37,26 +37,26 @@ class LocaldriveTests(MusicTest):
     def test_suggested_playlist(self):
         state = self._add_local_playlist()
         self.assertEqual(
-            state["current_song"]["external_url"],
+            state["musiq"]["current_song"]["external_url"],
             "local_library/Hard Rock/ChecksForFree.mp3",
         )
         self.assertEqual(
-            state["song_queue"][0]["external_url"],
+            state["musiq"]["song_queue"][0]["external_url"],
             "local_library/Hard Rock/HeavyAction.mp3",
         )
         self.assertEqual(
-            state["song_queue"][1]["external_url"],
+            state["musiq"]["song_queue"][1]["external_url"],
             "local_library/Hard Rock/HiFiBrutality.mp3",
         )
         self.assertEqual(
-            state["song_queue"][2]["external_url"],
+            state["musiq"]["song_queue"][2]["external_url"],
             "local_library/Hard Rock/LongLiveDeath.mp3",
         )
 
     def test_autoplay(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("suggestions"), {"term": "checks", "playlist": "false"}
+                reverse("get_suggestions"), {"term": "checks", "playlist": "false"}
             ).content
         )[-1]
         self.client.post(
@@ -72,23 +72,23 @@ class LocaldriveTests(MusicTest):
         self.client.post(reverse("set_autoplay"), {"value": "true"})
         # make sure a song was downloaded into the queue
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["internal_url"]
+            lambda state: len(state["musiq"]["song_queue"]) == 1
+            and state["musiq"]["song_queue"][0]["internal_url"]
         )
-        old_id = state["song_queue"][0]["id"]
+        old_id = state["musiq"]["song_queue"][0]["id"]
 
-        self.client.post(reverse("skip_song"))
+        self.client.post(reverse("skip"))
         # make sure another song is enqueued
         self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["internal_url"]
-            and state["song_queue"][0]["id"] != old_id
+            lambda state: len(state["musiq"]["song_queue"]) == 1
+            and state["musiq"]["song_queue"][0]["internal_url"]
+            and state["musiq"]["song_queue"][0]["id"] != old_id
         )
 
     def test_radio(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("suggestions"), {"term": "checks", "playlist": "false"}
+                reverse("get_suggestions"), {"term": "checks", "playlist": "false"}
             ).content
         )[-1]
         self.client.post(
@@ -104,7 +104,7 @@ class LocaldriveTests(MusicTest):
         self.client.post(reverse("request_radio"))
         # ensure that the 4 songs of the album are enqueued
         self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 4
-            and all(song["internal_url"] for song in state["song_queue"]),
+            lambda state: len(state["musiq"]["song_queue"]) == 4
+            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
             timeout=3,
         )

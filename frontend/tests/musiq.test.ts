@@ -49,13 +49,15 @@ test('autocomplete list', () => {
 test('key retrieval of songs', () => {
   const ids = [14, 52, 59, 46, 73];
   update.updateState({
-    'current_song': {'queue_key': ids[0]},
-    'song_queue': [
-      {'id': ids[1]},
-      {'id': ids[2]},
-      {'id': ids[3]},
-      {'id': ids[4]},
-    ],
+    'musiq': {
+      'current_song': {'queue_key': ids[0]},
+      'song_queue': [
+        {'id': ids[1]},
+        {'id': ids[2]},
+        {'id': ids[3]},
+        {'id': ids[4]},
+      ],
+    },
   });
   expect(update.state.current_song.queue_key).toEqual(ids[0]);
   $('.queue_info_time').each((index, element) => {
@@ -118,10 +120,12 @@ test('additional song info', (done) => {
   buttons.onReady();
 
   update.updateState({
-    'current_song': {
-      'title': 'test_title',
-      'external_url': 'test_url',
-    },
+    'musiq': {
+      'current_song': {
+        'title': 'test_title',
+        'external_url': 'test_url',
+      },
+    }
   });
 
   $('#current_song_title').click();
@@ -136,13 +140,15 @@ test('additional song info', (done) => {
 test('queue updates', () => {
   function getState(songKeys) {
     return {
-      'current_song': {},
-      'song_queue': [
-        {'id': songKeys[0]},
-        {'id': songKeys[1]},
-        {'id': songKeys[2]},
-        {'id': songKeys[3]},
-      ],
+      'musiq': {
+        'current_song': {},
+        'song_queue': [
+          {'id': songKeys[0]},
+          {'id': songKeys[1]},
+          {'id': songKeys[2]},
+          {'id': songKeys[3]},
+        ],
+      },
     };
   }
   function getSongKeys() {

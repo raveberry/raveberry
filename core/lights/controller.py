@@ -49,7 +49,6 @@ class Controller:
         if program.name == "Disabled":
             device.clear()
 
-    @Lights.option
     def _set_lights_shortcut(self, request: WSGIRequest) -> None:
         """Stores the current lights state and restores the previous one."""
         should_enable = request.POST.get("value") == "true"

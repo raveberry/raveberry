@@ -11,11 +11,19 @@ class SpotifyTests(MusicTest):
         super().setUp()
 
         try:
+            username = os.environ["SPOTIFY_USERNAME"]
+            password = os.environ["SPOTIFY_PASSWORD"]
             client_id = os.environ["SPOTIFY_CLIENT_ID"]
             client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
         except KeyError:
             self.skipTest("No spotify credentials provided.")
 
+        Setting.objects.update_or_create(
+            key="spotify_username", defaults={"value": username}
+        )
+        Setting.objects.update_or_create(
+            key="spotify_password", defaults={"value": password}
+        )
         Setting.objects.update_or_create(
             key="spotify_client_id", defaults={"value": client_id}
         )
@@ -71,29 +79,29 @@ class SpotifyTests(MusicTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: state["current_song"]
-            and len(state["song_queue"]) == 4
-            and all(song["internal_url"] for song in state["song_queue"]),
+            lambda state: state["musiq"]["current_song"]
+            and len(state["musiq"]["song_queue"]) == 4
+            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
             timeout=60,
         )
         self.assertEqual(
-            state["current_song"]["external_url"],
+            state["musiq"]["current_song"]["external_url"],
             "https://open.spotify.com/track/5wq8wceQvaFlOZovDtfr0j",
         )
         self.assertEqual(
-            state["song_queue"][0]["external_url"],
+            state["musiq"]["song_queue"][0]["external_url"],
             "https://open.spotify.com/track/5rupf5kRDLhhFPxH15ZmBF",
         )
         self.assertEqual(
-            state["song_queue"][1]["external_url"],
+            state["musiq"]["song_queue"][1]["external_url"],
             "https://open.spotify.com/track/3IwAWUa9JeTbwumBPvnOj9",
         )
         self.assertEqual(
-            state["song_queue"][2]["external_url"],
+            state["musiq"]["song_queue"][2]["external_url"],
             "https://open.spotify.com/track/3vMrcGW4o35zY6vXjWb1p7",
         )
         self.assertEqual(
-            state["song_queue"][3]["external_url"],
+            state["musiq"]["song_queue"][3]["external_url"],
             "https://open.spotify.com/track/6Jf7Sx68vsWFKeWjOxcLhQ",
         )
 
@@ -107,29 +115,29 @@ class SpotifyTests(MusicTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: state["current_song"]
-            and len(state["song_queue"]) == 4
-            and all(song["internal_url"] for song in state["song_queue"]),
+            lambda state: state["musiq"]["current_song"]
+            and len(state["musiq"]["song_queue"]) == 4
+            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
             timeout=60,
         )
         self.assertEqual(
-            state["current_song"]["external_url"],
+            state["musiq"]["current_song"]["external_url"],
             "https://open.spotify.com/track/5wq8wceQvaFlOZovDtfr0j",
         )
         self.assertEqual(
-            state["song_queue"][0]["external_url"],
+            state["musiq"]["song_queue"][0]["external_url"],
             "https://open.spotify.com/track/5rupf5kRDLhhFPxH15ZmBF",
         )
         self.assertEqual(
-            state["song_queue"][1]["external_url"],
+            state["musiq"]["song_queue"][1]["external_url"],
             "https://open.spotify.com/track/3IwAWUa9JeTbwumBPvnOj9",
         )
         self.assertEqual(
-            state["song_queue"][2]["external_url"],
+            state["musiq"]["song_queue"][2]["external_url"],
             "https://open.spotify.com/track/3vMrcGW4o35zY6vXjWb1p7",
         )
         self.assertEqual(
-            state["song_queue"][3]["external_url"],
+            state["musiq"]["song_queue"][3]["external_url"],
             "https://open.spotify.com/track/6Jf7Sx68vsWFKeWjOxcLhQ",
         )
 
@@ -146,18 +154,18 @@ class SpotifyTests(MusicTest):
         self.client.post(reverse("set_autoplay"), {"value": "true"})
         # make sure a song was downloaded into the queue
         state = self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["internal_url"],
+            lambda state: len(state["musiq"]["song_queue"]) == 1
+            and state["musiq"]["song_queue"][0]["internal_url"],
             timeout=10,
         )
-        old_id = state["song_queue"][0]["id"]
+        old_id = state["musiq"]["song_queue"][0]["id"]
 
-        self.client.post(reverse("skip_song"))
+        self.client.post(reverse("skip"))
         # make sure another song is enqueued
         self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 1
-            and state["song_queue"][0]["internal_url"]
-            and state["song_queue"][0]["id"] != old_id,
+            lambda state: len(state["musiq"]["song_queue"]) == 1
+            and state["musiq"]["song_queue"][0]["internal_url"]
+            and state["musiq"]["song_queue"][0]["id"] != old_id,
             timeout=10,
         )
 
@@ -174,7 +182,7 @@ class SpotifyTests(MusicTest):
         self.client.post(reverse("request_radio"))
         # ensure that 5 songs are enqueued
         self._poll_musiq_state(
-            lambda state: len(state["song_queue"]) == 5
-            and all(song["internal_url"] for song in state["song_queue"]),
+            lambda state: len(state["musiq"]["song_queue"]) == 5
+            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
             timeout=60,
         )

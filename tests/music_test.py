@@ -25,13 +25,13 @@ class MusicTest(RaveberryTest):
 
         # restore player state
         self.client.post(reverse("set_autoplay"), {"value": "false"})
-        self._poll_musiq_state(lambda state: not state["autoplay"])
+        self._poll_musiq_state(lambda state: not state["musiq"]["autoplay"])
 
         # ensure that the player is not waiting for a song to finish
         self.client.post(reverse("remove_all"))
-        self._poll_musiq_state(lambda state: len(state["song_queue"]) == 0)
-        self.client.post(reverse("skip_song"))
-        self._poll_musiq_state(lambda state: not state["current_song"])
+        self._poll_musiq_state(lambda state: len(state["musiq"]["song_queue"]) == 0)
+        self.client.post(reverse("skip"))
+        self._poll_musiq_state(lambda state: not state["musiq"]["current_song"])
 
         super().tearDown()
 
@@ -44,27 +44,29 @@ class MusicTest(RaveberryTest):
         # need to split the scan_progress as it contains no-break spaces
         self._poll_state(
             "settings_state",
-            lambda state: " ".join(state["scan_progress"].split()).startswith(
-                "6 / 6 / "
-            ),
+            lambda state: " ".join(
+                state["settings"]["scan_progress"].split()
+            ).startswith("6 / 6 / "),
         )
         self.client.post(reverse("create_playlists"))
         self._poll_state(
             "settings_state",
-            lambda state: " ".join(state["scan_progress"].split()).startswith(
-                "6 / 6 / "
-            ),
+            lambda state: " ".join(
+                state["settings"]["scan_progress"].split()
+            ).startswith("6 / 6 / "),
         )
 
     def _poll_current_song(self):
-        state = self._poll_musiq_state(lambda state: state["current_song"], timeout=10)
-        current_song = state["current_song"]
+        state = self._poll_musiq_state(
+            lambda state: state["musiq"]["current_song"], timeout=10
+        )
+        current_song = state["musiq"]["current_song"]
         return current_song
 
     def _add_local_playlist(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("suggestions"), {"term": "hard rock", "playlist": "true"}
+                reverse("get_suggestions"), {"term": "hard rock", "playlist": "true"}
             ).content
         )[-1]
         self.client.post(
@@ -77,9 +79,9 @@ class MusicTest(RaveberryTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: state["current_song"]
-            and len(state["song_queue"]) == 3
-            and all(song["internal_url"] for song in state["song_queue"]),
+            lambda state: state["musiq"]["current_song"]
+            and len(state["musiq"]["song_queue"]) == 3
+            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
             timeout=3,
         )
         return state

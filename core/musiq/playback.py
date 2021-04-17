@@ -185,20 +185,21 @@ class Playback:
                 self.player.tracklist.add(uris=[current_song.internal_url])
                 self.player.playback.play()
                 # mopidy can only seek when the song is playing
-                started_playing = playing.wait(timeout=3)
+                started_playing = playing.wait(timeout=1)
                 if catch_up is not None and catch_up >= 0:
                     self.player.playback.seek(catch_up)
 
-            if not started_playing:
-                logging.error(
-                    """Mopidy did not start playing the song in the timeout. Error assumed.
-Usually faulty outputs are the reason, config is reset to local output.
-Consult mopidy's log for more information."""
-                )
-                # reset to pulse device 0
-                self.musiq.base.settings.sound._set_output("0")
-                # recover the current song by restarting the loop
-                continue
+                # needs some more testing but could prevent "eating the queue" bug
+                # if not started_playing and not settings.DOCKER:
+                #    logging.error(
+                #        "Mopidy did not start playing the song in the timeout. Error assumed.\n"
+                #        "Usually faulty outputs are the reason, config is reset to local output.\n"
+                #        "Consult mopidy's log for more information.\n"
+                #    )
+                #    # reset to pulse device 0
+                #    self.musiq.base.settings.sound._set_output("0")
+                #    # recover the current song by restarting the loop
+                #    continue
 
             self.musiq.update_state()
 

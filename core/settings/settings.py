@@ -11,7 +11,9 @@ from typing import Callable, Dict, Any, TYPE_CHECKING, Optional, TypeVar, List
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
+
+# JsonResponse needs to be imported here so types can resolved through the decorator?
+from django.http import HttpResponse, JsonResponse
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.urls import URLPattern
