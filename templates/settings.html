@@ -169,9 +169,6 @@
 		<span class="description">Stream URL</span>
 		<input id="backup_stream"/>
 	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="set_backup_stream">Set Backup Stream</button>
-	</li>
 </ul>
 
 <ul class="list-group system-install-only">
@@ -201,9 +198,6 @@
     <li class="list-group-item list_item">
         <span class="description">Output</span>
         <input id="output"/>
-    </li>
-    <li class="list-group-item list_item centered">
-        <button class="btn" id="set_output">Set Output</button>
     </li>
 </ul>
 
@@ -328,6 +322,7 @@
 	</li>
 </ul>
 
+<!-- gunicorn is not installed by default, don't show this option in the UI
 <ul class="list-group system-install-only">
 	<li class="list-group-item list_item">
 		<span class="description">Events Enabled:</span>
@@ -338,6 +333,7 @@
 		<button class="btn" id="enable_events">Enable Events</button>
 	</li>
 </ul>
+-->
 <ul class="list-group system-install-only hotspot-functionality">
 	<li class="list-group-item list_item">
 		<span class="description">Hotspot Enabled:</span>
@@ -351,7 +347,7 @@
 <ul class="list-group system-install-only hotspot-functionality">
 	<li class="list-group-item list_item">
 		<span class="description">Wifi Protected:</span>
-		<div id="wifi_protected"></div>
+		<div id="wifi_protection_enabled"></div>
 	</li>
 	<li class="list-group-item list_item">
 		<button class="btn" id="disable_wifi_protection">Unprotect Wifi</button>

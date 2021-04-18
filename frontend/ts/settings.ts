@@ -149,6 +149,9 @@ export function onReady() {
     }
   }
 
+  registerPostOnClick('check_internet');
+  registerPostOnClick('update_user_count');
+
   registerPostOnClick('set_spotify_credentials', () => {
     return {
       username: $('#spotify_username').val(),
@@ -185,6 +188,11 @@ export function onReady() {
         // regardless of current input content
         source: function(request, response) {
           response(devices);
+        },
+        close: function() {
+          // manually trigger the change event when an element is clicked
+          // in order to send the post request
+          $('#output').trigger('change');
         },
         minLength: 0,
       });
