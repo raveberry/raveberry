@@ -15,7 +15,7 @@ from django.urls import reverse, URLPattern
 
 import core.models as models
 from core.lights.lights import Lights
-from core.musiq.api import Api
+from core.api import Api
 from core.musiq.musiq import Musiq
 from core.network_info import NetworkInfo
 from core.settings.settings import Settings
