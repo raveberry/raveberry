@@ -41,7 +41,12 @@
         path: /root/.ssh
         state: directory
         mode: 0700
+    - name: "Configure remote connection: Check if remote key is present"
+      stat:
+        path: /root/.ssh/raveberry_remote
+      register: raveberry_remote
     - name: "Configure remote connection: Copy ssh key"
+      when: not raveberry_remote.stat.exists
       copy:
         src: "{{ config.remote_key }}"
         dest: "/root/.ssh/raveberry_remote"
