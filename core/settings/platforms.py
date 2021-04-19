@@ -48,7 +48,7 @@ class Platforms:
             )
         except FileNotFoundError:
             # mopidy is not installed. Disable when mocking, enable otherwise
-            self.spotify_available = not settings.MOCK
+            self.spotify_available = not conf.MOCK
         self.spotify_enabled = (
             Settings.get_setting("spotify_enabled", "False") == "True"
             and self.spotify_available
