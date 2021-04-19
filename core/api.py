@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import ipware
+import re
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -27,6 +28,11 @@ class Api:
         query = request.POST.get("query")
         if not query:
             return HttpResponseBadRequest("No query to share.")
+
+        match = re.search("(?P<url>https?://[^\s]+)", query)
+        if match:
+            query = match.group("url")
+
         # Set the requested platform to 'spotify'.
         # It will automatically fall back to Youtube
         # if Spotify is not enabled or a youtube link was requested.
