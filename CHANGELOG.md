@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.8.5 - 2021-04-19
+
+- New shuffle all button for the admin that reorders the whole queue (Finally generically implementing reordering animations pays off) (#80)
+- Playlists can be created from songs played during a given time span (#106)
+- [snapcast](https://github.com/badaix/snapcast) support
+- icecast and snapcast can be selected as a sound output
+- As a side effect, icecast streaming is not reset to be disabled every mopidy config update
+- The Shareberry endpoint tries to extract a url from the received query, fixing Spotify and Soundcloud sharing
+- Disconnected banner does not show when reloading or leaving the page
+- Only one state update handler is registered per page (instead of every handler on every page)
+- The base state is not updated twice every update
+- Disable timer based scheduling in pulseaudio (fixes hdmi sound quality issues, #104)
+- Made documentation regarding system install clearer
+- Reactive lighting starts on a different offset on the LED ring (it was remounted)
+
+- Removed a lot of code duplication, making new functions a lot easier to implement (hopefully):
+* Url patterns are generated dynamically from backend functions
+* Ajax endpoints are injected into the html via templating
+* Default behavior is added to html elements corresponding to ajax endpoints
+* These elements are also generically updated during state updates
+
 ## 0.8.4 - 2021-04-07
 
 - Raveberry is upgraded by a system service, making it finish reliably
@@ -10,7 +31,6 @@
 - Tested HiFiBerry (it works)
 - Config file can be specified in remote installs
 - Log to console when testing
-
 
 ## 0.8.3 - 2021-04-05
 
