@@ -52,7 +52,7 @@ class Base(Stateful):
         local_apk = os.path.join(settings.STATIC_FILES, "apk/shareberry.apk")
         if os.path.isfile(local_apk):
             return os.path.join(settings.STATIC_URL, "apk/shareberry.apk")
-        return "https://github.com/raveberry/shareberry/raw/master/app/release/shareberry.apk"
+        return "https://github.com/raveberry/shareberry/releases/latest/download/shareberry.apk"
 
     def _increment_counter(self) -> int:
         with transaction.atomic():
