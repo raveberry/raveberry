@@ -61,7 +61,7 @@
 	display: inline-block;
 
 	transition: max-width 0.5s ease;
-	/* subtract space for the plus icon */ 
+	/* subtract space for the plus icon */
 	overflow: hidden;
 	white-space: nowrap;
 	max-width: 70%;
@@ -158,13 +158,14 @@
 #platform-controls > i.icon-enabled#youtube {
 	color: red /*youtube red*/;
 }
-
 #platform-controls > i.icon-enabled#spotify {
 	color: #1ED760 /*spotify green*/;
 }
-
 #platform-controls > i.icon-enabled#soundcloud {
 	color: #F95401 /*soundcloud orange*/;
+}
+#platform-controls > i.icon-enabled#jamendo {
+	color: #ff1f59;
 }
 
 .unlink {

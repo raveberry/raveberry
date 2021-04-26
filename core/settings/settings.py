@@ -113,6 +113,9 @@ class Settings(Stateful):
         settings_state["soundcloudEnabled"] = self.platforms.soundcloud_enabled
         settings_state["soundcloudSuggestions"] = self.platforms.soundcloud_suggestions
 
+        settings_state["jamendoEnabled"] = self.platforms.jamendo_enabled
+        settings_state["jamendoSuggestions"] = self.platforms.jamendo_suggestions
+
         settings_state["backupStream"] = self.sound.backup_stream
 
         settings_state["bluetoothScanning"] = self.sound.bluetoothctl is not None
@@ -161,6 +164,7 @@ class Settings(Stateful):
         settings_state["youtubeConfigured"] = self.platforms.youtube_available
         settings_state["spotifyConfigured"] = self.platforms.spotify_available
         settings_state["soundcloudConfigured"] = self.platforms.soundcloud_available
+        settings_state["jamendoConfigured"] = self.platforms.jamendo_available
 
         state_dict["settings"] = settings_state
         return state_dict

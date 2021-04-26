@@ -1,0 +1,11 @@
+@font-face {
+	font-family: 'extra-icons';
+	src: url('/static/extra-icons.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 400;
+	font-display: block;
+}
+.fa-jamendo:before {
+	font-family: "extra-icons";
+	content: "\e900";
+}

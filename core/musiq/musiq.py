@@ -66,12 +66,17 @@ class Musiq(Stateful):
         provider: MusicProvider
         music_provider_class: Union[Type[PlaylistProvider], Type[SongProvider]]
         local_provider_class: Type[MusicProvider]
+        jamendo_provider_class: Type[MusicProvider]
         soundcloud_provider_class: Type[MusicProvider]
         spotify_provider_class: Type[MusicProvider]
         youtube_provider_class: Type[MusicProvider]
         if playlist:
             music_provider_class = PlaylistProvider
             local_provider_class = PlaylistProvider
+            if self.base.settings.platforms.jamendo_enabled:
+                from core.musiq.jamendo import JamendoPlaylistProvider
+
+                jamendo_provider_class = JamendoPlaylistProvider
             if self.base.settings.platforms.soundcloud_enabled:
                 from core.musiq.soundcloud import SoundcloudPlaylistProvider
 
@@ -87,6 +92,10 @@ class Musiq(Stateful):
         else:
             music_provider_class = SongProvider
             local_provider_class = LocalSongProvider
+            if self.base.settings.platforms.jamendo_enabled:
+                from core.musiq.jamendo import JamendoSongProvider
+
+                jamendo_provider_class = JamendoSongProvider
             if self.base.settings.platforms.soundcloud_enabled:
                 from core.musiq.soundcloud import SoundcloudSongProvider
 
@@ -127,6 +136,15 @@ class Musiq(Stateful):
                         providers.insert(0, spotify_provider)
                     else:
                         providers.append(spotify_provider)
+                except WrongUrlError:
+                    pass
+            if self.base.settings.platforms.jamendo_enabled:
+                try:
+                    jamendo_provider = jamendo_provider_class(self, query, key)
+                    if platform == "jamendo":
+                        providers.insert(0, jamendo_provider)
+                    else:
+                        providers.append(jamendo_provider)
                 except WrongUrlError:
                     pass
             if self.base.settings.platforms.youtube_enabled:

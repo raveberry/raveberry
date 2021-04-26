@@ -41,6 +41,7 @@ class System:
         spotify_client_id = Settings.get_setting("spotify_client_id", "")
         spotify_client_secret = Settings.get_setting("spotify_client_secret", "")
         soundcloud_auth_token = Settings.get_setting("soundcloud_auth_token", "")
+        jamendo_client_id = Settings.get_setting("jamendo_client_id", "")
 
         subprocess.call(
             [
@@ -52,6 +53,7 @@ class System:
                 spotify_client_id,
                 spotify_client_secret,
                 soundcloud_auth_token,
+                jamendo_client_id,
             ]
         )
         time.sleep(3)
@@ -83,7 +85,7 @@ class System:
         parser = configparser.ConfigParser()
         parser.read_string(config)
         extensions = {}
-        for extension in ["spotify", "soundcloud"]:
+        for extension in ["spotify", "soundcloud", "jamendo"]:
             try:
                 if parser[extension]["enabled"] == "true":
                     extensions[extension] = (True, "Extension probably functional")
@@ -134,7 +136,21 @@ class System:
                 ):
                     extensions["soundcloud"] = (False, "Configuration Error")
 
-            if "spotify" in extensions and "soundcloud" in extensions:
+            if "jamendo" not in extensions:
+                if line.startswith("ERROR") and 'Invalid "client_id"' in line:
+                    extensions["jamendo"] = (False, "client_id is invalid")
+                elif (
+                    line.startswith("WARNING")
+                    and "jamendo" in line
+                    and "The extension has been automatically disabled" in line
+                ):
+                    extensions["jamendo"] = (False, "Configuration Error")
+
+            if (
+                "spotify" in extensions
+                and "soundcloud" in extensions
+                and "jamendo" in extensions
+            ):
                 break
 
             if line.startswith("Started Mopidy music server."):
@@ -142,13 +158,17 @@ class System:
                     extensions["spotify"] = (True, "Login successful")
                 if "soundcloud" not in extensions:
                     extensions["soundcloud"] = (True, "auth_token valid")
+                if "jamendo" not in extensions:
+                    extensions["jamendo"] = (True, "client_id could not be checked")
                 break
         else:
             # there were too many lines in the log, could not determine whether there was an error
             if "spotify" not in extensions:
-                extensions["spotify"] = (True, "No info found, enabling te be safe")
+                extensions["spotify"] = (True, "No info found, enabling to be safe")
             if "soundcloud" not in extensions:
-                extensions["soundcloud"] = (True, "No info found, enabling te be safe")
+                extensions["soundcloud"] = (True, "No info found, enabling to be safe")
+            if "jamendo" not in extensions:
+                extensions["jamendo"] = (True, "No info found, enabling to be safe")
         return extensions
 
     @Settings.option

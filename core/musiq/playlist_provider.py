@@ -66,6 +66,12 @@ class PlaylistProvider(MusicProvider):
             from core.musiq.soundcloud import SoundcloudPlaylistProvider
 
             provider_class = SoundcloudPlaylistProvider
+        elif (
+            musiq.base.settings.platforms.jamendo_enabled and playlist_type == "jamendo"
+        ):
+            from core.musiq.jamendo import JamendoPlaylistProvider
+
+            provider_class = JamendoPlaylistProvider
         elif playlist_type == "playlog":
             # The playlist may contain various song types, but all of them will be archived.
             # We can use the local playlist provider to enqueue them.

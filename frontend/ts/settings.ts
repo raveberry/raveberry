@@ -65,7 +65,7 @@ function updateState(state) {
     $('.system-install-only').attr('disabled-note',
         'This feature is only available in a system install.');
   } else {
-    for (const module of ['hotspot', 'remote', 'youtube', 'spotify', 'soundcloud']) {
+    for (const module of ['hotspot', 'remote', 'youtube', 'spotify', 'soundcloud', 'jamendo']) {
       if (!state.settings[module + 'Configured']) {
         $('.' + module + '-functionality').addClass('is-disabled');
         $('.' + module + '-functionality').attr('disabled-note',
@@ -165,6 +165,12 @@ export function onReady() {
   registerPostOnClick('set-soundcloud-credentials', () => {
     return {
       auth_token: $('#soundcloud-auth-token').val(),
+    };
+  });
+
+  registerPostOnClick('set-jamendo-credentials', () => {
+    return {
+      client_id: $('#jamendo-client-id').val(),
     };
   });
 

@@ -57,6 +57,8 @@ export function onReady() {
         requestNewMusic(ui.item.key, 'spotify');
       } else if (ui.item.type == 'soundcloud-online') {
         requestNewMusic(ui.item.label, 'soundcloud');
+      } else if (ui.item.type == 'jamendo-online') {
+        requestNewMusic(ui.item.label, 'jamendo');
       } else {
         requestArchivedMusic(ui.item.key, ui.item.label);
       }
@@ -100,6 +102,9 @@ export function onReady() {
     } else if (item.type.startsWith('soundcloud')) {
       icon.addClass('fab')
           .addClass('fa-soundcloud');
+    } else if (item.type.startsWith('jamendo')) {
+      icon.addClass('fas')
+          .addClass('fa-cube');
     } else if (item.type.startsWith('playlog')) {
       icon.addClass('fas')
           .addClass('fa-wrench');

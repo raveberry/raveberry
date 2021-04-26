@@ -270,10 +270,12 @@ function updatePlatformClasses() {
   $('#youtube').removeClass('icon-enabled');
   $('#spotify').removeClass('icon-enabled');
   $('#soundcloud').removeClass('icon-enabled');
+  $('#jamendo').removeClass('icon-enabled');
   $('#local').addClass('icon-disabled');
   $('#youtube').addClass('icon-disabled');
   $('#spotify').addClass('icon-disabled');
   $('#soundcloud').addClass('icon-disabled');
+  $('#jamendo').addClass('icon-disabled');
   if (localStorageGet('platform') == 'local') {
     $('#local').removeClass('icon-disabled');
     $('#local').addClass('icon-enabled');
@@ -286,6 +288,9 @@ function updatePlatformClasses() {
   } else if (localStorageGet('platform') == 'soundcloud') {
     $('#soundcloud').removeClass('icon-disabled');
     $('#soundcloud').addClass('icon-enabled');
+  } else if (localStorageGet('platform') == 'jamendo') {
+    $('#jamendo').removeClass('icon-disabled');
+    $('#jamendo').addClass('icon-enabled');
   }
 }
 
@@ -538,6 +543,13 @@ export function onReady() {
       return;
     }
     localStorageSet('platform', 'soundcloud', 1);
+    updatePlatformClasses();
+  });
+  $('#jamendo').on('click tap', function() {
+    if ($(this).hasClass('icon-enabled')) {
+      return;
+    }
+    localStorageSet('platform', 'jamendo', 1);
     updatePlatformClasses();
   });
 

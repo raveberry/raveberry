@@ -68,6 +68,10 @@ class SongProvider(MusicProvider):
             from core.musiq.soundcloud import SoundcloudSongProvider
 
             provider_class = SoundcloudSongProvider
+        elif musiq.base.settings.platforms.jamendo_enabled and url_type == "jamendo":
+            from core.musiq.jamendo import JamendoSongProvider
+
+            provider_class = JamendoSongProvider
         if not provider_class:
             raise NotImplementedError(f"No provider for given song: {external_url}")
         if not query and external_url:
@@ -134,7 +138,13 @@ class SongProvider(MusicProvider):
                 from core.musiq.soundcloud import SoundcloudSongProvider
 
                 return SoundcloudSongProvider.get_id_from_external_url(self.query)
-            # interpret the query as an external url and try to look it up in the database
+            if (
+                self.musiq.base.settings.platforms.jamendo_enabled
+                and url_type == "jamendo"
+            ):
+                from core.musiq.jamendo import JamendoSongProvider
+
+                return JamendoSongProvider.get_id_from_external_url(self.query)
             try:
                 archived_song = ArchivedSong.objects.get(url=self.query)
                 return self.__class__.get_id_from_external_url(archived_song.url)

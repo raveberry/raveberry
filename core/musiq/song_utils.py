@@ -44,6 +44,8 @@ def determine_url_type(url: str) -> str:
         return "spotify"
     if url.startswith("https://soundcloud.com/"):
         return "soundcloud"
+    if url.startswith("https://www.jamendo.com/"):
+        return "jamendo"
     return "unknown"
 
 

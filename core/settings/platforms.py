@@ -71,6 +71,27 @@ class Platforms:
         )
         self.soundcloud_auth_token = Settings.get_setting("soundcloud_auth_token", "")
 
+        # Jamendo has no python dependencies we could easily check.
+        try:
+            self.jamendo_available = (
+                conf.DOCKER
+                or "[jamendo]"
+                in subprocess.check_output(
+                    ["mopidy", "config"], stderr=subprocess.DEVNULL
+                )
+                .decode()
+                .splitlines()
+            )
+        except FileNotFoundError:
+            # mopidy is not installed. Disable when mocking, enable otherwise
+            self.jamendo_available = not conf.MOCK
+        self.jamendo_enabled = (
+            Settings.get_setting("jamendo_enabled", "False") == "True"
+            and self.jamendo_available
+        )
+        self.jamendo_suggestions = int(Settings.get_setting("jamendo_suggestions", "2"))
+        self.jamendo_client_id = Settings.get_setting("jamendo_client_id", "")
+
     @Settings.option
     def set_youtube_enabled(self, request: WSGIRequest):
         """Enables or disables youtube to be used as a song provider."""
@@ -175,6 +196,37 @@ class Platforms:
 
         Setting.objects.filter(key="soundcloud_auth_token").update(
             value=self.soundcloud_auth_token
+        )
+
+        self.settings.system.update_mopidy_config("pulse")
+        return HttpResponse("Updated credentials")
+
+    @Settings.option
+    def set_jamendo_enabled(self, request: WSGIRequest) -> HttpResponse:
+        """Enables or disables jamendo to be used as a song provider.
+        Makes sure mopidy has correct jamendo configuration."""
+        enabled = request.POST.get("value") == "true"
+        return self._set_extension_enabled("jamendo", enabled)
+
+    @Settings.option
+    def set_jamendo_suggestions(self, request: WSGIRequest):
+        """Sets the number of online suggestions from jamendo to be shown."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="jamendo_suggestions").update(value=value)
+        self.jamendo_suggestions = value
+
+    @Settings.option
+    def set_jamendo_credentials(self, request: WSGIRequest) -> HttpResponse:
+        """Update jamendo credentials."""
+        client_id = request.POST.get("client_id")
+
+        if not client_id:
+            return HttpResponseBadRequest("All fields are required")
+
+        self.jamendo_client_id = client_id
+
+        Setting.objects.filter(key="jamendo_client_id").update(
+            value=self.jamendo_client_id
         )
 
         self.settings.system.update_mopidy_config("pulse")

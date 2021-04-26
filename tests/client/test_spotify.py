@@ -82,7 +82,7 @@ class SpotifyTests(MusicTest):
             lambda state: state["musiq"]["currentSong"]
             and len(state["musiq"]["songQueue"]) == 4
             and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
-            timeout=60,
+            timeout=10,
         )
         self.assertEqual(
             state["musiq"]["currentSong"]["externalUrl"],
@@ -118,7 +118,7 @@ class SpotifyTests(MusicTest):
             lambda state: state["musiq"]["currentSong"]
             and len(state["musiq"]["songQueue"]) == 4
             and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
-            timeout=60,
+            timeout=10,
         )
         self.assertEqual(
             state["musiq"]["currentSong"]["externalUrl"],
@@ -184,5 +184,5 @@ class SpotifyTests(MusicTest):
         self._poll_musiq_state(
             lambda state: len(state["musiq"]["songQueue"]) == 5
             and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
-            timeout=60,
+            timeout=10,
         )

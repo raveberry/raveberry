@@ -79,6 +79,7 @@ class Base(Stateful):
             "youtube_enabled": self.settings.platforms.youtube_enabled,
             "spotify_enabled": self.settings.platforms.spotify_enabled,
             "soundcloud_enabled": self.settings.platforms.soundcloud_enabled,
+            "jamendo_enabled": self.settings.platforms.jamendo_enabled,
         }
 
     def state_dict(self) -> Dict[str, Any]:

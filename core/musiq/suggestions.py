@@ -99,6 +99,23 @@ class Suggestions:
                     )
 
             if (
+                platform_settings.jamendo_enabled
+                and platform_settings.jamendo_suggestions > 0
+            ):
+                from core.musiq.jamendo import Jamendo
+
+                jamendo_suggestions = Jamendo().get_search_suggestions(
+                    self.musiq, query
+                )
+                jamendo_suggestions = jamendo_suggestions[
+                    : platform_settings.jamendo_suggestions
+                ]
+                for suggestion in jamendo_suggestions:
+                    results.append(
+                        {"key": -1, "value": suggestion, "type": "jamendo-online"}
+                    )
+
+            if (
                 platform_settings.youtube_enabled
                 and platform_settings.youtube_suggestions > 0
             ):
@@ -187,6 +204,12 @@ class Suggestions:
                 if (
                     not self.musiq.base.settings.platforms.soundcloud_enabled
                     and provider.type == "soundcloud"
+                ):
+                    continue
+                # don't suggest jamendo songs if we are not logged in
+                if (
+                    not self.musiq.base.settings.platforms.jamendo_enabled
+                    and provider.type == "jamendo"
                 ):
                     continue
                 result_dict = {

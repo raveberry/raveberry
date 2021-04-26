@@ -4,8 +4,8 @@ then echo "Please run as root"
 	exit
 fi
 
-if (( $# != 6 )); then
-    echo "usage: $0 regular|cava|icecast <spotify_username> <spotify_password> <spotify_client_id> <spotify_client_secret> <soundcloud_auth_token>"
+if (( $# != 7 )); then
+    echo "usage: $0 regular|cava|icecast <spotify_username> <spotify_password> <spotify_client_id> <spotify_client_secret> <soundcloud_auth_token> <jamendo_client_id>"
 	exit 1
 fi
 
@@ -23,8 +23,11 @@ sed -i -r -e "s/(^output\s*=).*/\1 $OUTPUT/" /etc/mopidy/mopidy.conf
 
 sed -i -r -e "s/(^username\s*=).*/\1 $2/" /etc/mopidy/mopidy.conf
 sed -i -r -e "s/(^password\s*=).*/\1 $3/" /etc/mopidy/mopidy.conf
-sed -i -r -e "s/(^client_id\s*=).*/\1 $4/" /etc/mopidy/mopidy.conf
+# only replace first occurrence
+sed -i -r -e "0,/^client_id/s/(^client_id\s*=).*/\1 $4/" /etc/mopidy/mopidy.conf
 sed -i -r -e "s/(^client_secret\s*=).*/\1 $5/" /etc/mopidy/mopidy.conf
 sed -i -r -e "s/(^auth_token\s*=).*/\1 $6/" /etc/mopidy/mopidy.conf
+# only replace last occurrence
+sed -i -r -e "$ s/(^client_id\s*=).*/\1 $7/" /etc/mopidy/mopidy.conf
 
 systemctl restart mopidy.service
