@@ -30,65 +30,65 @@ export function updateState(newState) {
   if (state != null) {
     oldState = jQuery.extend(true, {}, state);
   }
-  const currentSong = newState.musiq.current_song;
+  const currentSong = newState.musiq.currentSong;
   if (currentSong == null) {
     state = newState.musiq;
-    $('#current_song_title').empty();
-    $('#current_song_title').append($('<em/>').text('Currently Empty'));
-    $('#current_song_title').trigger('change');
-    $('#current_song').removeClass('present');
-    $('#current_song').addClass('empty');
+    $('#current-song-title').empty();
+    $('#current-song-title').append($('<em/>').text('Currently Empty'));
+    $('#current-song-title').trigger('change');
+    $('#current-song').removeClass('present');
+    $('#current-song').addClass('empty');
 
-    $('#song_votes .vote_down').removeClass('pressed');
-    $('#song_votes .vote_up').removeClass('pressed');
-    $('#current_song_votes').text(0);
+    $('#song-votes .vote-down').removeClass('pressed');
+    $('#song-votes .vote-up').removeClass('pressed');
+    $('#current-song-votes').text(0);
 
-    $('#progress_bar').css('transition', 'none');
-    $('#progress_bar').css('width', '0%');
+    $('#progress-bar').css('transition', 'none');
+    $('#progress-bar').css('width', '0%');
     // Trigger a reflow, flushing the CSS changes
-    $('#progress_bar')[0].offsetHeight;
+    $('#progress-bar')[0].offsetHeight;
 
     showPlayButton();
   } else {
     state = newState.musiq;
 
     if (oldState == null ||
-      oldState.current_song == null ||
-      oldState.current_song.id != state.current_song.id) {
-      insertDisplayName($('#current_song_title'), currentSong);
-      $('#current_song_title').trigger('change');
+      oldState.currentSong == null ||
+      oldState.currentSong.id != state.currentSong.id) {
+      insertDisplayName($('#current-song-title'), currentSong);
+      $('#current-song-title').trigger('change');
     }
 
-    const previousVote = localStorageGet('vote_' + currentSong.queue_key);
+    const previousVote = localStorageGet('vote-' + currentSong.queueKey);
     if (previousVote == '+') {
-      $('#song_votes .vote_up').addClass('pressed');
-      $('#song_votes .vote_down').removeClass('pressed');
+      $('#song-votes .vote-up').addClass('pressed');
+      $('#song-votes .vote-down').removeClass('pressed');
     } else if (previousVote == '-') {
-      $('#song_votes .vote_down').addClass('pressed');
-      $('#song_votes .vote_up').removeClass('pressed');
+      $('#song-votes .vote-down').addClass('pressed');
+      $('#song-votes .vote-up').removeClass('pressed');
     } else {
-      $('#song_votes .vote_down').removeClass('pressed');
-      $('#song_votes .vote_up').removeClass('pressed');
+      $('#song-votes .vote-down').removeClass('pressed');
+      $('#song-votes .vote-up').removeClass('pressed');
     }
 
-    $('#current_song_votes').text(currentSong.votes);
+    $('#current-song-votes').text(currentSong.votes);
 
-    $('#progress_bar').css('transition', 'none');
-    $('#progress_bar').css('width', state.progress + '%');
+    $('#progress-bar').css('transition', 'none');
+    $('#progress-bar').css('width', state.progress + '%');
     // Trigger a reflow, flushing the CSS changes
-    $('#progress_bar')[0].offsetHeight;
+    $('#progress-bar')[0].offsetHeight;
 
     if (state.paused) {
       showPlayButton();
     } else {
       showPauseButton();
 
-      const duration = state.current_song.duration;
+      const duration = state.currentSong.duration;
 
       const played = state.progress / 100 * duration;
       const left = duration - played;
 
-      $('#progress_bar').css({
+      $('#progress-bar').css({
         'transition': 'width ' + left + 's linear',
         'width': '100%',
       });
@@ -96,61 +96,61 @@ export function updateState(newState) {
   }
 
   if (state.shuffle) {
-    $('#set_shuffle').removeClass('icon_disabled');
-    $('#set_shuffle').addClass('icon_enabled');
+    $('#set-shuffle').removeClass('icon-disabled');
+    $('#set-shuffle').addClass('icon-enabled');
   } else {
-    $('#set_shuffle').removeClass('icon_enabled');
-    $('#set_shuffle').addClass('icon_disabled');
+    $('#set-shuffle').removeClass('icon-enabled');
+    $('#set-shuffle').addClass('icon-disabled');
   }
   if (state.repeat) {
-    $('#set_repeat').removeClass('icon_disabled');
-    $('#set_repeat').addClass('icon_enabled');
+    $('#set-repeat').removeClass('icon-disabled');
+    $('#set-repeat').addClass('icon-enabled');
   } else {
-    $('#set_repeat').removeClass('icon_enabled');
-    $('#set_repeat').addClass('icon_disabled');
+    $('#set-repeat').removeClass('icon-enabled');
+    $('#set-repeat').addClass('icon-disabled');
   }
   if (state.autoplay) {
-    $('#set_autoplay').removeClass('icon_disabled');
-    $('#set_autoplay').addClass('icon_enabled');
+    $('#set-autoplay').removeClass('icon-disabled');
+    $('#set-autoplay').addClass('icon-enabled');
   } else {
-    $('#set_autoplay').removeClass('icon_enabled');
-    $('#set_autoplay').addClass('icon_disabled');
+    $('#set-autoplay').removeClass('icon-enabled');
+    $('#set-autoplay').addClass('icon-disabled');
   }
 
-  $('#volume_slider').val(state.volume);
+  $('#volume-slider').val(state.volume);
   if (state.volume == 0) {
-    $('#volume_indicator').addClass('fa-volume-off');
-    $('#volume_indicator').removeClass('fa-volume-down');
-    $('#volume_indicator').removeClass('fa-volume-up');
+    $('#volume-indicator').addClass('fa-volume-off');
+    $('#volume-indicator').removeClass('fa-volume-down');
+    $('#volume-indicator').removeClass('fa-volume-up');
   } else if (state.volume <= 0.5) {
-    $('#volume_indicator').removeClass('fa-volume-off');
-    $('#volume_indicator').addClass('fa-volume-down');
-    $('#volume_indicator').removeClass('fa-volume-up');
+    $('#volume-indicator').removeClass('fa-volume-off');
+    $('#volume-indicator').addClass('fa-volume-down');
+    $('#volume-indicator').removeClass('fa-volume-up');
   } else {
-    $('#volume_indicator').removeClass('fa-volume-off');
-    $('#volume_indicator').removeClass('fa-volume-down');
-    $('#volume_indicator').addClass('fa-volume-up');
+    $('#volume-indicator').removeClass('fa-volume-off');
+    $('#volume-indicator').removeClass('fa-volume-down');
+    $('#volume-indicator').addClass('fa-volume-up');
   }
 
-  $('#total_time').text(state.total_time_formatted);
+  $('#total-time').text(state.totalTimeFormatted);
 
   /*
   <li class="list-group-item">
-    <div class="queue_entry">
-      <div class="download_icon queue_handle">
-        <div class="download_overlay"></div>
+    <div class="queue-entry">
+      <div class="download-icon queue-handle">
+        <div class="download-overlay"></div>
         <svg>
           <!-- downloadSvg -->
         </svg>
       </div>
-      <div class="queue_index queue_handle"><fa-sort>{{ forloop.counter }}</div>
-      <div class="queue_title">{{ song.artist }} - {{ song.title }}</div>
-      <div class="queue_info">
-        <span class="queue_info_time">{{ song.duration_formatted }}</span>
-        <span class="queue_info_controls">
-          {% if voting_system %}
-          <i class="fas fa-chevron-circle-up vote_up"></i>
-          <i class="fas fa-chevron-circle-down vote_down"></i>
+      <div class="queue-index queue-handle"><fa-sort>{{ forloop.counter }}</div>
+      <div class="queue-title">{{ song.artist }} - {{ song.title }}</div>
+      <div class="queue-info">
+        <span class="queue-info-time">{{ song.duration-formatted }}</span>
+        <span class="queue-info-controls">
+          {% if voting-system %}
+          <i class="fas fa-chevron-circle-up vote-up"></i>
+          <i class="fas fa-chevron-circle-down vote-down"></i>
           {% else %}
           <i class="fas level-up-alt prioritize"></i>
           <i class="fas fa-trash-alt remove"></i>
@@ -187,52 +187,52 @@ function createQueueItem(song) {
   const li = $('<li/>')
       .addClass('list-group-item');
   const entryDiv = $('<div/>')
-      .addClass('queue_entry')
+      .addClass('queue-entry')
       .appendTo(li);
   const downloadIcon = $('<div/>')
-      .addClass('download_icon')
-      .addClass('queue_handle')
+      .addClass('download-icon')
+      .addClass('queue-handle')
       .appendTo(entryDiv);
   $('<div/>')
-      .addClass('download_overlay')
+      .addClass('download-overlay')
       .appendTo(downloadIcon);
 
   $(downloadSvg).appendTo(downloadIcon);
 
   const index = $('<div/>')
-      .addClass('queue_index')
-      .addClass('queue_handle');
+      .addClass('queue-index')
+      .addClass('queue-handle');
   if (VOTING_SYSTEM) {
     index.text(song.votes);
   } else {
     index.text(song.index);
   }
   index.appendTo(entryDiv);
-  if (song.internal_url) {
+  if (song.internalUrl) {
     downloadIcon.hide();
   } else {
     index.hide();
   }
   const title = $('<div/>');
   insertDisplayName(title, song);
-  title.addClass('queue_title')
+  title.addClass('queue-title')
       .appendTo(entryDiv);
   const info = $('<div/>')
-      .addClass('queue_info')
+      .addClass('queue-info')
       .appendTo(entryDiv);
   $('<span/>')
-      .addClass('queue_info_time')
-      .text(song.duration_formatted)
+      .addClass('queue-info-time')
+      .text(song.durationFormatted)
       .appendTo(info);
   const controls = $('<span/>')
-      .addClass('queue_info_controls')
+      .addClass('queue-info-controls')
       .appendTo(info);
   if (VOTING_SYSTEM) {
-    const previousVote = localStorageGet('vote_' + song.id);
+    const previousVote = localStorageGet('vote-' + song.id);
     const up = $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-up')
-        .addClass('vote_up');
+        .addClass('vote-up');
     if (previousVote == '+') {
       up.addClass('pressed');
     }
@@ -240,7 +240,7 @@ function createQueueItem(song) {
     const down = $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-down')
-        .addClass('vote_down');
+        .addClass('vote-down');
     if (previousVote == '-') {
       down.addClass('pressed');
     }
@@ -266,10 +266,10 @@ function createQueueItem(song) {
  */
 function rebuildSongQueue(newState) {
   animationInProgress = false;
-  $('#song_queue').empty();
-  $.each(newState.song_queue, function(index, song) {
+  $('#song-queue').empty();
+  $.each(newState.songQueue, function(index, song) {
     const queueEntry = createQueueItem(song);
-    queueEntry.appendTo($('#song_queue'));
+    queueEntry.appendTo($('#song-queue'));
   });
 }
 
@@ -285,37 +285,37 @@ function applyQueueChange(oldState, newState) {
   } else {
     // find mapping from old to new indices
     const newIndices = [];
-    $.each(oldState.song_queue, function(oldIndex, song) {
-      const newIndex = newState.song_queue.findIndex((other) => {
+    $.each(oldState.songQueue, function(oldIndex, song) {
+      const newIndex = newState.songQueue.findIndex((other) => {
         return other.id == song.id;
       });
       newIndices.push(newIndex);
     });
 
     // add new songs
-    $.each(newState.song_queue, function(newIndex, song) {
+    $.each(newState.songQueue, function(newIndex, song) {
       if (!newIndices.includes(newIndex)) {
         // song was not present in old indices -> new song
         const queueEntry = createQueueItem(song);
         queueEntry.css('opacity', '0');
 
-        queueEntry.appendTo($('#song_queue'));
+        queueEntry.appendTo($('#song-queue'));
       }
     });
 
     // initiate transition to their new positions
     let animationNeeded = false;
     const transitionDuration = 0.5;
-    $('#song_queue>li').css('top', '0px');
-    $('#song_queue>li').css('transition',
+    $('#song-queue>li').css('top', '0px');
+    $('#song-queue>li').css('transition',
         'top ' + transitionDuration + 's ease, ' +
         'opacity ' + transitionDuration + 's ease');
 
-    let liHeight = $('#song_queue>li').first().outerHeight();
-    liHeight -= parseFloat($('#song_queue>li').first()
+    let liHeight = $('#song-queue>li').first().outerHeight();
+    liHeight -= parseFloat($('#song-queue>li').first()
         .css('border-bottom-width'));
 
-    $('#song_queue>li').each(function(index, li) {
+    $('#song-queue>li').each(function(index, li) {
       if (newIndices[index] == -1) {
         // item was deleted
         animationNeeded = true;
@@ -339,12 +339,12 @@ function applyQueueChange(oldState, newState) {
       animationInProgress = true;
       // update queue after animations
       setTimeout(function() {
-        $('#song_queue>li').css('transition', 'none');
+        $('#song-queue>li').css('transition', 'none');
         // update the queue to the now current state
         rebuildSongQueue(state);
       }, transitionDuration * 1000);
     } else {
-      $('#song_queue>li').css('transition', 'none');
+      $('#song-queue>li').css('transition', 'none');
     }
   }
 }

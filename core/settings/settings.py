@@ -90,77 +90,77 @@ class Settings(Stateful):
         state_dict = self.base.state_dict()
 
         settings_state = {}
-        settings_state["voting_system"] = self.basic.voting_system
-        settings_state["new_music_only"] = self.basic.new_music_only
-        settings_state["logging_enabled"] = self.basic.logging_enabled
-        settings_state["online_suggestions"] = self.basic.online_suggestions
-        settings_state["number_of_suggestions"] = self.basic.number_of_suggestions
-        settings_state["people_to_party"] = self.basic.people_to_party
-        settings_state["alarm_probability"] = self.basic.alarm_probability
-        settings_state["downvotes_to_kick"] = self.basic.downvotes_to_kick
-        settings_state["max_download_size"] = self.basic.max_download_size
-        settings_state["additional_keywords"] = self.basic.additional_keywords
-        settings_state["forbidden_keywords"] = self.basic.forbidden_keywords
-        settings_state["max_playlist_items"] = self.basic.max_playlist_items
-        settings_state["has_internet"] = self.basic.has_internet
+        settings_state["votingSystem"] = self.basic.voting_system
+        settings_state["newMusicOnly"] = self.basic.new_music_only
+        settings_state["loggingEnabled"] = self.basic.logging_enabled
+        settings_state["onlineSuggestions"] = self.basic.online_suggestions
+        settings_state["numberOfSuggestions"] = self.basic.number_of_suggestions
+        settings_state["peopleToParty"] = self.basic.people_to_party
+        settings_state["alarmProbability"] = self.basic.alarm_probability
+        settings_state["downvotesToKick"] = self.basic.downvotes_to_kick
+        settings_state["maxDownloadSize"] = self.basic.max_download_size
+        settings_state["additionalKeywords"] = self.basic.additional_keywords
+        settings_state["forbiddenKeywords"] = self.basic.forbidden_keywords
+        settings_state["maxPlaylistItems"] = self.basic.max_playlist_items
+        settings_state["hasInternet"] = self.basic.has_internet
 
-        settings_state["youtube_enabled"] = self.platforms.youtube_enabled
-        settings_state["youtube_suggestions"] = self.platforms.youtube_suggestions
+        settings_state["youtubeEnabled"] = self.platforms.youtube_enabled
+        settings_state["youtubeSuggestions"] = self.platforms.youtube_suggestions
 
-        settings_state["spotify_enabled"] = self.platforms.spotify_enabled
-        settings_state["spotify_suggestions"] = self.platforms.spotify_suggestions
+        settings_state["spotifyEnabled"] = self.platforms.spotify_enabled
+        settings_state["spotifySuggestions"] = self.platforms.spotify_suggestions
 
-        settings_state["soundcloud_enabled"] = self.platforms.soundcloud_enabled
-        settings_state["soundcloud_suggestions"] = self.platforms.soundcloud_suggestions
+        settings_state["soundcloudEnabled"] = self.platforms.soundcloud_enabled
+        settings_state["soundcloudSuggestions"] = self.platforms.soundcloud_suggestions
 
-        settings_state["backup_stream"] = self.sound.backup_stream
+        settings_state["backupStream"] = self.sound.backup_stream
 
-        settings_state["bluetooth_scanning"] = self.sound.bluetoothctl is not None
-        settings_state["bluetooth_devices"] = self.sound.bluetooth_devices
+        settings_state["bluetoothScanning"] = self.sound.bluetoothctl is not None
+        settings_state["bluetoothDevices"] = self.sound.bluetooth_devices
 
         settings_state["output"] = self.sound.output
 
         try:
             with open(os.path.join(settings.BASE_DIR, "config/homewifi")) as f:
-                settings_state["homewifi_ssid"] = f.read()
+                settings_state["homewifiSsid"] = f.read()
         except FileNotFoundError:
-            settings_state["homewifi_ssid"] = ""
+            settings_state["homewifiSsid"] = ""
 
-        settings_state["scan_progress"] = self.library.scan_progress
+        settings_state["scanProgress"] = self.library.scan_progress
 
         try:
-            settings_state["homewifi_enabled"] = (
+            settings_state["homewifiEnabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/homewifi_enabled"]) != 0
             )
-            settings_state["events_enabled"] = (
+            settings_state["eventsEnabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/events_enabled"]) != 0
             )
-            settings_state["hotspot_enabled"] = (
+            settings_state["hotspotEnabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/hotspot_enabled"]) != 0
             )
-            settings_state["wifi_protection_enabled"] = (
+            settings_state["wifiProtectionEnabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/wifi_protection_enabled"])
                 != 0
             )
-            settings_state["tunneling_enabled"] = (
+            settings_state["tunnelingEnabled"] = (
                 subprocess.call(["sudo", "/usr/local/sbin/raveberry/tunneling_enabled"])
                 != 0
             )
-            settings_state["remote_enabled"] = (
+            settings_state["remoteEnabled"] = (
                 subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
             )
         except FileNotFoundError:
-            settings_state["system_install"] = False
+            settings_state["systemInstall"] = False
         else:
-            settings_state["system_install"] = True
+            settings_state["systemInstall"] = True
             with open(os.path.join(settings.BASE_DIR, "config/raveberry.yaml")) as f:
                 config = yaml.safe_load(f)
-            settings_state["hotspot_configured"] = config["hotspot"]
-            settings_state["remote_configured"] = config["remote_key"] is not None
+            settings_state["hotspotConfigured"] = config["hotspot"]
+            settings_state["remoteConfigured"] = config["remote_key"] is not None
 
-        settings_state["youtube_configured"] = self.platforms.youtube_available
-        settings_state["spotify_configured"] = self.platforms.spotify_available
-        settings_state["soundcloud_configured"] = self.platforms.soundcloud_available
+        settings_state["youtubeConfigured"] = self.platforms.youtube_available
+        settings_state["spotifyConfigured"] = self.platforms.spotify_available
+        settings_state["soundcloudConfigured"] = self.platforms.soundcloud_available
 
         state_dict["settings"] = settings_state
         return state_dict

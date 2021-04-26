@@ -5,7 +5,7 @@
     let ADDITIONAL_KEYWORDS = '{{ additional_keywords }}';
     let FORBIDDEN_KEYWORDS = '{{ forbidden_keywords }}';
 
-    urls['state'] = '{% url 'musiq_state' %}';
+    urls['state'] = '{% url 'musiq-state' %}';
 	urls['musiq'] = {
 	{% for path in urls %}
 		'{{ path.name }}': '/ajax/musiq/{{ path.pattern }}',
@@ -15,78 +15,78 @@
 
 {% block content %}
 <ul class="list-group">
-	<li class="list-group-item" id="music_input_card">
-		<i class="fas fa-stream icon_disabled" id="playlist_mode"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}></i>
-		<i class="fas fa-dice" id="random_suggestion"></i>
+	<li class="list-group-item" id="music-input-card">
+		<i class="fas fa-stream icon-disabled" id="playlist-mode"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}></i>
+		<i class="fas fa-dice" id="random-suggestion"></i>
 		<span class="clearable">
-			<input class="form-control autocomplete" id="music_input" placeholder="Search for Music..." autofocus autocomplete="off">
+			<input class="form-control autocomplete" id="music-input" placeholder="Search for Music..." autofocus autocomplete="off">
 			<i class="fas fa-times" id="clearbutton"></i>
 		</span>
-		<div class="anim-container" id="request_button_container">
-			<i class="fas fa-arrow-circle-right other" id="request_archived_music"></i>
-			<i class="fas fa-search default" id="request_new_music"></i>
+		<div class="anim-container" id="request-button-container">
+			<i class="fas fa-arrow-circle-right other" id="request-archived-music"></i>
+			<i class="fas fa-search default" id="request-new-music"></i>
 		</div>
 	</li>
 </ul>
-<ul class="list-group" id="current_song_card">
-	<li class="list-group-item empty" id="current_song">
-		<div class="autoscrolling_container"><span id="current_song_title">Currently Empty</span></div>
+<ul class="list-group" id="current-song-card">
+	<li class="list-group-item empty" id="current-song">
+		<div class="autoscrolling-container"><span id="current-song-title">Currently Empty</span></div>
 	</li>
-	<li class="list-group-item" id="progress_bar_container">
+	<li class="list-group-item" id="progress-bar-container">
 		<div class="progress">
-			<div id="progress_bar" class="progress-bar">
+			<div id="progress-bar" class="progress-bar">
 			</div>
 		</div>
 	</li>
-	<li class="list-group-item" id="song_votes"{% if not voting_system or controls_enabled %} style="display: none"{%endif%}>
-		<i class="fas fa-chevron-circle-up vote_up"></i>
-		<span id="current_song_votes"></span>
-		<i class="fas fa-chevron-circle-down vote_down"></i>
+	<li class="list-group-item" id="song-votes"{% if not voting_system or controls_enabled %} style="display: none"{%endif%}>
+		<i class="fas fa-chevron-circle-up vote-up"></i>
+		<span id="current-song-votes"></span>
+		<i class="fas fa-chevron-circle-down vote-down"></i>
 	</li>
-	<li class="list-group-item" id="song_controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
-		<div id="song_control_icons">
-			<i class="fas fa-fast-backward" id="restart_song"></i>
-			<i class="fas fa-backward" id="seek_backward"></i>
-			<div class="anim-container" id="play_button_container">
+	<li class="list-group-item" id="song-controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+		<div id="song-control-icons">
+			<i class="fas fa-fast-backward" id="restart-song"></i>
+			<i class="fas fa-backward" id="seek-backward"></i>
+			<div class="anim-container" id="play-button-container">
 				<i class="fas fa-pause other" id="pause"></i>
 				<i class="fas fa-play default" id="play"></i>
 			</div>
-			<i class="fas fa-forward" id="seek_forward"></i>
-			<i class="fas fa-fast-forward" id='skip_song'></i><br/>
+			<i class="fas fa-forward" id="seek-forward"></i>
+			<i class="fas fa-fast-forward" id='skip-song'></i><br/>
             {% if not voting_system %}
-			<i class="fas fa-random icon_disabled" id="set_shuffle"></i>
+			<i class="fas fa-random icon-disabled" id="set-shuffle"></i>
             {% endif %}
-			<i class="fas fa-sync icon_disabled" id="set_repeat"></i>
-			<i class="fas fa-play-circle icon_disabled" id="set_autoplay"></i>
-			<i class="fas fa-robot icon_disabled" id="request_radio"></i>
+			<i class="fas fa-sync icon-disabled" id="set-repeat"></i>
+			<i class="fas fa-play-circle icon-disabled" id="set-autoplay"></i>
+			<i class="fas fa-robot icon-disabled" id="request-radio"></i>
 		</div>
 	</li>
-	<li class="list-group-item" id="additional_controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
-		<div id="total_time_container">
-			<i class="fas fa-clock"></i><span id="total_time">--:--</span>
+	<li class="list-group-item" id="additional-controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+		<div id="total-time-container">
+			<i class="fas fa-clock"></i><span id="total-time">--:--</span>
 		</div>
-		<div id="volume_slider_container">
-			<i id="volume_indicator" class="fas fa-volume-down"></i>
-			<input type="range" id="volume_slider" min="0" max="1" step="0.01" readonly="readonly"/>
+		<div id="volume-slider-container">
+			<i id="volume-indicator" class="fas fa-volume-down"></i>
+			<input type="range" id="volume-slider" min="0" max="1" step="0.01" readonly="readonly"/>
 		</div>
-		<div id="queue_controls">
+		<div id="queue-controls">
 			{% if is_admin %}
-				<i class="fas fa-random icon_disabled" id="shuffle_all"></i>
-				<i class="fas fa-trash-alt icon_disabled" id="remove_all"></i>
+				<i class="fas fa-random icon-disabled" id="shuffle-all"></i>
+				<i class="fas fa-trash-alt icon-disabled" id="remove-all"></i>
 			{% endif %}
 		</div>
 	</li>
 </ul>
-<ul class="list-group" id="song_queue">
+<ul class="list-group" id="song-queue">
 </ul>
 
-<div id="title_modal" class="modal fade" role="dialog">
+<div id="title-modal" class="modal fade" role="dialog">
 	<div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 			<div class="modal-text">
 				Some text in the modal.
 			</div>
-			<a target="_blank" rel="noopener noreferrer" href="" id="external_link">
+			<a target="_blank" rel="noopener noreferrer" href="" id="external-link">
 				<i class="fas fa-link"></i>
 			</a>
 		</div>

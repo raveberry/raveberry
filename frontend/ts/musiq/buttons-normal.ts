@@ -10,15 +10,15 @@ import {infoToast, successToast, warningToast, errorToast} from '../base';
 
 /** Adds handlers to buttons that are visible when voting is disabled. */
 export function onReady() {
-  $('#restart_song').on('click tap', function(e) {
+  $('#restart-song').on('click tap', function(e) {
     $.post(urls['musiq']['restart']);
   });
-  $('#seek_backward').on('click tap', function(e) {
-    $.post(urls['musiq']['seek_backward']);
+  $('#seek-backward').on('click tap', function(e) {
+    $.post(urls['musiq']['seek-backward']);
   });
   $('#play').on('click tap', function(e) {
     // don't allow play command without a song
-    if (state == null || state.current_song == null) return;
+    if (state == null || state.currentSong == null) return;
     showPauseButton();
     $.post(urls['musiq']['play']);
   });
@@ -26,37 +26,37 @@ export function onReady() {
     showPlayButton();
     $.post(urls['musiq']['pause']);
   });
-  $('#seek_forward').on('click tap', function(e) {
-    $.post(urls['musiq']['seek_forward']);
+  $('#seek-forward').on('click tap', function(e) {
+    $.post(urls['musiq']['seek-forward']);
   });
-  $('#skip_song').on('click tap', function(e) {
+  $('#skip-song').on('click tap', function(e) {
     $.post(urls['musiq']['skip']);
   });
-  $('#set_shuffle').on('click tap', function(e) {
+  $('#set-shuffle').on('click tap', function(e) {
     // send True if it is currently disabled to enable it and vice versa
-    $.post(urls['musiq']['set_shuffle'],
+    $.post(urls['musiq']['set-shuffle'],
         {
-          value: $(this).hasClass('icon_disabled'),
+          value: $(this).hasClass('icon-disabled'),
         });
   });
-  $('#set_repeat').on('click tap', function(e) {
-    $.post(urls['musiq']['set_repeat'],
+  $('#set-repeat').on('click tap', function(e) {
+    $.post(urls['musiq']['set-repeat'],
         {
-          value: $(this).hasClass('icon_disabled'),
+          value: $(this).hasClass('icon-disabled'),
         });
   });
-  $('#set_autoplay').on('click tap', function(e) {
-    $.post(urls['musiq']['set_autoplay'],
+  $('#set-autoplay').on('click tap', function(e) {
+    $.post(urls['musiq']['set-autoplay'],
         {
-          value: $(this).hasClass('icon_disabled'),
+          value: $(this).hasClass('icon-disabled'),
         });
   });
-  $('#request_radio').on('click tap', function(e) {
+  $('#request-radio').on('click tap', function(e) {
     if (!playlistEnabled()) {
       warningToast('Please enable playlists to use this');
       return;
     }
-    $.post(urls['musiq']['request_radio']).done(function(response) {
+    $.post(urls['musiq']['request-radio']).done(function(response) {
       successToast(response);
     }).fail(function(response) {
       errorToast(response.responseText);
@@ -64,12 +64,12 @@ export function onReady() {
     infoToast('Getting radio info', 'This could take some time');
     disablePlaylistMode();
   });
-  $('#song_queue').on('click tap', '.prioritize', function() {
+  $('#song-queue').on('click tap', '.prioritize', function() {
     $.post(urls['musiq']['prioritize'], {
       key: keyOfElement($(this)),
     });
   });
-  $('#song_queue').on('click tap', '.remove', function() {
+  $('#song-queue').on('click tap', '.remove', function() {
     $.post(urls['musiq']['remove'], {
       key: keyOfElement($(this)),
     });

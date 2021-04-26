@@ -10,10 +10,10 @@
 	background-color: var(--elevated-background);
 	border-color: var(--list-border);
 }
-#navbar_icon {
+#navbar-icon {
 	fill: var(--normal-text);
 }
-#navbar_icon.partymode {
+#navbar-icon.partymode {
 	animation: rainbow 2.1s linear infinite;
 }
 @keyframes rainbow {
@@ -47,15 +47,15 @@
 	100% {background-color: var(--background)}
 }
 
-#hashtag_container {
+#hashtag-container {
 	width: 60%;
 	text-align: center;
 }
-#hashtag_container>i {
+#hashtag-container>i {
 	color: var(--normal-text);
 	display: inline-block;
 }
-#hashtag_text_container {
+#hashtag-text-container {
 	color: var(--normal-text);
 	vertical-align: middle;
 	display: inline-block;
@@ -66,15 +66,15 @@
 	white-space: nowrap;
 	max-width: 70%;
 }
-#hashtag_input {
+#hashtag-input {
 	visibility: hidden;
 	transition: max-width 0.5s ease;
 }
-#hashtag_input.shown, #hashtag_text_container.shown {
+#hashtag-input.shown, #hashtag-text-container.shown {
 	visibility: visible;
 	max-width: 70%;
 }
-#hashtag_input.hidden, #hashtag_text_container.hidden {
+#hashtag-input.hidden, #hashtag-text-container.hidden {
 	max-width: 0%;
 }
 
@@ -87,25 +87,25 @@
 #menu i {
 	padding: 5px;
 }
-.menu_row {
+.menu-row {
 	display: flex;
 	justify-content: space-between;
 }
 
-#users_container {
+#users-container {
 	width: 25%;
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
 }
-#users_container>*{
+#users-container>*{
 	padding: 5px;
 }
 #users {
 	color: var(--normal-text);
 }
 
-#visitors_container {
+#visitors-container {
 	width: 50%;
 	color: var(--normal-text);
 	display: flex;
@@ -117,28 +117,28 @@
 	font-size: x-large;
 }
 
-#theme_controls {
+#theme-controls {
 	width: 25%;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 }
-#theme_controls > i.icon_enabled{
+#theme-controls > i.icon-enabled{
 	color: theme-color('contrast');
 }
 
-#lights_controls {
+#lights-controls {
 	width: 25%;
 	max-width: 80px;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 }
-#lights_indicator.icon_enabled {
+#lights-indicator.icon-enabled {
 	color: yellow;
 }
 
-#shareberry_icon {
+#shareberry-icon {
 	fill: var(--normal-text);
 	margin-bottom: 6px;
 	margin-right: 4px;
@@ -148,22 +148,22 @@
 	padding: 8px;
 }
 
-#platform_controls {
+#platform-controls {
 	width: 25%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
-#platform_controls > i.icon_enabled#youtube {
+#platform-controls > i.icon-enabled#youtube {
 	color: red /*youtube red*/;
 }
 
-#platform_controls > i.icon_enabled#spotify {
+#platform-controls > i.icon-enabled#spotify {
 	color: #1ED760 /*spotify green*/;
 }
 
-#platform_controls > i.icon_enabled#soundcloud {
+#platform-controls > i.icon-enabled#soundcloud {
 	color: #F95401 /*soundcloud orange*/;
 }
 

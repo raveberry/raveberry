@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block js %}
-	urls['state'] = '{% url 'settings_state' %}';
+	urls['state'] = '{% url 'settings-state' %}';
 	urls['settings'] = {
 	{% for path in urls %}
 		'{{ path.name }}': '/ajax/settings/{{ path.pattern }}',
@@ -12,107 +12,107 @@
 
 {% block content %}
 <ul class="list-group" id="settings">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Settings
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Voting System</span>
-		<input type="checkbox" id="voting_system">
+		<input type="checkbox" id="voting-system">
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">New music only</span>
-        <input type="checkbox" id="new_music_only">
+        <input type="checkbox" id="new-music-only">
     </li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Logging</span>
-		<input type="checkbox" id="logging_enabled">
+		<input type="checkbox" id="logging-enabled">
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Online Suggestions</span>
-        <input type="checkbox" id="online_suggestions">
+        <input type="checkbox" id="online-suggestions">
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Number of suggestions</span>
-        <input id="number_of_suggestions"/>
+        <input id="number-of-suggestions"/>
     </li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">People to Party</span>
-		<input id="people_to_party"/>
+		<input id="people-to-party"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Alarm Probability (from 0 to 1)</span>
-		<input id="alarm_probability"/>
+		<input id="alarm-probability"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Downvotes to kick</span>
-		<input id="downvotes_to_kick"/>
+		<input id="downvotes-to-kick"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Max Download Size (MB, 0 to disable)</span>
-		<input id="max_download_size"/>
+		<input id="max-download-size"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Max Songs Enqueued per Playlist</span>
-		<input id="max_playlist_items"/>
+		<input id="max-playlist-items"/>
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Add this to every query</span>
-        <input id="additional_keywords"/>
+        <input id="additional-keywords"/>
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Do not enqueue Songs containing these Words (Only Spotify and Soundcloud)</span>
-        <input id="forbidden_keywords"/>
+        <input id="forbidden-keywords"/>
     </li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Internet Connection</span>
 		<div>
-			<input type="checkbox" id="has_internet">
-			<i class="fas fa-sync" id="check_internet"></i>
+			<input type="checkbox" id="has-internet">
+			<i class="fas fa-sync" id="check-internet"></i>
 		</div>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Update User Count</span>
 		<div>
-			<i class="fas fa-sync" id="update_user_count"></i>
+			<i class="fas fa-sync" id="update-user-count"></i>
 		</div>
 	</li>
 </ul>
 
 <ul class="list-group youtube-functionality">
-    <li class="list-group-item list_header">
+    <li class="list-group-item list-header">
         Youtube
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Enabled</span>
-        <input type="checkbox" id="youtube_enabled">
+        <input type="checkbox" id="youtube-enabled">
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Number of online suggestions</span>
-        <input id="youtube_suggestions"/>
+        <input id="youtube-suggestions"/>
     </li>
 </ul>
 
 <ul class="list-group spotify-functionality">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Spotify
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
         <span class="description">Enabled</span>
-        <input type="checkbox" id="spotify_enabled">
+        <input type="checkbox" id="spotify-enabled">
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Number of online suggestions</span>
-        <input id="spotify_suggestions"/>
+        <input id="spotify-suggestions"/>
     </li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Username</span>
-		<input id="spotify_username"/>
+		<input id="spotify-username"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Password</span>
-		<input type="password" id="spotify_password"/>
+		<input type="password" id="spotify-password"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">
             Client ID
             <a href="https://mopidy.com/ext/spotify/#authentication" data-toggle="tooltip" target="_blank" rel="noopener noreferrer"
@@ -120,30 +120,30 @@
                 <i class="fas fa-question-circle"></i>
             </a>
 		</span>
-		<input id="spotify_client_id"/>
+		<input id="spotify-client-id"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Client Secret</span>
-		<input type="password" id="spotify_client_secret"/>
+		<input type="password" id="spotify-client-secret"/>
 	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="set_spotify_credentials">Set Credentials</button>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="set-spotify-credentials">Set Credentials</button>
 	</li>
 </ul>
 
 <ul class="list-group soundcloud-functionality">
-    <li class="list-group-item list_header">
+    <li class="list-group-item list-header">
         Soundcloud
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Enabled</span>
-        <input type="checkbox" id="soundcloud_enabled">
+        <input type="checkbox" id="soundcloud-enabled">
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Number of online suggestions</span>
-        <input id="soundcloud_suggestions"/>
+        <input id="soundcloud-suggestions"/>
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">
             Authentication Token
             <a href="https://mopidy.com/ext/soundcloud/#authentication" data-toggle="tooltip" target="_blank" rel="noopener noreferrer"
@@ -151,281 +151,281 @@
                 <i class="fas fa-question-circle"></i>
             </a>
         </span>
-        <input type="password" id="soundcloud_auth_token"/>
+        <input type="password" id="soundcloud-auth-token"/>
     </li>
-    <li class="list-group-item list_item centered">
-        <button class="btn" id="set_soundcloud_credentials">Set Credentials</button>
+    <li class="list-group-item list-item centered">
+        <button class="btn" id="set-soundcloud-credentials">Set Credentials</button>
     </li>
 </ul>
 
 <ul class="list-group">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Backup Stream
 	</li>
 	<li class="list-group-item">
 		Set an internet stream to be played when no other song is enqueued. Set empty to disable.
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Stream URL</span>
-		<input id="backup_stream"/>
+		<input id="backup-stream"/>
 	</li>
 </ul>
 
 <ul class="list-group system-install-only">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Bluetooth
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Scanning</span>
-		<input type="checkbox" id="set_bluetooth_scanning" autocomplete="off"/>
+		<input type="checkbox" id="set-bluetooth-scanning" autocomplete="off"/>
 	</li>
 	<!--
-	<li class="list-group-item list_item">
-		<label for="bluetooth_device_1">Device 1</label>
-		<input type="radio" name="bluetooth_device" id="12:34:56:78:9A:BD"/>
+	<li class="list-group-item list-item">
+		<label for="bluetooth-device-1">Device 1</label>
+		<input type="radio" name="bluetooth-device" id="12:34:56:78:9A:BD"/>
 	</li>
 	-->
-	<li class="list-group-item list_item">
-		<button class="btn" id="disconnect_bluetooth">Disconnect</button>
-		<button class="btn" id="connect_bluetooth">Connect</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disconnect-bluetooth">Disconnect</button>
+		<button class="btn" id="connect-bluetooth">Connect</button>
 	</li>
 </ul>
 
 <ul class="list-group system-install-only">
-    <li class="list-group-item list_header">
+    <li class="list-group-item list-header">
         Sound Output
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Output</span>
         <input id="output"/>
     </li>
 </ul>
 
 <ul class="list-group system-install-only">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Wifi
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">SSID</span>
-		<input id="wifi_ssid"/>
+		<input id="wifi-ssid"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Password</span>
-		<input type="password" id="wifi_password"/>
+		<input type="password" id="wifi-password"/>
 	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="connect_to_wifi">Connect to Wifi</button>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="connect-to-wifi">Connect to Wifi</button>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Home Wifi Enabled:</span>
-		<div id="homewifi_enabled"></div>
+		<div id="homewifi-enabled"></div>
 	</li>
-	<li class="list-group-item list_item">
-		<button class="btn" id="disable_homewifi">Disable Home Wifi</button>
-		<button class="btn" id="enable_homewifi">Enable Home Wifi</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disable-homewifi">Disable Home Wifi</button>
+		<button class="btn" id="enable-homewifi">Enable Home Wifi</button>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Home Wifi SSID</span>
-		<input id="homewifi_ssid"/>
+		<input id="homewifi-ssid"/>
 	</li>
 </ul>
 
 <ul class="list-group">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Local Library
 	</li>
 	<li class="list-group-item">
 		Note: There can only be one library folder. Make sure that all local music you want to import is inside the given directory. If you change the folder, music from previous libraries will become unavailable. Check your permissions if it doesn't work.
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Files Found / Files Processed / Files Added</span>
-        <span id="scan_progress">0 / 0 / 0</span>
+        <span id="scan-progress">0 / 0 / 0</span>
     </li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Local Library Absolute Path</span>
-		<input id="library_path" value="{{ local_library }}" autocomplete="off"/>
+		<input id="library-path" value="{{ local_library }}" autocomplete="off"/>
 	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="scan_library">Scan Folder</button>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="scan-library">Scan Folder</button>
 	</li>
     <li class="list-group-item">
         You can also automatically create a playlist for each folder after scanning a library. Wait until the library scan completed!
     </li>
-    <li class="list-group-item list_item centered">
-        <button class="btn" id="create_playlists">Create Playlists</button>
+    <li class="list-group-item list-item centered">
+        <button class="btn" id="create-playlists">Create Playlists</button>
     </li>
 </ul>
 
 <ul class="list-group" id="settings">
-	<li class="list-group-item list_header">
+	<li class="list-group-item list-header">
 		Analysis
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Start Date</span>
 		<input type="date" id="startdate" autocomplete="off"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Start Time</span>
 		<input type="time" id="starttime" autocomplete="off"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">End Date</span>
 		<input type="date" id="enddate" autocomplete="off"/>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">End Time</span>
 		<input type="time" id="endtime" autocomplete="off"/>
 	</li>
-	<li class="list-group-item list_item centered">
+	<li class="list-group-item list-item centered">
 		<button class="btn" id="analyse">Analyse</button>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Songs Played</span>
-		<div id="songs_played"></div>
+		<div id="songs-played"></div>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Most Played Song</span>
-		<div id="most_played_song"></div>
+		<div id="most-played-song"></div>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Votes Cast</span>
-		<div id="votes_cast"></div>
+		<div id="votes-cast"></div>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Highest Voted Song</span>
-		<div id="highest_voted_song"></div>
+		<div id="highest-voted-song"></div>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Most Active Device</span>
 	</li>
-	<li class="list-group-item list_item" id="most_active_device">
+	<li class="list-group-item list-item" id="most-active-device">
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Request Activity</span>
 	</li>
-	<li class="list-group-item list_item" id="request_activity">
+	<li class="list-group-item list-item" id="request-activity">
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Playlist</span>
 	</li>
-	<li class="list-group-item list_item" id="playlist">
+	<li class="list-group-item list-item" id="playlist">
 	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="copy_playlist">Copy</button>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="copy-playlist">Copy</button>
 	</li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Playlist Name</span>
-		<input id="saved_playlist_name" autocomplete="off"/>
+		<input id="saved-playlist-name" autocomplete="off"/>
 	</li>
-	<li class="list-group-item list_item centered">
-		<button class="btn" id="save_as_playlist">Save as Playlist</button>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="save-as-playlist">Save as Playlist</button>
 	</li>
 </ul>
 
 <!-- gunicorn is not installed by default, don't show this option in the UI
 <ul class="list-group system-install-only">
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Events Enabled:</span>
-		<div id="events_enabled"></div>
+		<div id="events-enabled"></div>
 	</li>
-	<li class="list-group-item list_item">
-		<button class="btn" id="disable_events">Disable Events</button>
-		<button class="btn" id="enable_events">Enable Events</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disable-events">Disable Events</button>
+		<button class="btn" id="enable-events">Enable Events</button>
 	</li>
 </ul>
 -->
 <ul class="list-group system-install-only hotspot-functionality">
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Hotspot Enabled:</span>
-		<div id="hotspot_enabled"></div>
+		<div id="hotspot-enabled"></div>
 	</li>
-	<li class="list-group-item list_item">
-		<button class="btn" id="disable_hotspot">Disable Hotspot</button>
-		<button class="btn" id="enable_hotspot">Enable Hotspot</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disable-hotspot">Disable Hotspot</button>
+		<button class="btn" id="enable-hotspot">Enable Hotspot</button>
 	</li>
 </ul>
 <ul class="list-group system-install-only hotspot-functionality">
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Wifi Protected:</span>
-		<div id="wifi_protection_enabled"></div>
+		<div id="wifi-protection-enabled"></div>
 	</li>
-	<li class="list-group-item list_item">
-		<button class="btn" id="disable_wifi_protection">Unprotect Wifi</button>
-		<button class="btn" id="enable_wifi_protection">Protect Wifi</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disable-wifi-protection">Unprotect Wifi</button>
+		<button class="btn" id="enable-wifi-protection">Protect Wifi</button>
 	</li>
 </ul>
 <ul class="list-group system-install-only hotspot-functionality">
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Tunneling Enabled:</span>
-		<div id="tunneling_enabled"></div>
+		<div id="tunneling-enabled"></div>
 	</li>
-	<li class="list-group-item list_item">
-		<button class="btn" id="disable_tunneling">Disable Tunneling</button>
-		<button class="btn" id="enable_tunneling">Enable Tunneling</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disable-tunneling">Disable Tunneling</button>
+		<button class="btn" id="enable-tunneling">Enable Tunneling</button>
 	</li>
 </ul>
 <ul class="list-group system-install-only remote-functionality">
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
 		<span class="description">Remote Enabled:</span>
-		<div id="remote_enabled"></div>
+		<div id="remote-enabled"></div>
 	</li>
-	<li class="list-group-item list_item">
-		<button class="btn" id="disable_remote">Disable Remote</button>
-		<button class="btn" id="enable_remote">Enable Remote</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="disable-remote">Disable Remote</button>
+		<button class="btn" id="enable-remote">Enable Remote</button>
 	</li>
 </ul>
 <ul class="list-group system-install-only">
-	<li class="list-group-item list_item">
-		<button class="btn" id="reboot_server">Reboot Server</button>
-		<button class="btn" id="reboot_system">Reboot System</button>
-		<button class="btn" id="shutdown_system">Shutdown System</button>
+	<li class="list-group-item list-item">
+		<button class="btn" id="reboot-server">Reboot Server</button>
+		<button class="btn" id="reboot-system">Reboot System</button>
+		<button class="btn" id="shutdown-system">Shutdown System</button>
 	</li>
 </ul>
 
 <ul class="list-group">
-    <li class="list-group-item list_header" id="about">
+    <li class="list-group-item list-header" id="about">
         About
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Raveberry Version</span>
         <div>{{ version }}</div>
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Latest Version</span>
         <div>
-            <span id="latest_version">unknown</span>
-            <i class="fas fa-sync" id="get_latest_version"></i>
+            <span id="latest-version">unknown</span>
+            <i class="fas fa-sync" id="get-latest-version"></i>
         </div>
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Update Information Policy</span>
-        <select id="update_information_policy">
+        <select id="update-information-policy">
             <option value="yes">Remind me</option>
             <option value="no">Don't remind me</option>
         </select>
     </li>
-    <li class="list-group-item list_item system-install-only">
+    <li class="list-group-item list-item system-install-only">
         <span class="description">Changelog</span>
-        <button class="btn" id="open_changelog">Show</button>
+        <button class="btn" id="open-changelog">Show</button>
     </li>
-    <li class="list-group-item list_item system-install-only">
+    <li class="list-group-item list-item system-install-only">
         <span class="description">Upgrade Raveberry</span>
-        <button class="btn" id="open_upgrade_dialog">Upgrade</button>
+        <button class="btn" id="open-upgrade-dialog">Upgrade</button>
     </li>
 </ul>
 
-<div id="changelog_modal" class="modal fade" role="dialog">
+<div id="changelog-modal" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div id="changelog">
                 Fetching changelog...
             </div>
-            <button class="btn" id="changelog_ok">Ok</button>
+            <button class="btn" id="changelog-ok">Ok</button>
         </div>
     </div>
 </div>
 
-<div id="upgrade_modal" class="modal fade" role="dialog">
+<div id="upgrade-modal" class="modal fade" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div>
@@ -434,10 +434,10 @@
                 your data <strong>will be lost</strong>! <br/>
                 (using the config from your install directory)
             </div>
-            <div id="upgrade_config">
+            <div id="upgrade-config">
                 Fetching config...
             </div>
-            <button class="btn" id="confirm_upgrade">Yes, I'm sure</button>
+            <button class="btn" id="confirm-upgrade">Yes, I'm sure</button>
         </div>
     </div>
 </div>

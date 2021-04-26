@@ -3,23 +3,23 @@
 }
 
 // song input
-#music_input_card {
+#music-input-card {
 	padding-left: 5px;
 	padding-right: 5px;
 	display: inline-flex;
 }
-#music_input_card>i {
+#music-input-card>i {
 	margin: 7px 2px;
 	font-size: x-large;
 }
-#music_input_card .anim-container {
+#music-input-card .anim-container {
 	margin: 7px 2px;
 	height: 1.5rem;
 	width: 1.5rem;
 	min-width: 1.5rem;
 	font-size:.375rem;
 }
-#music_input {
+#music-input {
 	padding: 6px;
 	min-width: 100px;
 	padding-right: 20px;
@@ -76,32 +76,32 @@ span.clearable input {
 	justify-content: space-between;
 	word-break: break-all;
 }
-.autocomplete_info {
+.autocomplete-info {
 	color: var(--normal-text);
 	flex: 0 0 auto;
 	padding-left: 5px;
 }
-.insert_icon {
+.insert-icon {
 	padding-left: 5px;
 }
-.suggestion_type {
+.suggestion-type {
 	width: 20px;
 	padding-right: 5px;
 	text-align: center;
 }
-.additional_keywords {
+.additional-keywords {
 	padding-left: 5px;
 	color: var(--silent-text);
 	font-style: italic;
 }
-.forbidden_keywords {
+.forbidden-keywords {
 	padding-left: 5px;
 	color: var(--silent-text);
 	text-decoration: line-through;
 }
 
 // current song
-#current_song {
+#current-song {
 	text-align: center;
 	//font-style: italic;
 	//font-weight: bold;
@@ -110,26 +110,26 @@ span.clearable input {
 	padding-right: 8px;
 }
 
-#progress_bar_container {
+#progress-bar-container {
 	padding: 0px;
 }
-#progress_bar_container>.progress {
+#progress-bar-container>.progress {
 	height: 5px;
 	background-color: var(--list-border);
 }
-#progress_bar {
+#progress-bar {
 	width: 0%;
 	transition: none;
 }
 
-#song_votes {
+#song-votes {
 	text-align: center;
 	font-size: x-large;
 }
-#song_controls {
+#song-controls {
 	text-align: center;
 }
-#song_control_icons>i {
+#song-control-icons>i {
 	padding-top: 8px;
 	padding-bottom: 8px;
 	padding-left: 10px;
@@ -137,7 +137,7 @@ span.clearable input {
 	display: inline-block;
 	font-size: x-large;
 }
-#song_control_icons .anim-container {
+#song-control-icons .anim-container {
 	display: inline-block;
 
 	height: 1.5rem;
@@ -147,50 +147,50 @@ span.clearable input {
 	// css hack to center play button
 	margin-right: 31px;
 }
-#additional_controls {
+#additional-controls {
 	text-align: center;
 	display: flex;
 	justify-content: space-between;
 }
-#additional_controls i {
+#additional-controls i {
 	font-size: x-large;
 }
-#total_time_container {
+#total-time-container {
 	display: flex;
 	width: 25%;
 }
-#total_time {
+#total-time {
 	margin-left: 5px;
 }
-#volume_slider {
+#volume-slider {
 	max-width: 200px;
 	width: 80%;
 }
-#volume_slider_container {
+#volume-slider-container {
 	width: 50%;
 }
-#queue_controls i {
+#queue-controls i {
 	padding-left: 5px;
 	padding-right: 5px;
 }
-#queue_controls {
+#queue-controls {
 	width: 25%;
 	display: flex;
 	justify-content: flex-end;
 }
 
 // song queue
-$entry_height: 50px;
-#song_queue>li {
+$entry-height: 50px;
+#song-queue>li {
 	padding: 5px;
 }
-.queue_entry {
+.queue-entry {
 	display: flex;
 	flex-wrap: wrap;
 	flex-direction: column;
-	height: $entry_height;
+	height: $entry-height;
 }
-.download_icon {
+.download-icon {
 	position: relative;
 	height: 100%;
 	width: 50px;
@@ -199,10 +199,10 @@ $entry_height: 50px;
 	align-items: center;
 	fill: var(--normal-text);
 }
-.download_icon svg {
+.download-icon svg {
 	height: 70%;
 }
-.download_overlay {
+.download-overlay {
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -215,51 +215,51 @@ $entry_height: 50px;
     60%{background-position:0% 0%}
     100%{background-position:0% 0%}
 }
-.queue_index {
+.queue-index {
 	flex: 0 0 100%;
-	width: $entry_height;
+	width: $entry-height;
 
-	line-height: $entry_height;
+	line-height: $entry-height;
 	text-align: center;
 
 	font-size: larger;
 	font-weight: bold;
 }
-.queue_title, .queue_info {
+.queue-title, .queue-info {
 	word-break: break-all;
 	overflow: hidden;
 	flex: 0 0 50%;
 	order: 1;
-	width: calc(100% - #{$entry_height});
+	width: calc(100% - #{$entry-height});
 	padding-left: 5px;
 	padding-right: 5px;
 }
-.queue_info_time {
+.queue-info-time {
 	font-size: small;
 }
-.queue_info_controls {
+.queue-info-controls {
 	float: right;
 }
-.queue_info_controls>i {
+.queue-info-controls>i {
 	padding-left: 8px;
 	padding-right: 8px;
 }
 
-.vote_up.pressed {
+.vote-up.pressed {
 	color: var(--upvote);
 }
-.vote_down.pressed {
+.vote-down.pressed {
 	color: var(--downvote);
 }
 
-#vote_timeout {
+#vote-timeout {
 	width: 100%;
 	height: 5px;
 }
-#vote_timeout_bar {
+#vote-timeout-bar {
 	height: 100%;
 }
 
-#youtube_link {
+#youtube-link {
 	padding: 10px;
 }

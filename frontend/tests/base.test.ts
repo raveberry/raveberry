@@ -2,7 +2,10 @@ import * as base from '@src/base';
 import * as util from './util';
 
 beforeAll(() => {
-  util.render_template('base.html', {'local_enabled': true, 'youtube_enabled': true});
+  util.renderTemplate('base.html', {
+    'local_enabled': true,
+    'youtube_enabled': true,
+  });
 });
 
 beforeEach(() => {
@@ -30,16 +33,16 @@ test('base state is updated', () => {
     'partymode': true,
     'users': 7,
     'visitors': 318,
-    'lights_enabled': true,
+    'lightsEnabled': true,
     'alarm': true,
-    'default_platform': 'youtube',
+    'defaultPlatform': 'youtube',
   };
   base.updateBaseState(state);
-  expect($('#navbar_icon')[0]).toHaveClass('partymode');
+  expect($('#navbar-icon')[0]).toHaveClass('partymode');
   expect($('#users')[0]).toHaveTextContent('7');
   expect($('#visitors')[0]).toHaveTextContent('318');
-  expect($('#lights_indicator')[0]).toHaveClass('icon_enabled');
-  expect($('#lights_indicator')[0]).not.toHaveClass('icon_disabled');
+  expect($('#lights-indicator')[0]).toHaveClass('icon-enabled');
+  expect($('#lights-indicator')[0]).not.toHaveClass('icon-disabled');
   expect($('body')[0]).toHaveClass('alarm');
 });
 
@@ -47,10 +50,11 @@ test('hashtag is submitted', () => {
   base.onReady();
   const post = jest.fn();
   $.post = post;
-  $('#hashtag_plus').click();
-  $('#hashtag_input').val('raveberry');
-  $('#hashtag_plus').click();
-  expect(post.mock.calls[0]).toEqual([urls['submit_hashtag'], {'hashtag': 'raveberry'}]);
+  $('#hashtag-plus').click();
+  $('#hashtag-input').val('raveberry');
+  $('#hashtag-plus').click();
+  expect(post.mock.calls[0])
+      .toEqual([urls['submit-hashtag'], {'hashtag': 'raveberry'}]);
 });
 
 test('platform are set in storage', () => {
@@ -67,10 +71,14 @@ test.each([
   [true, true, true, false],
   [true, false, false, false],
   [false, false, true, false],
-])('update notifications', (isAdmin, updatesIgnored, updateAvailable, bannerShouldBeShown) => {
+])('update notifications', (
+    isAdmin,
+    updatesIgnored,
+    updateAvailable,
+    bannerShouldBeShown) => {
   ADMIN = isAdmin;
   if (updatesIgnored) {
-    base.localStorageSet('ignore_updates', '');
+    base.localStorageSet('ignore-updates', '');
   }
 
   // create a promise that will be returned

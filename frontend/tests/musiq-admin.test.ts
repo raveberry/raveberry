@@ -3,7 +3,7 @@ import * as update from '@src/musiq/update';
 import * as util from './util';
 
 beforeAll(() => {
-  util.render_template('musiq.html', {'is_admin': true});
+  util.renderTemplate('musiq.html', {'is_admin': true});
 });
 
 beforeEach(() => {
@@ -18,13 +18,13 @@ afterEach(() => {
 test('remove all', () => {
   buttons.onReady();
 
-  $('#remove_all').click();
+  $('#remove-all').click();
   expect($('#warning-toast')[0]).toBeVisible();
 
   const post = jest.fn().mockReturnValue($.Deferred());
   $.post = post;
-  $('#playlist_mode').click();
-  $('#remove_all').click();
-  expect(post).toHaveBeenCalledWith(urls['remove_all']);
+  $('#playlist-mode').click();
+  $('#remove-all').click();
+  expect(post).toHaveBeenCalledWith(urls['remove-all']);
 });
 

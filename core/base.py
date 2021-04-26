@@ -90,9 +90,9 @@ class Base(Stateful):
             "visitors": models.Counter.objects.get_or_create(
                 id=1, defaults={"value": 0}
             )[0].value,
-            "lights_enabled": self.lights.loop_active.is_set(),
+            "lightsEnabled": self.lights.loop_active.is_set(),
             "alarm": self.musiq.playback.alarm_playing.is_set(),
-            "default_platform": "spotify"
+            "defaultPlatform": "spotify"
             if self.settings.platforms.spotify_enabled
             else "youtube",
         }

@@ -24,20 +24,20 @@ class LedTests(RaveberryTest):
         self.strip.clear = Mock()
 
     def tearDown(self):
-        self.client.post(reverse("set_ring_program"), {"value": "Disabled"})
-        self.client.post(reverse("set_strip_program"), {"value": "Disabled"})
+        self.client.post(reverse("set-ring-program"), {"value": "Disabled"})
+        self.client.post(reverse("set-strip-program"), {"value": "Disabled"})
 
         super().tearDown()
 
     def test_fixed(self):
-        self.client.post(reverse("set_ring_program"), {"value": "Fixed"})
-        self.client.post(reverse("set_strip_program"), {"value": "Fixed"})
+        self.client.post(reverse("set-ring-program"), {"value": "Fixed"})
+        self.client.post(reverse("set-strip-program"), {"value": "Fixed"})
         time.sleep(0.5)
         self.set_ring_colors.assert_called_with(
             list((0, 0, 0) for _ in range(self.ring.LED_COUNT))
         )
         self.set_strip_color.assert_called_with((0, 0, 0))
-        self.client.post(reverse("set_fixed_color"), {"value": "#abcdef"})
+        self.client.post(reverse("set-fixed-color"), {"value": "#abcdef"})
         time.sleep(0.5)
         color = tuple(val / 255 for val in (0xAB, 0xCD, 0xEF))
         self.set_ring_colors.assert_called_with(
@@ -56,9 +56,9 @@ class LedTests(RaveberryTest):
             self.assertLess(closest, 0.1)
 
     def test_rainbow(self):
-        self.client.post(reverse("set_ring_program"), {"value": "Rainbow"})
-        self.client.post(reverse("set_strip_program"), {"value": "Rainbow"})
-        self.client.post(reverse("set_program_speed"), {"value": "2"})
+        self.client.post(reverse("set-ring-program"), {"value": "Rainbow"})
+        self.client.post(reverse("set-strip-program"), {"value": "Rainbow"})
+        self.client.post(reverse("set-program-speed"), {"value": "2"})
         time.sleep(0.5)
 
         # make sure all colors of the rainbow were shown
@@ -71,17 +71,17 @@ class LedTests(RaveberryTest):
             self._assert_all_hues(frame)
 
     def test_shortcut(self):
-        self.client.post(reverse("set_ring_program"), {"value": "Fixed"})
-        self.client.post(reverse("set_strip_program"), {"value": "Rainbow"})
+        self.client.post(reverse("set-ring-program"), {"value": "Fixed"})
+        self.client.post(reverse("set-strip-program"), {"value": "Rainbow"})
 
-        self.client.post(reverse("set_ring_program"), {"value": "Disabled"})
-        self.client.post(reverse("set_strip_program"), {"value": "Disabled"})
+        self.client.post(reverse("set-ring-program"), {"value": "Disabled"})
+        self.client.post(reverse("set-strip-program"), {"value": "Disabled"})
 
-        state = json.loads(self.client.get(reverse("lights_state")).content)
-        self.assertFalse(state["lights_enabled"])
+        state = json.loads(self.client.get(reverse("lights-state")).content)
+        self.assertFalse(state["lightsEnabled"])
 
-        self.client.post(reverse("set_lights_shortcut"), {"value": "true"})
+        self.client.post(reverse("set-lights-shortcut"), {"value": "true"})
 
-        state = json.loads(self.client.get(reverse("lights_state")).content)
-        self.assertEqual(state["lights"]["ring_program"], "Fixed")
-        self.assertEqual(state["lights"]["strip_program"], "Rainbow")
+        state = json.loads(self.client.get(reverse("lights-state")).content)
+        self.assertEqual(state["lights"]["ringProgram"], "Fixed")
+        self.assertEqual(state["lights"]["stripProgram"], "Rainbow")

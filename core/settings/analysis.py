@@ -164,9 +164,7 @@ class Analysis:
             list_id=list_id, title=name, counter=0
         )
         if not created:
-            return HttpResponseBadRequest(
-                "Playlist for the given timeframe already exists"
-            )
+            return HttpResponseBadRequest("Playlist already exists")
 
         song_index = 0
         for log in played:

@@ -105,7 +105,7 @@ export function successToast(firstLine, secondLine?) {
  */
 export function warningToast(firstLine, secondLine?, showBar?) {
   if (!showBar) {
-    $('#vote_timeout_bar').hide();
+    $('#vote-timeout-bar').hide();
   }
   $('#warning-toast').find('.toast-content').text(firstLine);
   if (secondLine != null) {
@@ -162,28 +162,28 @@ export function errorToast(firstLine, secondLine?) {
 export function updateBaseState(state) {
   $('#users').text(state.users);
   $('#visitors').text(state.visitors);
-  if (state.lights_enabled) {
-    $('#lights_indicator').addClass('icon_enabled');
-    $('#lights_indicator').removeClass('icon_disabled');
+  if (state.lightsEnabled) {
+    $('#lights-indicator').addClass('icon-enabled');
+    $('#lights-indicator').removeClass('icon-disabled');
   } else {
-    $('#lights_indicator').removeClass('icon_enabled');
-    $('#lights_indicator').addClass('icon_disabled');
+    $('#lights-indicator').removeClass('icon-enabled');
+    $('#lights-indicator').addClass('icon-disabled');
   }
   if (state.partymode) {
-    $('#navbar_icon').addClass('partymode');
+    $('#navbar-icon').addClass('partymode');
     if (state.alarm) {
       $('body').addClass('alarm');
-      $('#progress_bar').addClass('alarm');
+      $('#progress-bar').addClass('alarm');
     } else {
       $('body').removeClass('alarm');
-      $('#progress_bar').removeClass('alarm');
+      $('#progress-bar').removeClass('alarm');
     }
   } else {
-    $('#navbar_icon').removeClass('partymode');
+    $('#navbar-icon').removeClass('partymode');
   }
 
   if (localStorageGet('platform') === null) {
-    localStorageSet('platform', state.default_platform, 1);
+    localStorageSet('platform', state.defaultPlatform, 1);
   }
 
   updatePlatformClasses();
@@ -239,7 +239,7 @@ export function decideScrolling(span, secondsPerPixel, staticSeconds) {
     const movingSeconds = spaceOverflowed * secondsPerPixel;
     const duration = (staticSeconds + movingSeconds) * 2;
 
-    const animationName = 'marquee_' + span.attr('id') + '_' + $.now();
+    const animationName = 'marquee-' + span.attr('id') + '-' + $.now();
     const keyframes = {};
     keyframes['name'] = animationName;
     keyframes['0%'] = {transform: 'translate(0, 0)'};
@@ -266,26 +266,26 @@ export function decideScrolling(span, secondsPerPixel, staticSeconds) {
 
 /** Reads the preferred platform from local storage and updates the icons. */
 function updatePlatformClasses() {
-  $('#local').removeClass('icon_enabled');
-  $('#youtube').removeClass('icon_enabled');
-  $('#spotify').removeClass('icon_enabled');
-  $('#soundcloud').removeClass('icon_enabled');
-  $('#local').addClass('icon_disabled');
-  $('#youtube').addClass('icon_disabled');
-  $('#spotify').addClass('icon_disabled');
-  $('#soundcloud').addClass('icon_disabled');
+  $('#local').removeClass('icon-enabled');
+  $('#youtube').removeClass('icon-enabled');
+  $('#spotify').removeClass('icon-enabled');
+  $('#soundcloud').removeClass('icon-enabled');
+  $('#local').addClass('icon-disabled');
+  $('#youtube').addClass('icon-disabled');
+  $('#spotify').addClass('icon-disabled');
+  $('#soundcloud').addClass('icon-disabled');
   if (localStorageGet('platform') == 'local') {
-    $('#local').removeClass('icon_disabled');
-    $('#local').addClass('icon_enabled');
+    $('#local').removeClass('icon-disabled');
+    $('#local').addClass('icon-enabled');
   } else if (localStorageGet('platform') == 'youtube') {
-    $('#youtube').removeClass('icon_disabled');
-    $('#youtube').addClass('icon_enabled');
+    $('#youtube').removeClass('icon-disabled');
+    $('#youtube').addClass('icon-enabled');
   } else if (localStorageGet('platform') == 'spotify') {
-    $('#spotify').removeClass('icon_disabled');
-    $('#spotify').addClass('icon_enabled');
+    $('#spotify').removeClass('icon-disabled');
+    $('#spotify').addClass('icon-enabled');
   } else if (localStorageGet('platform') == 'soundcloud') {
-    $('#soundcloud').removeClass('icon_disabled');
-    $('#soundcloud').addClass('icon_enabled');
+    $('#soundcloud').removeClass('icon-disabled');
+    $('#soundcloud').addClass('icon-enabled');
   }
 }
 
@@ -294,17 +294,17 @@ function toggleTheme() {
   if ($('html').hasClass('light')) {
     $('html').removeClass('light');
 
-    $('#light_theme').removeClass('icon_enabled');
-    $('#light_theme').addClass('icon_disabled');
-    $('#dark_theme').removeClass('icon_disabled');
-    $('#dark_theme').addClass('icon_enabled');
+    $('#light-theme').removeClass('icon-enabled');
+    $('#light-theme').addClass('icon-disabled');
+    $('#dark-theme').removeClass('icon-disabled');
+    $('#dark-theme').addClass('icon-enabled');
   } else {
     $('html').addClass('light');
 
-    $('#light_theme').removeClass('icon_disabled');
-    $('#light_theme').addClass('icon_enabled');
-    $('#dark_theme').removeClass('icon_enabled');
-    $('#dark_theme').addClass('icon_disabled');
+    $('#light-theme').removeClass('icon-disabled');
+    $('#light-theme').addClass('icon-enabled');
+    $('#dark-theme').removeClass('icon-enabled');
+    $('#dark-theme').addClass('icon-disabled');
   }
 }
 
@@ -360,28 +360,28 @@ function ripple() {
 
 /** Apply autoscrolling to the hashtag if necessary. */
 function decideHashtagScrolling() {
-  decideScrolling($('#hashtag_text'), 0.030, 2);
+  decideScrolling($('#hashtag-text'), 0.030, 2);
 }
 
 /** Show the update banner if an update is available. */
 export function handleUpdateBanner() {
-  $('#goto_update').on('click tap', function() {
-    location.href = '/settings/#show_changelog';
+  $('#goto-update').on('click tap', function() {
+    location.href = '/settings/#show-changelog';
     if (location.pathname.endsWith('/settings/')) {
       location.reload();
     }
   });
-  $('#remind_updates').on('click tap', function() {
-    localStorageSet('ignore_updates', '', 1);
+  $('#remind-updates').on('click tap', function() {
+    localStorageSet('ignore-updates', '', 1);
     $('#update-banner').slideUp('fast');
   });
-  $('#ignore_updates').on('click tap', function() {
-    localStorageSet('ignore_updates', '', 365);
+  $('#ignore-updates').on('click tap', function() {
+    localStorageSet('ignore-updates', '', 365);
     $('#update-banner').slideUp('fast');
   });
   if (ADMIN) {
-    if (localStorageGet('ignore_updates') === null) {
-      $.get(urls['upgrade_available']).done(function(response) {
+    if (localStorageGet('ignore-updates') === null) {
+      $.get(urls['upgrade-available']).done(function(response) {
         if (response) {
           $('#update-banner').slideDown('fast');
         }
@@ -394,11 +394,11 @@ export function handleUpdateBanner() {
 export function onReady() {
   if (localStorageGet('theme') == 'light') {
     $('html').addClass('light');
-    $('#light_theme').addClass('icon_enabled');
-    $('#dark_theme').addClass('icon_disabled');
+    $('#light-theme').addClass('icon-enabled');
+    $('#dark-theme').addClass('icon-disabled');
   } else {
-    $('#light_theme').addClass('icon_disabled');
-    $('#dark_theme').addClass('icon_enabled');
+    $('#light-theme').addClass('icon-disabled');
+    $('#dark-theme').addClass('icon-enabled');
   }
 
   // add the csrf token to every post request
@@ -408,7 +408,7 @@ export function onReady() {
       options.data = options.data || '';
       // add leading ampersand if `data` is non-empty
       options.data += options.data ? '&' : '';
-      // add _token entry
+      // add csrf token entry
       options.data += 'csrfmiddlewaretoken=' + encodeURIComponent(CSRF_TOKEN);
     }
   });
@@ -425,8 +425,8 @@ export function onReady() {
   $(document).on('click tap', '.fab', ripple);
 
   // Hashtag transition animation
-  const text = $('#hashtag_text_container');
-  const input = $('#hashtag_input');
+  const text = $('#hashtag-text-container');
+  const input = $('#hashtag-input');
 
   // toggles the view between the hashtags text and the input form
   const hashtagToggler = function() {
@@ -470,42 +470,42 @@ export function onReady() {
 
   // submit hashtags
   const submitHashtag = function() {
-    $.post(urls['submit_hashtag'],
+    $.post(urls['submit-hashtag'],
         {
-          hashtag: $('#hashtag_input').val(),
+          hashtag: $('#hashtag-input').val(),
         });
-    $('#hashtag_input').val('');
+    $('#hashtag-input').val('');
     hashtagToggler();
   };
-  $('#hashtag_plus').on('click tap', function(e) {
+  $('#hashtag-plus').on('click tap', function(e) {
     if (text.css('max-width').startsWith('0')) {
       submitHashtag();
     } else {
       hashtagToggler();
     }
   });
-  $('#hashtag_input').on('keypress', function(e) {
+  $('#hashtag-input').on('keypress', function(e) {
     if (e.which === 13) {
       submitHashtag();
     }
   });
 
   // enable/disable lights
-  $('#lights_indicator').on('click tap', function() {
-    $.post(urls['set_lights_shortcut'], {
-      value: !$(this).hasClass('icon_enabled'),
+  $('#lights-indicator').on('click tap', function() {
+    $.post(urls['set-lights-shortcut'], {
+      value: !$(this).hasClass('icon-enabled'),
     });
   });
 
-  $('#light_theme').on('click tap', function() {
-    if ($(this).hasClass('icon_enabled')) {
+  $('#light-theme').on('click tap', function() {
+    if ($(this).hasClass('icon-enabled')) {
       return;
     }
     toggleTheme();
     localStorageSet('theme', 'light');
   });
-  $('#dark_theme').on('click tap', function() {
-    if ($(this).hasClass('icon_enabled')) {
+  $('#dark-theme').on('click tap', function() {
+    if ($(this).hasClass('icon-enabled')) {
       return;
     }
     toggleTheme();
@@ -513,28 +513,28 @@ export function onReady() {
   });
 
   $('#local').on('click tap', function() {
-    if ($(this).hasClass('icon_enabled')) {
+    if ($(this).hasClass('icon-enabled')) {
       return;
     }
     localStorageSet('platform', 'local', 1);
     updatePlatformClasses();
   });
   $('#youtube').on('click tap', function() {
-    if ($(this).hasClass('icon_enabled')) {
+    if ($(this).hasClass('icon-enabled')) {
       return;
     }
     localStorageSet('platform', 'youtube', 1);
     updatePlatformClasses();
   });
   $('#spotify').on('click tap', function() {
-    if ($(this).hasClass('icon_enabled')) {
+    if ($(this).hasClass('icon-enabled')) {
       return;
     }
     localStorageSet('platform', 'spotify', 1);
     updatePlatformClasses();
   });
   $('#soundcloud').on('click tap', function() {
-    if ($(this).hasClass('icon_enabled')) {
+    if ($(this).hasClass('icon-enabled')) {
       return;
     }
     localStorageSet('platform', 'soundcloud', 1);

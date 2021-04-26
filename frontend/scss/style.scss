@@ -56,13 +56,13 @@ body {
 .fas:active {
 	color: var(--silent-text);
 }
-.fas.icon_disabled {
+.fas.icon-disabled {
 	color: var(--silent-text);
 }
-.fab.icon_disabled {
+.fab.icon-disabled {
 	color: var(--silent-text);
 }
-.fas.icon_enabled {
+.fas.icon-enabled {
 	color: var(--normal-text);
 }
 
@@ -89,7 +89,7 @@ body {
 #update-banner {
 	background-color: var(--yellow);
 }
-#update_banner_buttons > span {
+#update-banner-buttons > span {
 	display: inline-block;
 	width: 30%;
 	text-align: center;
@@ -212,30 +212,30 @@ body {
 }
 
 
-.list_header {
+.list-header {
 	font-size: x-large;
 }
-.list_item {
+.list-item {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 }
-.list_header {
+.list-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 }
-.list_item.centered {
+.list-item.centered {
 	justify-content: center;
 }
-.list_item > *{
+.list-item > *{
 	width: 50%;
 	max-width: 200px;
 }
-.list_item > div {
+.list-item > div {
 	text-align: center;
 }
-.list_item > button {
+.list-item > button {
 	margin: 0px 10px;
 }
 
@@ -244,11 +244,11 @@ body {
 	color: var(--elevated-background);
 }
 
-.autoscrolling_container {
+.autoscrolling-container {
 	white-space: nowrap;
 	overflow: hidden;
 }
-.autoscrolling_container>span.autoscrolling {
+.autoscrolling-container>span.autoscrolling {
 	display: inline-block;
 }
 
@@ -257,4 +257,4 @@ body {
 @import "musiq";
 @import "lights";
 @import "settings";
-@import "network_info";
+@import "network-info";

@@ -31,11 +31,11 @@ class SpotifyTests(MusicTest):
             key="spotify_client_secret", defaults={"value": client_secret}
         )
 
-        self.client.post(reverse("set_spotify_enabled"), {"value": "true"})
+        self.client.post(reverse("set-spotify-enabled"), {"value": "true"})
 
     def test_query(self):
         self.client.post(
-            reverse("request_music"),
+            reverse("request-music"),
             {
                 "query": "Eskimo Callboy MC Thunder",
                 "playlist": "false",
@@ -44,7 +44,7 @@ class SpotifyTests(MusicTest):
         )
         current_song = self._poll_current_song()
         self.assertEqual(
-            current_song["external_url"],
+            current_song["externalUrl"],
             "https://open.spotify.com/track/7synI8hwKZiEsf11m1tqto",
         )
         self.assertEqual(current_song["artist"], "Eskimo Callboy")
@@ -53,7 +53,7 @@ class SpotifyTests(MusicTest):
 
     def test_url(self):
         self.client.post(
-            reverse("request_music"),
+            reverse("request-music"),
             {
                 "query": "https://open.spotify.com/track/4EyPadLFhtWojU7mkT5hqT",
                 "playlist": "false",
@@ -62,7 +62,7 @@ class SpotifyTests(MusicTest):
         )
         current_song = self._poll_current_song()
         self.assertEqual(
-            current_song["external_url"],
+            current_song["externalUrl"],
             "https://open.spotify.com/track/4EyPadLFhtWojU7mkT5hqT",
         )
         self.assertEqual(current_song["artist"], "Bring Me The Horizon")
@@ -71,7 +71,7 @@ class SpotifyTests(MusicTest):
 
     def test_playlist_url(self):
         self.client.post(
-            reverse("request_music"),
+            reverse("request-music"),
             {
                 "query": "https://open.spotify.com/playlist/2Ja8Y9o9awbq6F9Sl1AcwI",
                 "playlist": "true",
@@ -79,35 +79,35 @@ class SpotifyTests(MusicTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: state["musiq"]["current_song"]
-            and len(state["musiq"]["song_queue"]) == 4
-            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
+            lambda state: state["musiq"]["currentSong"]
+            and len(state["musiq"]["songQueue"]) == 4
+            and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
             timeout=60,
         )
         self.assertEqual(
-            state["musiq"]["current_song"]["external_url"],
+            state["musiq"]["currentSong"]["externalUrl"],
             "https://open.spotify.com/track/5wq8wceQvaFlOZovDtfr0j",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][0]["external_url"],
+            state["musiq"]["songQueue"][0]["externalUrl"],
             "https://open.spotify.com/track/5rupf5kRDLhhFPxH15ZmBF",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][1]["external_url"],
+            state["musiq"]["songQueue"][1]["externalUrl"],
             "https://open.spotify.com/track/3IwAWUa9JeTbwumBPvnOj9",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][2]["external_url"],
+            state["musiq"]["songQueue"][2]["externalUrl"],
             "https://open.spotify.com/track/3vMrcGW4o35zY6vXjWb1p7",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][3]["external_url"],
+            state["musiq"]["songQueue"][3]["externalUrl"],
             "https://open.spotify.com/track/6Jf7Sx68vsWFKeWjOxcLhQ",
         )
 
     def test_playlist_query(self):
         self.client.post(
-            reverse("request_music"),
+            reverse("request-music"),
             {
                 "query": "Muse Resistance Album",
                 "playlist": "true",
@@ -115,35 +115,35 @@ class SpotifyTests(MusicTest):
             },
         )
         state = self._poll_musiq_state(
-            lambda state: state["musiq"]["current_song"]
-            and len(state["musiq"]["song_queue"]) == 4
-            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
+            lambda state: state["musiq"]["currentSong"]
+            and len(state["musiq"]["songQueue"]) == 4
+            and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
             timeout=60,
         )
         self.assertEqual(
-            state["musiq"]["current_song"]["external_url"],
+            state["musiq"]["currentSong"]["externalUrl"],
             "https://open.spotify.com/track/5wq8wceQvaFlOZovDtfr0j",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][0]["external_url"],
+            state["musiq"]["songQueue"][0]["externalUrl"],
             "https://open.spotify.com/track/5rupf5kRDLhhFPxH15ZmBF",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][1]["external_url"],
+            state["musiq"]["songQueue"][1]["externalUrl"],
             "https://open.spotify.com/track/3IwAWUa9JeTbwumBPvnOj9",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][2]["external_url"],
+            state["musiq"]["songQueue"][2]["externalUrl"],
             "https://open.spotify.com/track/3vMrcGW4o35zY6vXjWb1p7",
         )
         self.assertEqual(
-            state["musiq"]["song_queue"][3]["external_url"],
+            state["musiq"]["songQueue"][3]["externalUrl"],
             "https://open.spotify.com/track/6Jf7Sx68vsWFKeWjOxcLhQ",
         )
 
     def test_autoplay(self):
         self.client.post(
-            reverse("request_music"),
+            reverse("request-music"),
             {
                 "query": "https://open.spotify.com/track/4VqPOruhp5EdPBeR92t6lQ",
                 "playlist": "false",
@@ -151,27 +151,27 @@ class SpotifyTests(MusicTest):
             },
         )
         self._poll_current_song()
-        self.client.post(reverse("set_autoplay"), {"value": "true"})
+        self.client.post(reverse("set-autoplay"), {"value": "true"})
         # make sure a song was downloaded into the queue
         state = self._poll_musiq_state(
-            lambda state: len(state["musiq"]["song_queue"]) == 1
-            and state["musiq"]["song_queue"][0]["internal_url"],
+            lambda state: len(state["musiq"]["songQueue"]) == 1
+            and state["musiq"]["songQueue"][0]["internalUrl"],
             timeout=10,
         )
-        old_id = state["musiq"]["song_queue"][0]["id"]
+        old_id = state["musiq"]["songQueue"][0]["id"]
 
         self.client.post(reverse("skip"))
         # make sure another song is enqueued
         self._poll_musiq_state(
-            lambda state: len(state["musiq"]["song_queue"]) == 1
-            and state["musiq"]["song_queue"][0]["internal_url"]
-            and state["musiq"]["song_queue"][0]["id"] != old_id,
+            lambda state: len(state["musiq"]["songQueue"]) == 1
+            and state["musiq"]["songQueue"][0]["internalUrl"]
+            and state["musiq"]["songQueue"][0]["id"] != old_id,
             timeout=10,
         )
 
     def test_radio(self):
         self.client.post(
-            reverse("request_music"),
+            reverse("request-music"),
             {
                 "query": "https://open.spotify.com/track/4VqPOruhp5EdPBeR92t6lQ",
                 "playlist": "false",
@@ -179,10 +179,10 @@ class SpotifyTests(MusicTest):
             },
         )
         self._poll_current_song()
-        self.client.post(reverse("request_radio"))
+        self.client.post(reverse("request-radio"))
         # ensure that 5 songs are enqueued
         self._poll_musiq_state(
-            lambda state: len(state["musiq"]["song_queue"]) == 5
-            and all(song["internal_url"] for song in state["musiq"]["song_queue"]),
+            lambda state: len(state["musiq"]["songQueue"]) == 5
+            and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
             timeout=60,
         )

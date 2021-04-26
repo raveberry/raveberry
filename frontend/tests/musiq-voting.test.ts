@@ -1,9 +1,9 @@
-import * as buttons_voting from '@src/musiq/buttons_voting';
+import * as buttonsVoting from '@src/musiq/buttons-voting';
 import * as update from '@src/musiq/update';
 import * as util from './util';
 
 beforeAll(() => {
-  util.render_template('musiq.html', {'voting_system': true});
+  util.renderTemplate('musiq.html', {'voting-system': true});
 });
 
 beforeEach(() => {
@@ -15,16 +15,16 @@ afterEach(() => {
   localStorage.clear();
 });
 
-test.each(['.vote_up', '.vote_down'])
+test.each(['.vote-up', '.vote-down'])
 ('voting frequency', (buttonClass) => {
-  buttons_voting.onReady();
+  buttonsVoting.onReady();
 
   for (let i = 0; i < 10; i++) {
-    $('#current_song_card ' + buttonClass).click();
+    $('#current-song-card ' + buttonClass).click();
   }
   expect($('#warning-toast')[0]).not.toBeVisible();
   for (let i = 0; i < 100; i++) {
-    $('#current_song_card ' + buttonClass).click();
+    $('#current-song-card ' + buttonClass).click();
   }
   expect($('#warning-toast')[0]).toBeVisible();
 });

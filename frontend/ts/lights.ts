@@ -3,6 +3,7 @@ import {
   successToast,
   errorToast, infoToast,
 } from './base.js';
+import {kebabize} from './util.js';
 
 
 /** Update the lights state.
@@ -18,7 +19,7 @@ function updateState(state) {
       continue;
     }
     const value = state.lights[key];
-    const element = $('#' + key );
+    const element = $('#' + kebabize(key));
     if (element.is(':checkbox')) {
       element.prop('checked', value);
     } else if (element.is('input')) {
@@ -29,12 +30,12 @@ function updateState(state) {
   }
 
   for (const leds of ['ring', 'wled', 'strip', 'screen']) {
-    if (state.lights[leds + '_connected']) {
-      $('#' + leds + '_options').removeClass('disabled');
-      $('#' + leds + '_options .list_item').show();
+    if (state.lights[leds + 'Connected']) {
+      $('#' + leds + '-options').removeClass('disabled');
+      $('#' + leds + '-options .list-item').show();
     } else {
-      $('#' + leds + '_options').addClass('disabled');
-      $('#' + leds + '_options .list_item').hide();
+      $('#' + leds + '-options').addClass('disabled');
+      $('#' + leds + '-options .list-item').hide();
     }
   }
 }
@@ -68,12 +69,11 @@ export function onReady() {
     }
     const url = urls['lights'][key];
 
-    // all set_x urls post some data and show a toast with the result.
+    // all set-x urls post some data and show a toast with the result.
     // most of them are inputs or checkboxes with a simple 'value' field.
     // add this behavior to each of these elements
-    console.log(url);
-    if (key.startsWith('set_')) {
-      const id = key.substr('set_'.length);
+    if (key.startsWith('set-')) {
+      const id = key.substr('set-'.length);
       const element = $('#' + id);
       element.change(function() {
         let prePost;
@@ -96,8 +96,8 @@ export function onReady() {
     }
   }
 
-  $('#adjust_screen').on('click tap', function() {
-    post(urls['lights']['adjust_screen']);
+  $('#adjust-screen').on('click tap', function() {
+    post(urls['lights']['adjust-screen']);
   });
 }
 

@@ -247,24 +247,24 @@ class Lights(Stateful):
         state_dict = self.base.state_dict()
 
         lights_state = {}
-        lights_state["ring_connected"] = self.ring.initialized
-        lights_state["ring_program"] = self.ring.program.name
-        lights_state["ring_brightness"] = self.ring.brightness
-        lights_state["ring_monochrome"] = self.ring.monochrome
-        lights_state["wled_led_count"] = self.wled.led_count
-        lights_state["wled_ip"] = self.wled.ip
-        lights_state["wled_port"] = self.wled.port
-        lights_state["wled_connected"] = self.wled.initialized
-        lights_state["wled_program"] = self.wled.program.name
-        lights_state["wled_brightness"] = self.wled.brightness
-        lights_state["wled_monochrome"] = self.wled.monochrome
-        lights_state["strip_connected"] = self.strip.initialized
-        lights_state["strip_program"] = self.strip.program.name
-        lights_state["strip_brightness"] = self.strip.brightness
-        lights_state["screen_connected"] = self.screen.initialized
-        lights_state["screen_program"] = self.screen.program.name
-        lights_state["program_speed"] = self.program_speed
-        lights_state["fixed_color"] = "#{:02x}{:02x}{:02x}".format(
+        lights_state["ringConnected"] = self.ring.initialized
+        lights_state["ringProgram"] = self.ring.program.name
+        lights_state["ringBrightness"] = self.ring.brightness
+        lights_state["ringMonochrome"] = self.ring.monochrome
+        lights_state["wledLedCount"] = self.wled.led_count
+        lights_state["wledIp"] = self.wled.ip
+        lights_state["wledPort"] = self.wled.port
+        lights_state["wledConnected"] = self.wled.initialized
+        lights_state["wledProgram"] = self.wled.program.name
+        lights_state["wledBrightness"] = self.wled.brightness
+        lights_state["wledMonochrome"] = self.wled.monochrome
+        lights_state["stripConnected"] = self.strip.initialized
+        lights_state["stripProgram"] = self.strip.program.name
+        lights_state["stripBrightness"] = self.strip.brightness
+        lights_state["screenConnected"] = self.screen.initialized
+        lights_state["screenProgram"] = self.screen.program.name
+        lights_state["programSpeed"] = self.program_speed
+        lights_state["fixedColor"] = "#{:02x}{:02x}{:02x}".format(
             *(int(val * 255) for val in self.fixed_color)
         )
 

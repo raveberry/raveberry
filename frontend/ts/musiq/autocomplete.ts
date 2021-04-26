@@ -15,7 +15,7 @@ import 'jquery-ui/ui/widgets/autocomplete';
 export function onReady() {
   $('.autocomplete').autocomplete({
     source: function(request, response) {
-      $.get(urls['musiq']['get_suggestions'], {
+      $.get(urls['musiq']['get-suggestions'], {
         'term': request.term,
         'playlist': playlistEnabled(),
       }).done(function(suggestions) {
@@ -28,10 +28,10 @@ export function onReady() {
         response(suggestions);
       });
     },
-    appendTo: '#music_input_card',
+    appendTo: '#music-input-card',
     open: function() {
       // align the autocomplete box with the card instead of the input field
-      $('#music_input_card > ul').css({left: '0px'});
+      $('#music-input-card > ul').css({left: '0px'});
     },
     select: function(event, ui) {
       let origEvent = event;
@@ -41,8 +41,8 @@ export function onReady() {
       }
 
       const elem = $(origEvent.target);
-      if (elem.hasClass('autocomplete_info') ||
-          elem.parents('.autocomplete_info').length > 0) {
+      if (elem.hasClass('autocomplete-info') ||
+          elem.parents('.autocomplete-info').length > 0) {
         // the info or insert button was clicked,
         // insert the text (default behavior)
         return true;
@@ -69,13 +69,13 @@ export function onReady() {
     if (item.type == 'search') {
       const term = $('<span>').text(item.label);
       const additionalKeywords = $('<span>')
-          .addClass('additional_keywords')
+          .addClass('additional-keywords')
           .text(ADDITIONAL_KEYWORDS);
       const forbiddenKeywords = $('<span>')
-          .addClass('forbidden_keywords')
+          .addClass('forbidden-keywords')
           .text(FORBIDDEN_KEYWORDS.split(/[\s,]+/).join(' '));
       const suggestionDiv = $('<div>')
-          .append('<i class="fas fa-search suggestion_type"></i>')
+          .append('<i class="fas fa-search suggestion-type"></i>')
           .append(term)
           .append(additionalKeywords);
       suggestionDiv.append(forbiddenKeywords);
@@ -86,7 +86,7 @@ export function onReady() {
     }
 
     const icon = $('<i>')
-        .addClass('suggestion_type')
+        .addClass('suggestion-type')
         .addClass(item.type);
     if (item.type.startsWith('local')) {
       icon.addClass('fas')
@@ -118,8 +118,8 @@ export function onReady() {
     return $('<li class="ui-menu-item-with-icon"></li>')
         .data('item.autocomplete', item)
         .append(suggestionDiv)
-        .append('<div class="autocomplete_info">' + counter +
-            '<i class="fas fa-reply insert_icon"></i>')
+        .append('<div class="autocomplete-info">' + counter +
+            '<i class="fas fa-reply insert-icon"></i>')
         .appendTo(ul);
   };
 
@@ -127,8 +127,8 @@ export function onReady() {
   jQuery.ui.autocomplete.prototype._resizeMenu = function() {
     const ul = this.menu.element;
     ul.outerWidth(this.element.outerWidth());
-    ul.outerWidth($('#current_song_card').outerWidth());
-    ul.css('left', $('#current_song_card').position()['left']);
+    ul.outerWidth($('#current-song-card').outerWidth());
+    ul.css('left', $('#current-song-card').position()['left']);
   };
 }
 

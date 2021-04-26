@@ -19,12 +19,12 @@ urlpatterns = [
     path("", RedirectView.as_view(pattern_name="musiq", permanent=False), name="base"),
     path("musiq/", BASE.musiq.index, name="musiq"),
     path("lights/", BASE.lights.index, name="lights"),
-    path("stream/", BASE.no_stream, name="no_stream"),
-    path("network_info/", BASE.network_info.index, name="network_info"),
+    path("stream/", BASE.no_stream, name="no-stream"),
+    path("network_info/", BASE.network_info.index, name="network-info"),
     path("settings/", BASE.settings.index, name="settings"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("login/", RedirectView.as_view(pattern_name="login", permanent=False)),
-    path("logged_in/", BASE.logged_in, name="logged_in"),
+    path("logged_in/", BASE.logged_in, name="logged-in"),
     path("logout/", RedirectView.as_view(pattern_name="logout", permanent=False)),
     path(
         "api/",
@@ -32,7 +32,7 @@ urlpatterns = [
             [
                 path(
                     "musiq/",
-                    include([path("post_song/", BASE.api.post_song, name="post_song")]),
+                    include([path("post_song/", BASE.api.post_song, name="post-song")]),
                 )
             ]
         ),
@@ -65,6 +65,7 @@ def get_paths(objs: List[Any]) -> List[URLPattern]:
             else:
                 continue
             if issubclass(request_type, WSGIRequest) and method not in urlmethods:
+                name = name.replace("_", "-")
                 paths.append(path(name + "/", method, name=name))
     return paths
 
@@ -94,11 +95,11 @@ urlpatterns.append(
         include(
             [
                 path("", include(base_paths)),
-                path("musiq/state/", BASE.musiq.get_state, name="musiq_state"),
+                path("musiq/state/", BASE.musiq.get_state, name="musiq-state"),
                 path("musiq/", include(musiq_paths)),
-                path("lights/state/", BASE.lights.get_state, name="lights_state"),
+                path("lights/state/", BASE.lights.get_state, name="lights-state"),
                 path("lights/", include(lights_paths)),
-                path("settings/state/", BASE.settings.get_state, name="settings_state"),
+                path("settings/state/", BASE.settings.get_state, name="settings-state"),
                 path("settings/", include(settings_paths)),
             ]
         ),

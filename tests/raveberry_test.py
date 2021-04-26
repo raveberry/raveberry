@@ -37,7 +37,7 @@ class RaveberryTest(TransactionTestCase):
         return state
 
     def _poll_musiq_state(self, break_condition, timeout=1):
-        return self._poll_state("musiq_state", break_condition, timeout=timeout)
+        return self._poll_state("musiq-state", break_condition, timeout=timeout)
 
     def _poll_lights_state(self, break_condition, timeout=1):
-        return self._poll_state("lights_state", break_condition, timeout=timeout)
+        return self._poll_state("lights-state", break_condition, timeout=timeout)

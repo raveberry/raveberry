@@ -7,6 +7,7 @@ import {
   successToast,
   errorToast,
 } from './base.js';
+import {kebabize} from './util.js';
 import 'jquery-ui/ui/widgets/autocomplete';
 import snarkdown from 'snarkdown';
 
@@ -26,7 +27,7 @@ function updateState(state) {
       continue;
     }
     const value = state.settings[key];
-    const element = $('#' + key );
+    const element = $('#' + kebabize(key));
     if (element.is(':checkbox')) {
       element.prop('checked', value);
     } else if (element.is('input')) {
@@ -38,34 +39,34 @@ function updateState(state) {
     }
   }
 
-  $.each(state.settings.bluetooth_devices, function(index: number, device) {
-    if (device.address ==$('.bluetooth_device').eq(index)
+  $.each(state.settings.bluetoothDevices, function(index: number, device) {
+    if (device.address ==$('.bluetooth-device').eq(index)
         .children().last().attr('id')) {
       return true;
     }
     const li = $('<li/>')
         .addClass('list-group-item')
-        .addClass('list_item')
-        .addClass('bluetooth_device');
+        .addClass('list-item')
+        .addClass('bluetooth-device');
     $('<label/>')
-        .attr('for', 'bluetooth_device_' + index)
+        .attr('for', 'bluetooth-device-' + index)
         .text(device.name)
         .appendTo(li);
     $('<input/>')
         .attr('type', 'radio')
-        .attr('name', 'bluetooth_device')
+        .attr('name', 'bluetooth-device')
         .attr('id', device.address)
         .appendTo(li);
-    li.insertBefore($('#connect_bluetooth').parent());
+    li.insertBefore($('#connect-bluetooth').parent());
   });
 
-  if (!state.settings.system_install) {
+  if (!state.settings.systemInstall) {
     $('.system-install-only').addClass('is-disabled');
     $('.system-install-only').attr('disabled-note',
         'This feature is only available in a system install.');
   } else {
     for (const module of ['hotspot', 'remote', 'youtube', 'spotify', 'soundcloud']) {
-      if (!state.settings[module + '_configured']) {
+      if (!state.settings[module + 'Configured']) {
         $('.' + module + '-functionality').addClass('is-disabled');
         $('.' + module + '-functionality').attr('disabled-note',
             'Please configure ' + module + ' during installation to use this feature.');
@@ -73,11 +74,11 @@ function updateState(state) {
     }
   }
 
-  if (localStorageGet('ignore_updates') === null) {
-    $('#update_information_policy option[value=yes]')
+  if (localStorageGet('ignore-updates') === null) {
+    $('#update-information-policy option[value=yes]')
         .attr('selected', 'selected');
   } else {
-    $('#update_information_policy option[value=no]')
+    $('#update-information-policy option[value=no]')
         .attr('selected', 'selected');
   }
 }
@@ -123,11 +124,11 @@ export function onReady() {
     }
     const url = urls['settings'][key];
 
-    // all set_x urls post some data and show a toast with the result.
+    // all set-x urls post some data and show a toast with the result.
     // most of them are inputs or checkboxes with a simple 'value' field.
     // add this behavior to each of these elements
-    if (key.startsWith('set_')) {
-      const id = key.substr('set_'.length);
+    if (key.startsWith('set-')) {
+      const id = key.substr('set-'.length);
       const element = $('#' + id);
       if (element.is(':checkbox') || element.is('input')) {
         element.change(function() {
@@ -142,47 +143,47 @@ export function onReady() {
       }
     }
 
-    // all enable_x and disable_x urls send an empty post.
+    // all enable-x and disable-x urls send an empty post.
     // add this behaviour to each of the corresponding buttons
-    if (key.startsWith('enable_') || key.startsWith('disable_')) {
+    if (key.startsWith('enable-') || key.startsWith('disable-')) {
       registerPostOnClick(key);
     }
   }
 
-  registerPostOnClick('check_internet');
-  registerPostOnClick('update_user_count');
+  registerPostOnClick('check-internet');
+  registerPostOnClick('update-user-count');
 
-  registerPostOnClick('set_spotify_credentials', () => {
+  registerPostOnClick('set-spotify-credentials', () => {
     return {
-      username: $('#spotify_username').val(),
-      password: $('#spotify_password').val(),
-      client_id: $('#spotify_client_id').val(),
-      client_secret: $('#spotify_client_secret').val(),
+      username: $('#spotify-username').val(),
+      password: $('#spotify-password').val(),
+      client_id: $('#spotify-client-id').val(),
+      client_secret: $('#spotify-client-secret').val(),
     };
   });
 
-  registerPostOnClick('set_soundcloud_credentials', () => {
+  registerPostOnClick('set-soundcloud-credentials', () => {
     return {
-      auth_token: $('#soundcloud_auth_token').val(),
+      auth_token: $('#soundcloud-auth-token').val(),
     };
   });
 
-  registerPostOnClick('set_bluetooth_scanning', () => {
-    const checked = $('#set_bluetooth_scanning').is(':checked');
+  registerPostOnClick('set-bluetooth-scanning', () => {
+    const checked = $('#set-bluetooth-scanning').is(':checked');
     if (checked) {
-      $('.bluetooth_device').remove();
+      $('.bluetooth-device').remove();
     }
     return {value: checked};
   });
 
-  registerPostOnClick('connect_bluetooth', () => {
-    return {address: $('input[name=bluetooth_device]:checked').attr('id')};
+  registerPostOnClick('connect-bluetooth', () => {
+    return {address: $('input[name=bluetooth-device]:checked').attr('id')};
   });
 
-  registerPostOnClick('disconnect_bluetooth');
+  registerPostOnClick('disconnect-bluetooth');
 
   $('#output').focus(function() {
-    $.get(urls['settings']['list_outputs']).done(function(devices) {
+    $.get(urls['settings']['list-outputs']).done(function(devices) {
       $('#output').autocomplete({
         // always show all possible output devices,
         // regardless of current input content
@@ -200,42 +201,42 @@ export function onReady() {
     });
   });
 
-  $('#wifi_ssid').focus(function() {
-    $.get(urls['settings']['available_ssids']).done(function(ssids) {
+  $('#wifi-ssid').focus(function() {
+    $.get(urls['settings']['available-ssids']).done(function(ssids) {
       const availableSsids = ssids;
-      $('#wifi_ssid').autocomplete({
+      $('#wifi-ssid').autocomplete({
         source: availableSsids,
         minLength: 0,
       });
-      $('#wifi_ssid').autocomplete('search');
+      $('#wifi-ssid').autocomplete('search');
     });
   });
 
-  registerPostOnClick('connect_to_wifi', () => {
+  registerPostOnClick('connect-to-wifi', () => {
     return {
-      ssid: $('#wifi_ssid').val(),
-      password: $('#wifi_password').val(),
+      ssid: $('#wifi-ssid').val(),
+      password: $('#wifi-password').val(),
     };
   }, () => {
-    $('#wifi_ssid').val('');
-    $('#wifi_password').val('');
+    $('#wifi-ssid').val('');
+    $('#wifi-password').val('');
   });
 
-  $('#homewifi_ssid').focus(function() {
-    $.get(urls['settings']['stored_ssids']).done(function(ssids) {
+  $('#homewifi-ssid').focus(function() {
+    $.get(urls['settings']['stored-ssids']).done(function(ssids) {
       const storedSsids = ssids;
-      $('#homewifi_ssid').autocomplete({
+      $('#homewifi-ssid').autocomplete({
         source: storedSsids,
         minLength: 0,
       });
-      $('#homewifi_ssid').autocomplete('search');
+      $('#homewifi-ssid').autocomplete('search');
     });
   });
 
   let keepSubdirsOpen = true;
-  $('#library_path').autocomplete({
+  $('#library-path').autocomplete({
     source: function(request, response) {
-      $.get(urls['settings']['list_subdirectories'], {
+      $.get(urls['settings']['list-subdirectories'], {
         'path': request.term,
       }).done(function(subdirectories) {
         const doneEntry = {
@@ -254,20 +255,20 @@ export function onReady() {
     close: function() {
       if (keepSubdirsOpen) {
         $('.ui-autocomplete').show();
-        $('#library_path').autocomplete('search');
+        $('#library-path').autocomplete('search');
       }
     },
   });
-  $('#library_path').on('click tap', function() {
+  $('#library-path').on('click tap', function() {
     keepSubdirsOpen = true;
-    $('#library_path').autocomplete('search');
+    $('#library-path').autocomplete('search');
   });
-  registerPostOnClick('scan_library', () => {
+  registerPostOnClick('scan-library', () => {
     return {
-      library_path: $('#library_path').val(),
+      library_path: $('#library-path').val(),
     };
   });
-  registerPostOnClick('create_playlists');
+  registerPostOnClick('create-playlists');
 
   const today = new Date();
   const yesterday = new Date();
@@ -292,87 +293,87 @@ export function onReady() {
       enddate: $('#enddate').val(),
       endtime: $('#endtime').val(),
     }).done(function(data) {
-      $('#songs_played').text(data['songs_played']);
-      $('#most_played_song').text(data['most_played_song']);
-      $('#votes_cast').text(data['votes_cast']);
-      $('#highest_voted_song').text(data['highest_voted_song']);
-      $('#most_active_device').text(data['most_active_device']);
-      $('#request_activity').text(data['request_activity']);
+      $('#songs-played').text(data['songs-played']);
+      $('#most-played-song').text(data['most-played-song']);
+      $('#votes-cast').text(data['votes-cast']);
+      $('#highest-voted-song').text(data['highest-voted-song']);
+      $('#most-active-device').text(data['most-active-device']);
+      $('#request-activity').text(data['request-activity']);
       $('#playlist').text(data['playlist']);
       successToast('');
     }).fail(function(response) {
       errorToast(response.responseText);
     });
   });
-  $('#copy_playlist').on('click tap', function() {
+  $('#copy-playlist').on('click tap', function() {
     const temp = $('<textarea>');
     $('body').append(temp);
     temp.val($('#playlist').text()).select();
     document.execCommand('copy');
     temp.remove();
   });
-  registerPostOnClick('save_as_playlist', () => {
+  registerPostOnClick('save-as-playlist', () => {
     return {
       startdate: $('#startdate').val(),
       starttime: $('#starttime').val(),
       enddate: $('#enddate').val(),
       endtime: $('#endtime').val(),
-      name: $('#saved_playlist_name').val(),
+      name: $('#saved-playlist-name').val(),
     };
   });
 
-  registerPostOnClick('reboot_server');
-  registerPostOnClick('reboot_system');
-  registerPostOnClick('shutdown_system');
+  registerPostOnClick('reboot-server');
+  registerPostOnClick('reboot-system');
+  registerPostOnClick('shutdown-system');
 
-  $('#get_latest_version').on('click tap', function() {
-    $.get(urls['settings']['get_latest_version']).done(function(response) {
-      $('#latest_version').text(response);
+  $('#get-latest-version').on('click tap', function() {
+    $.get(urls['settings']['get-latest-version']).done(function(response) {
+      $('#latest-version').text(response);
     }).fail(function(response) {
       errorToast(response.responseText);
     });
   });
-  $('#update_information_policy').on('change', function() {
+  $('#update-information-policy').on('change', function() {
     if ((<HTMLInputElement> this).value == 'yes') {
-      localStorageRemove('ignore_updates');
+      localStorageRemove('ignore-updates');
     } else {
-      localStorageSet('ignore_updates', '', 365);
+      localStorageSet('ignore-updates', '', 365);
     }
   });
-  $('#open_changelog').on('click tap', function() {
-    $.get(urls['settings']['get_changelog']).done(function(response) {
+  $('#open-changelog').on('click tap', function() {
+    $.get(urls['settings']['get-changelog']).done(function(response) {
       $('#changelog').html(snarkdown(response));
     }).fail(function(response) {
       errorToast(response.responseText);
     });
-    $('#changelog_modal').modal('show');
+    $('#changelog-modal').modal('show');
   });
-  $('#changelog_ok').on('click tap', function() {
-    $('#changelog_modal').modal('hide');
+  $('#changelog-ok').on('click tap', function() {
+    $('#changelog-modal').modal('hide');
   });
-  $('#open_upgrade_dialog').on('click tap', function() {
-    $.get(urls['settings']['get_upgrade_config']).done(function(response) {
-      $('#upgrade_config').text(response);
+  $('#open-upgrade-dialog').on('click tap', function() {
+    $.get(urls['settings']['get-upgrade-config']).done(function(response) {
+      $('#upgrade-config').text(response);
     }).fail(function(response) {
       errorToast(response.responseText);
     });
-    $('#upgrade_modal').modal('show');
+    $('#upgrade-modal').modal('show');
   });
-  $('#confirm_upgrade').on('click tap', function() {
-    $('#upgrade_modal').modal('hide');
-    post(urls['settings']['upgrade_raveberry']);
+  $('#confirm-upgrade').on('click tap', function() {
+    $('#upgrade-modal').modal('hide');
+    post(urls['settings']['upgrade-raveberry']);
   });
 
   const fragment = window.location.hash.substr(1);
-  if (fragment == 'show_changelog') {
+  if (fragment == 'show-changelog') {
     $('#update-banner').remove();
-    $.get(urls['settings']['get_changelog']).done(function(response) {
+    $.get(urls['settings']['get-changelog']).done(function(response) {
       $('#changelog').html(snarkdown(response));
       $.each(response.split('\n'), (_, line) => {
         const tokens = line.split(/\s+/);
         if (tokens[0] == '##') {
           const version = tokens[1];
-          $('#latest_version').text(version);
+          $('#latest-version').text(version);
           return false;
         }
       });
@@ -381,7 +382,7 @@ export function onReady() {
     $('html, body').animate({scrollTop: $('#about').offset().top},
         scrollDuration);
     setTimeout(function() {
-      $('#changelog_modal').modal('show');
+      $('#changelog-modal').modal('show');
     }, scrollDuration);
   }
 }

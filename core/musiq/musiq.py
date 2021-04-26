@@ -14,6 +14,7 @@ from django.shortcuts import render
 from django.urls import URLPattern
 
 import core.musiq.song_utils as song_utils
+from core import util
 from core.models import CurrentSong
 from core.models import QueuedSong
 from core.musiq.controller import Controller
@@ -232,7 +233,8 @@ class Musiq(Stateful):
         current_song: Optional[Dict[str, Any]]
         try:
             current_song = model_to_dict(CurrentSong.objects.get())
-            current_song["duration_formatted"] = song_utils.format_seconds(
+            current_song = util.camelize(current_song)
+            current_song["durationFormatted"] = song_utils.format_seconds(
                 current_song["duration"]
             )
         except CurrentSong.DoesNotExist:
@@ -245,46 +247,47 @@ class Musiq(Stateful):
             all_songs = all_songs.order_by("-votes", "index")
         for song in all_songs:
             song_dict = model_to_dict(song)
+            song_dict = util.camelize(song_dict)
             total_time += song_dict["duration"]
-            song_dict["duration_formatted"] = song_utils.format_seconds(
+            song_dict["durationFormatted"] = song_utils.format_seconds(
                 song_dict["duration"]
             )
             song_queue.append(song_dict)
-        musiq_state["total_time_formatted"] = song_utils.format_seconds(total_time)
+        musiq_state["totalTimeFormatted"] = song_utils.format_seconds(total_time)
 
         if state_dict["alarm"]:
             musiq_state["current_song"] = {
-                "queue_key": -1,
-                "manually_requested": False,
+                "queueKey": -1,
+                "manuallyRequested": False,
                 "votes": None,
-                "internal_url": "",
-                "external_url": "",
+                "internalUrl": "",
+                "externalUrl": "",
                 "artist": "Raveberry",
                 "title": "ALARM!",
                 "duration": 10,
                 "created": "",
             }
         elif self.playback.backup_playing.is_set():
-            musiq_state["current_song"] = {
-                "queue_key": -1,
-                "manually_requested": False,
+            musiq_state["currentSong"] = {
+                "queueKey": -1,
+                "manuallyRequested": False,
                 "votes": None,
-                "internal_url": "",
-                "external_url": self.base.settings.sound.backup_stream,
+                "internalUrl": "",
+                "externalUrl": self.base.settings.sound.backup_stream,
                 "artist": "",
                 "title": "Backup Stream",
                 "duration": 60 * 60 * 24,
                 "created": "",
             }
         else:
-            musiq_state["current_song"] = current_song
+            musiq_state["currentSong"] = current_song
         musiq_state["paused"] = self.playback.paused()
         musiq_state["progress"] = self.playback.progress()
         musiq_state["shuffle"] = self.controller.shuffle
         musiq_state["repeat"] = self.controller.repeat
         musiq_state["autoplay"] = self.controller.autoplay
         musiq_state["volume"] = self.controller.volume
-        musiq_state["song_queue"] = song_queue
+        musiq_state["songQueue"] = song_queue
 
         state_dict["musiq"] = musiq_state
         return state_dict

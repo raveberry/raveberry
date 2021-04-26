@@ -54,74 +54,74 @@
         <div id="update-banner" class="information-banner">
             <i class="fas fa-info-circle"></i>
             New update available! <br/>
-            <div id="update_banner_buttons">
-                <span id="goto_update">show me</span> <span id="remind_updates">remind me later</span> <span id="ignore_updates">don't ask again</span>
+            <div id="update-banner-buttons">
+                <span id="goto-update">show me</span> <span id="remind-updates">remind me later</span> <span id="ignore-updates">don't ask again</span>
             </div>
         </div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
-				<svg id="navbar_icon" height="35px" width="38.8px">
+				<svg id="navbar-icon" height="35px" width="38.8px">
 					<use href="{% static "raveberry.svg" %}#icon"></use>
 				</svg>
 			</a>
-			<div id="hashtag_container">
-				<input id="hashtag_input" class="hidden">
-				<div id="hashtag_text_container" class="autoscrolling_container"><span id="hashtag_text">{{ hashtag }}</span></div>
-				<i id="hashtag_plus" class="fas fa-plus-circle"></i>
+			<div id="hashtag-container">
+				<input id="hashtag-input" class="hidden">
+				<div id="hashtag-text-container" class="autoscrolling-container"><span id="hashtag-text">{{ hashtag }}</span></div>
+				<i id="hashtag-plus" class="fas fa-plus-circle"></i>
 			</div>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#menu_container">
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#menu-container">
 				<i class="fas fa-bars"></i>
 			</button>
 		</nav>
-		<div class="collapse" id="menu_container">
+		<div class="collapse" id="menu-container">
 			<div id="menu">
-				<div class="menu_row">
-					<div id="users_container">
+				<div class="menu-row">
+					<div id="users-container">
 						<i class="fas fa-user"></i>
 						<span id="users"></span>
 					</div>
-					<div id="visitors_container">
+					<div id="visitors-container">
 						<span>Visitors</span>
 						<span id="visitors"></span>
 					</div>
-					<div id="theme_controls">
-						<i id="light_theme" class="fas fa-sun"></i>
-						<i id="dark_theme" class="fas fa-moon"></i>
+					<div id="theme-controls">
+						<i id="light-theme" class="fas fa-sun"></i>
+						<i id="dark-theme" class="fas fa-moon"></i>
 					</div>
 				</div>
-				<div class="menu_row"{%if not controls_enabled and not is_admin%} style='display: none;'{%endif%}>
+				<div class="menu-row"{%if not controls_enabled and not is_admin%} style='display: none;'{%endif%}>
 					<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
 						<i class="fas fa-sliders-h"></i>
 					</a>
-					<div id="lights_controls"{%if voting_system and controls_enabled == False%} style="visibility: hidden"{%endif%}>
-						<i class="fas fa-lightbulb icon_disabled" id="lights_indicator"></i>
+					<div id="lights-controls"{%if voting_system and controls_enabled == False%} style="visibility: hidden"{%endif%}>
+						<i class="fas fa-lightbulb icon-disabled" id="lights-indicator"></i>
 						<a href="{% url 'lights' %}">
 							<i class="fas fa-cog"></i>
 						</a>
 					</div>
-                    <a href="{% url 'network_info' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
+                    <a href="{% url 'network-info' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
                         <i class="fas fa-qrcode"></i>
                     </a>
 				</div>
-				<div class="menu_row">
-					<a id="github_link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry" class="unlink">
+				<div class="menu-row">
+					<a id="github-link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry" class="unlink">
 						<i class="fab fa-github"></i>
 					</a>
-					<div id="platform_controls">
-                        {%if local_enabled%}<i id="local" class="fas fa-hdd icon_disabled"></i>{%endif%}
-                        {%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon_disabled"></i>{%endif%}
-						{%if spotify_enabled%}<i id="spotify" class="fab fa-spotify icon_disabled"></i>{%endif%}
-                        {%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon_disabled"></i>{%endif%}
+					<div id="platform-controls">
+                        {%if local_enabled%}<i id="local" class="fas fa-hdd icon-disabled"></i>{%endif%}
+                        {%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon-disabled"></i>{%endif%}
+						{%if spotify_enabled%}<i id="spotify" class="fab fa-spotify icon-disabled"></i>{%endif%}
+                        {%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon-disabled"></i>{%endif%}
 					</div>
 					<a href="{{ apk_link }}" download>
-						<svg id="shareberry_icon" height="35px" width="35px">
+						<svg id="shareberry-icon" height="35px" width="35px">
 							<use href="{% static "shareberry.svg" %}#icon"></use>
 						</svg>
 					</a>
 				</div>
-                <div class="menu_row">
+                <div class="menu-row">
                     <div></div>
-                    <a id="stream_link" target="_blank" rel="noopener noreferrer" href="/stream" class="unlink">
+                    <a id="stream-link" target="_blank" rel="noopener noreferrer" href="/stream" class="unlink">
                         <i class="fas fa-headphones"></i>
                     </a>
                 </div>
@@ -150,8 +150,8 @@
 					<i class="fas fa-exclamation-triangle"></i>
 					<span class="toast-content"></span>
 				</div>
-				<div id="vote_timeout">
-					<div id="vote_timeout_bar" class="progress-bar">
+				<div id="vote-timeout">
+					<div id="vote-timeout-bar" class="progress-bar">
 					</div>
 				</div>
 			</div>

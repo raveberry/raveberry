@@ -3,71 +3,71 @@
 
 {% block content %}
 {% if hotspot_enabled %}
-<ul class="list-group" id="network_info">
-    <li class="list-group-item list_header">
+<ul class="list-group" id="network-info">
+    <li class="list-group-item list-header">
         Hotspot Info
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">SSID</span>
         <span>{%if hotspot_ssid%}{{hotspot_ssid}}{%else%}Unknown{%endif%}</span>
     </li>
-    <li class="list-group-item list_item">
-        <span class="description">Password <u id="show_password">(show)</u></span>
+    <li class="list-group-item list-item">
+        <span class="description">Password <u id="show-password">(show)</u></span>
         <span id="password">{%if hotspot_password%}{{hotspot_password}}{%else%}Unknown{%endif%}</span>
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">IP</span>
         <span>{%if hotspot_ip%}{{hotspot_ip}}{%else%}Unknown{%endif%}</span>
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Connect to wifi:</span>
     </li>
-    <li class="list-group-item list_item centered">
+    <li class="list-group-item list-item centered">
         {% if hotspot_wifi_qr %}
             {{wifi_qr|safe}}
         {% else %}
             Unknown
         {% endif %}
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Visit Raveberry: <a href="{{ hotspot_url }}">{{ hotspot_url }}</a></span>
     </li>
-    <li class="list-group-item list_item centered">
+    <li class="list-group-item list-item centered">
         {{hotspot_url_qr|safe}}
     </li>
 </ul>
 {% endif %}
 
-<ul class="list-group" id="network_info">
-	<li class="list-group-item list_header">
+<ul class="list-group" id="network-info">
+	<li class="list-group-item list-header">
 		Network Info
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">SSID</span>
         <span>{%if ssid%}{{ssid}}{%else%}Unknown{%endif%}</span>
     </li>
-    <li class="list-group-item list_item">
-        <span class="description">Password <u id="show_password">(show)</u></span>
+    <li class="list-group-item list-item">
+        <span class="description">Password <u id="show-password">(show)</u></span>
         <span id="password">{%if password%}{{password}}{%else%}Unknown{%endif%}</span>
     </li>
-	<li class="list-group-item list_item">
+	<li class="list-group-item list-item">
         <span class="description">IP</span>
         <span>{%if ip%}{{ip}}{%else%}Unknown{%endif%}</span>
 	</li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Connect to wifi:</span>
     </li>
-    <li class="list-group-item list_item centered">
+    <li class="list-group-item list-item centered">
         {% if wifi_qr %}
             {{wifi_qr|safe}}
         {% else %}
             Unknown
         {% endif %}
     </li>
-    <li class="list-group-item list_item">
+    <li class="list-group-item list-item">
         <span class="description">Visit Raveberry: <a href="{{ url }}">{{ url }}</a></span>
     </li>
-    <li class="list-group-item list_item centered">
+    <li class="list-group-item list-item centered">
         {{url_qr|safe}}
     </li>
 </ul>

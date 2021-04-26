@@ -25,6 +25,14 @@ def background_thread(function: Callable) -> Callable[..., Thread]:
     return decorator
 
 
+def camelize(snake_dict: dict) -> dict:
+    def camelize_str(snake: str) -> str:
+        head, *tail = snake.split("_")
+        return head + "".join(word.capitalize() for word in tail)
+
+    return {camelize_str(k): v for k, v in snake_dict.items()}
+
+
 def get_devices() -> List[str]:
     output = subprocess.check_output(
         "ip route show default".split(), universal_newlines=True

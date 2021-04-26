@@ -1,11 +1,11 @@
 import * as child from 'child_process';
 import * as fs from 'fs';
 
-export function render_template(template, options?) {
+export function renderTemplate(template, options?) {
   options = JSON.stringify(options) || '';
   const env = process.env;
   env['DJANGO_MOCK'] = '1';
-  const p = child.spawnSync('python3', ['../manage.py', 'render_template', template, 'head.html', 'body.html', options], {
+  const p = child.spawnSync('python3', ['../manage.py', 'rendertemplate', template, 'head.html', 'body.html', options], {
     env: env,
   });
   if (p.error) {

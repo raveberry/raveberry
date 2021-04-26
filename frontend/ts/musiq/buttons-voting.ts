@@ -28,10 +28,10 @@ export function onReady() {
 
     const ratio = (bucketLifetime - timePassed) / bucketLifetime;
     warningToastWithBar('You\'re doing that too often');
-    $('#vote_timeout_bar').css('transition', 'none');
-    $('#vote_timeout_bar').css('width', ratio * 100 + '%');
-    $('#vote_timeout_bar')[0].offsetHeight;
-    $('#vote_timeout_bar').css({
+    $('#vote-timeout-bar').css('transition', 'none');
+    $('#vote-timeout-bar').css('width', ratio * 100 + '%');
+    $('#vote-timeout-bar')[0].offsetHeight;
+    $('#vote-timeout-bar').css({
       'transition': 'width ' + ratio * bucketLifetime / 1000 + 's linear',
       'width': '0%',
     });
@@ -42,12 +42,12 @@ export function onReady() {
    * @param {HTMLElement} button the button that was pressed to vote
    * @param {number} key the key of the voted song */
   function voteDown(button, key) {
-    let votes = button.closest('.queue_entry').find('.queue_index');
+    let votes = button.closest('.queue-entry').find('.queue-index');
     if (votes.length == 0) {
-      votes = button.siblings('#current_song_votes');
+      votes = button.siblings('#current-song-votes');
     }
     votes.text(parseInt(votes.text()) - 1);
-    $.post(urls['musiq']['vote_down'], {
+    $.post(urls['musiq']['vote-down'], {
       key: key,
     });
   }
@@ -56,33 +56,33 @@ export function onReady() {
    * @param {HTMLElement} button the button that was pressed to vote
    * @param {number} key the key of the voted song */
   function voteUp(button, key) {
-    let votes = button.closest('.queue_entry').find('.queue_index');
+    let votes = button.closest('.queue-entry').find('.queue-index');
     if (votes.length == 0) {
-      votes = button.siblings('#current_song_votes');
+      votes = button.siblings('#current-song-votes');
     }
     votes.text(parseInt(votes.text()) + 1);
-    $.post(urls['musiq']['vote_up'], {
+    $.post(urls['musiq']['vote-up'], {
       key: key,
     });
   }
 
-  $('#content').on('click tap', '.vote_up', function() {
+  $('#content').on('click tap', '.vote-up', function() {
     if (!canVote()) {
       return;
     }
     let key = -1;
-    if ($(this).closest('#current_song_card').length > 0) {
-      if (state == null || state.current_song == null) {
+    if ($(this).closest('#current-song-card').length > 0) {
+      if (state == null || state.currentSong == null) {
         return;
       }
-      key = state.current_song.queue_key;
+      key = state.currentSong.queue-key;
     } else {
       key = keyOfElement($(this));
     }
-    const other = $(this).siblings('.vote_down');
+    const other = $(this).siblings('.vote-down');
     if ($(this).hasClass('pressed')) {
       $(this).removeClass('pressed');
-      localStorageSet('vote_' + key, '0', 7);
+      localStorageSet('vote-' + key, '0', 7);
       voteDown($(this), key);
     } else {
       $(this).addClass('pressed');
@@ -90,27 +90,27 @@ export function onReady() {
         other.removeClass('pressed');
         voteUp($(this), key);
       }
-      localStorageSet('vote_' + key, '+', 7);
+      localStorageSet('vote-' + key, '+', 7);
       voteUp($(this), key);
     }
   });
-  $('#content').on('click tap', '.vote_down', function() {
+  $('#content').on('click tap', '.vote-down', function() {
     if (!canVote()) {
       return;
     }
     let key = -1;
-    if ($(this).closest('#current_song_card').length > 0) {
-      if (state == null || state.current_song == null) {
+    if ($(this).closest('#current-song-card').length > 0) {
+      if (state == null || state.currentSong == null) {
         return;
       }
-      key = state.current_song.queue_key;
+      key = state.currentSong.queue-key;
     } else {
       key = keyOfElement($(this));
     }
-    const other = $(this).siblings('.vote_up');
+    const other = $(this).siblings('.vote-up');
     if ($(this).hasClass('pressed')) {
       $(this).removeClass('pressed');
-      localStorageSet('vote_' + key, '0', 7);
+      localStorageSet('vote-' + key, '0', 7);
       voteUp($(this), key);
     } else {
       $(this).addClass('pressed');
@@ -118,7 +118,7 @@ export function onReady() {
         other.removeClass('pressed');
         voteDown($(this), key);
       }
-      localStorageSet('vote_' + key, '-', 7);
+      localStorageSet('vote-' + key, '-', 7);
       voteDown($(this), key);
     }
   });
