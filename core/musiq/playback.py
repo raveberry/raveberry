@@ -142,6 +142,7 @@ class Playback:
                     votes=song.votes,
                     internal_url=song.internal_url,
                     external_url=song.external_url,
+                    stream_url=song.stream_url,
                     artist=song.artist,
                     title=song.title,
                     duration=song.duration,

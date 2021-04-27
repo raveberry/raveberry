@@ -100,6 +100,14 @@ span.clearable input {
 	text-decoration: line-through;
 }
 
+// current song
+#current-song {
+	text-align: center;
+	font-size: larger;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
 // audio stream
 #stream-control {
 	min-width: 32px;
@@ -111,15 +119,10 @@ span.clearable input {
 	// move muted and not muted speakers to the same position
 	margin-left: -1.5px;
 }
-
-// current song
-#current-song {
-	text-align: center;
-	//font-style: italic;
-	//font-weight: bold;
-	font-size: larger;
-	padding-left: 8px;
-	padding-right: 8px;
+#stream-control-counterpart {
+	min-width: 32px;
+	padding-left: 5px;
+	float: right;
 }
 
 #progress-bar-container {

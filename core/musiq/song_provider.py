@@ -229,6 +229,7 @@ class SongProvider(MusicProvider):
 
         self.queued_song.internal_url = metadata["internal_url"]
         self.queued_song.external_url = metadata["external_url"]
+        self.queued_song.stream_url = metadata.get("stream_url", "")
         self.queued_song.artist = metadata["artist"]
         self.queued_song.title = metadata["title"]
         self.queued_song.duration = metadata["duration"]
@@ -237,6 +238,7 @@ class SongProvider(MusicProvider):
             update_fields=[
                 "internal_url",
                 "external_url",
+                "stream_url",
                 "artist",
                 "title",
                 "duration",

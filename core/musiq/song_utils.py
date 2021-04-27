@@ -21,6 +21,7 @@ if TYPE_CHECKING:
             "duration": float,
             "internal_url": str,
             "external_url": str,
+            "stream_url": str,  # optional
         },
         total=False,
     )

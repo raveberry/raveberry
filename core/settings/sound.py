@@ -222,7 +222,7 @@ class Sound:
         )
         tokenized_lines = [line.split() for line in output.splitlines()]
 
-        sinks = ["icecast", "snapcast"]
+        sinks = ["fakesink", "icecast", "snapcast"]
         sinks.extend([sink[1] for sink in tokenized_lines if len(sink) >= 2])
 
         return JsonResponse(sinks, safe=False)
@@ -231,7 +231,9 @@ class Sound:
         icecast_installed = util.service_installed("icecast2")
         snapcast_installed = util.service_installed("snapserver")
 
-        if output == "icecast":
+        if output == "fakesink":
+            mopidy_output = "fakesink"
+        elif output == "icecast":
             if not icecast_installed:
                 return HttpResponseBadRequest("Please install icecast2")
 

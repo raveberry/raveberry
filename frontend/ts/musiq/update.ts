@@ -1,5 +1,6 @@
 import {localStorageGet, registerSpecificState} from '../base';
 import {showPlayButton, showPauseButton} from './buttons';
+import {syncAudioStream} from './audio';
 
 export let state = null;
 let animationInProgress = false;
@@ -164,6 +165,8 @@ export function updateState(newState) {
   // don't start a new animation when an old one is still in progress
   // the running animation will end in the (then) current state
   applyQueueChange(oldState, state);
+
+  syncAudioStream();
 }
 
 /** Inserts the displayname of a song into an element.

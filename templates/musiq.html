@@ -32,11 +32,10 @@
 	<li class="list-group-item empty" id="current-song">
 		{% if embed_stream %}
 			<audio>
-				<source type="audio/mpeg">
 			</audio>
 			<i class="fas fa-volume-mute" id="stream-control"></i>
 		{% endif %}
-		<div class="autoscrolling-container"><span id="current-song-title">Currently Empty</span></div>
+		<div class="autoscrolling-container" {%if embed_stream%}style="margin-right:32px"{%endif%}><span id="current-song-title">Currently Empty</span></div>
 	</li>
 	<li class="list-group-item" id="progress-bar-container">
 		<div class="progress">
