@@ -51,13 +51,17 @@
 			<i class="fas fa-check-circle"></i>
 			reconnected!
 		</div>
-        <div id="update-banner" class="information-banner">
-            <i class="fas fa-info-circle"></i>
-            New update available! <br/>
-            <div id="update-banner-buttons">
-                <span id="goto-update">show me</span> <span id="remind-updates">remind me later</span> <span id="ignore-updates">don't ask again</span>
-            </div>
-        </div>
+		<div id="update-banner" class="information-banner">
+			<i class="fas fa-info-circle"></i>
+			New update available! <br/>
+			<div id="update-banner-buttons">
+				<span id="goto-update">show me</span> <span id="remind-updates">remind me later</span> <span id="ignore-updates">don't ask again</span>
+			</div>
+		</div>
+		<div id="demo-banner" class="information-banner" {%if demo%}style="display: block;"{%endif%}>
+			<i class="fas fa-info-circle"></i>
+			This is a demo version of Raveberry with music from <a target="_blank" rel="noopener noreferrer" href="https://www.jamendo.com/start" class="unlink">Jamendo</a>
+		</div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
 				<svg id="navbar-icon" height="35px" width="38.8px">

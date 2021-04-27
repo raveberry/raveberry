@@ -96,6 +96,17 @@ body {
 	text-decoration: underline;
 	cursor: pointer;
 }
+#demo-banner {
+	position: relative;
+	background-color: var(--yellow);
+	z-index: 5;
+}
+#demo-banner > a {
+	display: inline-block;
+	text-decoration: underline;
+	cursor: pointer;
+	color: var(--blue);
+}
 
 // toasts
 #toast-container {

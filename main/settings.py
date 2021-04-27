@@ -14,6 +14,7 @@ from django.core.management.utils import get_random_secret_key
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MOCK = bool(os.environ.get("DJANGO_MOCK"))
 FORCE_POSTGRES = bool(os.environ.get("DJANGO_POSTGRES"))
+DEMO = bool(os.environ.get("DJANGO_DEMO"))
 
 if MOCK:
     SECRET_KEY = get_random_secret_key()

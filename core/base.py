@@ -73,6 +73,7 @@ class Base(Stateful):
             "base_urls": self.urlpatterns,
             "voting_system": self.settings.basic.voting_system,
             "hashtag": self._get_random_hashtag(),
+            "demo": settings.DEMO,
             "controls_enabled": self.user_manager.has_controls(request.user),
             "is_admin": self.user_manager.is_admin(request.user),
             "apk_link": self._get_apk_link(),
