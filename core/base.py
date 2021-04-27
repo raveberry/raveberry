@@ -41,10 +41,11 @@ class Base(Stateful):
 
     @classmethod
     def _get_random_hashtag(cls) -> str:
-        if models.Tag.objects.count() == 0:
+        active_hashtags = models.Tag.objects.filter(active=True)
+        if active_hashtags.count() == 0:
             return "no hashtags present :("
-        index = random.randint(0, models.Tag.objects.count() - 1)
-        hashtag = models.Tag.objects.all()[index]
+        index = random.randint(0, active_hashtags.count() - 1)
+        hashtag = active_hashtags[index]
         return hashtag.text
 
     @classmethod
@@ -105,8 +106,7 @@ class Base(Stateful):
         context = self.context(request)
         return render(request, "no_stream.html", context)
 
-    @classmethod
-    def submit_hashtag(cls, request: WSGIRequest) -> HttpResponse:
+    def submit_hashtag(self, request: WSGIRequest) -> HttpResponse:
         """Add the given hashtag to the database."""
         hashtag = request.POST.get("hashtag")
         if hashtag is None or len(hashtag) == 0:
@@ -114,7 +114,9 @@ class Base(Stateful):
 
         if hashtag[0] != "#":
             hashtag = "#" + hashtag
-        models.Tag.objects.create(text=hashtag)
+        models.Tag.objects.create(
+            text=hashtag, active=self.settings.basic.hashtags_active
+        )
 
         return HttpResponse()
 

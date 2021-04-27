@@ -12,6 +12,7 @@ class Tag(models.Model):
     """Stores hashtags."""
 
     text = models.CharField(max_length=100)
+    active = models.BooleanField()
 
     def __str__(self) -> str:
         return self.text
