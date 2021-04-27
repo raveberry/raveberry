@@ -20,6 +20,8 @@ class Basic:
         self.voting_system = Settings.get_setting("voting_system", "False") == "True"
         self.new_music_only = Settings.get_setting("new_music_only", "False") == "True"
         self.logging_enabled = Settings.get_setting("logging_enabled", "True") == "True"
+        self.hashtags_active = Settings.get_setting("hashtags_active", "True") == "True"
+        self.embed_stream = Settings.get_setting("embed_stream", "False") == "True"
         self.online_suggestions = (
             Settings.get_setting("online_suggestions", "True") == "True"
         )
@@ -64,6 +66,20 @@ class Basic:
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="logging_enabled").update(value=enabled)
         self.logging_enabled = enabled
+
+    @Settings.option
+    def set_hashtags_active(self, request: WSGIRequest) -> None:
+        """Enables or disables logging of requests and play logs based on the given value."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="hashtags_active").update(value=enabled)
+        self.hashtags_active = enabled
+
+    @Settings.option
+    def set_embed_stream(self, request: WSGIRequest) -> None:
+        """Enables or disables logging of requests and play logs based on the given value."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="embed_stream").update(value=enabled)
+        self.embed_stream = enabled
 
     @Settings.option
     def set_online_suggestions(self, request: WSGIRequest) -> None:

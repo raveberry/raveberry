@@ -120,12 +120,14 @@
 						</svg>
 					</a>
 				</div>
+				{% if streaming_enabled %}
                 <div class="menu-row">
                     <div></div>
                     <a id="stream-link" target="_blank" rel="noopener noreferrer" href="/stream" class="unlink">
                         <i class="fas fa-headphones"></i>
                     </a>
                 </div>
+				{% endif %}
 			</div>
 		</div>
 		<div id="content">

@@ -30,6 +30,12 @@
 </ul>
 <ul class="list-group" id="current-song-card">
 	<li class="list-group-item empty" id="current-song">
+		{% if embed_stream %}
+			<audio>
+				<source type="audio/mpeg">
+			</audio>
+			<i class="fas fa-volume-mute" id="stream-control"></i>
+		{% endif %}
 		<div class="autoscrolling-container"><span id="current-song-title">Currently Empty</span></div>
 	</li>
 	<li class="list-group-item" id="progress-bar-container">

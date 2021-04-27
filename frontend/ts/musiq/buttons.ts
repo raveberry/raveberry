@@ -206,7 +206,7 @@ export function onReady() {
   });
 
   // info popup for the current song
-  $('#current-song').on('click tap', function() {
+  $('#current-song-title').on('click tap', function() {
     if (state.currentSong == null) {
       return;
     }

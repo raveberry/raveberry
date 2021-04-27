@@ -80,6 +80,8 @@ class Base(Stateful):
             "spotify_enabled": self.settings.platforms.spotify_enabled,
             "soundcloud_enabled": self.settings.platforms.soundcloud_enabled,
             "jamendo_enabled": self.settings.platforms.jamendo_enabled,
+            "streaming_enabled": settings.DOCKER_ICECAST
+            or self.settings.sound.output == "icecast",
         }
 
     def state_dict(self) -> Dict[str, Any]:

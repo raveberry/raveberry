@@ -104,7 +104,7 @@ export function onReady() {
           .addClass('fa-soundcloud');
     } else if (item.type.startsWith('jamendo')) {
       icon.addClass('fas')
-          .addClass('fa-cube');
+          .addClass('fa-jamendo');
     } else if (item.type.startsWith('playlog')) {
       icon.addClass('fas')
           .addClass('fa-wrench');
