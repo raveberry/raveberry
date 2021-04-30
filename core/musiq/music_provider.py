@@ -84,6 +84,14 @@ class MusicProvider:
         """Tries to request this resource.
         Uses the local cache if possible, otherwise tries to retrieve it online."""
 
+        if (
+            0
+            < self.musiq.base.settings.basic.max_queue_length
+            <= self.musiq.queue.count()
+        ):
+            self.error = "Queue limit reached"
+            raise ProviderError(self.error)
+
         def enqueue() -> None:
             self.persist(request_ip, archive=archive)
             self.enqueue()

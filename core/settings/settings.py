@@ -104,6 +104,7 @@ class Settings(Stateful):
         settings_state["additionalKeywords"] = self.basic.additional_keywords
         settings_state["forbiddenKeywords"] = self.basic.forbidden_keywords
         settings_state["maxPlaylistItems"] = self.basic.max_playlist_items
+        settings_state["maxQueueLength"] = self.basic.max_queue_length
         settings_state["hasInternet"] = self.basic.has_internet
 
         settings_state["youtubeEnabled"] = self.platforms.youtube_enabled

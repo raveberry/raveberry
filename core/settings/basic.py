@@ -33,6 +33,7 @@ class Basic:
         self.downvotes_to_kick = int(Settings.get_setting("downvotes_to_kick", "2"))
         self.max_download_size = float(Settings.get_setting("max_download_size", "0"))
         self.max_playlist_items = int(Settings.get_setting("max_playlist_items", "10"))
+        self.max_queue_length = int(Settings.get_setting("max_queue_length", "0"))
         self.additional_keywords = Settings.get_setting("additional_keywords", "")
         self.forbidden_keywords = Settings.get_setting("forbidden_keywords", "")
         self._check_internet()
@@ -129,6 +130,13 @@ class Basic:
         value = int(request.POST.get("value"))  # type: ignore
         Setting.objects.filter(key="max_playlist_items").update(value=value)
         self.max_playlist_items = value
+
+    @Settings.option
+    def set_max_queue_length(self, request: WSGIRequest) -> None:
+        """Sets the maximum number of songs that are downloaded from a playlist."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="max_queue_length").update(value=value)
+        self.max_queue_length = value
 
     @Settings.option
     def set_additional_keywords(self, request: WSGIRequest):
