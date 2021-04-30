@@ -60,7 +60,7 @@
 		</div>
 		<div id="demo-banner" class="information-banner" {%if demo%}style="display: block;"{%endif%}>
 			<i class="fas fa-info-circle"></i>
-			This is a demo version of Raveberry with music from <a target="_blank" rel="noopener noreferrer" href="https://www.jamendo.com/start" class="unlink">Jamendo</a>
+			This is a demo version of Raveberry with music from <a target="_blank" href="https://www.jamendo.com/start" class="unlink">Jamendo</a>
 		</div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
@@ -108,9 +108,7 @@
                     </a>
 				</div>
 				<div class="menu-row">
-					<a id="github-link" target="_blank" rel="noopener noreferrer" href="https://github.com/raveberry/raveberry" class="unlink">
-						<i class="fab fa-github"></i>
-					</a>
+					<a id="web-link" target="_blank" href="https://raveberry.party/" class="unlink"><i class="fas fa-globe"></i></a>
 					<div id="platform-controls">
                         {%if local_enabled%}<i id="local" class="fas fa-hdd icon-disabled"></i>{%endif%}
                         {%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon-disabled"></i>{%endif%}
@@ -127,7 +125,7 @@
 				{% if streaming_enabled %}
                 <div class="menu-row">
                     <div></div>
-                    <a id="stream-link" target="_blank" rel="noopener noreferrer" href="/stream" class="unlink">
+                    <a id="stream-link" target="_blank" href="/stream" class="unlink">
                         <i class="fas fa-headphones"></i>
                     </a>
                 </div>
