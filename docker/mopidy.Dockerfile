@@ -4,8 +4,11 @@ FROM python:3
 RUN wget -q -O - https://apt.mopidy.com/mopidy.gpg | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn apt-key add - &&\
 	wget -q -O /etc/apt/sources.list.d/mopidy.list https://apt.mopidy.com/buster.list &&\
 	apt-get update &&\
-	apt-get install -y mopidy mopidy-spotify mopidy-soundcloud ffmpeg atomicparsley libspotify-dev libgirepository1.0-dev libcairo2-dev gstreamer1.0-plugins-bad dumb-init &&\
+	apt-get install -y mopidy mopidy-spotify mopidy-soundcloud ffmpeg atomicparsley libspotify-dev libgirepository1.0-dev libcairo2-dev gstreamer1.0-plugins-bad dumb-init python3-pip&&\
 	apt-get clean
+
+RUN /usr/bin/pip3 install Mopidy-Jamendo &&\
+	rm -rf ~/.cache/pip
 
 # Start helper script.
 COPY mopidy-entrypoint.sh /entrypoint.sh
