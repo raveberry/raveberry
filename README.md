@@ -9,6 +9,8 @@ Raveberry is a multi user music server that allows democratic selection of songs
 
 It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made. It supports YouTube, Spotify, Soundcloud and local files as sources for music.
 
+A live demo is available at https://demo.raveberry.party/.
+
 ![](docs/showcase.gif "Showcase Gif")
 
 ## Installation
