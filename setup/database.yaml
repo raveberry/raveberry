@@ -78,6 +78,13 @@
         state: restore
         target: /tmp/dbbackup
 
+- name: "Migrate database"
+  become_user: www-data
+  command: python3 "{{ config.install_directory }}/manage.py" migrate
+  environment:
+    DJANGO_MOCK: 1
+    DJANGO_POSTGRES: 1
+
 - name: Get credentials
   become_user: www-data
   command: python3 "{{ config.install_directory }}/manage.py" shell
