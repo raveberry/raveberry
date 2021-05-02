@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.8 - 2021-05-02
+
+- migrate databases during setup
+- failing to applay homewifi does not stop setup
+- script that sets output during setup is provided with all credentials
+
 ## 0.8.6 - 2021-05-02
 
 - Introducing [https://raveberry.party/](https://raveberry.party/)
