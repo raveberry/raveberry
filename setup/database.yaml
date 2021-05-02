@@ -87,7 +87,7 @@
   args:
     stdin: |
       from core.models import Setting
-      for key in ['spotify_username', 'spotify_password', 'spotify_client_id', 'spotify_client_secret', 'soundcloud_auth_token']:
+      for key in ['spotify_username', 'spotify_password', 'spotify_client_id', 'spotify_client_secret', 'soundcloud_auth_token', 'jamendo_client_id']:
         try:
           print(Setting.objects.get(key=key).value)
         except Setting.DoesNotExist:
@@ -108,6 +108,7 @@
       - "{{ credentials.stdout_lines[2] }}"
       - "{{ credentials.stdout_lines[3] }}"
       - "{{ credentials.stdout_lines[4] }}"
+      - "{{ credentials.stdout_lines[5] }}"
 - name: Enable and restart mopidy
   systemd:
     enabled: yes
