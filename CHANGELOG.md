@@ -2,13 +2,13 @@
 
 ## 0.8.6 - 2021-05-02
 
-- Introducing https://raveberry.party/
+- Introducing [https://raveberry.party/](https://raveberry.party/)
 - Jamendo support
 - Added option to limit queue length
 - Added option to not show hashtags by default
 - Added option to embed the stream in the mainpage, clients stream the music directly from the service (currently only Jamendo)
 - Cleaned up docker-compose file
-- No more snake\_case for frontend: camelCase for js and kebab-case for css and html
+- No more snake&#95case for frontend: camelCase for js and kebab-case for css and html
 - Fixed shareberry link
 
 ## 0.8.5 - 2021-04-19
