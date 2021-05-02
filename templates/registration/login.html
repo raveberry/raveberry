@@ -4,17 +4,17 @@
 <ul class="list-group" id>
 	<form method="post">
 		{% csrf_token %}
-		<li class="list-group-item list_header">
+		<li class="list-group-item list-header">
 			Login
 			{{ form.non_field_errors }}
 		</li>
 		{% for field in form %}
-		<li class="list-group-item list_item">
+		<li class="list-group-item list-item">
 			{{ field.errors }}
 			{{ field.label_tag }} {{ field }}
 		</li>
 		{% endfor %}
-		<li class="list-group-item list_item centered">
+		<li class="list-group-item list-item centered">
 			<button class="btn" type="submit">Login</button>
 		</li>
 	</form>
