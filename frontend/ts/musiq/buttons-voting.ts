@@ -75,7 +75,7 @@ export function onReady() {
       if (state == null || state.currentSong == null) {
         return;
       }
-      key = state.currentSong.queue-key;
+      key = state.currentSong.queueKey;
     } else {
       key = keyOfElement($(this));
     }
@@ -103,7 +103,7 @@ export function onReady() {
       if (state == null || state.currentSong == null) {
         return;
       }
-      key = state.currentSong.queue-key;
+      key = state.currentSong.queueKey;
     } else {
       key = keyOfElement($(this));
     }
