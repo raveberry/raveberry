@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.8.8 - 2021-05-02
+## 0.8.9 - 2021-05-02
 
 - migrate databases during setup
 - failing to applay homewifi does not stop setup
 - script that sets output during setup is provided with all credentials
+- voting correctly uses the key of a queued song
 
 ## 0.8.6 - 2021-05-02
 
