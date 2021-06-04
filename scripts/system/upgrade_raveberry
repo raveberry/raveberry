@@ -9,5 +9,8 @@ if (( $# != 1 )); then
 fi
 
 LOGFILE="/var/www/raveberry_install_log_$(date +%Y-%m-%d-%H:%M:%S)"
+# upgrading raveberry with the extra specified does not always upgrade the package,
+# so upgrade the base package explicitly
+pip3 install -U raveberry >> "$LOGFILE" 2>&1
 pip3 install -U raveberry[install] >> "$LOGFILE" 2>&1
 raveberry system-install --config-file "$1" --confirm-config >> "$LOGFILE" 2>&1
