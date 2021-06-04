@@ -79,7 +79,6 @@
         src: files/disable_hotspot_at_home
         dest: /usr/local/sbin/raveberry/disable_hotspot_at_home
         mode: +x
-      failed_when: no
     - name: "Configure hotspot: enable homewifi"
       systemd:
         enabled: yes
@@ -127,3 +126,4 @@
     - name: "Configure hotspot: Disable hotspot at home"
       when: config.homewifi
       command: /usr/local/sbin/raveberry/disable_hotspot_at_home
+      failed_when: no
