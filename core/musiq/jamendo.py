@@ -79,7 +79,7 @@ class Jamendo:
 
         try:
             suggestions = result["results"]["tracks"]
-        except KeyError:
+        except (KeyError, TypeError):
             return []
 
         suggestions = [
