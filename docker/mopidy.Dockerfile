@@ -8,17 +8,20 @@ RUN wget -q -O - https://apt.mopidy.com/mopidy.gpg | APT_KEY_DONT_WARN_ON_DANGER
 	apt-get clean
 
 RUN /usr/bin/pip3 install Mopidy-Jamendo &&\
-	rm -rf ~/.cache/pip
+	rm -rf ~/.cache/pip &&\
+	mkdir -p /opt/raveberry/config/sounds
 
 # Start helper script.
-COPY mopidy-entrypoint.sh /entrypoint.sh
+COPY docker/mopidy-entrypoint.sh /entrypoint.sh
 
 # Default configurations.
-COPY mopidy.conf /config/mopidy.conf
-COPY mopidy_icecast.conf /config/mopidy_icecast.conf
+COPY docker/mopidy.conf /config/mopidy.conf
+COPY docker/mopidy_icecast.conf /config/mopidy_icecast.conf
 
-# Copy the pulse-client configuratrion.
-COPY pulse-client.conf /etc/pulse/client.conf
+# Copy the pulse-client configuration.
+COPY docker/pulse-client.conf /etc/pulse/client.conf
+
+COPY config/sounds/alarm.m4a /opt/raveberry/config/sounds/
 
 # Allows any user to run mopidy, but runs by default as a randomly generated UID/GID.
 ENV HOME=/var/lib/mopidy
