@@ -8,7 +8,7 @@ DJANGO_MOCK=1 python3 manage.py shell <<-EOF
 	User.objects.create_superuser('admin', email='', password='$ADMIN_PASSWORD')
 	User.objects.create_user('mod', password='mod')
 EOF
-if [[ ! -d static/bundle.js ]]; then
+if [[ ! -f static/bundle.js ]]; then
 	echo "building frontend"
   	yarn --cwd frontend install
   	yarn --cwd frontend build
