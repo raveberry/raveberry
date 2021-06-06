@@ -171,15 +171,15 @@ export function updateBaseState(state) {
   }
   if (state.partymode) {
     $('#navbar-icon').addClass('partymode');
-    if (state.alarm) {
-      $('body').addClass('alarm');
-      $('#progress-bar').addClass('alarm');
-    } else {
-      $('body').removeClass('alarm');
-      $('#progress-bar').removeClass('alarm');
-    }
   } else {
     $('#navbar-icon').removeClass('partymode');
+  }
+  if (state.alarm) {
+    $('body').addClass('alarm');
+    $('#progress-bar').addClass('alarm');
+  } else {
+    $('body').removeClass('alarm');
+    $('#progress-bar').removeClass('alarm');
   }
 
   if (localStorageGet('platform') === null) {

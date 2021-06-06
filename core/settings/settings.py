@@ -99,6 +99,7 @@ class Settings(Stateful):
         settings_state["numberOfSuggestions"] = self.basic.number_of_suggestions
         settings_state["peopleToParty"] = self.basic.people_to_party
         settings_state["alarmProbability"] = self.basic.alarm_probability
+        settings_state["buzzerCooldown"] = self.basic.buzzer_cooldown
         settings_state["downvotesToKick"] = self.basic.downvotes_to_kick
         settings_state["maxDownloadSize"] = self.basic.max_download_size
         settings_state["additionalKeywords"] = self.basic.additional_keywords

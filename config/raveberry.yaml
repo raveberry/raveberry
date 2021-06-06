@@ -28,6 +28,8 @@ audio_normalization: false
 # If enabled, consider performing the installation on a local session (not via ssh),
 # since this will restart networking, probably killing remote sessions.
 hotspot: false
+# Trigger the alarm when a buzzer is pressed (that connects GPIO16 and GND).
+buzzer: false
 
 ### Song Caching ###
 # The directory to cache the songs into. Defaults to ~/Music/raveberry when left empty

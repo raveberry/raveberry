@@ -30,6 +30,7 @@ class Basic:
         )
         self.people_to_party = int(Settings.get_setting("people_to_party", "3"))
         self.alarm_probability = float(Settings.get_setting("alarm_probability", "0"))
+        self.buzzer_cooldown = float(Settings.get_setting("buzzer_cooldown", "60"))
         self.downvotes_to_kick = int(Settings.get_setting("downvotes_to_kick", "2"))
         self.max_download_size = float(Settings.get_setting("max_download_size", "0"))
         self.max_playlist_items = int(Settings.get_setting("max_playlist_items", "10"))
@@ -109,6 +110,13 @@ class Basic:
         value = float(request.POST.get("value"))  # type: ignore
         Setting.objects.filter(key="alarm_probability").update(value=value)
         self.alarm_probability = value
+
+    @Settings.option
+    def set_buzzer_cooldown(self, request: WSGIRequest) -> None:
+        """Sets the minimum time that needs to pass between buzzer presses."""
+        value = int(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="buzzer_cooldown").update(value=value)
+        self.buzzer_cooldown = value
 
     @Settings.option
     def set_downvotes_to_kick(self, request: WSGIRequest) -> None:

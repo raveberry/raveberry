@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import logging
 import os
 import random
@@ -41,11 +42,19 @@ class Playback:
 
         self.queue = models.QueuedSong.objects
         self.alarm_playing: Event = Event()
+        self.alarm_requested: Event = Event()
         self.backup_playing: Event = Event()
         self.running = True
 
         self.player: MopidyAPI = MopidyAPI(host=settings.MOPIDY_HOST)
         self.player_lock = Lock()
+
+        self.playing = Event()
+
+        @self.player.on_event("playback_state_changed")
+        def _on_playback_state_changed(event):
+            if event.new_state == "playing":
+                self.playing.set()
 
     def start(self) -> None:
         self.queue.delete_placeholders()
@@ -56,20 +65,25 @@ class Playback:
             self.player.tracklist.clear()
             # make songs disappear from tracklist after being played
             self.player.tracklist.set_consume(True)
+        self.handle_buzzer()
         self._loop()
 
-    def progress(self) -> float:
+    def progress(self, important=False) -> float:
         """Returns how far into the current song the playback is, in percent."""
         # the state is either pause or stop
         current_position = 0
         duration = 1
-        with self.mopidy_command() as allowed:
+        with self.mopidy_command(important=important) as allowed:
             if allowed:
                 current_position = self.player.playback.get_time_position()
                 current_track = self.player.playback.get_current_track()
                 if current_track is None or self.backup_playing.is_set():
                     return 0
-                duration = current_track.length
+                try:
+                    duration = current_track.length
+                except AttributeError:
+                    # the backup stream does not have a length attribute
+                    duration = 60 * 60 * 24
         return 100 * current_position / duration
 
     def paused(self) -> bool:
@@ -88,6 +102,8 @@ class Playback:
         while True:
 
             catch_up = None
+            self.playing.clear()
+
             if models.CurrentSong.objects.exists():
                 # recover interrupted song from database
                 current_song = models.CurrentSong.objects.get()
@@ -107,13 +123,6 @@ class Playback:
                 if not self.running:
                     break
 
-                if self.backup_playing.is_set():
-                    # stop backup stream
-                    self.backup_playing.clear()
-                    with self.mopidy_command(important=True) as allowed:
-                        if allowed:
-                            self.player.playback.next()
-
                 # select the next song depending on settings
                 song: Optional[models.QueuedSong]
                 if self.musiq.base.settings.basic.voting_system:
@@ -130,11 +139,20 @@ class Playback:
                     # move the first song in the queue into the current song
                     song_id, song = self.queue.dequeue()
 
+                if song.internal_url == "alarm":
+                    self.play_alarm()
+                    continue
+
                 if song is None:
                     # either the semaphore didn't match up with the actual count
                     # of songs in the queue or a race condition occured
                     logging.warning("dequeued on empty list")
                     continue
+
+                if self.backup_playing.is_set():
+                    # stop backup stream.
+                    # when the dequeued song starts playing, the backup stream playback is stopped
+                    self.backup_playing.clear()
 
                 current_song = models.CurrentSong.objects.create(
                     queue_key=song_id,
@@ -173,20 +191,23 @@ class Playback:
 
             self.musiq.update_state()
 
-            playing = Event()
-
-            @self.player.on_event("playback_state_changed")
-            def _on_playback_state_changed(_event):
-                playing.set()
-
             with self.mopidy_command(important=True):
                 # after a restart consume may be set to False again, so make sure it is on
                 self.player.tracklist.clear()
                 self.player.tracklist.set_consume(True)
                 self.player.tracklist.add(uris=[current_song.internal_url])
+                # temporarily mute mopidy in case we need to seek but mopidy does not react directly
+                # this allows us to seek first and then unmute, preventing audible skips
+                volume = self.player.mixer.get_volume()
+                self.player.mixer.set_volume(0)
                 self.player.playback.play()
                 # mopidy can only seek when the song is playing
-                started_playing = playing.wait(timeout=1)
+                started_playing = self.playing.wait(timeout=1)
+                if not started_playing:
+                    # after mopidy restarts, the song is playing but the event is not fired
+                    # thus, playing is not set by the callback. We set it explicitly in this case
+                    self.playing.set()
+                self.player.mixer.set_volume(volume)
                 if catch_up is not None and catch_up >= 0:
                     self.player.playback.seek(catch_up)
 
@@ -206,7 +227,9 @@ class Playback:
 
             if catch_up is None or catch_up >= 0:
                 if not self._wait_until_song_end():
-                    # there was a ConnectionError during waiting for the song to end
+                    # there was an error while waiting for the song to end
+                    # This happens when we could not connect to mopidy (ConnectionError)
+                    # or when an interrupting alarm was initiated.
                     # we do not delete the current song but recover its state by restarting the loop
                     continue
 
@@ -223,26 +246,7 @@ class Playback:
                 self.musiq.base.user_manager.partymode_enabled()
                 and random.random() < self.musiq.base.settings.basic.alarm_probability
             ):
-                self.alarm_playing.set()
-                self.musiq.base.lights.alarm_started()
-
-                self.musiq.update_state()
-
-                with self.mopidy_command(important=True):
-                    self.player.tracklist.add(
-                        uris=[
-                            "file://"
-                            + os.path.join(settings.BASE_DIR, "config/sounds/alarm.m4a")
-                        ]
-                    )
-                    self.player.playback.play()
-                playing.clear()
-                playing.wait(timeout=1)
-                self._wait_until_song_end()
-
-                self.musiq.base.lights.alarm_stopped()
-                self.musiq.update_state()
-                self.alarm_playing.clear()
+                self.play_alarm()
 
             if not self.queue.exists() and self.musiq.base.settings.sound.backup_stream:
                 self.backup_playing.set()
@@ -253,6 +257,33 @@ class Playback:
                 self.player.playback.play()
 
             self.musiq.update_state()
+
+    def play_alarm(self, interrupt=False) -> None:
+        self.alarm_playing.set()
+        self.musiq.base.lights.alarm_started()
+
+        self.playing.clear()
+        with self.mopidy_command(important=True):
+            if interrupt:
+                self.player.tracklist.clear()
+            self.player.tracklist.add(
+                uris=[
+                    "file://"
+                    + os.path.join(settings.BASE_DIR, "config/sounds/alarm.m4a")
+                ]
+            )
+            self.player.playback.play()
+        self.playing.wait(timeout=1)
+        started_playing = self.playing.wait(timeout=1)
+        if not started_playing:
+            self.playing.set()
+
+        self.musiq.update_state()
+
+        self._wait_until_song_end()
+
+        self.musiq.base.lights.alarm_stopped()
+        self.alarm_playing.clear()
 
     def _wait_until_song_end(self) -> bool:
         """Wait until the song is over.
@@ -274,7 +305,66 @@ class Playback:
                         # error during state get, skip until reconnected
                         error = True
             time.sleep(0.1)
+            if self.alarm_requested.is_set():
+                self.alarm_requested.clear()
+                self.play_alarm(interrupt=True)
+                # the current song was interrupted and needs to be resumed at the correct position
+                # returning False will notify the main loop about this interruption,
+                # making it restart the song correctly
+                current_song = models.CurrentSong.objects.get()
+                # we don't want the song to skip over the time when the alarm was playing
+                # thus, we offset the creation date of the current song by the length of the alarm
+                # Warning: if this duration does not fit the duration of the actual alarm,
+                # Raveberry's internal state get's desynced and weird errors happen
+                current_song.created += datetime.timedelta(seconds=10)
+                current_song.save()
+
+                return False
         return not error
+
+    @background_thread
+    def handle_buzzer(self) -> None:
+        try:
+            import gpiozero
+        except ModuleNotFoundError:
+            return
+        buzzer = gpiozero.Button(16)
+        last_press = timezone.now() - datetime.timedelta(
+            seconds=self.musiq.base.settings.basic.buzzer_cooldown
+        )
+        while True:
+            buzzer.wait_for_release()
+            buzzer.wait_for_press()
+            # do not allow the buzzer to be pressed too frequently
+            if (
+                timezone.now() - last_press
+            ).total_seconds() < self.musiq.base.settings.basic.buzzer_cooldown:
+                logging.warning("buzzer pressed too quickly")
+                continue
+            # do not allow an alarm to be triggered while one is already playing
+            # or when an alarm is currently in the process of being played
+            if self.alarm_playing.is_set() or self.alarm_requested.is_set():
+                logging.warning("last buzzer alarm not yet finished")
+                continue
+
+            last_press = timezone.now()
+            if self.playing.is_set():
+                # if a song is currently playing, inform the loop waiting for the song to end
+                # about this alarm. It will interrupt the current song and play the alarm
+                self.alarm_requested.set()
+            else:
+                # insert a special queue song to wake up the main loop and make it play the alarm
+                self.queue.enqueue(
+                    {
+                        "artist": "Raveberry",
+                        "title": "ALARM!",
+                        "duration": 10,
+                        "internal_url": "alarm",
+                        "external_url": "alarm",
+                    },
+                    True,
+                )
+                self.queue_semaphore.release()
 
     def handle_autoplay(self, url: Optional[str] = None) -> None:
         """Checks whether to add a song by autoplay and does so if necessary.

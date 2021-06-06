@@ -114,6 +114,11 @@
       pip:
         name: pi3d
 
+- name: Install buzzer dependencies
+  when: config.buzzer
+  pip:
+    requirements: "{{ config.install_directory }}/requirements/buzzer.txt"
+
 - name: Install led visualization dependencies
   when: config.led_visualization
   pip:
