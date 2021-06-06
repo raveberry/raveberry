@@ -56,6 +56,8 @@ export function updateState(newState) {
     if (oldState == null ||
       oldState.currentSong == null ||
       oldState.currentSong.id != state.currentSong.id) {
+      // only update the current song title if it changed,
+      // so the marquee effect does not reset
       insertDisplayName($('#current-song-title'), currentSong);
       $('#current-song-title').trigger('change');
     }
@@ -182,11 +184,10 @@ function insertDisplayName(element, song) {
   }
 }
 
-/** Create a queue entry from the given song.
- * @param {Object} song the song containing all information
+/** Create an empty queue entry.
  * @return {Object} the created queue item
  */
-function createQueueItem(song) {
+function createQueueItem() {
   const li = $('<li/>')
       .addClass('list-group-item');
   const entryDiv = $('<div/>')
@@ -199,55 +200,36 @@ function createQueueItem(song) {
   $('<div/>')
       .addClass('download-overlay')
       .appendTo(downloadIcon);
-
   $(downloadSvg).appendTo(downloadIcon);
 
-  const index = $('<div/>')
+  $('<div/>')
       .addClass('queue-index')
-      .addClass('queue-handle');
-  if (VOTING_SYSTEM) {
-    index.text(song.votes);
-  } else {
-    index.text(song.index);
-  }
-  index.appendTo(entryDiv);
-  if (song.internalUrl) {
-    downloadIcon.hide();
-  } else {
-    index.hide();
-  }
-  const title = $('<div/>');
-  insertDisplayName(title, song);
-  title.addClass('queue-title')
+      .addClass('queue-handle')
+      .appendTo(entryDiv)
+      .hide();
+  $('<div/>')
+      .addClass('queue-title')
       .appendTo(entryDiv);
   const info = $('<div/>')
       .addClass('queue-info')
       .appendTo(entryDiv);
   $('<span/>')
       .addClass('queue-info-time')
-      .text(song.durationFormatted)
       .appendTo(info);
   const controls = $('<span/>')
       .addClass('queue-info-controls')
       .appendTo(info);
   if (VOTING_SYSTEM) {
-    const previousVote = localStorageGet('vote-' + song.id);
-    const up = $('<i/>')
+    $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-up')
-        .addClass('vote-up');
-    if (previousVote == '+') {
-      up.addClass('pressed');
-    }
-    up.appendTo(controls);
-    const down = $('<i/>')
+        .addClass('vote-up')
+        .appendTo(controls);
+    $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-down')
-        .addClass('vote-down');
-    if (previousVote == '-') {
-      down.addClass('pressed');
-    }
-    down.appendTo(controls);
+        .addClass('vote-down')
+        .appendTo(controls);
   }
   if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
     $('<i/>')
@@ -264,6 +246,43 @@ function createQueueItem(song) {
   return li;
 }
 
+/** Update a given queue entry with the information from a given song.
+ * @param {Object} entry the list item to be updated
+ * @param {Object} song the song containing all information
+ */
+function updateInformation(entry, song) {
+  const index = entry.find('.queue-index');
+  if (VOTING_SYSTEM) {
+    index.text(song.votes);
+  } else {
+    index.text(song.index);
+  }
+  const downloadIcon = entry.find('.download-icon');
+  if (song.internalUrl) {
+    downloadIcon.hide();
+    index.show();
+  } else {
+    downloadIcon.show();
+    index.hide();
+  }
+
+  const title = entry.find('.queue-title');
+  insertDisplayName(title, song);
+
+  const time = entry.find('.queue-info-time');
+  time.text(song.durationFormatted);
+
+  const previousVote = localStorageGet('vote-' + song.id);
+  if (previousVote == '+') {
+    const up = entry.find('.vote-up');
+    up.addClass('pressed');
+  }
+  if (previousVote == '-') {
+    const down = entry.find('.vote-down');
+    down.addClass('pressed');
+  }
+}
+
 /** Apply the given state without any animation from scratch.
  * @param {Object} newState the new state object
  */
@@ -271,7 +290,8 @@ function rebuildSongQueue(newState) {
   animationInProgress = false;
   $('#song-queue').empty();
   $.each(newState.songQueue, function(index, song) {
-    const queueEntry = createQueueItem(song);
+    const queueEntry = createQueueItem();
+    updateInformation(queueEntry, song);
     queueEntry.appendTo($('#song-queue'));
   });
 }
@@ -298,11 +318,14 @@ function applyQueueChange(oldState, newState) {
     // add new songs
     $.each(newState.songQueue, function(newIndex, song) {
       if (!newIndices.includes(newIndex)) {
-        // song was not present in old indices -> new song
-        const queueEntry = createQueueItem(song);
+        // song was not present in old indices -> append new song to the end
+        const queueEntry = createQueueItem();
         queueEntry.css('opacity', '0');
 
         queueEntry.appendTo($('#song-queue'));
+
+        // store its target index in our array
+        newIndices.push(newIndex);
       }
     });
 
@@ -323,7 +346,21 @@ function applyQueueChange(oldState, newState) {
         // item was deleted
         animationNeeded = true;
         $(li).css('opacity', '0');
+      } else if (index >= oldState.songQueue.length) {
+        // item was added just now
+        // make new songs visible
+        animationNeeded = true;
+        $(li).css('opacity', '1');
+        const delta = (newIndices[index] - index) * liHeight;
+        $(li).css('top', delta + 'px');
       } else {
+        // update information of existing songs directly
+        // instead of after the animation.
+        // -> faster updates and updates for cases where no animation is started
+        // (e.g. placeholder updates)
+        const song = newState.songQueue[newIndices[index]]
+        updateInformation($(li), song);
+
         // skip items that don't move at all
         if (newIndices[index] == index) {
           return;
@@ -332,9 +369,6 @@ function applyQueueChange(oldState, newState) {
         animationNeeded = true;
         const delta = (newIndices[index] - index) * liHeight;
         $(li).css('top', delta + 'px');
-
-        // make new songs visible
-        $(li).css('opacity', '1');
       }
     });
 
