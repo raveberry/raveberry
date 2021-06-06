@@ -288,7 +288,8 @@ class YoutubeSongProvider(SongProvider, Youtube):
         url = initial_data
         for step in path:
             url = url[cast(str, step)]
-        return "https://www.youtube.com" + cast(str, url)
+        # discard everything after the first v= parameter
+        return "https://www.youtube.com" + cast(str, url).split("&")[0]
 
     def request_radio(self, request_ip: str) -> HttpResponse:
         if not self.id:
