@@ -267,15 +267,18 @@ class Musiq(Stateful):
         for song in all_songs:
             song_dict = model_to_dict(song)
             song_dict = util.camelize(song_dict)
-            total_time += song_dict["duration"]
             song_dict["durationFormatted"] = song_utils.format_seconds(
                 song_dict["duration"]
             )
             song_queue.append(song_dict)
+            if song_dict["duration"] < 0:
+                # skip duration of placeholders
+                continue
+            total_time += song_dict["duration"]
         musiq_state["totalTimeFormatted"] = song_utils.format_seconds(total_time)
 
         if state_dict["alarm"]:
-            musiq_state["current_song"] = {
+            musiq_state["currentSong"] = {
                 "queueKey": -1,
                 "manuallyRequested": False,
                 "votes": None,
