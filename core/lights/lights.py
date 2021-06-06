@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from ast import literal_eval as make_tuple
 from functools import wraps
 from typing import Callable, Dict, Any, Optional, TYPE_CHECKING, TypeVar, List
 
@@ -24,6 +25,7 @@ from core.lights.programs import Fixed
 from core.lights.programs import Rainbow
 from core.lights.screen import RenderingStoppedException
 from core.models import Setting
+from core.settings.settings import Settings
 from core.state_handler import Stateful
 from core.util import background_thread
 
@@ -38,8 +40,7 @@ if TYPE_CHECKING:
 
 
 class Lights(Stateful):
-    """This class manages the updating of visualizations
-    and provides endpoints to control them."""
+    """This class manages the updating of visualizations."""
 
     UPS = 30
 
@@ -118,8 +119,8 @@ class Lights(Stateful):
 
         # this lock ensures that only one thread changes led options
         self.option_lock = threading.Lock()
-        self.program_speed = 1.0
-        self.fixed_color = (0.0, 0.0, 0.0)
+        self.program_speed = float(Settings.get_setting("program_speed", "0.5"))
+        self.fixed_color = make_tuple(Settings.get_setting("fixed_color", "(0, 0, 0)"))
         self.last_fixed_color = self.fixed_color
 
         for device in [self.ring, self.wled, self.strip, self.screen]:

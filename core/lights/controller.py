@@ -72,6 +72,7 @@ class Controller:
     def set_program_speed(self, request: WSGIRequest) -> None:
         """Updates the global speed of programs supporting it."""
         value = float(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key="program_speed").update(value=value)
         self.lights.program_speed = value
 
     @Lights.option
@@ -82,6 +83,7 @@ class Controller:
         color = tuple(int(hex_col[i : i + 2], 16) / 255 for i in (0, 2, 4))
         # https://github.com/python/mypy/issues/5068
         color = cast(Tuple[float, float, float], color)
+        Setting.objects.filter(key="fixed_color").update(value=str(color))
         self.lights.fixed_color = color
 
     def _handle_program_request(self, device: Device, request: WSGIRequest) -> None:
@@ -97,11 +99,13 @@ class Controller:
     def _handle_brightness_request(self, device: Device, request: WSGIRequest) -> None:
         # raises ValueError on wrong input, caught in option decorator
         value = float(request.POST.get("value"))  # type: ignore
+        Setting.objects.filter(key=f"{device.name}_brightness").update(value=value)
         device.brightness = value
 
     def _handle_monochrome_request(self, device: Device, request: WSGIRequest) -> None:
         # raises ValueError on wrong input, caught in option decorator
         enabled = request.POST.get("value") == "true"  # type: ignore
+        Setting.objects.filter(key=f"{device.name}_monochrome").update(value=enabled)
         device.monochrome = enabled
 
     @Lights.option

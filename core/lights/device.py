@@ -7,8 +7,13 @@ class Device:
     def __init__(self, lights, name) -> None:
         self.lights = lights
         self.name = name
-        self.brightness = 1.0
-        self.monochrome = False
+        self.brightness = float(
+            self.lights.base.settings.get_setting(f"{self.name}_brightness", "1.0")
+        )
+        self.monochrome = (
+            self.lights.base.settings.get_setting(f"{self.name}_monochrome", "False")
+            == "True"
+        )
         self.initialized = False
         self.last_program = self.lights.disabled_program
         self.program = self.lights.disabled_program
