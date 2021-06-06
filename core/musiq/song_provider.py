@@ -156,7 +156,7 @@ class SongProvider(MusicProvider):
     def enqueue_placeholder(self, manually_requested) -> None:
         metadata: Metadata = {
             "internal_url": "",
-            "external_url": "",
+            "external_url": self.get_external_url(),
             "artist": "",
             "title": self.query or self.get_external_url(),
             "duration": -1,
