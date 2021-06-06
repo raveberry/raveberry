@@ -22,8 +22,10 @@ from core.settings.settings import Settings
 class System:
     """This class is responsible for handling settings changes related to system configuration."""
 
-    @staticmethod
-    def update_mopidy_config(output: str) -> None:
+    def __init__(self, settings: Settings):
+        self.settings = settings
+
+    def update_mopidy_config(self, output: str) -> None:
         """Updates mopidy's config with the credentials stored in the database.
         If no config_file is given, the default one is used."""
         if settings.DOCKER:
@@ -31,7 +33,7 @@ class System:
             return
 
         if output == "pulse":
-            if shutil.which("cava"):
+            if self.settings.sound.feed_cava and shutil.which("cava"):
                 output = "cava"
             else:
                 output = "regular"
@@ -57,9 +59,6 @@ class System:
             ]
         )
         time.sleep(3)
-
-    def __init__(self, settings: Settings):
-        self.settings = settings
 
     def check_mopidy_extensions(self) -> Dict[str, Tuple[bool, str]]:
         """Returns a dict indicating for each extension whether it is enabled

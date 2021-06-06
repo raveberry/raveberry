@@ -124,6 +124,7 @@ class Settings(Stateful):
         settings_state["bluetoothScanning"] = self.sound.bluetoothctl is not None
         settings_state["bluetoothDevices"] = self.sound.bluetooth_devices
 
+        settings_state["feedCava"] = self.sound.feed_cava
         settings_state["output"] = self.sound.output
 
         try:

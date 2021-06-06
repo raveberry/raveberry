@@ -22,6 +22,7 @@ class Sound:
 
     def __init__(self, settings: Settings):
         self.settings = settings
+        self.feed_cava = Settings.get_setting("feed_cava", "True") == "True"
         self.output = Settings.get_setting("sound_output", "")
         self.backup_stream = Settings.get_setting("backup_stream", "")
         self.bluetoothctl: Optional[subprocess.Popen[bytes]] = None
@@ -211,6 +212,15 @@ class Sound:
         if error:
             return HttpResponseBadRequest(error)
         return HttpResponse("Disconnected")
+
+    @Settings.option
+    def set_feed_cava(self, request: WSGIRequest) -> HttpResponse:
+        """Enables or disables whether mopidy should output to the cava fake device."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="feed_cava").update(value=enabled)
+        self.feed_cava = enabled
+        # update mopidy config to apply the change
+        self.settings.system.update_mopidy_config("pulse")
 
     @Settings.option
     def list_outputs(self, _request: WSGIRequest) -> JsonResponse:
