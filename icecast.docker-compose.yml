@@ -15,6 +15,9 @@ services:
       - POSTGRES_DB=raveberry
       - POSTGRES_USER=raveberry
       - POSTGRES_PASSWORD=raveberry
+    # Use this if you want to persist raveberry's database data
+    #volumes:
+    #  - /path/to/data/:/var/lib/postgresql/data
     restart: always
   redis:
     image: redis
