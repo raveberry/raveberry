@@ -1,11 +1,20 @@
 # Changelog
 
+## 0.8.10 - 2021-06-21
+
+- New feature: the alarm can be triggered anytime by connecting two pins on the Pi, e.g. with a buzzer. Enable in raveberry.yaml with "buzzer" key.
+- Fixed youtube autoplay
+- Queue updates show instantly instead of after an animation. Updates sometimes got lost when no animation was triggered. Some songs seemed to be downloading forever.
+- Added option to disable duplicating audio into cava (only takes effect if any visualization is installed). Due to the large buffer size the playback sometimes gliched.
+- Placeholders are correctly linked
+- All `/lights` settings are stored in the database
+
 ## 0.8.9 - 2021-05-02
 
-- migrate databases during setup
-- failing to applay homewifi does not stop setup
-- script that sets output during setup is provided with all credentials
-- voting correctly uses the key of a queued song
+- Migrate databases during setup
+- Failing to applay homewifi does not stop setup
+- Script that sets output during setup is provided with all credentials
+- Voting correctly uses the key of a queued song
 
 ## 0.8.6 - 2021-05-02
 
