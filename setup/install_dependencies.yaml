@@ -115,7 +115,7 @@
         name: pi3d
 
 - name: Install buzzer dependencies
-  when: config.buzzer
+  when: config.buzzer is defined and config.buzzer
   pip:
     requirements: "{{ config.install_directory }}/requirements/buzzer.txt"
 
