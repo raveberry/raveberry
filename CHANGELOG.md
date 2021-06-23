@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.11 - 2021-06-23
+
+- Made new config key optional
+
 ## 0.8.10 - 2021-06-21
 
 - New feature: the alarm can be triggered anytime by connecting two pins on the Pi, e.g. with a buzzer. Enable in raveberry.yaml with "buzzer" key.
