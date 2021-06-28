@@ -7,6 +7,7 @@ declare let CONTROLS_ENABLED: boolean;
 
 declare let ADDITIONAL_KEYWORDS: string;
 declare let FORBIDDEN_KEYWORDS: string;
+declare let DYNAMIC_EMBEDDED_STREAM: boolean;
 
 interface JQuery {
   // unfortunately, bootstrap and jqueryui introduce conflicts with types 'button' and 'tooltip'

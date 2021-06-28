@@ -94,6 +94,7 @@ class Settings(Stateful):
         settings_state["newMusicOnly"] = self.basic.new_music_only
         settings_state["loggingEnabled"] = self.basic.logging_enabled
         settings_state["embedStream"] = self.basic.embed_stream
+        settings_state["dynamicEmbeddedStream"] = self.basic.dynamic_embedded_stream
         settings_state["hashtagsActive"] = self.basic.hashtags_active
         settings_state["onlineSuggestions"] = self.basic.online_suggestions
         settings_state["numberOfSuggestions"] = self.basic.number_of_suggestions

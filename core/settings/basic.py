@@ -22,6 +22,9 @@ class Basic:
         self.logging_enabled = Settings.get_setting("logging_enabled", "True") == "True"
         self.hashtags_active = Settings.get_setting("hashtags_active", "True") == "True"
         self.embed_stream = Settings.get_setting("embed_stream", "False") == "True"
+        self.dynamic_embedded_stream = (
+            Settings.get_setting("dynamic_embedded_stream", "False") == "True"
+        )
         self.online_suggestions = (
             Settings.get_setting("online_suggestions", "True") == "True"
         )
@@ -82,6 +85,13 @@ class Basic:
         enabled = request.POST.get("value") == "true"
         Setting.objects.filter(key="embed_stream").update(value=enabled)
         self.embed_stream = enabled
+
+    @Settings.option
+    def set_dynamic_embedded_stream(self, request: WSGIRequest) -> None:
+        """Enables or disables logging of requests and play logs based on the given value."""
+        enabled = request.POST.get("value") == "true"
+        Setting.objects.filter(key="dynamic_embedded_stream").update(value=enabled)
+        self.dynamic_embedded_stream = enabled
 
     @Settings.option
     def set_online_suggestions(self, request: WSGIRequest) -> None:

@@ -4,6 +4,11 @@
 {% block js %}
     let ADDITIONAL_KEYWORDS = '{{ additional_keywords }}';
     let FORBIDDEN_KEYWORDS = '{{ forbidden_keywords }}';
+	{% if dynamic_embedded_stream %}
+	let DYNAMIC_EMBEDDED_STREAM = true;
+	{% else %}
+	let DYNAMIC_EMBEDDED_STREAM = false;
+	{% endif %}
 
     urls['state'] = '{% url 'musiq-state' %}';
 	urls['musiq'] = {

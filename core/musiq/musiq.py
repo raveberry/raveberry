@@ -243,6 +243,9 @@ class Musiq(Stateful):
         context["additional_keywords"] = self.base.settings.basic.additional_keywords
         context["forbidden_keywords"] = self.base.settings.basic.forbidden_keywords
         context["embed_stream"] = self.base.settings.basic.embed_stream
+        context[
+            "dynamic_embedded_stream"
+        ] = self.base.settings.basic.dynamic_embedded_stream
         return render(request, "musiq.html", context)
 
     def state_dict(self) -> Dict[str, Any]:
