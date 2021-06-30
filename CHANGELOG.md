@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.12 - 2021-06-30
+
+- The embedded speaker icon can now provide `/stream` as well
+- Pin psycopg2 (fixes #111)
+
 ## 0.8.11 - 2021-06-23
 
 - Made new config key optional
