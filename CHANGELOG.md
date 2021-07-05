@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.13 - 2021-07-05
+
+- Big performance improvement: reverted a dependency upgrade that made the server effectively single-threaded
+
 ## 0.8.12 - 2021-06-30
 
 - The embedded speaker icon can now provide `/stream` as well

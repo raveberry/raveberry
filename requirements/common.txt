@@ -1,3 +1,6 @@
+# https://github.com/django/asgiref/issues/218
+# newer asgiref versions effectively make channels single-threaded
+asgiref==3.2.*
 cachetools>=4.2.1
 channels==2.2.*
 Django==2.2.*
