@@ -2,6 +2,10 @@ import '@testing-library/jest-dom';
 import * as fs from 'fs';
 import * as child from 'child_process';
 
+// Explicitly declaring the global object for tests gets rid of this jest error:
+// Property <property> does not exist on type 'typeof globalThis'.
+declare const global: any;
+
 // add jQuery to the global scope so libraries depending on it can be loaded
 import * as $ from 'jquery';
 global['$'] = global['jQuery'] = $;
