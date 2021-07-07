@@ -15,6 +15,10 @@ global['urls'] = {};
 global['VOTING_SYSTEM'] = false;
 global['ADMIN'] = false;
 global['CONTROLS_ENABLED'] = false;
+// used in musiq tests
+// needs to set here because it raises typing errors in  the test module
+global['ADDITIONAL_KEYWORDS'] = '';
+global['FORBIDDEN_KEYWORDS'] = '';
 
 // create the css file if necessary
 try {

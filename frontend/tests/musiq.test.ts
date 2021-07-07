@@ -9,8 +9,6 @@ beforeAll(() => {
 
 beforeEach(() => {
   util.prepareDocument();
-  global['ADDITIONAL_KEYWORDS'] = '';
-  global['FORBIDDEN_KEYWORDS'] = '';
   update.clearState();
 });
 
