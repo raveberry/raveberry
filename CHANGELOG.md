@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.9.0 - 2021-07-27
+- _Big_ Architecture rewrite: 
+- State is not kept in a single god-object, but stored in Redis and the database
+- Celery is used for long-running tasks
+- As a result, playback starts with the server, not with the first request
+- redis-server is required for the development server (`raveberry run`) as well
+
+- Pause times are stored in the database, resulting in less mopidy queries
+- Additionally, restarting the server after seeking a song now correctly resumes playback
+
+- Voting and lights setting changes are possible during alarm
+- Renamed internal name of voting mode, needs to be set again in settings
+- Got rid of `DJANGO_MOCK` and `DJANGO_POSTGRES` environment variables. Only "runserver" and "daphne" start Raveberry, other commands don't need extra env vars anymore.
+- After login, users are redirected to the page they tried to access
+- Login errors are less ugly
+- Player errors are indicated. Player can be restarted in settings.
+- Removed gunicorn, wasn't supported for a long time anyway
+- Docker container does not run as root
+- Adjusting the screen temporarily stops visualization, because it restarts the worker task
+- Daphne (finally) does not log into syslog anymore
+- Smaller audio files are used for testing
+
 ## 0.8.13 - 2021-07-05
 
 - Big performance improvement: reverted a dependency upgrade that made the server effectively single-threaded
