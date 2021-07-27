@@ -2,6 +2,8 @@ import json
 
 from django.urls import reverse
 
+from core.settings import storage
+from tests import util
 from tests.music_test import MusicTest
 
 
@@ -48,7 +50,7 @@ class QueueTests(MusicTest):
         self.client.post(reverse("remove"), {"key": str(key)})
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 2)
 
-        # choosing a new one should
+        # choosing a new key will again delete a song
         key = state["musiq"]["songQueue"][0]["id"]
         self.client.post(reverse("remove"), {"key": str(key)})
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 1)
@@ -69,7 +71,7 @@ class QueueTests(MusicTest):
             lambda state: state["musiq"]["songQueue"][0]["id"] == key
         )
 
-        # another key will
+        # another key will again move to the top
         key = state["musiq"]["songQueue"][2]["id"]
         self.client.post(reverse("prioritize"), {"key": str(key)})
         self._poll_musiq_state(
@@ -125,11 +127,12 @@ class QueueVotingTests(MusicTest):
         self._setup_test_library()
         self._add_local_playlist()
 
-        self.client.post(reverse("set-voting-system"), {"value": "true"})
-        self._poll_state(
-            "settings-state", lambda state: state["settings"]["votingSystem"] == True
-        )
+        storage.set("voting_enabled", True)
         self.client.logout()
+
+    def tearDown(self):
+        util.admin_login(self.client)
+        super().tearDown()
 
     def test_votes(self):
         state = json.loads(self.client.get(reverse("musiq-state")).content)

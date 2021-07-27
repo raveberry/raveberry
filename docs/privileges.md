@@ -41,9 +41,6 @@ At the bottom of the settings page, the system can be configured in various ways
 * **Streaming**:
 Configures whether audio should be made available at `/stream`. See [base functionality](streaming.md) for further information.
 
-* **Events**:
-Configures whether live updates with websockets are active. Internally this option changes the deployment between `daphne` (websockets supported) and `gunicorn` (websockets disabled). Since websockets require a lot of computation on server side, disabling them can reduce strain on the CPU. However, this also diminishes user experience significantly.
-
 * **Hotspot**:
 Configures whether the raveberry casts its own WiFi network.
 

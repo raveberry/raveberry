@@ -1,3 +1,4 @@
+"""This module contains the base class of all playlist providers."""
 import logging
 import time
 from typing import Optional, Type, List
@@ -6,13 +7,14 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models.expressions import F
 
+import core.settings.storage as storage
 from core.models import (
     ArchivedPlaylist,
     PlaylistEntry,
     ArchivedPlaylistQuery,
     RequestLog,
 )
-from core.musiq import song_utils as song_utils
+from core.musiq import song_utils
 from core.musiq.music_provider import MusicProvider, ProviderError
 from core.musiq.song_provider import SongProvider
 
@@ -22,7 +24,7 @@ class PlaylistProvider(MusicProvider):
 
     @staticmethod
     def create(
-        musiq: "Musiq", query: Optional[str] = None, key: Optional[int] = None
+        query: Optional[str] = None, key: Optional[int] = None
     ) -> "PlaylistProvider":
         """Factory method to create a playlist provider.
         Both query and key need to be specified.
@@ -47,28 +49,19 @@ class PlaylistProvider(MusicProvider):
             from core.musiq.localdrive import LocalPlaylistProvider
 
             provider_class = LocalPlaylistProvider
-        elif (
-            musiq.base.settings.platforms.youtube_enabled and playlist_type == "youtube"
-        ):
+        elif storage.get("youtube_enabled") and playlist_type == "youtube":
             from core.musiq.youtube import YoutubePlaylistProvider
 
             provider_class = YoutubePlaylistProvider
-        elif (
-            musiq.base.settings.platforms.spotify_enabled and playlist_type == "spotify"
-        ):
+        elif storage.get("spotify_enabled") and playlist_type == "spotify":
             from core.musiq.spotify import SpotifyPlaylistProvider
 
             provider_class = SpotifyPlaylistProvider
-        elif (
-            musiq.base.settings.platforms.soundcloud_enabled
-            and playlist_type == "soundcloud"
-        ):
+        elif storage.get("soundcloud_enabled") and playlist_type == "soundcloud":
             from core.musiq.soundcloud import SoundcloudPlaylistProvider
 
             provider_class = SoundcloudPlaylistProvider
-        elif (
-            musiq.base.settings.platforms.jamendo_enabled and playlist_type == "jamendo"
-        ):
+        elif storage.get("jamendo_enabled") and playlist_type == "jamendo":
             from core.musiq.jamendo import JamendoPlaylistProvider
 
             provider_class = JamendoPlaylistProvider
@@ -80,7 +73,7 @@ class PlaylistProvider(MusicProvider):
             provider_class = LocalPlaylistProvider
         if not provider_class:
             raise NotImplementedError(f"No provider for given playlist: {query}, {key}")
-        provider = provider_class(musiq, query, key)
+        provider = provider_class(query, key)
         return provider
 
     @staticmethod
@@ -88,10 +81,8 @@ class PlaylistProvider(MusicProvider):
         """Constructs and returns the external id based on the given url."""
         raise NotImplementedError()
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
-        super().__init__(musiq, query, key)
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
+        super().__init__(query, key)
         self.ok_message = "queueing playlist"
         self.title: Optional[str] = None
         self.urls: List[str] = []
@@ -186,18 +177,16 @@ class PlaylistProvider(MusicProvider):
                 playlist=archived_playlist, query=self.query
             )
 
-        if self.musiq.base.settings.basic.logging_enabled and request_ip:
+        if storage.get("logging_enabled") and request_ip:
             RequestLog.objects.create(playlist=archived_playlist, address=request_ip)
 
     def enqueue(self) -> None:
         for index, external_url in enumerate(self.urls):
-            if index == self.musiq.base.settings.basic.max_playlist_items:
+            if index == storage.get("max_playlist_items"):
                 break
             # request every url in the playlist as their own url
             try:
-                song_provider = SongProvider.create(
-                    self.musiq, external_url=external_url
-                )
+                song_provider = SongProvider.create(external_url=external_url)
                 song_provider.request("", archive=False, manually_requested=False)
             except (ProviderError, NotImplementedError) as e:
                 logging.warning(

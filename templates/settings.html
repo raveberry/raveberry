@@ -16,8 +16,8 @@
 		Settings
 	</li>
 	<li class="list-group-item list-item">
-		<span class="description">Voting System</span>
-		<input type="checkbox" id="voting-system">
+		<span class="description">Voting</span>
+		<input type="checkbox" id="voting-enabled">
 	</li>
     <li class="list-group-item list-item">
         <span class="description">New music only</span>
@@ -58,6 +58,9 @@
 	<li class="list-group-item list-item">
 		<span class="description">Minimum time between buzzers (in seconds)</span>
 		<input id="buzzer-cooldown"/>
+	</li>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="trigger-alarm">Trigger Alarm</button>
 	</li>
 	<li class="list-group-item list-item">
 		<span class="description">Downvotes to kick</span>
@@ -221,7 +224,7 @@
 	</li>
 	<li class="list-group-item list-item">
 		<span class="description">Scanning</span>
-		<input type="checkbox" id="set-bluetooth-scanning" autocomplete="off"/>
+		<input type="checkbox" id="bluetooth-scanning" autocomplete="off"/>
 	</li>
 	<!--
 	<li class="list-group-item list-item">
@@ -247,6 +250,13 @@
         <span class="description">Output</span>
         <input id="output"/>
     </li>
+	<li class="list-group-item list-item">
+		<span class="description">Player status (restarting player/server might fix errors)</span>
+		<span id="player-status"></span>
+	</li>
+	<li class="list-group-item list-item centered">
+		<button class="btn" id="restart-player">Restart Player</button>
+	</li>
 </ul>
 
 <ul class="list-group system-install-only">
@@ -370,18 +380,6 @@
 	</li>
 </ul>
 
-<!-- gunicorn is not installed by default, don't show this option in the UI
-<ul class="list-group system-install-only">
-	<li class="list-group-item list-item">
-		<span class="description">Events Enabled:</span>
-		<div id="events-enabled"></div>
-	</li>
-	<li class="list-group-item list-item">
-		<button class="btn" id="disable-events">Disable Events</button>
-		<button class="btn" id="enable-events">Enable Events</button>
-	</li>
-</ul>
--->
 <ul class="list-group system-install-only hotspot-functionality">
 	<li class="list-group-item list-item">
 		<span class="description">Hotspot Enabled:</span>
@@ -424,7 +422,10 @@
 </ul>
 <ul class="list-group system-install-only">
 	<li class="list-group-item list-item">
-		<button class="btn" id="reboot-server">Reboot Server</button>
+		<button class="btn" id="restart-server">Restart Server</button>
+		<button class="btn" id="kill-workers">Kill Workers</button>
+	</li>
+	<li class="list-group-item list-item">
 		<button class="btn" id="reboot-system">Reboot System</button>
 		<button class="btn" id="shutdown-system">Shutdown System</button>
 	</li>

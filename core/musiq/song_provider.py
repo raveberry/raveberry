@@ -1,3 +1,5 @@
+"""This module contains the base class of all song providers."""
+
 import logging
 from typing import Optional, Type, TYPE_CHECKING
 
@@ -5,8 +7,10 @@ from django.db import transaction
 from django.db.models.expressions import F
 from django.http.response import HttpResponse
 
+import core.settings.storage as storage
 from core.models import ArchivedSong, QueuedSong, ArchivedQuery, RequestLog
-from core.musiq import song_utils as song_utils
+from core.musiq import song_utils as song_utils, playback
+from core.musiq import musiq
 from core.musiq.music_provider import MusicProvider, WrongUrlError
 
 if TYPE_CHECKING:
@@ -23,7 +27,6 @@ class SongProvider(MusicProvider):
 
     @staticmethod
     def create(
-        musiq: "Musiq",
         query: Optional[str] = None,
         key: Optional[int] = None,
         external_url: Optional[str] = None,
@@ -53,22 +56,19 @@ class SongProvider(MusicProvider):
             from core.musiq.localdrive import LocalSongProvider
 
             provider_class = LocalSongProvider
-        elif musiq.base.settings.platforms.youtube_enabled and url_type == "youtube":
+        elif storage.get("youtube_enabled") and url_type == "youtube":
             from core.musiq.youtube import YoutubeSongProvider
 
             provider_class = YoutubeSongProvider
-        elif musiq.base.settings.platforms.spotify_enabled and url_type == "spotify":
+        elif storage.get("spotify_enabled") and url_type == "spotify":
             from core.musiq.spotify import SpotifySongProvider
 
             provider_class = SpotifySongProvider
-        elif (
-            musiq.base.settings.platforms.soundcloud_enabled
-            and url_type == "soundcloud"
-        ):
+        elif storage.get("soundcloud_enabled") and url_type == "soundcloud":
             from core.musiq.soundcloud import SoundcloudSongProvider
 
             provider_class = SoundcloudSongProvider
-        elif musiq.base.settings.platforms.jamendo_enabled and url_type == "jamendo":
+        elif storage.get("jamendo_enabled") and url_type == "jamendo":
             from core.musiq.jamendo import JamendoSongProvider
 
             provider_class = JamendoSongProvider
@@ -76,13 +76,11 @@ class SongProvider(MusicProvider):
             raise NotImplementedError(f"No provider for given song: {external_url}")
         if not query and external_url:
             query = external_url
-        provider = provider_class(musiq, query, key)
+        provider = provider_class(query, key)
         return provider
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
-        super().__init__(musiq, query, key)
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
+        super().__init__(query, key)
         self.ok_message = "song queued"
         self.queued_song: Optional[QueuedSong] = None
 
@@ -117,31 +115,19 @@ class SongProvider(MusicProvider):
                 from core.musiq.localdrive import LocalSongProvider
 
                 return LocalSongProvider.get_id_from_external_url(self.query)
-            if (
-                self.musiq.base.settings.platforms.youtube_enabled
-                and url_type == "youtube"
-            ):
+            if storage.get("youtube_enabled") and url_type == "youtube":
                 from core.musiq.youtube import YoutubeSongProvider
 
                 return YoutubeSongProvider.get_id_from_external_url(self.query)
-            if (
-                self.musiq.base.settings.platforms.spotify_enabled
-                and url_type == "spotify"
-            ):
+            if storage.get("spotify_enabled") and url_type == "spotify":
                 from core.musiq.spotify import SpotifySongProvider
 
                 return SpotifySongProvider.get_id_from_external_url(self.query)
-            if (
-                self.musiq.base.settings.platforms.soundcloud_enabled
-                and url_type == "soundcloud"
-            ):
+            if storage.get("soundcloud_enabled") and url_type == "soundcloud":
                 from core.musiq.soundcloud import SoundcloudSongProvider
 
                 return SoundcloudSongProvider.get_id_from_external_url(self.query)
-            if (
-                self.musiq.base.settings.platforms.jamendo_enabled
-                and url_type == "jamendo"
-            ):
+            if storage.get("jamendo_enabled") and url_type == "jamendo":
                 from core.musiq.jamendo import JamendoSongProvider
 
                 return JamendoSongProvider.get_id_from_external_url(self.query)
@@ -155,14 +141,15 @@ class SongProvider(MusicProvider):
 
     def enqueue_placeholder(self, manually_requested) -> None:
         metadata: Metadata = {
-            "internal_url": "",
-            "external_url": self.get_external_url(),
             "artist": "",
             "title": self.query or self.get_external_url(),
             "duration": -1,
+            "internal_url": None,
+            "external_url": self.get_external_url(),
+            "stream_url": None,
         }
         initial_votes = 1 if manually_requested else 0
-        self.queued_song = self.musiq.queue.enqueue(
+        self.queued_song = playback.queue.enqueue(
             metadata, manually_requested, votes=initial_votes
         )
 
@@ -173,8 +160,8 @@ class SongProvider(MusicProvider):
     def check_cached(self) -> bool:
         raise NotImplementedError()
 
-    def check_not_too_large(self, size: Optional[int]) -> bool:
-        max_size = self.musiq.base.settings.basic.max_download_size * 1024 * 1024
+    def check_not_too_large(self, size: Optional[float]) -> bool:
+        max_size = storage.get("max_download_size") * 1024 * 1024
         if (
             max_size != 0
             and not self.check_cached()
@@ -214,39 +201,37 @@ class SongProvider(MusicProvider):
                     song=archived_song, query=self.query
                 )
 
-        if self.musiq.base.settings.basic.logging_enabled and request_ip:
+        if storage.get("logging_enabled") and request_ip:
             RequestLog.objects.create(song=archived_song, address=request_ip)
 
     def enqueue(self) -> None:
         assert self.queued_song
-        if not self.musiq.queue.filter(id=self.queued_song.id).exists():
+        if not playback.queue.filter(id=self.queued_song.id).exists():
             # this song was already deleted, do not enqueue
             return
-
-        from core.musiq.playback import Playback
 
         metadata = self.get_metadata()
 
         self.queued_song.internal_url = metadata["internal_url"]
         self.queued_song.external_url = metadata["external_url"]
-        self.queued_song.stream_url = metadata.get("stream_url", "")
+        self.queued_song.stream_url = metadata["stream_url"]
         self.queued_song.artist = metadata["artist"]
         self.queued_song.title = metadata["title"]
         self.queued_song.duration = metadata["duration"]
         # make sure not to overwrite the index as it may have changed in the meantime
         self.queued_song.save(
             update_fields=[
-                "internal_url",
-                "external_url",
-                "stream_url",
                 "artist",
                 "title",
                 "duration",
+                "internal_url",
+                "external_url",
+                "stream_url",
             ]
         )
 
-        self.musiq.update_state()
-        Playback.queue_semaphore.release()
+        musiq.update_state()
+        playback.queue_changed.set()
 
     def get_suggestion(self) -> str:
         """Returns the external url of a suggested song based on this one."""

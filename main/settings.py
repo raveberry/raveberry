@@ -12,21 +12,16 @@ from typing import List
 from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MOCK = bool(os.environ.get("DJANGO_MOCK"))
-FORCE_POSTGRES = bool(os.environ.get("DJANGO_POSTGRES"))
 DEMO = bool(os.environ.get("DJANGO_DEMO"))
 
-if MOCK:
+try:
+    with open(os.path.join(BASE_DIR, "config/secret_key.txt")) as f:
+        SECRET_KEY = f.read().strip()
+except FileNotFoundError:
     SECRET_KEY = get_random_secret_key()
-else:
-    try:
-        with open(os.path.join(BASE_DIR, "config/secret_key.txt")) as f:
-            SECRET_KEY = f.read().strip()
-    except FileNotFoundError:
-        SECRET_KEY = get_random_secret_key()
-        with open(os.path.join(BASE_DIR, "config/secret_key.txt"), "w") as f:
-            f.write(SECRET_KEY)
-        print("created secret key")
+    with open(os.path.join(BASE_DIR, "config/secret_key.txt"), "w") as f:
+        f.write(SECRET_KEY)
+    print("created secret key")
 
 try:
     with open(os.path.join(BASE_DIR, "VERSION")) as f:
@@ -95,6 +90,7 @@ WSGI_APPLICATION = "main.wsgi.application"
 if DOCKER:
     POSTGRES_HOST = "db"
     REDIS_HOST = "redis"
+    REDIS_PORT = "6379"
     MOPIDY_HOST = "mopidy"
     ICECAST_HOST = "icecast"
     DEFAULT_CACHE_DIR = "/Music/raveberry/"
@@ -102,6 +98,7 @@ if DOCKER:
 else:
     POSTGRES_HOST = "127.0.0.1"
     REDIS_HOST = "127.0.0.1"
+    REDIS_PORT = "6379"
     MOPIDY_HOST = "localhost"
     ICECAST_HOST = "localhost"
     DEFAULT_CACHE_DIR = "~/Music/raveberry/"
@@ -109,7 +106,7 @@ else:
 
 # Database
 
-if (DEBUG or MOCK) and not FORCE_POSTGRES:
+if DEBUG:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -129,6 +126,20 @@ else:
         }
     }
 
+BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
+CELERY_IMPORTS = [
+    "core.lights.worker",
+    "core.musiq.playback",
+    "core.musiq.music_provider",
+    "core.settings.library",
+    "core.settings.sound",
+]
+CELERY_TASK_SERIALIZER = "pickle"
+CELERY_ACCEPT_CONTENT = ["pickle"]
+if TESTING:
+    CELERY_ALWAYS_EAGER = True
+    CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -142,18 +153,15 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "Europe/Berlin"
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 # Users
-LOGIN_REDIRECT_URL = "/logged_in/"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "musiq"
+LOGOUT_REDIRECT_URL = "musiq"
 # only preserve user sessions for an hour
 # SESSION_COOKIE_AGE = 3600
 
@@ -162,7 +170,7 @@ STATIC_FILES = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS: List[str] = [STATIC_FILES]
 STATIC_URL = "/static/"
 
-if not os.path.exists(os.path.join(BASE_DIR, "static/admin")) and not MOCK:
+if not os.path.exists(os.path.join(BASE_DIR, "static/admin")):
     import django
 
     DJANGO_PATH = os.path.dirname(django.__file__)
@@ -182,15 +190,12 @@ if not os.path.exists(os.path.join(BASE_DIR, "static/admin")) and not MOCK:
 
 # channels
 ASGI_APPLICATION = "main.routing.APPLICATION"
-if DEBUG:
-    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
-else:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {"hosts": [(REDIS_HOST, 6379)], "capacity": 1500, "expiry": 10},
-        }
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [(REDIS_HOST, REDIS_PORT)], "capacity": 1500, "expiry": 10},
     }
+}
 
 # Logging
 
@@ -262,12 +267,11 @@ try:
         SONGS_CACHE_DIR = f.read().strip()
 except FileNotFoundError:
     SONGS_CACHE_DIR = ""
-if not MOCK:
-    if SONGS_CACHE_DIR == "":
-        SONGS_CACHE_DIR = os.path.expanduser(DEFAULT_CACHE_DIR)
-        with open(os.path.join(BASE_DIR, "config/cache_dir"), "w") as f:
-            f.write(SONGS_CACHE_DIR)
-        print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
+if SONGS_CACHE_DIR == "":
+    SONGS_CACHE_DIR = os.path.expanduser(DEFAULT_CACHE_DIR)
+    with open(os.path.join(BASE_DIR, "config/cache_dir"), "w") as f:
+        f.write(SONGS_CACHE_DIR)
+    print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
 
 # use a different cache directory for testing
 if TESTING:

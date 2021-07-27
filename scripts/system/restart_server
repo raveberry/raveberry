@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+# daphne automatically restarts its celery tasks
+# restarting celery as well would take much more time
+# if the workers hang, use the kill_workers script
+systemctl restart daphne

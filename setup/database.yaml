@@ -15,15 +15,9 @@
     - name: "Prepare database: Apply migrations"
       become_user: www-data
       command: python3 "{{ config.install_directory }}/manage.py" migrate
-      environment:
-        DJANGO_MOCK: 1
-        DJANGO_POSTGRES: 1
     - name: "Prepare database: Create users"
       become_user: www-data
       command: python3 "{{ config.install_directory }}/manage.py" shell
-      environment:
-        DJANGO_MOCK: 1
-        DJANGO_POSTGRES: 1
       args:
         stdin: |
           from django.contrib.auth.models import User
@@ -34,9 +28,6 @@
     - name: "Prepare database: Initialize search engine"
       become_user: www-data
       command: python3 "{{ config.install_directory }}/manage.py" "{{ item }}"
-      environment:
-        DJANGO_MOCK: 1
-        DJANGO_POSTGRES: 1
       with_items:
         - migrate
         - installwatson
@@ -81,16 +72,10 @@
 - name: "Migrate database"
   become_user: www-data
   command: python3 "{{ config.install_directory }}/manage.py" migrate
-  environment:
-    DJANGO_MOCK: 1
-    DJANGO_POSTGRES: 1
 
 - name: Get credentials
   become_user: www-data
   command: python3 "{{ config.install_directory }}/manage.py" shell
-  environment:
-    DJANGO_MOCK: 1
-    DJANGO_POSTGRES: 1
   args:
     stdin: |
       from core.models import Setting

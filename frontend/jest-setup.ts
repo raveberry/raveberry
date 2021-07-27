@@ -12,7 +12,7 @@ global['$'] = global['jQuery'] = $;
 
 global['CSRF_TOKEN'] = '';
 global['urls'] = {};
-global['VOTING_SYSTEM'] = false;
+global['VOTING_ENABLED'] = false;
 global['ADMIN'] = false;
 global['CONTROLS_ENABLED'] = false;
 // used in musiq tests

@@ -6,7 +6,7 @@ Raveberry uses `systemd` services to provide its functionality.
 Services used are:
 * `nginx`: webserver, serves static files and proxys requests to `daphne`
 * `daphne`: webserver, runs all the python code
-* `gunicorn`: alternative to daphne without websockets (usually disabled)
+* `celery`: task queue, runs longer tasks
 * `mopidy`: music player, plays the songs
 * `pulseaudio`: runs a pulseaudio system server
 * `xinit`: starts the X-server (if visualization is configured)

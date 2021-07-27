@@ -5,15 +5,29 @@ from django.urls import reverse
 from core.models import Setting
 from tests.music_test import MusicTest
 
+expected_playlist = [
+    "https://www.jamendo.com/track/345570",
+    "https://www.jamendo.com/track/408713",
+    "https://www.jamendo.com/track/939496",
+    "https://www.jamendo.com/track/1069870",
+    "https://www.jamendo.com/track/1086601",
+    "https://www.jamendo.com/track/1107330",
+    "https://www.jamendo.com/track/1143802",
+    "https://www.jamendo.com/track/1329139",
+    "https://www.jamendo.com/track/1329142",
+    "https://www.jamendo.com/track/1377871",
+    "https://www.jamendo.com/track/1500596",
+]
+
 
 class JamendoTests(MusicTest):
     def setUp(self):
-        super().setUp()
-
         try:
             client_id = os.environ["JAMENDO_CLIENT_ID"]
         except KeyError:
             self.skipTest("No jamendo credentials provided.")
+
+        super().setUp()
 
         Setting.objects.update_or_create(
             key="jamendo_client_id", defaults={"value": client_id}
@@ -75,24 +89,9 @@ class JamendoTests(MusicTest):
             and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
             timeout=10,
         )
-        expected_playlist = sorted(
-            [
-                "https://www.jamendo.com/track/1646305",
-                "https://www.jamendo.com/track/1500596",
-                "https://www.jamendo.com/track/1552710",
-                "https://www.jamendo.com/track/1069870",
-            ]
-        )
         self.assertIn(state["musiq"]["currentSong"]["externalUrl"], expected_playlist)
-        expected_playlist.remove(state["musiq"]["currentSong"]["externalUrl"])
-        actual_playlist = sorted(
-            [
-                state["musiq"]["songQueue"][0]["externalUrl"],
-                state["musiq"]["songQueue"][1]["externalUrl"],
-                state["musiq"]["songQueue"][2]["externalUrl"],
-            ]
-        )
-        self.assertEqual(actual_playlist, expected_playlist)
+        for song in state["musiq"]["songQueue"]:
+            self.assertIn(song["externalUrl"], expected_playlist)
 
     def test_playlist_query(self):
         # https://www.jamendo.com/playlist/500502579/long-live-the-king
@@ -106,21 +105,6 @@ class JamendoTests(MusicTest):
             and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
             timeout=10,
         )
-        expected_playlist = sorted(
-            [
-                "https://www.jamendo.com/track/1646305",
-                "https://www.jamendo.com/track/1552710",
-                "https://www.jamendo.com/track/939496",
-                "https://www.jamendo.com/track/1143802",
-            ]
-        )
         self.assertIn(state["musiq"]["currentSong"]["externalUrl"], expected_playlist)
-        expected_playlist.remove(state["musiq"]["currentSong"]["externalUrl"])
-        actual_playlist = sorted(
-            [
-                state["musiq"]["songQueue"][0]["externalUrl"],
-                state["musiq"]["songQueue"][1]["externalUrl"],
-                state["musiq"]["songQueue"][2]["externalUrl"],
-            ]
-        )
-        self.assertEqual(actual_playlist, expected_playlist)
+        for song in state["musiq"]["songQueue"]:
+            self.assertIn(song["externalUrl"], expected_playlist)

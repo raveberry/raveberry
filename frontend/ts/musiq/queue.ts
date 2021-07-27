@@ -5,7 +5,7 @@ import 'jquery-ui/ui/widgets/sortable';
 /** Allows reordering of the queue when not voting. */
 export function onReady() {
   // enable drag and drop for the song queue
-  if (VOTING_SYSTEM) {
+  if (VOTING_ENABLED) {
     return;
   }
 

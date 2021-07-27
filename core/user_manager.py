@@ -1,61 +1,60 @@
-"""This module manages and counts user accesses."""
-from datetime import datetime
-from typing import Any, Callable, Dict, TYPE_CHECKING
+"""This module manages and counts user accesses and handles permissions."""
+import time
+from typing import Any, Callable
 
 import ipware
 from django.contrib.auth.models import AbstractUser
 from django.core.handlers.wsgi import WSGIRequest
-from django.utils import timezone
+
+import core.settings.storage as storage
+from core import redis
+
+# kick users after some time without any request
+INACTIVITY_PERIOD = 600
 
 
-if TYPE_CHECKING:
-    from core.base import Base
+def has_controls(user: AbstractUser) -> bool:
+    """Determines whether the given user is allowed to control playback."""
+    return user.username == "mod" or is_admin(user)
 
 
-class UserManager:
-    """This class counts active users and handles permissions."""
+def is_admin(user: AbstractUser) -> bool:
+    """Determines whether the given user is the admin."""
+    return user.is_superuser
 
-    def has_controls(self, user: AbstractUser) -> bool:
-        """Determines whether the given user is allowed to control playback."""
-        return user.username == "mod" or self.is_admin(user)
 
-    @classmethod
-    def is_admin(cls, user: AbstractUser) -> bool:
-        """Determines whether the given user is the admin."""
-        return user.is_superuser
+def update_user_count() -> None:
+    """Go through all recent requests and delete those that were too long ago."""
+    now = time.time()
+    last_requests = redis.get("last_requests")
+    for key, value in list(last_requests.items()):
+        if now - value >= INACTIVITY_PERIOD:
+            del last_requests[key]
+            redis.set("last_requests", last_requests)
+    redis.set("last_user_count_update", now)
 
-    # This dictionary needs to be static so the middleware can access it.
-    last_requests: Dict[str, datetime] = {}
 
-    def __init__(self, base: "Base") -> None:
-        self.base = base
+def get_count() -> int:
+    """Returns the number of currently active users.
+    Updates this number after an intervals since the last update."""
+    if time.time() - redis.get("last_user_count_update") >= 60:
+        update_user_count()
+    return len(redis.get("last_requests"))
 
-        # kick users after some time without any request
-        self.inactivity_period = 600
-        self.last_user_count_update = timezone.now()
-        self.update_user_count()
 
-    def update_user_count(self) -> None:
-        """Go through all recent requests and delete those that were too long ago."""
-        now = timezone.now()
-        for key, value in list(UserManager.last_requests.items()):
-            if (now - value).seconds >= self.inactivity_period:
-                del UserManager.last_requests[key]
-        self.last_user_count_update = now
+def partymode_enabled() -> bool:
+    """Determines whether partymode is enabled,
+    based on the number of currently active users."""
+    return len(redis.get("last_requests")) >= storage.get("people_to_party")
 
-    def get_count(self) -> int:
-        """Returns the number of currently active users.
-        Updates this number after an intervals since the last update."""
-        if (timezone.now() - self.last_user_count_update).seconds >= 60:
-            self.update_user_count()
-        return len(UserManager.last_requests)
 
-    def partymode_enabled(self) -> bool:
-        """Determines whether partymode is enabled,
-        based on the number of currently active users."""
-        return (
-            len(UserManager.last_requests) >= self.base.settings.basic.people_to_party
-        )
+def get_client_ip(request: WSGIRequest):
+    if not storage.get("logging_enabled"):
+        return ""
+    request_ip, _ = ipware.get_client_ip(request)
+    if request_ip is None:
+        request_ip = ""
+    return request_ip
 
 
 class SimpleMiddleware:
@@ -69,10 +68,10 @@ class SimpleMiddleware:
     def __call__(self, request: WSGIRequest) -> Any:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
-        request_ip, _ = ipware.get_client_ip(request)
-        if request_ip is None:
-            request_ip = ""
-        UserManager.last_requests[request_ip] = timezone.now()
+        request_ip = get_client_ip(request)
+        last_requests = redis.get("last_requests")
+        last_requests[request_ip] = time.time()
+        redis.set("last_requests", last_requests)
 
         response = self.get_response(request)
 

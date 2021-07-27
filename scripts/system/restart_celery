@@ -1,0 +1,26 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+# restarting celery also restarts daphne due to the dependency
+# thus, this script cannot fully execute if called from the server
+# it is not available from the admin page
+
+# try to restart celery
+# if it does not finish after a timeout, workers are stuck
+# kill them and wait for the restart to finish
+pidFile=/tmp/restart_celery.pid
+( systemctl restart celery; rm $pidFile) &
+pid=$!
+echo $pid > $pidFile
+( sleep 20; if [[ -e $pidFile ]]; then pkill -9 -f "celery -A core"; fi) &
+killerPid=$!
+
+wait $pid
+# if the pkill was executed, this pid does not exist anymore
+# otherwise defuse the pkill
+kill $killerPid 2>/dev/null
+
+systemctl restart daphne

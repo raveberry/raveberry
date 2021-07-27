@@ -239,6 +239,9 @@ body {
 .list-item.centered {
 	justify-content: center;
 }
+.list-item.error {
+	color: var(--red);
+}
 .list-item > *{
 	width: 50%;
 	max-width: 200px;

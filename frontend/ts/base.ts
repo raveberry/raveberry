@@ -556,9 +556,7 @@ export function onReady() {
   // request initial state update
   getState();
 
-  // When called directly, the long running request to fetch the current version
-  // prevents the websocket from being opened.
-  setTimeout(handleUpdateBanner, 5000);
+  handleUpdateBanner();
 }
 
 $(document).ready(onReady);

@@ -12,9 +12,9 @@ out vec4 fragColor;
 
 // Circle, using cartesian coordinates
 float smooth_circle(vec2 p, float r, float smoothness) {
-    float dist = length(p) - r;
-    float s = smoothness / 2.0;
-    return 1.0 - smoothstep(r - s, r + s, dist);
+	float dist = length(p) - r;
+	float s = smoothness / 2.0;
+	return 1.0 - smoothstep(r - s, r + s, dist);
 }
 
 void main() {
@@ -23,7 +23,7 @@ void main() {
 	float brightness = smooth_circle(uv - 0.5, 0.1, 0.5);
 	// decrease the brightness due to additive blending
 	brightness *= 0.75;
-	
+
 	float age_factor = 1. - age;
 	age_factor *= age_factor;
 	fragColor = vec4(vec3(brightness * age_factor), 1);

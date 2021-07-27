@@ -31,6 +31,13 @@ export function updateState(newState) {
   if (state != null) {
     oldState = jQuery.extend(true, {}, state);
   }
+
+  if (newState.playbackError) {
+    $('#current-song-title').css('color', 'var(--red)');
+  } else {
+    $('#current-song-title').css('color', 'var(--normal-text)');
+  }
+
   const currentSong = newState.musiq.currentSong;
   if (currentSong == null) {
     state = newState.musiq;
@@ -219,7 +226,7 @@ function createQueueItem() {
   const controls = $('<span/>')
       .addClass('queue-info-controls')
       .appendTo(info);
-  if (VOTING_SYSTEM) {
+  if (VOTING_ENABLED) {
     $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-up')
@@ -231,7 +238,7 @@ function createQueueItem() {
         .addClass('vote-down')
         .appendTo(controls);
   }
-  if (!VOTING_SYSTEM || CONTROLS_ENABLED) {
+  if (!VOTING_ENABLED || CONTROLS_ENABLED) {
     $('<i/>')
         .addClass('fas')
         .addClass('fa-level-up-alt')
@@ -252,7 +259,7 @@ function createQueueItem() {
  */
 function updateInformation(entry, song) {
   const index = entry.find('.queue-index');
-  if (VOTING_SYSTEM) {
+  if (VOTING_ENABLED) {
     index.text(song.votes);
   } else {
     index.text(song.index);

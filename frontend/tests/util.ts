@@ -3,16 +3,12 @@ import * as fs from 'fs';
 
 export function renderTemplate(template, options?) {
   options = JSON.stringify(options) || '';
-  const env = process.env;
-  env['DJANGO_MOCK'] = '1';
-  const p = child.spawnSync('python3', ['../manage.py', 'rendertemplate', template, 'head.html', 'body.html', options], {
-    env: env,
-  });
+  const p = child.spawnSync('python3', ['../manage.py', 'rendertemplate', template, 'head.html', 'body.html', options]);
   if (p.error) {
     throw p.error;
   }
   if (p.status != 0) {
-    console.error(p.stderr.toString('utf8'));
+    console.error(p.stderr.toString());
   }
 }
 

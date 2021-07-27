@@ -1,35 +1,29 @@
 """This module contains the device superclass."""
+from core import redis
+from core.settings import storage
 
 
 class Device:
     """A class representing a visualization device that Raveberry can control."""
 
-    def __init__(self, lights, name) -> None:
-        self.lights = lights
+    def __init__(self, manager, name) -> None:
+        self.manager = manager
         self.name = name
-        self.brightness = float(
-            self.lights.base.settings.get_setting(f"{self.name}_brightness", "1.0")
-        )
-        self.monochrome = (
-            self.lights.base.settings.get_setting(f"{self.name}_monochrome", "False")
-            == "True"
-        )
+        self.brightness = storage.get(f"{self.name}_brightness")
+        self.monochrome = storage.get(f"{self.name}_monochrome")
         self.initialized = False
-        self.last_program = self.lights.disabled_program
-        self.program = self.lights.disabled_program
+        redis.set(f"{self.name}_initialized", False)
+        self.program = None
 
     def load_program(self) -> None:
-        last_program_name = self.lights.base.settings.get_setting(
-            f"last_{self.name}_program", "Disabled"
-        )
-        program_name = self.lights.base.settings.get_setting(
-            f"{self.name}_program", "Disabled"
-        )
+        """Load and activate this device's program from the database."""
+        program_name = storage.get(f"{self.name}_program")
 
-        self.last_program = self.lights.all_programs[last_program_name]
         # only enable if the device is initialized
         if self.initialized:
-            self.program = self.lights.all_programs[program_name]
+            self.program = self.manager.all_programs[program_name]
+        else:
+            self.program = self.manager.disabled_program
 
         self.program.use()
 

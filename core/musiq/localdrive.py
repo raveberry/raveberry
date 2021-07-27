@@ -11,11 +11,11 @@ from watson import search as watson
 
 from core.models import ArchivedPlaylist, PlaylistEntry, ArchivedSong
 from core.musiq import song_utils
+from core.musiq import musiq
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
-    from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
 
 
@@ -35,11 +35,9 @@ class LocalSongProvider(SongProvider):
         """Returns the id of a local song for a given url."""
         return url[len("local_library/") :]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "local"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
     def check_cached(self) -> bool:
         if not self.id:
@@ -78,10 +76,11 @@ class LocalSongProvider(SongProvider):
     def get_metadata(self) -> "Metadata":
         metadata = song_utils.get_metadata(self._get_path())
 
-        metadata["internal_url"] = self.get_internal_url()
-        metadata["external_url"] = self.get_external_url()
         if not metadata["title"]:
             metadata["title"] = metadata["external_url"]
+        metadata["internal_url"] = self.get_internal_url()
+        metadata["external_url"] = self.get_external_url()
+        metadata["stream_url"] = None
 
         return metadata
 
@@ -113,7 +112,7 @@ class LocalSongProvider(SongProvider):
 
     def request_radio(self, request_ip: str) -> HttpResponse:
         playlist = self._get_corresponding_playlist()
-        self.musiq.do_request_music(
+        musiq.do_request_music(
             request_ip,
             playlist.title,
             playlist.id,
@@ -133,11 +132,9 @@ class LocalPlaylistProvider(PlaylistProvider):
     def get_id_from_external_url(url: str) -> str:
         return url[len("local_library/") :]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "local"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
     def search_id(self) -> None:
         self.error = "local playlists can not be downloaded"

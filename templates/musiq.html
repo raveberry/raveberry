@@ -21,7 +21,7 @@
 {% block content %}
 <ul class="list-group">
 	<li class="list-group-item" id="music-input-card">
-		<i class="fas fa-stream icon-disabled" id="playlist-mode"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}></i>
+		<i class="fas fa-stream icon-disabled" id="playlist-mode"{% if voting_enabled and not controls_enabled %} style="display: none"{%endif%}></i>
 		<i class="fas fa-dice" id="random-suggestion"></i>
 		<span class="clearable">
 			<input class="form-control autocomplete" id="music-input" placeholder="Search for Music..." autofocus autocomplete="off">
@@ -48,12 +48,12 @@
 			</div>
 		</div>
 	</li>
-	<li class="list-group-item" id="song-votes"{% if not voting_system or controls_enabled %} style="display: none"{%endif%}>
+	<li class="list-group-item" id="song-votes"{% if not voting_enabled or controls_enabled %} style="display: none"{%endif%}>
 		<i class="fas fa-chevron-circle-up vote-up"></i>
 		<span id="current-song-votes"></span>
 		<i class="fas fa-chevron-circle-down vote-down"></i>
 	</li>
-	<li class="list-group-item" id="song-controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+	<li class="list-group-item" id="song-controls"{% if voting_enabled and not controls_enabled %} style="display: none"{%endif%}>
 		<div id="song-control-icons">
 			<i class="fas fa-fast-backward" id="restart-song"></i>
 			<i class="fas fa-backward" id="seek-backward"></i>
@@ -63,7 +63,7 @@
 			</div>
 			<i class="fas fa-forward" id="seek-forward"></i>
 			<i class="fas fa-fast-forward" id='skip-song'></i><br/>
-            {% if not voting_system %}
+            {% if not voting_enabled %}
 			<i class="fas fa-random icon-disabled" id="set-shuffle"></i>
             {% endif %}
 			<i class="fas fa-sync icon-disabled" id="set-repeat"></i>
@@ -71,7 +71,7 @@
 			<i class="fas fa-robot icon-disabled" id="request-radio"></i>
 		</div>
 	</li>
-	<li class="list-group-item" id="additional-controls"{% if voting_system and not controls_enabled %} style="display: none"{%endif%}>
+	<li class="list-group-item" id="additional-controls"{% if voting_enabled and not controls_enabled %} style="display: none"{%endif%}>
 		<div id="total-time-container">
 			<i class="fas fa-clock"></i><span id="total-time">--:--</span>
 		</div>

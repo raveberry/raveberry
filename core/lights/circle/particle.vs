@@ -24,7 +24,7 @@ void main(void) {
 	float time_elapsed = unif[18].r;
 	float bass_fraction = unif[19].b;
 	float iTime = time_elapsed;
-    vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;
+	vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;
 
 	float x = particle[0];
 	float y = particle[1];

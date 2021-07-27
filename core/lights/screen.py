@@ -5,18 +5,15 @@ import subprocess
 import time
 import os
 
+from core import redis
 from core.lights.device import Device
-
-
-class RenderingStoppedException(Exception):
-    pass
 
 
 class Screen(Device):
     """This class provides an interface to control the screen."""
 
-    def __init__(self, lights) -> None:
-        super().__init__(lights, "screen")
+    def __init__(self, manager) -> None:
+        super().__init__(manager, "screen")
         self.initialized = False
         self.adjust()
 
@@ -82,6 +79,7 @@ class Screen(Device):
         #
         # so we set hotplug and initialize the screen even if none is connected
         self.initialized = True
+        redis.set("screen_initialized", True)
 
-    def clear(self):
+    def clear(self) -> None:
         pass

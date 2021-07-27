@@ -23,10 +23,10 @@ import time
 from django.conf import settings
 
 from core.lights.programs import ScreenProgram
-from core.lights.screen import RenderingStoppedException
+from core.lights.exceptions import RenderingStoppedException
 
 if TYPE_CHECKING:
-    from core.lights.lights import Lights
+    from core.lights.worker import DeviceManager
     import pi3d
     import numpy as np
 
@@ -39,7 +39,7 @@ class Circle(ScreenProgram):
     # The part of the spectrum that is used to detect loud bass, making the circle bigger
     BASS_MAX = 0.05
     # The number of bins we cut after smoothing on both sides
-    SPECTRUM_CUT = 2
+    SPECTRUM_CUT = 0
     # The amount of particles
     NUM_PARTICLES = 400
     # Size of the particles
@@ -49,14 +49,14 @@ class Circle(ScreenProgram):
     # The size of dynamic modifications to the scale
     SCALE_STEP = 0.5
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
         self.name = "Circular"
-        self.cava = lights.cava_program
+        self.cava = manager.cava_program
 
-        # To have pi3d display shader compilation errors, set the logging level to INFO
+        # To have pi3d display shader compilation errors, set the logging level to DEBUG
         # import logging
-        # logging.basicConfig(level=logging.INFO)
+        # logging.basicConfig(level=logging.DEBUG)
 
         # The appearance of the shader was taken from
         # https://www.shadertoy.com/view/llycWD
@@ -133,7 +133,6 @@ class Circle(ScreenProgram):
                 width = int(line.split()[1])
             if line.startswith("Height:"):
                 height = int(line.split()[1])
-        # width, height = 640, 360
         self._set_resolution(width, height)
         self.resolution_increases = {}
         self.should_prepare = True
@@ -179,6 +178,7 @@ class Circle(ScreenProgram):
             GL_ARRAY_BUFFER,
             GL_STATIC_DRAW,
             GLfloat,
+            GL_TEXTURE_2D,
         )
         from PIL import Image
 
@@ -323,11 +323,33 @@ class Circle(ScreenProgram):
         # The upper 256x256 pixels are the raveberry logo.
         # Below are 256xFFT_HIST pixels for the spectrum.
         # The lower part is periodically updated every frame while the logo stays static.
-        self.dynamic_texture = pi3d.Texture(self.logo_array)
-        # Prevent interpolation from opposite edge
+
+        # At the origin, a black 4-clover pattern appears when accessing the spectrum texture
+        # atan2 is used to calculate the angle that is used to access the texture
+        # Around the origin, atan2's partial derivatives have large absolute values,
+        # which makes the shader do mipmap-lookups.
+        # Since we only supply level 0 of the texture, the lookup occurs in the original texture,
+        # where no spectrum information is present.
+        # Disable mipmapping so this does not occur.
+        self.dynamic_texture = pi3d.Texture(self.logo_array, mipmap=False)
+        # Prevent interpolation from opposite edge.
+        # Constructor only takes True/False, we need a special vaule so we set it afterwards
         self.dynamic_texture.m_repeat = GL_CLAMP_TO_EDGE
         self.spectrum.set_textures([self.dynamic_texture])
         self.logo.set_textures([self.dynamic_texture])
+        # https://www.khronos.org/opengl/wiki/Common_Mistakes#Creating_a_complete_texture
+        # No performance improvements where observed when reserving static memory for the texture,
+        # but it should not hurt either
+        iformat = self.dynamic_texture._get_format_from_array(
+            self.logo_array, self.dynamic_texture.i_format
+        )
+        opengles.glTexStorage2D(
+            GL_TEXTURE_2D,
+            1,
+            iformat,
+            self.logo_array.shape[1],
+            self.logo_array.shape[2],
+        )
 
         after_shader = pi3d.Shader(
             os.path.join(settings.BASE_DIR, "core/lights/circle/after")
@@ -383,8 +405,8 @@ class Circle(ScreenProgram):
         if self.should_prepare:
             self._prepare()
 
-        if self.lights.alarm_program.factor != -1:
-            self.alarm_factor = max(0.001, self.lights.alarm_program.factor)
+        if self.manager.alarm_program.factor != -1:
+            self.alarm_factor = max(0.001, self.manager.alarm_program.factor)
         else:
             self.alarm_factor = 0
 
@@ -408,7 +430,8 @@ class Circle(ScreenProgram):
 
         # new_frame = np.array(self.cava.current_frame, dtype="float32")
         new_frame = gaussian_filter(self.cava.current_frame, sigma=1.5, mode="nearest")
-        new_frame = new_frame[self.SPECTRUM_CUT : -self.SPECTRUM_CUT]
+        # only needed when not all bars are used
+        # new_frame = new_frame[self.SPECTRUM_CUT : -self.SPECTRUM_CUT]
         new_frame = -0.5 * new_frame ** 3 + 1.5 * new_frame
         new_frame *= 255
         current_frame = new_frame
@@ -424,7 +447,7 @@ class Circle(ScreenProgram):
         self.bass_value = max(self.bass_value, self.alarm_factor)
         self.total_bass = self.total_bass + self.bass_value
         # the fraction of time that there was bass
-        self.bass_fraction = self.total_bass / self.time_elapsed / self.lights.UPS
+        self.bass_fraction = self.total_bass / self.time_elapsed / self.manager.ups
 
         self.uniform_values = {
             48: self.width / self.scale,
@@ -540,6 +563,11 @@ class Circle(ScreenProgram):
         iformat = self.dynamic_texture._get_format_from_array(
             history, self.dynamic_texture.i_format
         )
+        # If everything goes fine, this takes around 0.0003s.
+        # Usually, performance degrades and the duration increases to ~0.0200s
+        # My guess is that the fast speeds result from the texture staying in cache,
+        # but with different stuff going on in the system the cache is used for different data
+        # Unfortunately I have no idea how to improve this.
         opengles.glTexSubImage2D(
             GL_TEXTURE_2D,
             0,
@@ -616,31 +644,32 @@ class Circle(ScreenProgram):
         self.cava.release()
 
 
-@no_type_check  # don't make mypy deal with dynamic classes
 def main() -> None:
     """Runs this visualization without the need of the server running."""
+    os.environ["EGL_PLATFORM"] = "x11"
+
     mock_cava = type(
         "obj",
         (object,),
         {
-            "bars": 199,
-            "current_frame": [0 for _ in range(199)],
+            "bars": 256,
+            "current_frame": [0 for _ in range(256)],
             "use": lambda: ...,
             "release": lambda: ...,
         },
     )
-    mock_lights = type(
+    mock_manager = type(
         "obj",
         (object,),
         {
-            "UPS": 25,
+            "ups": 25,
             "cava_program": mock_cava,
             "alarm_program": type("obj", (object,), {"factor": -1}),
         },
     )
-    circle = Circle(mock_lights)
+    circle = Circle(mock_manager)
     circle.start()
-    seconds_per_frame = 1 / mock_lights.UPS
+    seconds_per_frame = 1 / mock_manager.ups
 
     while True:
         computation_start = time.time()

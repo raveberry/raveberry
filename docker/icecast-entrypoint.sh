@@ -2,6 +2,8 @@
 
 sed -i "s/<admin-password>[^<]*<\/admin-password>/<admin-password>$ICECAST_ADMIN_PASSWORD<\/admin-password>/g" /etc/icecast.xml
 
+echo STREAM_NOAUTH
+echo $STREAM_NOAUTH
 if [ -z "${STREAM_NOAUTH}" ]; then
 	USER=${STREAM_USERNAME:=raveberry}
 	PASS=${STREAM_PASSWORD:=raveberry}

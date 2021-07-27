@@ -8,19 +8,19 @@ import logging
 import math
 import os
 import subprocess
-from typing import Tuple, List, TYPE_CHECKING, cast, Optional
+from typing import Tuple, List, cast, Optional, TYPE_CHECKING
 
 from django.conf import settings
 
 if TYPE_CHECKING:
-    from core.lights.lights import Lights
+    from core.lights.worker import DeviceManager
 
 
 class VizProgram:
     """The base class for all programs."""
 
-    def __init__(self, lights: "Lights") -> None:
-        self.lights = lights
+    def __init__(self, manager: "DeviceManager") -> None:
+        self.manager = manager
         self.consumers = 0
         self.name = "Unknown"
 
@@ -84,8 +84,8 @@ class LedProgram(VizProgram):
 class Disabled(LedProgram, ScreenProgram):
     """A null class to represent inactivity."""
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
         self.name = "Disabled"
 
     def draw(self) -> None:
@@ -102,33 +102,35 @@ class Disabled(LedProgram, ScreenProgram):
 
 
 class Fixed(LedProgram):
-    """Show one fixed color only. The color is controlled in the lights module."""
+    """Show one fixed color only. The color is controlled in the "DeviceManager" class."""
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
+        self.manager = manager
         self.name = "Fixed"
 
     def compute(self) -> None:
         # show a red color if the alarm is active
-        alarm_factor = self.lights.alarm_program.factor
+        alarm_factor = self.manager.alarm_program.factor
         if alarm_factor != -1.0:
-            self.lights.fixed_color = (alarm_factor, 0, 0)
+            self.manager.fixed_color = (alarm_factor, 0, 0)
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
-        return [self.lights.fixed_color for _ in range(self.lights.ring.LED_COUNT)]
+        return [self.manager.fixed_color for _ in range(self.manager.ring.LED_COUNT)]
 
     def wled_colors(self) -> List[Tuple[float, float, float]]:
-        return [self.lights.fixed_color for _ in range(self.lights.wled.led_count)]
+        return [self.manager.fixed_color for _ in range(self.manager.wled.led_count)]
 
     def strip_color(self) -> Tuple[float, float, float]:
-        return self.lights.fixed_color
+        return self.manager.fixed_color
 
 
 class Rainbow(LedProgram):
     """Continuously cycles through all colors. Affected by the speed setting."""
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
+        self.manager = manager
         self.name = "Rainbow"
         self.program_duration = 1
         self.time_passed = 0.0
@@ -138,7 +140,7 @@ class Rainbow(LedProgram):
         self.time_passed = 0.0
 
     def compute(self) -> None:
-        self.time_passed += self.lights.seconds_per_frame * self.lights.program_speed
+        self.time_passed += self.manager.seconds_per_frame * self.manager.program_speed
         self.time_passed %= self.program_duration
         self.current_fraction = self.time_passed / self.program_duration
 
@@ -149,10 +151,10 @@ class Rainbow(LedProgram):
         ]
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
-        return self._colors(self.lights.ring.LED_COUNT)
+        return self._colors(self.manager.ring.LED_COUNT)
 
     def wled_colors(self) -> List[Tuple[float, float, float]]:
-        return self._colors(self.lights.wled.led_count)
+        return self._colors(self.manager.wled.led_count)
 
     def strip_color(self) -> Tuple[float, float, float]:
         return colorsys.hsv_to_rgb(self.current_fraction, 1, 1)
@@ -162,10 +164,11 @@ class Adaptive(LedProgram):
     """Dynamically reacts to the currently played music.
     Low frequencies are represented by red, high ones by blue."""
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
+        self.manager = manager
         self.name = "Rave"
-        self.cava = self.lights.cava_program
+        self.cava = self.manager.cava_program
 
         # RING
         # map the leds to rainbow colors from red over green to blue
@@ -177,9 +180,9 @@ class Adaptive(LedProgram):
             / (
                 1
                 + math.e
-                ** (-4 * math.e * (led / (self.lights.ring.LED_COUNT - 1) - 0.5))
+                ** (-4 * math.e * (led / (self.manager.ring.LED_COUNT - 1) - 0.5))
             )
-            for led in range(0, self.lights.ring.LED_COUNT)
+            for led in range(0, self.manager.ring.LED_COUNT)
         ]
         self.ring_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in ring_hues]
 
@@ -191,9 +194,9 @@ class Adaptive(LedProgram):
             / (
                 1
                 + math.e
-                ** (-4 * math.e * (led / (self.lights.wled.led_count - 1) - 0.5))
+                ** (-4 * math.e * (led / (self.manager.wled.led_count - 1) - 0.5))
             )
-            for led in range(0, self.lights.wled.led_count)
+            for led in range(0, self.manager.wled.led_count)
         ]
         self.wled_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in wled_hues]
 
@@ -238,7 +241,7 @@ class Adaptive(LedProgram):
         start = 0
 
         aggregated = []
-        for led in range(led_count):
+        for _ in range(led_count):
             end = start + values_per_led
             bin_size = values_per_led
             if left > 0:
@@ -251,7 +254,7 @@ class Adaptive(LedProgram):
         return aggregated
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
-        aggregated = self._aggregate_frame(self.lights.ring.LED_COUNT)
+        aggregated = self._aggregate_frame(self.manager.ring.LED_COUNT)
         colors = [
             tuple(factor * val for val in color)
             for factor, color in zip(aggregated, self.ring_base_colors)
@@ -260,7 +263,7 @@ class Adaptive(LedProgram):
         return cast(List[Tuple[float, float, float]], colors)
 
     def wled_colors(self) -> List[Tuple[float, float, float]]:
-        aggregated = self._aggregate_frame(self.lights.wled.led_count)
+        aggregated = self._aggregate_frame(self.manager.wled.led_count)
         colors = [
             tuple(factor * val for val in color)
             for factor, color in zip(aggregated, self.wled_base_colors)
@@ -298,8 +301,9 @@ class Alarm(VizProgram):
     """This program makes the leds flash red in sync to the played sound.
     Only computes the brightness, does not display it."""
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
+        self.manager = manager
         self.name = "Alarm"
         self.time_passed = 0.0
         self.sound_count = 0
@@ -320,7 +324,7 @@ class Alarm(VizProgram):
         # do not compute if the alarm is not active
         if self.consumers == 0:
             return
-        self.time_passed += self.lights.seconds_per_frame
+        self.time_passed += self.manager.seconds_per_frame
         if self.time_passed >= self.sound_repetition:
             self.sound_count += 1
             self.time_passed %= self.sound_repetition
@@ -349,13 +353,14 @@ class Cava(VizProgram):
     """This Program manages the interaction with cava.
     It provides the current frequencies for other programs to use."""
 
-    def __init__(self, lights: "Lights") -> None:
-        super().__init__(lights)
+    def __init__(self, manager: "DeviceManager") -> None:
+        super().__init__(manager)
+        self.manager = manager
 
         self.cava_fifo_path = os.path.join(settings.BASE_DIR, "config/cava_fifo")
 
         # Keep these configurations in sync with config/cava.config
-        self.bars = 199
+        self.bars = 256
         self.bit_format = 8
 
         self.frame_length = self.bars * (self.bit_format // 8)
@@ -383,6 +388,7 @@ class Cava(VizProgram):
         self.cava_process = subprocess.Popen(
             ["cava", "-p", os.path.join(settings.BASE_DIR, "config/cava.config")],
             cwd=settings.BASE_DIR,
+            env={"PULSE_SERVER": "127.0.0.1", **os.environ},
         )
         # cava_fifo = open(cava_fifo_path, 'r')
         self.cava_fifo = os.open(self.cava_fifo_path, os.O_RDONLY | os.O_NONBLOCK)
@@ -410,7 +416,7 @@ class Cava(VizProgram):
 
             # we read a whole frame, update the factors
             if len(self.growing_frame) == self.frame_length:
-                # vol = max(0.01, self.lights.base.musiq.player.volume)
+                # vol = max(0.01, get("volume"))
                 # self.current_frame = [int(b) / 255 / vol for b in self.growing_frame]
                 self.current_frame = [int(b) / 255 for b in self.growing_frame]
                 self.growing_frame = b""

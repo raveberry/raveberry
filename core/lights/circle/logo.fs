@@ -13,46 +13,35 @@ out vec4 fragColor;
 // The size of the white line of the circle
 #define CIRCLE_BORDER_SIZE 0.002
 
+#define PI 3.14159265359
 #define TWO_PI 6.28318530718
 
 vec2 rotate(vec2 uv, float angle) {
-    float s = sin(angle);
-    float c = cos(angle);
-    vec2 new = uv * mat2(c, s, -s, c);
-    return new;
+	float s = sin(angle);
+	float c = cos(angle);
+	vec2 new = uv * mat2(c, s, -s, c);
+	return new;
 }
 
 // Circle, using polar coordinates
 #define circle_polar(len, r) smooth_circle_polar(len, r, 0.004)
 float smooth_circle_polar(float len, float r, float smoothness) {
-    float dist = len - r;
-    float s = smoothness / 2.0;
-    return 1.0 - smoothstep(r - s, r + s, dist);
+	float dist = len - r;
+	float s = smoothness / 2.0;
+	return 1.0 - smoothstep(r - s, r + s, dist);
 }
 
 vec2 uv_to_polar(vec2 uv, vec2 p) {
-    vec2 translated_uv = uv - p;
-    
-    // Get polar coordinates
-    vec2 polar = vec2(atan(translated_uv.x, translated_uv.y), length(translated_uv));
-    
-    // Scale to a range of 0 to 1
-    polar.s /= TWO_PI;
-    polar.s += 0.5;
-    
-    return polar;
-}
+	vec2 translated_uv = uv - p;
 
-vec2 polar_to_uv(vec2 polar, vec2 p) {
-	float s = polar.s;
-	float t = polar.t;
-    // Scale to a range of -pi to pi
-    s -= 0.5;
-    s *= TWO_PI;
-    
-	vec2 uv = vec2(t * sin(s), t * cos(s));
-	uv = uv + p;
-    return uv;
+	// Get polar coordinates
+	vec2 polar = vec2(atan(translated_uv.x, translated_uv.y), length(translated_uv));
+
+	// Scale to a range of 0 to 1
+	polar.s /= TWO_PI;
+	polar.s += 0.5;
+
+	return polar;
 }
 
 void main() {
@@ -62,28 +51,28 @@ void main() {
 	float bass = unif[19].r;
 	float extra = unif[19].g;
 
-    vec2 uvmtp = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
+	vec2 uv = (gl_FragCoord.xy - 0.5 * iResolution.xy) / iResolution.y;
 
 	// Shake the bubble
-    vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;
-    uvmtp += shake;
+	vec2 shake = vec2(sin(iTime*9.0), cos(iTime*5.0)) * 0.002;
+	uv += shake;
 
 	// Rotate the circle a bit
-    uvmtp = rotate(uvmtp, sin(iTime * 1.5 + extra) * 0.005);
-    
-    // Shake the circle a bit
-    vec2 circle_shake = vec2(cos(iTime*9.0 + extra*0.3), sin(iTime*9.0 + extra*0.3))*0.003;
-    uvmtp += circle_shake;
+	uv = rotate(uv, sin(iTime * 1.5 + extra) * 0.005);
 
-    // Get polar coordinates for circle, shaking it a bit as well
-	vec2 polar = uv_to_polar(uvmtp, vec2(0.0, 0.0));
+	// Shake the circle a bit
+	vec2 circle_shake = vec2(cos(iTime*9.0 + extra*0.3), sin(iTime*9.0 + extra*0.3))*0.003;
+	uv += circle_shake;
+
+	// Get polar coordinates for circle, shaking it a bit as well
+	vec2 polar = uv_to_polar(uv, vec2(0.0, 0.0));
 
 	float r = bass * 0.05;
 	float full_radius = CIRCLE_RADIUS + r - CIRCLE_BORDER_SIZE;
 
 	float alpha = circle_polar(polar.t, full_radius);
 
-	vec2 logo_uv = polar_to_uv(polar, vec2(0.5, 0.5));
+	vec2 logo_uv = uv + 0.5;
 	// scale the logo and translate it into the middle of the screen
 	logo_uv.y = 1. - logo_uv.y;
 	float scale = 0.35 / full_radius;
@@ -102,11 +91,17 @@ void main() {
 	float shinyness = 8.;
 	vec3 specular = vec3(1) * intensity * pow(max(0.0, dot(vec3(0, 0, 1), reflected)), shinyness);
 	vec4 color = vec4(specular, alpha);
-	
+
 	vec2 texture_uv = logo_uv;
 	texture_uv.y -= 0.5 / 256.;
 	texture_uv.y = texture_uv.y / (256. + FFT_HIST) * 256.;
-	vec4 tex_color = texture(logo, texture_uv).rgba;
+	vec4 tex_color = texture(logo, texture_uv);
+	// add spectrum in background
+	//float hist = texture_uv.y;
+	//hist += 0.5 / FFT_HIST;
+	//hist = hist / (256. + FFT_HIST) * FFT_HIST + 256. / (256. + FFT_HIST);
+	//tex_color += texture(logo, vec2(texture_uv.x, hist));
+
 
 	// only add the texture where uv in [0,1]² to prevent artifacts from mipmapping.
 	float in_texture = 1.;

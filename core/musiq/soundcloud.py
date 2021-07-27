@@ -9,12 +9,11 @@ import soundcloud
 from bs4 import BeautifulSoup
 from django.http.response import HttpResponse
 
-from core.musiq import song_utils
+from core.musiq import song_utils, musiq
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
-    from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
 
 
@@ -37,7 +36,7 @@ class Soundcloud:
         If not, it is created using the client-id from mopidy-soundcloud."""
         return Soundcloud._get_web_client()
 
-    def get_search_suggestions(self, musiq: Musiq, query: str) -> List[str]:
+    def get_search_suggestions(self, query: str) -> List[str]:
         """Returns a list of suggested items for the given query."""
 
         response = self.web_client.get(
@@ -47,7 +46,7 @@ class Soundcloud:
         suggestions = [
             item.query
             for item in response.collection
-            if not song_utils.is_forbidden(musiq, item.query)
+            if not song_utils.is_forbidden(item.query)
         ]
         return suggestions
 
@@ -65,11 +64,9 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
         """Returns the internal id based on the given url."""
         return url.split(".")[-1]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "soundcloud"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
         self.metadata: "Metadata" = {}
         self.external_url = None
@@ -91,9 +88,7 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
             for item in results:
                 artist = item.user["username"]
                 title = item.title
-                if song_utils.is_forbidden(
-                    self.musiq, artist
-                ) or song_utils.is_forbidden(self.musiq, title):
+                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
                     continue
                 result = item
                 break
@@ -103,11 +98,12 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
             self.id = result.id
         else:
             result = self.web_client.get(f"tracks/{self.id}")
-        self.metadata["internal_url"] = self.get_internal_url()
-        self.metadata["external_url"] = result.permalink_url
         self.metadata["artist"] = result.user["username"]
         self.metadata["title"] = result.title
         self.metadata["duration"] = result.duration / 1000
+        self.metadata["internal_url"] = self.get_internal_url()
+        self.metadata["external_url"] = result.permalink_url
+        self.metadata["stream_url"] = None
         return True
 
     def get_metadata(self) -> "Metadata":
@@ -149,7 +145,7 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
         urls = self._get_related_urls()
 
         for external_url in urls:
-            self.musiq.do_request_music(
+            musiq.do_request_music(
                 "",
                 external_url,
                 None,
@@ -172,11 +168,9 @@ class SoundcloudPlaylistProvider(PlaylistProvider, Soundcloud):
         playlist = Soundcloud._get_web_client().get("/resolve", url=url)
         return playlist.id
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "soundcloud"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
     def search_id(self) -> Optional[str]:
         results = self.web_client.get("/playlists", q=self.query, limit=1)

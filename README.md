@@ -19,7 +19,7 @@ A live demo is available at https://demo.raveberry.party/.
 
 You can test a slim version of Raveberry like this:
 ```
-sudo apt-get install -y python3-pip mopidy ffmpeg gstreamer1.0-plugins-bad
+sudo apt-get install -y python3-pip mopidy redis-server ffmpeg gstreamer1.0-plugins-bad
 pip3 install raveberry[run]
 raveberry run
 ```

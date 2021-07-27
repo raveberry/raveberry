@@ -5,6 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from core.musiq.youtube import Youtube
+from core.settings import storage
 from tests.music_test import MusicTest
 
 
@@ -42,14 +43,15 @@ class YoutubeTests(MusicTest):
             self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
 
         # reduce the number for youtube playlists
-        self.client.post(reverse("set-max-playlist-items"), {"value": "3"})
+        storage.set("max_playlist_items", "3")
 
-        # clear test cache; ensure that it's the test directory
-        if os.path.split(os.path.dirname(settings.SONGS_CACHE_DIR))[1] == "test_cache":
-            for member in os.listdir(settings.SONGS_CACHE_DIR):
-                member_path = os.path.join(settings.SONGS_CACHE_DIR, member)
-                if os.path.isfile(member_path):
-                    os.remove(member_path)
+        # if we want to make sure that the songs can be downloaded,
+        # we could delete all songs in the test_cache folder
+        # if os.path.split(os.path.dirname(settings.SONGS_CACHE_DIR))[1] == "test_cache":
+        #    for member in os.listdir(settings.SONGS_CACHE_DIR):
+        #        member_path = os.path.join(settings.SONGS_CACHE_DIR, member)
+        #        if os.path.isfile(member_path):
+        #            os.remove(member_path)
 
     def _poll_musiq_state(self, break_condition, timeout=1):
         """ Wrap the poll method of the super class to skip tests if Youtube doesn't play along."""
@@ -157,7 +159,7 @@ class YoutubeTests(MusicTest):
 
     def test_autoplay(self):
         self._post_request(
-            "request-music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
+            "request-music", "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
         self._poll_current_song()
         self.client.post(reverse("set-autoplay"), {"value": "true"})

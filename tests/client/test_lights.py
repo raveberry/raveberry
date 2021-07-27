@@ -1,10 +1,14 @@
 import colorsys
 import json
 import time
+from threading import Thread
 from unittest.mock import Mock
 
+from django.db import connection
 from django.urls import reverse
 
+from core import redis
+from core.lights.worker import DeviceManager
 from tests.raveberry_test import RaveberryTest
 
 
@@ -12,20 +16,33 @@ class LedTests(RaveberryTest):
     def setUp(self):
         super().setUp()
 
-        self.ring = self.base.lights.ring
-        self.strip = self.base.lights.strip
-        self.ring.initialized = True
-        self.strip.initialized = True
+        # similar to the playback thread in MusicTest
+        # instead that here we need a reference to the manager object in order to introduce mocks
+        # so we imitate the task
+
+        self.manager = DeviceManager()
+        self.manager.ring.initialized = True
+        self.manager.strip.initialized = True
         self.set_ring_colors = Mock()
         self.set_strip_color = Mock()
-        self.ring.set_colors = self.set_ring_colors
-        self.ring.clear = Mock()
-        self.strip.set_color = self.set_strip_color
-        self.strip.clear = Mock()
+        self.manager.ring.set_colors = self.set_ring_colors
+        self.manager.ring.clear = Mock()
+        self.manager.strip.set_color = self.set_strip_color
+        self.manager.strip.clear = Mock()
+
+        def _worker_thread():
+            self.manager.loop()
+            connection.close()
+
+        self.worker_thread = Thread(target=_worker_thread)
+        self.worker_thread.start()
 
     def tearDown(self):
         self.client.post(reverse("set-ring-program"), {"value": "Disabled"})
         self.client.post(reverse("set-strip-program"), {"value": "Disabled"})
+
+        redis.publish("lights_settings_changed", "stop")
+        self.worker_thread.join(timeout=10)
 
         super().tearDown()
 
@@ -34,14 +51,14 @@ class LedTests(RaveberryTest):
         self.client.post(reverse("set-strip-program"), {"value": "Fixed"})
         time.sleep(0.5)
         self.set_ring_colors.assert_called_with(
-            list((0, 0, 0) for _ in range(self.ring.LED_COUNT))
+            list((0, 0, 0) for _ in range(self.manager.ring.LED_COUNT))
         )
         self.set_strip_color.assert_called_with((0, 0, 0))
         self.client.post(reverse("set-fixed-color"), {"value": "#abcdef"})
         time.sleep(0.5)
         color = tuple(val / 255 for val in (0xAB, 0xCD, 0xEF))
         self.set_ring_colors.assert_called_with(
-            list(color for _ in range(self.ring.LED_COUNT))
+            list(color for _ in range(self.manager.ring.LED_COUNT))
         )
         self.set_strip_color.assert_called_with(color)
 

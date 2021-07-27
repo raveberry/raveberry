@@ -1,0 +1,30 @@
+# from https://docs.celeryproject.org/en/stable/userguide/daemonizing.html#usage-systemd
+[Unit]
+Description=Celery Service
+After=redis.service
+Requires=redis.service
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+# We need to manually create the folder for the pid files
+# + makes the command run as root, - ignores failures
+ExecStartPre=+/bin/mkdir -p /var/run/celery
+ExecStartPre=+-/bin/chown www-data:www-data /var/run/celery
+WorkingDirectory={{ config.install_directory }}
+# Use a single w1 node with 6 processes.
+# Many processes are used, because at least 2 are permanently doing background tasks.
+ExecStart=/usr/local/bin/celery -A core multi start w1 \
+    --logfile="logs/%n%I.log" \
+    --loglevel="INFO" -O fair -c 6
+ExecStop=/usr/local/bin/celery multi stopwait w1 \
+    --logfile="logs/%n%I.log" \
+    --loglevel="INFO"
+ExecReload=/usr/local/bin/celery -A core multi restart w1 \
+    --logfile="logs/%n%I.log" \
+    --loglevel="INFO" -O fair -c 6
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -16,10 +16,10 @@
 			  '{{ path.name }}': '/ajax/{{ path.pattern }}',
 			{% endfor %}
 			};
-			{% if voting_system %}
-			let VOTING_SYSTEM = true;
+			{% if voting_enabled %}
+			let VOTING_ENABLED = true;
 			{% else %}
-			let VOTING_SYSTEM = false;
+			let VOTING_ENABLED = false;
 			{% endif %}
 			{% if is_admin %}
 			let ADMIN = true;
@@ -97,13 +97,13 @@
 					<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
 						<i class="fas fa-sliders-h"></i>
 					</a>
-					<div id="lights-controls"{%if voting_system and controls_enabled == False%} style="visibility: hidden"{%endif%}>
+					<div id="lights-controls">
 						<i class="fas fa-lightbulb icon-disabled" id="lights-indicator"></i>
 						<a href="{% url 'lights' %}">
 							<i class="fas fa-cog"></i>
 						</a>
 					</div>
-                    <a href="{% url 'network-info' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
+                    <a href="{% url 'network-info' %}">
                         <i class="fas fa-qrcode"></i>
                     </a>
 				</div>

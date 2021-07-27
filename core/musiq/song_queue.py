@@ -24,12 +24,12 @@ class SongQueue(models.Manager):
     def confirmed(self) -> QuerySet[QueuedSong]:
         """Returns a QuerySet containing all confirmed songs.
         Confirmed songs are not in the process of being made available."""
-        return self.exclude(internal_url="")
+        return self.exclude(internal_url=None)
 
     @transaction.atomic
     def delete_placeholders(self) -> None:
         """Deletes all songs from the queue that are not confirmed."""
-        self.filter(internal_url="").delete()
+        self.filter(internal_url=None).delete()
 
     @transaction.atomic
     def enqueue(

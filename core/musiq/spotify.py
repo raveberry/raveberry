@@ -7,14 +7,13 @@ from urllib.parse import urlparse
 
 from django.http.response import HttpResponse
 
-from core.models import Setting
-from core.musiq import song_utils
+import core.settings.storage as storage
+from core.musiq import song_utils, musiq
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 from core.musiq.spotify_web import OAuthClient
 
 if TYPE_CHECKING:
-    from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
 
 
@@ -28,8 +27,8 @@ class Spotify:
         """Returns the web client if it was already created.
         If not, it is created using the spotify credentials from the database."""
         if Spotify._web_client is None:
-            client_id = Setting.objects.get(key="spotify_client_id").value
-            client_secret = Setting.objects.get(key="spotify_client_secret").value
+            client_id = storage.get(key="spotify_client_id")
+            client_secret = storage.get(key="spotify_client_secret")
             Spotify._web_client = OAuthClient(
                 base_url="https://api.spotify.com/v1",
                 refresh_url="https://auth.mopidy.com/spotify/token",
@@ -39,7 +38,7 @@ class Spotify:
         return Spotify._web_client
 
     def get_search_suggestions(
-        self, musiq: Musiq, query: str, playlist: bool
+        self, query: str, playlist: bool
     ) -> List[Tuple[str, str]]:
         """Returns a list of suggested items for the given query.
         Returns playlists if :param playlist: is True, songs otherwise."""
@@ -67,9 +66,7 @@ class Spotify:
             else:
                 artist = item["artists"][0]["name"]
                 # apply filter from the settings
-                if song_utils.is_forbidden(musiq, artist) or song_utils.is_forbidden(
-                    musiq, title
-                ):
+                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
                     continue
                 displayname = song_utils.displayname(artist, title)
             suggestions.append((displayname, external_url))
@@ -97,11 +94,9 @@ class SpotifySongProvider(SongProvider, Spotify):
         """Returns the internal id based on the given url."""
         return url.split(":")[-1]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "spotify"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
         self.metadata: "Metadata" = {}
 
@@ -134,9 +129,7 @@ class SpotifySongProvider(SongProvider, Spotify):
             for item in results["tracks"]["items"]:
                 artist = item["artists"][0]["name"]
                 title = item["name"]
-                if song_utils.is_forbidden(
-                    self.musiq, artist
-                ) or song_utils.is_forbidden(self.musiq, title):
+                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
                     continue
                 result = item
                 break
@@ -144,14 +137,16 @@ class SpotifySongProvider(SongProvider, Spotify):
                 # all tracks got filtered
                 self.error = "All results filtered"
                 return False
+            self.id = result["id"]
         else:
             result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"})
         try:
-            self.metadata["internal_url"] = result["uri"]
-            self.metadata["external_url"] = result["external_urls"]["spotify"]
             self.metadata["artist"] = result["artists"][0]["name"]
             self.metadata["title"] = result["name"]
             self.metadata["duration"] = result["duration_ms"] / 1000
+            self.metadata["internal_url"] = result["uri"]
+            self.metadata["external_url"] = result["external_urls"]["spotify"]
+            self.metadata["stream_url"] = None
         except KeyError:
             self.error = "No song found"
             return False
@@ -194,7 +189,7 @@ class SpotifySongProvider(SongProvider, Spotify):
         result = self.web_client.get(
             "recommendations",
             params={
-                "limit": self.musiq.base.settings.basic.max_playlist_items,
+                "limit": storage.get("max_playlist_items"),
                 "market": "from_token",
                 "seed_tracks": self.id,
             },
@@ -202,7 +197,7 @@ class SpotifySongProvider(SongProvider, Spotify):
 
         for track in result["tracks"]:
             external_url = track["external_urls"]["spotify"]
-            self.musiq.do_request_music(
+            musiq.do_request_music(
                 "",
                 external_url,
                 None,
@@ -228,9 +223,7 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
             return None
         return urlparse(url).path.split("/")[-1]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "spotify"
         # can be one of playlists, artists or albums
         # defaults to playlist, only changes if an artist or album is found during search_id
@@ -246,7 +239,7 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
                 self._spotify_endpoint = "artists"
             elif query.startswith("https://open.spotify.com/album/"):
                 self._spotify_endpoint = "albums"
-            super().__init__(musiq, query, key)
+            super().__init__(query, key)
 
     def search_id(self) -> Optional[str]:
         result = self.web_client.get(

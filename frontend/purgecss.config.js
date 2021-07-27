@@ -4,6 +4,7 @@ module.exports = {
   safelist: [
     'collapsing', // menu transition
     'modal-backdrop', // dimmed background behind modals
-    'svg' // network info qr codes
+    'svg', // network info qr codes
+    'ui-helper-hidden-accessible' // dropdown helper text
   ],
 }

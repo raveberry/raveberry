@@ -1,6 +1,7 @@
 """This module handles the Neopixel led ring."""
 from typing import List, Tuple
 
+from core import redis
 from core.lights.device import Device
 
 
@@ -18,13 +19,12 @@ class Ring(Device):
 
     LED_OFFSET = 8  # at which index the zeroth pixel is located.
 
-    def __init__(self, lights) -> None:
-        super().__init__(lights, "ring")
+    def __init__(self, manager) -> None:
+        super().__init__(manager, "ring")
 
         try:
             import rpi_ws281x
         except ModuleNotFoundError:
-            self.initialized = False
             return
 
         self.controller = rpi_ws281x.Adafruit_NeoPixel(
@@ -39,9 +39,10 @@ class Ring(Device):
         try:
             self.controller.begin()
             self.initialized = True
+            redis.set("ring_initialized", True)
         except RuntimeError:
             # could not connect to led ring
-            self.initialized = False
+            return
 
     def set_colors(self, colors: List[Tuple[float, float, float]]) -> None:
         """Sets the colors of the ring to the given list of triples."""

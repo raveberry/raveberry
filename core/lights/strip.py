@@ -1,31 +1,29 @@
 """This module handles the led strip."""
 from typing import Tuple
 
-from django.core.handlers.wsgi import WSGIRequest
-
+from core import redis
 from core.lights.device import Device
-from core.lights.lights import Lights
 
 
 class Strip(Device):
     """This class provides an interface to control the led strip."""
 
-    def __init__(self, lights) -> None:
-        super().__init__(lights, "strip")
+    def __init__(self, manager) -> None:
+        super().__init__(manager, "strip")
         self.monochrome = True
 
         try:
             import Adafruit_PCA9685
         except ModuleNotFoundError:
-            self.initialized = False
             return
 
         try:
             self.controller = Adafruit_PCA9685.PCA9685()
             self.initialized = True
+            redis.set("strip_initialized", True)
         except (RuntimeError, OSError):
             # LED strip is not connected
-            self.initialized = False
+            return
 
     def set_color(self, color: Tuple[float, float, float]) -> None:
         """Sets the color of the strip to the given rgb triple."""

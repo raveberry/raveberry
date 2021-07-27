@@ -2,8 +2,6 @@ version: '3'
 
 volumes:
   songs-cache:
-    # If you want to access downloaded files on your host system,
-    # uncomment the following lines and choose a folder.
     #driver_opts:
     #  type: 'none'
     #  o: 'bind'
@@ -15,21 +13,30 @@ services:
       - POSTGRES_DB=raveberry
       - POSTGRES_USER=raveberry
       - POSTGRES_PASSWORD=raveberry
-    # Use this if you want to persist raveberry's database data
     #volumes:
     #  - /path/to/data/:/var/lib/postgresql/data
     restart: always
   redis:
     image: redis
     restart: always
+  celery:
+    image: raveberry/raveberry
+    volumes:
+      - songs-cache:/Music/raveberry
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DOCKER=1
+    command: /usr/local/bin/celery -A core worker -O fair -c 6
+    restart: always
   icecast:
     image: raveberry/raveberry-icecast
     environment:
-      ICECAST_ADMIN_PASSWORD: "${ICECAST_ADMIN_PASSWORD:-hackme}"
-      STREAM_USERNAME: "${STREAM_USERNAME:-raveberry}"
-      STREAM_PASSWORD: "${STREAM_PASSWORD:-raveberry}"
-      # or set STREAM_NOAUTH if you don't want to protect your stream
-      STREAM_NOAUTH: "${STREAM_NOAUTH}"
+      - ICECAST_ADMIN_PASSWORD
+      - STREAM_USERNAME
+      - STREAM_PASSWORD
+      - STREAM_NOAUTH
     # uncomment this port mapping if you need to access icecast's web interface
     #ports:
     #  - 8000:8000
@@ -40,28 +47,32 @@ services:
   mopidy:
     image: raveberry/raveberry-mopidy
     environment:
-      # optional spotify and soundcloud settings
+      - MOPIDY_OUTPUT=rgvolume ! audioconvert ! audioresample ! lamemp3enc ! shout2send ip=icecast async=false mount=stream
       - SPOTIFY_USERNAME
       - SPOTIFY_PASSWORD
       - SPOTIFY_CLIENT_ID
       - SPOTIFY_CLIENT_SECRET
       - SOUNDCLOUD_AUTH_TOKEN
+      - JAMENDO_CLIENT_ID
     volumes:
       - songs-cache:/Music/raveberry
-      # If you want to use spotify, 
-      # uncomment this line with a path to a config file containing the spotify credentials
-      # - /path/to/mopidy.conf:/config/mopidy_icecast.conf
-    command: bash -c "/usr/bin/mopidy --config /config/mopidy_icecast.conf"
+      # - /path/to/mopidy.conf:/config/mopidy.conf
     depends_on:
       - icecast
     restart: always
   daphne:
     image: raveberry/raveberry
     environment:
-      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin}"
-      MOD_PASSWORD: "${MOD_PASSWORD:-mod}"
-      DOCKER: 1
-      DOCKER_ICECAST: 1
+      - ADMIN_PASSWORD
+      - MOD_PASSWORD
+      - SPOTIFY_USERNAME
+      - SPOTIFY_PASSWORD
+      - SPOTIFY_CLIENT_ID
+      - SPOTIFY_CLIENT_SECRET
+      - SOUNDCLOUD_AUTH_TOKEN
+      - JAMENDO_CLIENT_ID
+      - DOCKER=1
+      - DOCKER_ICECAST=1
     expose:
       - 9000
     volumes:
@@ -69,6 +80,7 @@ services:
     depends_on:
       - db
       - redis
+      - celery
       - mopidy
       - icecast
     restart: always

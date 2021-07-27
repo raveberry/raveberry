@@ -16,7 +16,6 @@ COPY docker/mopidy-entrypoint.sh /entrypoint.sh
 
 # Default configurations.
 COPY docker/mopidy.conf /config/mopidy.conf
-COPY docker/mopidy_icecast.conf /config/mopidy_icecast.conf
 
 # Copy the pulse-client configuration.
 COPY docker/pulse-client.conf /etc/pulse/client.conf

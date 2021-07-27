@@ -115,12 +115,12 @@ def run_server():
         user_install()
     print("This is the basic raveberry version using a debug server.")
     print("To install with all features run `raveberry system-install`")
+    mopidy = None
+    celery = None
     try:
-        subprocess.check_call(f"pgrep mopidy".split(), stdout=subprocess.DEVNULL)
+        subprocess.check_call("pgrep mopidy".split(), stdout=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
         print("mopidy not yet running, waiting for it to come up...")
-        # the spawned process does not stop if this script exits normally
-        # since the server is always killed with Ctrl+C, this is unproblematic
         mopidy = subprocess.Popen(["mopidy"], stderr=subprocess.PIPE)
         # wait until mopidy started its server
         for line in mopidy.stderr:
@@ -128,7 +128,32 @@ def run_server():
             print(line)
             if "HTTP server running" in line:
                 break
-    subprocess.call(["scripts/runserver.sh"])
+    try:
+        subprocess.check_call(
+            ["pgrep", "-f", "celery -A core"], stdout=subprocess.DEVNULL
+        )
+    except subprocess.CalledProcessError:
+        print("celery not yet running, starting...")
+        celery = subprocess.Popen(
+            "python3 manage.py celery".split(),
+            env={"DJANGO_DEBUG": "1", **os.environ},
+            stdin=subprocess.DEVNULL,
+        )
+    try:
+        subprocess.call(
+            "python3 manage.py migrate".split(), env={"DJANGO_DEBUG": "1", **os.environ}
+        )
+        subprocess.call(
+            "python3 manage.py runserver 0:8080".split(),
+            env={"DJANGO_DEBUG": "1", **os.environ},
+        )
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if mopidy:
+            mopidy.terminate()
+        if celery:
+            subprocess.call(["pkill", "-9", "-f", "celery -A core"])
 
 
 def user_install():

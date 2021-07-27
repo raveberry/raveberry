@@ -60,6 +60,15 @@ function updateState(state) {
     li.insertBefore($('#connect-bluetooth').parent());
   });
 
+  // this field is not included in the generic values,
+  // because the error is stored in the base state
+  // and the settings state is not updated when the error changes
+  if (state.playbackError) {
+    $('#player-status').text('error');
+  } else {
+    $('#player-status').text('seems fine');
+  }
+
   if (!state.settings.systemInstall) {
     $('.system-install-only').addClass('is-disabled');
     $('.system-install-only').attr('disabled-note',
@@ -150,6 +159,8 @@ export function onReady() {
     }
   }
 
+  registerPostOnClick('trigger-alarm');
+
   registerPostOnClick('check-internet');
   registerPostOnClick('update-user-count');
 
@@ -174,8 +185,8 @@ export function onReady() {
     };
   });
 
-  registerPostOnClick('set-bluetooth-scanning', () => {
-    const checked = $('#set-bluetooth-scanning').is(':checked');
+  registerPostOnClick('bluetooth-scanning', () => {
+    const checked = $('#bluetooth-scanning').is(':checked');
     if (checked) {
       $('.bluetooth-device').remove();
     }
@@ -206,6 +217,8 @@ export function onReady() {
       $('#output').autocomplete('search');
     });
   });
+
+  registerPostOnClick('restart-player');
 
   $('#wifi-ssid').focus(function() {
     $.get(urls['settings']['available-ssids']).done(function(ssids) {
@@ -328,7 +341,8 @@ export function onReady() {
     };
   });
 
-  registerPostOnClick('reboot-server');
+  registerPostOnClick('restart-server');
+  registerPostOnClick('kill-workers');
   registerPostOnClick('reboot-system');
   registerPostOnClick('shutdown-system');
 

@@ -1,14 +1,13 @@
-"""This module contains the base classes for all music providers."""
+"""This module contains the base class of all music providers."""
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
+from core.settings import storage
+from core.celery import app
 from core.models import ArchivedSong
-from core.util import background_thread
-
-if TYPE_CHECKING:
-    from core.musiq.musiq import Musiq
+from core.musiq import musiq, playback
 
 
 class ProviderError(Exception):
@@ -24,10 +23,7 @@ class MusicProvider:
     """The base class for all music providers.
     Provides abstract function declarations."""
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
-        self.musiq = musiq
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.query = query
         self.key = key
         if not hasattr(self, "type"):
@@ -84,46 +80,25 @@ class MusicProvider:
         """Tries to request this resource.
         Uses the local cache if possible, otherwise tries to retrieve it online."""
 
-        if (
-            0
-            < self.musiq.base.settings.basic.max_queue_length
-            <= self.musiq.queue.count()
-        ):
+        if 0 < storage.get("max_queue_length") <= playback.queue.count():
             self.error = "Queue limit reached"
             raise ProviderError(self.error)
-
-        def enqueue() -> None:
-            self.persist(request_ip, archive=archive)
-            self.enqueue()
 
         enqueue_function = enqueue
 
         if not self.check_cached():
-            if (
-                self.query is not None
-                and self.musiq.base.settings.basic.additional_keywords
-            ):
+            if self.query is not None and storage.get("additional_keywords"):
                 # add the additional keywords from the settings before checking
-                self.query += " " + self.musiq.base.settings.basic.additional_keywords
+                self.query += " " + storage.get("additional_keywords")
             if not self.check_available():
                 raise ProviderError(self.error)
 
             # overwrite the enqueue function and make the resource available before calling it
-            def fetch_enqueue() -> None:
-                if not self.make_available():
-                    self.remove_placeholder()
-                    self.musiq.update_state()
-                    return
-
-                enqueue()
-
             enqueue_function = fetch_enqueue
 
         from core.musiq.song_provider import SongProvider
 
-        if self.musiq.base.settings.basic.new_music_only and isinstance(
-            self, SongProvider
-        ):
+        if storage.get("new_music_only") and isinstance(self, SongProvider):
             try:
                 archived_song = ArchivedSong.objects.get(url=self.get_external_url())
                 if archived_song.counter > 0:
@@ -134,8 +109,22 @@ class MusicProvider:
 
         self.enqueue_placeholder(manually_requested)
 
-        @background_thread
-        def enqueue_in_background() -> None:
-            enqueue_function()
+        enqueue_function.delay(self, request_ip, archive)
 
-        enqueue_in_background()
+
+@app.task
+def enqueue(provider: MusicProvider, request_ip: str, archive: bool) -> None:
+    """Enqueue the music managed by the given provider."""
+    provider.persist(request_ip, archive=archive)
+    provider.enqueue()
+
+
+@app.task
+def fetch_enqueue(provider: MusicProvider, request_ip: str, archive: bool) -> None:
+    """Fetch and enqueue the music managed by the given provider."""
+    if not provider.make_available():
+        provider.remove_placeholder()
+        musiq.update_state()
+        return
+
+    enqueue(provider, request_ip, archive)

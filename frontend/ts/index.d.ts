@@ -1,7 +1,7 @@
 /* eslint no-unused-vars: off */
 declare let CSRF_TOKEN: string;
 declare let urls: { string: string; };
-declare let VOTING_SYSTEM: boolean;
+declare let VOTING_ENABLED: boolean;
 declare let ADMIN: boolean;
 declare let CONTROLS_ENABLED: boolean;
 

@@ -10,18 +10,18 @@ from urllib.parse import urlparse
 import requests
 from django.http.response import HttpResponse
 
-from core.models import Setting
+import core.settings.storage as storage
 from core.musiq import song_utils
+from core.musiq import musiq
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
-    from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
 
 
 class JamendoClient:
-    # taken from mopidy-jamendo
+    """Interface with the Jamendo API. Taken from mopidy-jamendo."""
 
     def __init__(self, client_id: str) -> None:
         self.session = requests.Session()
@@ -31,6 +31,7 @@ class JamendoClient:
         self.client_id = client_id
 
     def get(self, url: str, params: dict = None) -> dict:
+        """Perform the specified API request."""
         url = f"https://api.jamendo.com/v3.0/{url}"
         if not params:
             params = {}
@@ -56,7 +57,7 @@ class Jamendo:
     @staticmethod
     def _get_web_client() -> JamendoClient:
         if Jamendo._web_client is None:
-            client_id = Setting.objects.get(key="jamendo_client_id").value
+            client_id = storage.get(key="jamendo_client_id")
             Jamendo._web_client = JamendoClient(client_id=client_id)
         return Jamendo._web_client
 
@@ -66,7 +67,7 @@ class Jamendo:
         If not, it is created using the client-id from mopidy-jamendo."""
         return Jamendo._get_web_client()
 
-    def get_search_suggestions(self, musiq: Musiq, query: str) -> List[str]:
+    def get_search_suggestions(self, query: str) -> List[str]:
         """Returns a list of suggested items for the given query."""
 
         if len(query.strip()) <= 1:
@@ -85,7 +86,7 @@ class Jamendo:
         suggestions = [
             suggestion
             for suggestion in suggestions
-            if suggestion != query and not song_utils.is_forbidden(musiq, suggestion)
+            if suggestion != query and not song_utils.is_forbidden(suggestion)
         ]
         return suggestions
 
@@ -106,11 +107,9 @@ class JamendoSongProvider(SongProvider, Jamendo):
         """Returns the internal id based on the given url."""
         return url.split(":")[-1]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "jamendo"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
         self.metadata: "Metadata" = {}
         self.external_url = None
@@ -136,9 +135,7 @@ class JamendoSongProvider(SongProvider, Jamendo):
             for item in results:
                 artist = item["artist_name"]
                 title = item["name"]
-                if song_utils.is_forbidden(
-                    self.musiq, artist
-                ) or song_utils.is_forbidden(self.musiq, title):
+                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
                     continue
                 result = item
                 break
@@ -196,15 +193,12 @@ class JamendoSongProvider(SongProvider, Jamendo):
 
         result = self.web_client.get(
             "recommendations",
-            params={
-                "id": self.id,
-                "limit": self.musiq.base.settings.basic.max_playlist_items,
-            },
+            params={"id": self.id, "limit": storage.get("basic.max_playlist_items")},
         )
 
         for track in result["results"]:
             external_url = track["shareurl"]
-            self.musiq.do_request_music(
+            musiq.do_request_music(
                 "",
                 external_url,
                 None,
@@ -230,11 +224,9 @@ class JamendoPlaylistProvider(PlaylistProvider, Jamendo):
             if component.isdigit()
         ][0]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "jamendo"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
 
     def search_id(self) -> Optional[str]:
         results = self.web_client.get(
@@ -260,7 +252,6 @@ class JamendoPlaylistProvider(PlaylistProvider, Jamendo):
             result = self.web_client.get("playlists", params={"id": self.id})
             self.title = result["results"][0]["name"]
 
-        print(f"list id: {self.id}")
         results = self.web_client.get("playlists/tracks", params={"id": self.id})
         tracks = results["results"][0]["tracks"]
 

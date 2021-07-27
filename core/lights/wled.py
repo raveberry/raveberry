@@ -3,34 +3,31 @@ from typing import List, Tuple
 
 import socket
 
-from core import util
+from core import util, redis
 from core.lights.device import Device
-from core.models import Setting
-from main import settings
+from core.settings import storage
 
 
 class WLED(Device):
     """This class provides an interface to control WLED."""
 
-    def __init__(self, lights) -> None:
-        super().__init__(lights, "wled")
+    def __init__(self, manager) -> None:
+        super().__init__(manager, "wled")
 
-        self.led_count = int(
-            self.lights.base.settings.get_setting("wled_led_count", "10")
-        )
+        self.led_count = storage.get("wled_led_count")
 
-        self.ip = self.lights.base.settings.get_setting("wled_ip", "")
-        if not self.ip and not settings.MOCK:
+        self.ip = storage.get("wled_ip")
+        if not self.ip:
             try:
-                device = util.get_default_device()
+                device = util.get_devices()[0]
                 broadcast = util.broadcast_of_device(device)
                 self.ip = broadcast
             except:
                 # we don't want the startup to fail
                 # just because the broadcast address could not be determined
                 self.ip = "127.0.0.1"
-            Setting.objects.filter(key="wled_ip").update(value=self.ip)
-        self.port = int(self.lights.base.settings.get_setting("wled_port", "21324"))
+            storage.set("wled_ip", self.ip)
+        self.port = storage.get("wled_port")
 
         self.header = bytes(
             [
@@ -40,6 +37,7 @@ class WLED(Device):
         )
 
         self.initialized = True
+        redis.set("wled_initialized", True)
 
     def set_colors(self, colors: List[Tuple[float, float, float]]) -> None:
         """Sets the colors of the WLED to the given list of triples."""

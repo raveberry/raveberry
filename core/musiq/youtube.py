@@ -20,11 +20,12 @@ from django.conf import settings
 from django.http.response import HttpResponse
 
 import core.musiq.song_utils as song_utils
+import core.settings.storage as storage
+from core.musiq import musiq
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
 
 if TYPE_CHECKING:
-    from core.musiq.musiq import Musiq
     from core.musiq.song_utils import Metadata
 
 
@@ -124,7 +125,7 @@ class Youtube:
         raise ValueError("Could not parse initial data from html")
 
     @staticmethod
-    def get_search_suggestions(musiq: Musiq, query: str) -> List[str]:
+    def get_search_suggestions(query: str) -> List[str]:
         """Returns a list of suggestions for the given query from Youtube."""
         with youtube_session() as session:
             params = {
@@ -143,7 +144,7 @@ class Youtube:
         suggestions = [
             entry[0]
             for entry in suggestions
-            if entry[0] != query and not song_utils.is_forbidden(musiq, entry[0])
+            if entry[0] != query and not song_utils.is_forbidden(entry[0])
         ]
         return suggestions
 
@@ -155,11 +156,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
     def get_id_from_external_url(url: str) -> str:
         return parse_qs(urlparse(url).query)["v"][0]
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "youtube"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
         self.info_dict: Dict[str, Any] = {}
         self.ydl_opts = Youtube.get_ydl_opts()
 
@@ -176,7 +175,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
         extractor._downloader = youtube_dl.YoutubeDL(self.ydl_opts)
         extractor.initialize()
         for entry in extractor._entries(self.query, 50):
-            if song_utils.is_forbidden(self.musiq, entry["title"]):
+            if song_utils.is_forbidden(entry["title"]):
                 continue
             try:
                 with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
@@ -237,7 +236,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
     def make_available(self) -> bool:
         if not os.path.isfile(self._get_path()):
-            self.musiq.update_state()
+            musiq.update_state()
             # only download the file if it was not already downloaded
             return self._download()
         return True
@@ -247,10 +246,11 @@ class YoutubeSongProvider(SongProvider, Youtube):
             raise ValueError()
         metadata = song_utils.get_metadata(self._get_path())
 
-        metadata["internal_url"] = self.get_internal_url()
-        metadata["external_url"] = "https://www.youtube.com/watch?v=" + self.id
         if not metadata["title"]:
             metadata["title"] = metadata["external_url"]
+        metadata["internal_url"] = self.get_internal_url()
+        metadata["external_url"] = "https://www.youtube.com/watch?v=" + self.id
+        metadata["stream_url"] = None
 
         return metadata
 
@@ -296,7 +296,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
             raise ValueError()
         radio_id = "RD" + self.id
 
-        provider = YoutubePlaylistProvider(self.musiq, "", None)
+        provider = YoutubePlaylistProvider("", None)
         provider.id = radio_id
         provider.request("", archive=False, manually_requested=False)
         return HttpResponse("queueing radio (might take some time)")
@@ -313,11 +313,9 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
             return None
         return list_id
 
-    def __init__(
-        self, musiq: "Musiq", query: Optional[str], key: Optional[int]
-    ) -> None:
+    def __init__(self, query: Optional[str], key: Optional[int]) -> None:
         self.type = "youtube"
-        super().__init__(musiq, query, key)
+        super().__init__(query, key)
         self.ydl_opts = Youtube.get_ydl_opts()
         del self.ydl_opts["noplaylist"]
         self.ydl_opts["extract_flat"] = True
@@ -369,9 +367,7 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
     def fetch_metadata(self) -> bool:
         # in case of a radio playlist, restrict the number of songs that are downloaded
         if self.is_radio():
-            self.ydl_opts[
-                "playlistend"
-            ] = self.musiq.base.settings.basic.max_playlist_items
+            self.ydl_opts["playlistend"] = storage.get("max_playlist_items")
             # radios are not viewable with the /playlist?list= url,
             # create a video watch url with the radio list
             query_url = (

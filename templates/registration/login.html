@@ -6,13 +6,17 @@
 		{% csrf_token %}
 		<li class="list-group-item list-header">
 			Login
-			{{ form.non_field_errors }}
 		</li>
 		{% for field in form %}
 		<li class="list-group-item list-item">
 			{{ field.errors }}
 			{{ field.label_tag }} {{ field }}
 		</li>
+		{% endfor %}
+		{% for error in form.non_field_errors %}
+			<li class="list-group-item list-item centered error">
+				{{error}}
+			</li>
 		{% endfor %}
 		<li class="list-group-item list-item centered">
 			<button class="btn" type="submit">Login</button>

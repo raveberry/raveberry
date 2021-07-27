@@ -2,16 +2,16 @@
 
 import os
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import mutagen.easymp4
 
-from main import settings
+import core.settings.storage as storage
+from main import settings as conf
 
 if TYPE_CHECKING:
     from typing_extensions import TypedDict
-    from core.musiq.music_provider import ArchivedPlaylist
-    from core.musiq.musiq import Musiq
+    from core.models import ArchivedPlaylist
 
     Metadata = TypedDict(  # pylint: disable=invalid-name
         "Metadata",
@@ -20,8 +20,8 @@ if TYPE_CHECKING:
             "title": str,
             "duration": float,
             "internal_url": str,
-            "external_url": str,
-            "stream_url": str,  # optional
+            "external_url": Optional[str],
+            "stream_url": Optional[str],
         },
         total=False,
     )
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 def get_path(basename: str) -> str:
     """Returns the absolute path for a basename of a file in the cache directory."""
-    path = os.path.join(settings.SONGS_CACHE_DIR, basename)
+    path = os.path.join(conf.SONGS_CACHE_DIR, basename)
     path = path.replace("~", os.environ["HOME"])
     path = os.path.abspath(path)
     return path
@@ -112,10 +112,11 @@ def get_metadata(path: str) -> "Metadata":
     return metadata
 
 
-def is_forbidden(musiq: "Musiq", s: str) -> bool:
+def is_forbidden(s: str) -> bool:
+    """Returns whether the given string should be filtered according to the forbidden keywords."""
     # We can't access the variable in settings/basic.py
     # since we are in a static context without a reference to bes
-    keywords = musiq.base.settings.basic.forbidden_keywords
+    keywords = storage.get("forbidden_keywords")
     words = re.split(r"[,\s]+", keywords.strip())
     # delete empty matches
     words = [word for word in words if word]

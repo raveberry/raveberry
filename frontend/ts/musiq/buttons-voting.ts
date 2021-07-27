@@ -79,6 +79,9 @@ export function onReady() {
     } else {
       key = keyOfElement($(this));
     }
+    if (key == -1) {
+      return;
+    }
     const other = $(this).siblings('.vote-down');
     if ($(this).hasClass('pressed')) {
       $(this).removeClass('pressed');
@@ -106,6 +109,9 @@ export function onReady() {
       key = state.currentSong.queueKey;
     } else {
       key = keyOfElement($(this));
+    }
+    if (key == -1) {
+      return;
     }
     const other = $(this).siblings('.vote-up');
     if ($(this).hasClass('pressed')) {

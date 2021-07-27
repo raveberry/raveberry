@@ -1,4 +1,6 @@
 [MASTER]
+load-plugins=pylint_django
+django-settings-module=main.settings
 disable=
     E203, # whitespace before ':' https://github.com/PyCQA/pycodestyle/issues/373
     bad-continuation, # https://github.com/psf/black/issues/48

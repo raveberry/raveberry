@@ -2,23 +2,33 @@
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
-- name: events nginx config
+- name: Create nginx config
   template:
-    src: files/raveberry-events
-    dest: /etc/nginx/sites-available/raveberry-events
-- name: static nginx config
-  template:
-    src: files/raveberry-static
-    dest: /etc/nginx/sites-available/raveberry-static
+    src: files/raveberry.nginx
+    dest: /etc/nginx/sites-available/raveberry
+- name: Enable nginx config
+  file:
+    src: /etc/nginx/sites-available/raveberry
+    dest: /etc/nginx/sites-enabled/raveberry
+    state: link
+- name: Remove nginx configs from previous versions
+  file:
+    path: /etc/nginx/sites-enabled/raveberry-events
+    state: absent
+    follow: no
+- name: Reload nginx
+  systemd:
+    state: reloaded
+    name: nginx
 
 - name: daphne service
   template:
     src: files/daphne.service
     dest: /etc/systemd/system/daphne.service
-- name: gunicorn service
+- name: celery service
   template:
-    src: files/gunicorn.service
-    dest: /etc/systemd/system/gunicorn.service
+    src: files/celery.service
+    dest: /etc/systemd/system/celery.service
 - name: upgrade service
   template:
     src: files/raveberry_upgrade.service
@@ -71,9 +81,14 @@
             path: /root/.ssh/known_hosts
             block: "{{ keyscan.stdout }}"
 
-- name: Reload systemd daemon config
+- name: "Enable celery"
   systemd:
     daemon_reload: yes
-
-- name: Start the server
-  command: /usr/local/sbin/raveberry/enable_events
+    enabled: yes
+    name: celery
+- name: "Start daphne"
+  systemd:
+    # daphne depends on celery, which is automatically restarted with daphne
+    enabled: yes
+    state: restarted
+    name: daphne

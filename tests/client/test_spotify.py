@@ -8,8 +8,6 @@ from tests.music_test import MusicTest
 
 class SpotifyTests(MusicTest):
     def setUp(self):
-        super().setUp()
-
         try:
             username = os.environ["SPOTIFY_USERNAME"]
             password = os.environ["SPOTIFY_PASSWORD"]
@@ -17,6 +15,8 @@ class SpotifyTests(MusicTest):
             client_secret = os.environ["SPOTIFY_CLIENT_SECRET"]
         except KeyError:
             self.skipTest("No spotify credentials provided.")
+
+        super().setUp()
 
         Setting.objects.update_or_create(
             key="spotify_username", defaults={"value": username}
