@@ -1,4 +1,5 @@
 -r prod.txt
 -r youtube.txt
+-r install.txt
 beautifulsoup4>=4.9.3
 fonttools[woff]
