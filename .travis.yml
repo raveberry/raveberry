@@ -41,7 +41,7 @@ script:
   - kill $mopidyPid
 
   - cd "$HOME/raveberry_install"
-  - bin/raveberry install --confirm-config
+  - bin/raveberry system-install --confirm-config
 
   #before_deploy:
   #  - cd "$TRAVIS_BUILD_DIR"
