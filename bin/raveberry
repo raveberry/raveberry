@@ -275,7 +275,7 @@ For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config bef
     Finished!
 
     Raveberry was successfully installed.
-    You can now visit http://raveberry/"""
+    You can now visit http://raveberry.local/"""
         )
 
 
