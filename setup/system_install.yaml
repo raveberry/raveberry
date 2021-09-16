@@ -44,7 +44,7 @@
         - "--include=static/*.css"
         - "--include=static/*.woff2"
         - "--exclude=.git"
-        - "--filter=dir-merge,- .gitignore"
+        - "--filter='dir-merge,- .gitignore'"
 
   - name: Copy Raveberry config to the remote
     copy:
