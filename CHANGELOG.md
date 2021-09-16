@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 - 2021-09-16
+- Fix installation issue by quoting rsync argument and pinning ansible (#115).
+- Mopidy container also loads jamendo client id from environment.
+
 ## 0.9.0 - 2021-07-27
 - _Big_ Architecture rewrite: 
 - State is not kept in a single god-object, but stored in Redis and the database
