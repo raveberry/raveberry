@@ -137,7 +137,9 @@ class YoutubeTests(MusicTest):
         self.assertEqual(actual_playlist, expected_playlist)
 
     def test_playlist_query(self):
-        self._post_request("request-music", "Muse Resistance Album", playlist=True)
+        self._post_request(
+            "request-music", "Muse Resistance Full Album HD", playlist=True
+        )
         state = self._poll_musiq_state(
             lambda state: state["musiq"]["currentSong"]
             and len(state["musiq"]["songQueue"]) == 2
