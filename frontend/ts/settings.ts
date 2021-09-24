@@ -312,12 +312,13 @@ export function onReady() {
       enddate: $('#enddate').val(),
       endtime: $('#endtime').val(),
     }).done(function(data) {
-      $('#songs-played').text(data['songs-played']);
-      $('#most-played-song').text(data['most-played-song']);
-      $('#votes-cast').text(data['votes-cast']);
-      $('#highest-voted-song').text(data['highest-voted-song']);
-      $('#most-active-device').text(data['most-active-device']);
-      $('#request-activity').text(data['request-activity']);
+      console.log(data);
+      $('#songs-played').text(data['songsPlayed']);
+      $('#most-played-song').text(data['mostPlayedSong']);
+      $('#votes-cast').text(data['votesCast']);
+      $('#highest-voted-song').text(data['highestVotedSong']);
+      $('#most-active-device').text(data['mostActiveDevice']);
+      $('#request-activity').text(data['requestActivity']);
       $('#playlist').text(data['playlist']);
       successToast('');
     }).fail(function(response) {

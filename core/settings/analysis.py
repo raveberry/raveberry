@@ -58,6 +58,9 @@ def analyse(request: WSGIRequest) -> HttpResponse:
         return HttpResponseBadRequest(e.args[0])
 
     played = PlayLog.objects.all().filter(created__gte=start).filter(created__lt=end)
+    if not played.exists():
+        return HttpResponseBadRequest("No songs played in the given time span")
+
     requested = (
         RequestLog.objects.all().filter(created__gte=start).filter(created__lt=end)
     )
@@ -79,27 +82,27 @@ def analyse(request: WSGIRequest) -> HttpResponse:
     )
 
     response = {
-        "songs_played": len(played),
-        "most_played_song": (
+        "songsPlayed": len(played),
+        "mostPlayedSong": (
             song_utils.displayname(
                 played_count[0]["song__artist"], played_count[0]["song__title"]
             )
             + f" ({played_count[0]['count']})"
         ),
-        "highest_voted_song": (
+        "highestVotedSong": (
             played_votes[0].song_displayname() + f" ({played_votes[0].votes})"
         ),
-        "most_active_device": (devices[0]["address"] + f" ({devices[0]['count']})"),
+        "mostActiveDevice": (devices[0]["address"] + f" ({devices[0]['count']})"),
     }
     requested_by_ip = requested.filter(address=devices[0]["address"])
     for i in range(6):
         if i >= len(requested_by_ip):
             break
-        response["most_active_device"] += "\n"
+        response["mostActiveDevice"] += "\n"
         if i == 5:
-            response["most_active_device"] += "..."
+            response["mostActiveDevice"] += "..."
         else:
-            response["most_active_device"] += requested_by_ip[i].item_displayname()
+            response["mostActiveDevice"] += requested_by_ip[i].item_displayname()
 
     binsize = 3600
     number_of_bins = math.ceil((end - start).total_seconds() / binsize)
@@ -112,11 +115,11 @@ def analyse(request: WSGIRequest) -> HttpResponse:
 
     current_time = start
     current_index = 0
-    response["request_activity"] = ""
+    response["requestActivity"] = ""
     while current_time < end:
-        response["request_activity"] += current_time.strftime("%H:%M")
-        response["request_activity"] += ":\t" + str(request_bins[current_index])
-        response["request_activity"] += "\n"
+        response["requestActivity"] += current_time.strftime("%H:%M")
+        response["requestActivity"] += ":\t" + str(request_bins[current_index])
+        response["requestActivity"] += "\n"
         current_time += timedelta(seconds=binsize)
         current_index += 1
 
