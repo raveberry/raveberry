@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from threading import Thread
 
@@ -20,6 +21,9 @@ class RaveberryTest(TransactionTestCase):
         # https://stackoverflow.com/questions/46530784/make-django-test-case-database-visible-to-celery/46564964#46564964
         cls.celery_worker = start_worker(app, perform_ping_check=False)
         cls.celery_worker.__enter__()
+
+        # show logs during testing
+        logging.getLogger().setLevel(logging.WARNING)
 
     @classmethod
     def tearDownClass(cls):

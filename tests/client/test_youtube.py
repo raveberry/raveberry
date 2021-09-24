@@ -169,7 +169,7 @@ class YoutubeTests(MusicTest):
         state = self._poll_musiq_state(
             lambda state: len(state["musiq"]["songQueue"]) == 1
             and state["musiq"]["songQueue"][0]["internalUrl"],
-            timeout=15,
+            timeout=20,
         )
         old_id = state["musiq"]["songQueue"][0]["id"]
 
@@ -179,7 +179,7 @@ class YoutubeTests(MusicTest):
             lambda state: len(state["musiq"]["songQueue"]) == 1
             and state["musiq"]["songQueue"][0]["internalUrl"]
             and state["musiq"]["songQueue"][0]["id"] != old_id,
-            timeout=15,
+            timeout=20,
         )
 
     def test_radio(self):
