@@ -40,7 +40,12 @@ class CoreConfig(AppConfig):
             "runserver" in sys.argv and os.environ.get("RUN_MAIN", None) == "true"
         ) or (sys.argv[0].endswith("daphne"))
 
-        if start_raveberry or conf.TESTING or any("watson" in arg for arg in sys.argv):
+        if (
+            start_raveberry
+            or conf.TESTING
+            or any("watson" in arg for arg in sys.argv)
+            or any("celery" in arg for arg in sys.argv)
+        ):
             watson.register(
                 self.get_model("ArchivedSong"),
                 fields=("url", "artist", "title", "queries__query"),
