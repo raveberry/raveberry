@@ -175,12 +175,9 @@ if not os.path.exists(os.path.join(BASE_DIR, "static/admin")):
 
     DJANGO_PATH = os.path.dirname(django.__file__)
     STATIC_ADMIN = os.path.join(DJANGO_PATH, "contrib/admin/static/admin")
-    if DOCKER:
-        # copy the files since nginx runs in another container
-        shutil.copytree(STATIC_ADMIN, os.path.join(BASE_DIR, "static/admin"))
-        print("copied static admin files")
-    else:
+    if not DOCKER:
         # create symlink to admin static files if not present
+        # In the docker setup, the nginx container includes the static files on build
         os.symlink(
             STATIC_ADMIN,
             os.path.join(BASE_DIR, "static/admin"),
