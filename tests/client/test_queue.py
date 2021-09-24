@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.urls import reverse
 
@@ -47,7 +48,11 @@ class QueueTests(MusicTest):
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 2)
 
         # removing the same key another time should not change the queue length
+        # raise logging level temporarily to error, because the following request raises a warning
+        logging_level = logging.getLogger().level
+        logging.getLogger().setLevel(logging.ERROR)
         self.client.post(reverse("remove"), {"key": str(key)})
+        logging.getLogger().setLevel(logging_level)
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 2)
 
         # choosing a new key will again delete a song
