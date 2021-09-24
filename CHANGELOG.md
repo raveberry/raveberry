@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.2 - 2021-09-24
+- Database is registered correctly in celery workers. New songs will directly appear in suggestions again.
+- Current song can be deleted in settings to help recover from disconnection problems (#116)
+- Add donation link to readme
+- Moved from travis to github actions
+- Songs with identical suggestions show their duration for disambiguation in suggestions
+- Arrow to insert suggestion into search input field is only shown for online suggestions
+- Clearing the song input field is easier, the x has a bigger interaction area
+- Analysis results are shown again
+- Error message when there are no songs to analyze
+- Red and blue colors are more prominent in rainbow LED visualization
+
 ## 0.9.1 - 2021-09-16
 - Fix installation issue by quoting rsync argument and pinning ansible (#115).
 - Mopidy container also loads jamendo client id from environment.
