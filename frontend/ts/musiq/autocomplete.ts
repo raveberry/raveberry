@@ -41,9 +41,9 @@ export function onReady() {
       }
 
       const elem = $(origEvent.target);
-      if (elem.hasClass('autocomplete-info') ||
-          elem.parents('.autocomplete-info').length > 0) {
-        // the info or insert button was clicked,
+      if (elem.hasClass('.suggestion-inserter') ||
+          elem.parents('.suggestion-inserter').length > 0) {
+        // the insert button was clicked,
         // insert the text (default behavior)
         return true;
       }
@@ -110,21 +110,36 @@ export function onReady() {
           .addClass('fa-wrench');
     }
 
-    let counter = '(' + item.counter + ')';
-    if (item.type.endsWith('online')) {
-      counter = '';
-    }
-
     const suggestionDiv = $('<div>')
         .text(item.label)
         .prepend(icon);
+
+    let infoText = '';
+    // add duration where the name is not identifying
+    if (item.confusable && item.hasOwnProperty('durationFormatted')) {
+      infoText += '[' + item.durationFormatted + '] ';
+    }
+    if (item.hasOwnProperty('counter')) {
+      infoText += '(' + item.counter + ')';
+    }
+
+    const infoDiv = $('<div>')
+        .addClass('autocomplete-info')
+        .text(infoText);
+    if (item.type.endsWith('online')) {
+      infoDiv.addClass('suggestion-inserter')
+      const insertIcon = $('<i>')
+          .addClass('fas')
+          .addClass('fa-reply')
+          .addClass('insert-icon');
+      infoDiv.append(insertIcon);
+    }
 
     // modify the suggestions to contain an icon
     return $('<li class="ui-menu-item-with-icon"></li>')
         .data('item.autocomplete', item)
         .append(suggestionDiv)
-        .append('<div class="autocomplete-info">' + counter +
-            '<i class="fas fa-reply insert-icon"></i>')
+        .append(infoDiv)
         .appendTo(ul);
   };
 

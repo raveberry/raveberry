@@ -147,24 +147,17 @@ def get_suggestions(request: WSGIRequest) -> JsonResponse:
                 # e.g. the song was played before, but the provider was disabled
                 continue
             cached = provider.check_cached()
-            # don't suggest local songs if they are not cached (=not at expected location)
-            if not cached and provider.type == "local":
-                continue
             # don't suggest online songs when we don't have internet
             if not redis.get("has_internet") and not cached:
                 continue
-            # don't suggest youtube songs if it was disabled
-            if not storage.get("youtube_enabled") and provider.type == "youtube":
-                continue
-            # don't suggest spotify songs if we are not logged in
-            if not storage.get("spotify_enabled") and provider.type == "spotify":
-                continue
-            # don't suggest soundcloud songs if we are not logged in
-            if not storage.get("soundcloud_enabled") and provider.type == "soundcloud":
-                continue
-            # don't suggest jamendo songs if we are not logged in
-            if not storage.get("jamendo_enabled") and provider.type == "jamendo":
-                continue
+            if provider.type == "local":
+                # don't suggest local songs if they are not cached (=not at expected location)
+                if not cached:
+                    continue
+            else:
+                # don't suggest songs if the respective platform is disabled
+                if not storage.get(f"{provider.type}_enabled"):
+                    continue
             result_dict = {
                 "key": song_info["id"],
                 "value": song_utils.displayname(
@@ -173,6 +166,19 @@ def get_suggestions(request: WSGIRequest) -> JsonResponse:
                 "counter": search_result.object.counter,
                 "type": provider.type,
             }
+            # Add duration for songs where it is available (=cached songs)
+            if cached:
+                metadata = provider.get_metadata()
+                result_dict["durationFormatted"] = song_utils.format_seconds(
+                    metadata["duration"]
+                )
             results.append(result_dict)
+        # mark suggestions whose displayname is identical
+        seen_values = {}
+        for i, result in enumerate(results):
+            if result["value"] in seen_values:
+                result["confusable"] = True
+                results[seen_values[result["value"]]]["confusable"] = True
+            seen_values[result["value"]] = i
 
     return JsonResponse(results, safe=False)
