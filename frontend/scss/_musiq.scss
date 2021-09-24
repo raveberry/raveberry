@@ -20,9 +20,9 @@
 	font-size:.375rem;
 }
 #music-input {
-	padding: 6px;
 	min-width: 100px;
-	padding-right: 20px;
+	padding: 6px;
+	padding-right: 26px;
 }
 
 span.clearable {
@@ -43,6 +43,11 @@ span.clearable i {
 span.clearable input {
 	padding-right: 16px;
 	box-sizing: border-box;
+}
+#clearbutton {
+	// make the click area bigger but keep centered
+	margin: -10px -10px;
+	padding: 10px 10px;
 }
 
 // autocomplete
