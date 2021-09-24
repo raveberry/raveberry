@@ -136,6 +136,6 @@ jobs:
           pip install -r requirements/ci.txt
       - run: yarn --cwd frontend install
       - run: yarn --cwd frontend build
-      - run: docker buildx build --platform linux/amd64,linux/arm/v7 -f docker/Dockerfile -t raveberry/raveberry .
-      - run: docker buildx build --platform linux/amd64,linux/arm/v7 -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx .
+      - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry .
+      - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx .
 
