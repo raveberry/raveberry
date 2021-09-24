@@ -218,6 +218,7 @@ export function onReady() {
     });
   });
 
+  registerPostOnClick('delete-current-song');
   registerPostOnClick('restart-player');
 
   $('#wifi-ssid').focus(function() {

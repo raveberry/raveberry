@@ -14,6 +14,7 @@ from django.http import JsonResponse
 
 from core import util, redis
 from core.celery import app
+from core.models import CurrentSong
 from core.settings import storage, system, settings
 from core.settings.settings import control
 
@@ -292,6 +293,17 @@ def set_output(request: WSGIRequest) -> HttpResponse:
     storage.set("output", output)
 
     return _set_output(output)
+
+
+@control
+def delete_current_song(_request: WSGIRequest) -> HttpResponse:
+    """Force skips the current song by deleting it from the database."""
+    try:
+        current_song = CurrentSong.objects.get()
+        current_song.delete()
+        return HttpResponse()
+    except CurrentSong.DoesNotExist:
+        return HttpResponseBadRequest("No song playing")
 
 
 @control
