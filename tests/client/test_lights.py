@@ -82,10 +82,10 @@ class LedTests(RaveberryTest):
         strip_colors = [args[0] for args, _ in self.set_strip_color.call_args_list]
         self._assert_all_hues(strip_colors)
 
-        # make sure the ring shows all colors every frame
-        ring_colors = [args[0] for args, _ in self.set_ring_colors.call_args_list]
-        for frame in ring_colors:
-            self._assert_all_hues(frame)
+        # The ring colors are not evenly distributed to look better
+        # ring_colors = [args[0] for args, _ in self.set_ring_colors.call_args_list]
+        # for frame in ring_colors:
+        #    self._assert_all_hues(frame)
 
     def test_shortcut(self):
         self.client.post(reverse("set-ring-program"), {"value": "Fixed"})

@@ -16,6 +16,18 @@ if TYPE_CHECKING:
     from core.lights.worker import DeviceManager
 
 
+def stretched_hues(led_count: int, offset: float = 0) -> List[float]:
+    # map the leds to rainbow colors from red over green to blue
+    # (without pink-> hue values in [0, ⅔]
+    # stretch the outer regions (red and blue) and compress the inner region (green)
+    return [
+        (2 / 3)
+        * 1
+        / (1 + math.e ** (-6 * math.e * (((offset + led / led_count) % 1) - 0.5)))
+        for led in range(0, led_count)
+    ]
+
+
 class VizProgram:
     """The base class for all programs."""
 
@@ -146,8 +158,8 @@ class Rainbow(LedProgram):
 
     def _colors(self, led_count) -> List[Tuple[float, float, float]]:
         return [
-            colorsys.hsv_to_rgb((self.current_fraction + led / led_count) % 1, 1, 1)
-            for led in range(led_count)
+            colorsys.hsv_to_rgb(hue, 1, 1)
+            for hue in stretched_hues(led_count, self.current_fraction)
         ]
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
@@ -171,33 +183,12 @@ class Adaptive(LedProgram):
         self.cava = self.manager.cava_program
 
         # RING
-        # map the leds to rainbow colors from red over green to blue
-        # (without pink-> hue values in [0, ⅔]
-        # stretch the outer regions (red and blue) and compress the inner region (green)
-        ring_hues = [
-            (2 / 3)
-            * 1
-            / (
-                1
-                + math.e
-                ** (-4 * math.e * (led / (self.manager.ring.LED_COUNT - 1) - 0.5))
-            )
-            for led in range(0, self.manager.ring.LED_COUNT)
-        ]
+        ring_hues = stretched_hues(self.manager.ring.LED_COUNT)
         self.ring_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in ring_hues]
 
         # WLED
         # identical to ring, but with a different number of leds
-        wled_hues = [
-            (2 / 3)
-            * 1
-            / (
-                1
-                + math.e
-                ** (-4 * math.e * (led / (self.manager.wled.led_count - 1) - 0.5))
-            )
-            for led in range(0, self.manager.wled.led_count)
-        ]
+        wled_hues = stretched_hues(self.manager.wled.led_count)
         self.wled_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in wled_hues]
 
         # STRIP
