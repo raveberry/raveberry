@@ -1,4 +1,4 @@
-name: Pubslih Raveberry
+name: Publish Raveberry
 on:
   push:
     paths-ignore:
@@ -72,9 +72,27 @@ jobs:
           python manage.py installwatson
           python manage.py buildwatson
       - run: python manage.py test
+  check-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      # use output instead of conclusion because there are issues if the step does not succeed
+      docker-status: ${{ steps.comparison.outputs.docker-status }}
+      pypi-status: ${{ steps.comparison.outputs.pypi-status }}
+    steps:
+      - uses: actions/checkout@v2
+      # https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-environment-variable
+      - run: echo "GITHUB_VERSION=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
+      - run: echo "PYPI_VERSION=$(curl -Ls https://pypi.org/pypi/raveberry/json | jq -r .info.version | tr -d '[:space:]')" >> $GITHUB_ENV
+      - run: echo "DOCKER_VERSION=$(docker pull raveberry/raveberry >/dev/null && docker run raveberry/raveberry /bin/cat /opt/raveberry/VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
+      - name: Compare versions
+        id: comparison
+        run: |
+          'if [ "$DOCKER_VERSION" != "$GITHUB_VERSION" ]; then echo "::set-output name=docker-status::update"; fi'
+          'if [ "$PYPI_VERSION" != "$GITHUB_VERSION" ]; then echo "::set-output name=pypi-status::update"; fi'
   pypi-publish:
     runs-on: ubuntu-latest
-    needs: [test-frontend, test-backend]
+    needs: [test-frontend, test-backend, check-versions]
+    if: needs.check-versions.outputs.pypi-status == 'update'
     # from https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
     steps:
     - uses: actions/checkout@v2
@@ -94,25 +112,10 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
-        skip_existing: true
-  check-docker-version:
-    runs-on: ubuntu-latest
-    outputs:
-      # use output instead of conclusion because there are issues if the step does not succeed
-      status: ${{ steps.comparison.outputs.output }}
-    steps:
-      - uses: actions/checkout@v2
-      # https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-environment-variable
-      - run: echo "DOCKER_VERSION=$(docker pull raveberry/raveberry >/dev/null && docker run raveberry/raveberry /bin/cat /opt/raveberry/VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
-
-      - run: echo "GITHUB_VERSION=$(cat VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
-      - name: Compare versions
-        id: comparison
-        run: 'if [ "$DOCKER_VERSION" != "$GITHUB_VERSION" ]; then echo "::set-output name=output::update-docker"; fi'
   docker-publish:
     runs-on: ubuntu-latest
-    needs: [test-frontend, test-backend, check-docker-version]
-    if: needs.check-docker-version.outputs.status == 'update-docker'
+    needs: [test-frontend, test-backend, check-versions]
+    if: needs.check-versions.outputs.docker-status == 'update'
     steps:
       - run: echo "publishing docker"
       - uses: actions/checkout@v2
