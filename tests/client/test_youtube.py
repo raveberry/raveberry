@@ -108,38 +108,11 @@ class YoutubeTests(MusicTest):
         self.assertIn("MC Thunder", current_song["title"])
         self.assertAlmostEqual(current_song["duration"], 267, delta=1)
 
-    # same query gives different results
-    # def test_playlist_url(self):
-    #    self._post_request(
-    #        "request-music",
-    #        "https://www.youtube.com/playlist?list=PLvYcr2tNZuRquz0NQmBFF6ZhqFHSeOrbk",
-    #        playlist=True,
-    #    )
-    #    state = self._poll_musiq_state(
-    #        lambda state: state["musiq"]["currentSong"]
-    #        and len(state["musiq"]["songQueue"]) == 2
-    #        and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
-    #        timeout=60,
-    #    )
-    #    expected_playlist = [
-    #        "https://www.youtube.com/watch?v=d0KWiDGi_ek",
-    #        "https://www.youtube.com/watch?v=jcfcZfgyzm8",
-    #        "https://www.youtube.com/watch?v=47P6CI7V8gM",
-    #    ]
-    #    # The first song that is downloaded will be played.
-    #    # This is not necessarily the first one in the playlist.
-    #    self.assertIn(state["musiq"]["currentSong"]["externalUrl"], expected_playlist)
-    #    expected_playlist.remove(state["musiq"]["currentSong"]["externalUrl"])
-    #    actual_playlist = [
-    #        state["musiq"]["songQueue"][0]["externalUrl"],
-    #        state["musiq"]["songQueue"][1]["externalUrl"],
-    #    ]
-    #    # make sure the remaining songs are in expected order
-    #    self.assertEqual(actual_playlist, expected_playlist)
-
-    def test_playlist_query(self):
+    def test_playlist_url(self):
         self._post_request(
-            "request-music", "Muse Resistance Full Album HD", playlist=True
+            "request-music",
+            "https://www.youtube.com/playlist?list=PLvYcr2tNZuRquz0NQmBFF6ZhqFHSeOrbk",
+            playlist=True,
         )
         state = self._poll_musiq_state(
             lambda state: state["musiq"]["currentSong"]
@@ -152,13 +125,40 @@ class YoutubeTests(MusicTest):
             "https://www.youtube.com/watch?v=jcfcZfgyzm8",
             "https://www.youtube.com/watch?v=47P6CI7V8gM",
         ]
+        # The first song that is downloaded will be played.
+        # This is not necessarily the first one in the playlist.
         self.assertIn(state["musiq"]["currentSong"]["externalUrl"], expected_playlist)
         expected_playlist.remove(state["musiq"]["currentSong"]["externalUrl"])
         actual_playlist = [
             state["musiq"]["songQueue"][0]["externalUrl"],
             state["musiq"]["songQueue"][1]["externalUrl"],
         ]
+        # make sure the remaining songs are in expected order
         self.assertEqual(actual_playlist, expected_playlist)
+
+    # same query gives different results
+    # def test_playlist_query(self):
+    #     self._post_request(
+    #         "request-music", "Muse Resistance Full Album HD", playlist=True
+    #     )
+    #     state = self._poll_musiq_state(
+    #         lambda state: state["musiq"]["currentSong"]
+    #         and len(state["musiq"]["songQueue"]) == 2
+    #         and all(song["internalUrl"] for song in state["musiq"]["songQueue"]),
+    #         timeout=60,
+    #     )
+    #     expected_playlist = [
+    #         "https://www.youtube.com/watch?v=d0KWiDGi_ek",
+    #         "https://www.youtube.com/watch?v=jcfcZfgyzm8",
+    #         "https://www.youtube.com/watch?v=47P6CI7V8gM",
+    #     ]
+    #     self.assertIn(state["musiq"]["currentSong"]["externalUrl"], expected_playlist)
+    #     expected_playlist.remove(state["musiq"]["currentSong"]["externalUrl"])
+    #     actual_playlist = [
+    #         state["musiq"]["songQueue"][0]["externalUrl"],
+    #         state["musiq"]["songQueue"][1]["externalUrl"],
+    #     ]
+    #     self.assertEqual(actual_playlist, expected_playlist)
 
     def test_autoplay(self):
         self._post_request(
