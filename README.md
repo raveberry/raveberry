@@ -7,7 +7,7 @@
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
-It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made. It supports YouTube, Spotify, Soundcloud and local files as sources for music.
+It provides an intuitive interface for requesting songs and changing their order according to the rating that users have made. It supports YouTube, Spotify and local files as sources for music.
 
 A live demo is available at https://demo.raveberry.party/.
 
@@ -126,7 +126,7 @@ With `youtube-dl` as a media provider, all of YouTube is available to play.
 Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account. Spotify Premium is required.
 
 * **Soundcloud Support**:
-Songs from Soundcloud are also available for you to play.
+Songs from Soundcloud are also available for you to play. ([currently broken](https://github.com/raveberry/raveberry/issues/117))
 
 * **Privilege Levels**:
 Grant people additional permissions like playback control.
