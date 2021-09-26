@@ -64,11 +64,13 @@ homewifi:
 # Otherwise just leave them blank.
 # The absolute path to the private key that is used to build the ssh tunnel to the remote server.
 remote_key:
+# The address that the port on the remote machine will bind to. Optional, defaults to 127.0.0.1.
+remote_bind_address:
 # The IP of the remote machine.
 remote_ip:
 # The port on the remote machine that the tunnel connects to.
 remote_port:
-# The remote url that makes Raveberry accessible.
+# The remote url that makes Raveberry accessible. Optional.
 remote_url:
 
 ### Backup ###
