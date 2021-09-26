@@ -1,6 +1,6 @@
 # Raveberry
 
-[![Build Status](https://img.shields.io/travis/com/raveberry/raveberry)](https://travis-ci.com/github/raveberry/raveberry)
+[![Build Status](https://img.shields.io/github/workflow/status/raveberry/raveberry/Publish%20Raveberry)](https://github.com/raveberry/raveberry/actions/workflows/publish.yml)
 [![PyPI](https://img.shields.io/pypi/v/raveberry)](https://pypi.org/project/raveberry/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/raveberry?style=social)](https://www.reddit.com/r/raveberry/)
