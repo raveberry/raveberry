@@ -35,7 +35,7 @@
     dest: /etc/systemd/system/raveberry_upgrade.service
 
 - name: Configure remote connection
-  when: config.remote_key and config.remote_ip and config.remote_port and config.remote_url
+  when: config.remote_key and config.remote_ip and config.remote_port
   block:
     - name: "Configure remote connection: remote service"
       copy:
@@ -51,12 +51,7 @@
         path: /root/.ssh
         state: directory
         mode: 0700
-    - name: "Configure remote connection: Check if remote key is present"
-      stat:
-        path: /root/.ssh/raveberry_remote
-      register: raveberry_remote
     - name: "Configure remote connection: Copy ssh key"
-      when: not raveberry_remote.stat.exists
       copy:
         src: "{{ config.remote_key }}"
         dest: "/root/.ssh/raveberry_remote"
