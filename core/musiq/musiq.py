@@ -12,6 +12,7 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponseBadRequest
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 
 from django.utils import timezone
 
@@ -192,6 +193,8 @@ def do_request_music(
     return True, message, queue_key
 
 
+# accessed by the discord bot
+@csrf_exempt
 def request_music(request: WSGIRequest) -> HttpResponse:
     """Endpoint to request music. Calls internal function."""
     key = request.POST.get("key")
