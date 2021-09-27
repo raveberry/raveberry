@@ -258,7 +258,7 @@ For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config bef
                 os.environ["ADMIN_PASSWORD"] = admin_password
                 break
             print("Passwords didn't match")
-    if not subprocess.call(
+    returncode = subprocess.call(
         [
             "ansible-playbook",
             "-i",
@@ -269,7 +269,8 @@ For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config bef
             "local",
             "setup/system_install.yaml",
         ]
-    ):
+    )
+    if returncode == 0:
         print(
             """
     Finished!
@@ -277,6 +278,8 @@ For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config bef
     Raveberry was successfully installed.
     You can now visit http://raveberry.local/"""
         )
+    else:
+        sys.exit(returncode)
 
 
 if __name__ == "__main__":
