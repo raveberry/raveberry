@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.3 - 2021-09-27
+- Bind address can be specified for reverse ssh tunnel
+- If specified, remote ssh key is always overwritten, even if one already exists (#118)
+- Allowed discord bot to receive the queue key of requested songs
+- System install is tested in CI
+
 ## 0.9.2 - 2021-09-24
 - Database is registered correctly in celery workers. New songs will directly appear in suggestions again.
 - Current song can be deleted in settings to help recover from disconnection problems (#116)
