@@ -24,19 +24,18 @@
 	flex-direction: column;
 }
 
-.is-disabled
-{
-	pointer-events:none;
-	position:relative;
-	opacity:0.5;
+.is-disabled {
+	pointer-events: none;
+	position: relative;
+	opacity: 0.5;
 
-	&:after
-	{
-		position:absolute;
-		content:attr(disabled-note) "";
-		width:100%;
+	&:after {
+		position: absolute;
+		content: attr(disabled-note) "";
+		// 100% is too wide for disabled list items
+		width: 99%;
 		text-align: center;
-		top:30%;
-		color:white;
+		top: 30%;
+		color: white;
 	}
 }
