@@ -124,11 +124,6 @@ span.clearable input {
 	// move muted and not muted speakers to the same position
 	margin-left: -1.5px;
 }
-#stream-control-counterpart {
-	min-width: 32px;
-	padding-left: 5px;
-	float: right;
-}
 
 #progress-bar-container {
 	padding: 0px;
@@ -278,8 +273,4 @@ $entry-height: 50px;
 }
 #vote-timeout-bar {
 	height: 100%;
-}
-
-#youtube-link {
-	padding: 10px;
 }
