@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4 - 2021-10-06
+- Frontend files are shipped with the pypi package
+- Long modals are scrollable (e.g. changelog, upgrade confirmation dialog)
+
 ## 0.9.3 - 2021-09-27
 - Bind address can be specified for reverse ssh tunnel
 - If specified, remote ssh key is always overwritten, even if one already exists (#118)
@@ -304,9 +308,7 @@
 ## 0.6.4 - 2020-05-20
 
 - Started keeping this changelog.
-- Songs are now upvoted automatically after requesting.  
-This required removing the placeholders as a special queue instance. Now, every request results in a persisted queue entry that is removed on error. The db-key of this queue entry is handed back to the client for upvoting.  
-As a side effect, the new placeholders can be reordered, voted for and even removed. This required some refactoring, but now the request process is a little less convoluted.
+- Songs are now upvoted automatically after requesting. This required removing the placeholders as a special queue instance. Now, every request results in a persisted queue entry that is removed on error. The db-key of this queue entry is handed back to the client for upvoting. As a side effect, the new placeholders can be reordered, voted for and even removed. This required some refactoring, but now the request process is a little less convoluted.
 - Decreased the number of votes required to kick a song to 2, as every song starts out with 1 now.
 - `module-bluetooth-policy` is loaded on boot, which is needed by some devices.
 - Added version information in the settings.
