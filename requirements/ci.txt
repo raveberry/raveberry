@@ -1,4 +1,0 @@
--r prod.txt
--r youtube.txt
-beautifulsoup4>=4.9.3
-fonttools[woff]

@@ -5,7 +5,7 @@ on:
       - 'docs/**'
       - '**.md'
 jobs:
-  test-frontend:
+  build-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,12 +15,33 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 'lts/*'
-      - name: Install pip dependencies
-        run: |
-          pip install -U pip
-          pip install -r requirements/ci.txt
+      - run: pip install -r requirements/frontend_build.txt
       - run: yarn --cwd frontend install
       - run: yarn --cwd frontend build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: frontend-files
+          path: |
+            static/bundle.js
+            static/style.css
+            static/*.woff2
+  test-frontend:
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 'lts/*'
+      - uses: actions/download-artifact@v2
+        with:
+          name: frontend-files
+          path: static/
+      - run: pip install -r requirements/frontend_test.txt
+      - run: yarn --cwd frontend install
       - run: yarn --cwd frontend test
   test-backend:
     runs-on: ubuntu-latest
@@ -57,9 +78,7 @@ jobs:
         with:
           python-version: '3.7'
       - name: Install pip dependencies
-        run: |
-          pip install -U pip
-          pip install -r requirements/ci.txt
+        run: pip install -r requirements/prod.txt -r requirements/youtube.txt
       - run: sudo apt-get -y install ffmpeg mopidy gstreamer1.0-plugins-bad
       - name: Start mopidy
         run: |
@@ -80,9 +99,7 @@ jobs:
         with:
           python-version: '3.7'
       - name: Install pip dependencies
-        run: |
-          pip install -U pip
-          pip install -r requirements/install.txt
+        run: pip install -r requirements/install.txt
       - run: sudo apt-get install -y expect
       - name: remove pyyaml
         run: |
@@ -90,8 +107,6 @@ jobs:
           sudo rm -rf /usr/lib/python3/dist-packages/PyYAML-*
       - run: sudo systemctl start postgresql
       - run: expect -c 'set timeout -1; spawn bin/raveberry --confirm-config system-install; expect ":"; send "admin\r"; expect ":"; send "admin\r"; expect eof; catch wait result; exit [lindex $result 3]'
-        #- name: Setup tmate session
-        #  uses: mxschmitt/action-tmate@v3
       - name: Check if server is up
         run: |
           counter=0
@@ -127,6 +142,10 @@ jobs:
     # from https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: frontend-files
+          path: static/
       - uses: actions/setup-python@v2
         with:
           python-version: '3.7'
@@ -149,6 +168,10 @@ jobs:
     if: needs.check-versions.outputs.docker-status == 'update'
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: frontend-files
+          path: static/
       - uses: actions/setup-python@v2
         with:
           python-version: '3.7'
@@ -161,12 +184,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/setup-qemu-action@v1
       - uses: docker/setup-buildx-action@v1
-      - name: Install pip dependencies
-        run: |
-          pip install -U pip
-          pip install -r requirements/ci.txt
-      - run: yarn --cwd frontend install
-      - run: yarn --cwd frontend build
       - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry .
       - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx .
 
