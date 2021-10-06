@@ -78,7 +78,7 @@ jobs:
         with:
           python-version: '3.7'
       - name: Install pip dependencies
-        run: pip install -r requirements/prod.txt -r requirements/youtube.txt
+        run: pip install -r requirements/backend_test.txt
       - run: sudo apt-get -y install ffmpeg mopidy gstreamer1.0-plugins-bad
       - name: Start mopidy
         run: |
@@ -112,7 +112,6 @@ jobs:
           counter=0
           until [[ $(curl -sS http://localhost/api/version/) == "Raveberry version"* ]] || [ $counter -gt 30 ]
           do
-            echo Counter: $counter
             counter=$((counter + 1))
             sleep 1
           done
