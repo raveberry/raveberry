@@ -183,6 +183,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/setup-qemu-action@v1
       - uses: docker/setup-buildx-action@v1
+      - run: pip install "django==2.2.*"
+      - name: Copy static admin files
+        run: cp -r "$(python -c 'import django, os; print(f"{os.path.dirname(django.__file__)}/contrib/admin/static/admin")')" static/admin
       - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry .
       - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx .
 
