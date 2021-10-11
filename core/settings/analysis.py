@@ -77,8 +77,10 @@ def analyse(request: WSGIRequest) -> HttpResponse:
         .filter(created__lt=end)
         .order_by("-votes")
     )
-    devices = requested.values("address").values(
-        "address", count=models.Count("address")
+    devices = (
+        requested.values("session_key")
+        .values("session_key", count=models.Count("session_key"))
+        .order_by("-count")
     )
 
     response = {
