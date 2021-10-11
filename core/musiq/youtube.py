@@ -291,7 +291,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
         # discard everything after the first v= parameter
         return "https://www.youtube.com" + cast(str, url).split("&")[0]
 
-    def request_radio(self, request_ip: str) -> HttpResponse:
+    def request_radio(self, session_key: str) -> HttpResponse:
         if not self.id:
             raise ValueError()
         radio_id = "RD" + self.id

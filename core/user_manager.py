@@ -68,6 +68,11 @@ class SimpleMiddleware:
     def __call__(self, request: WSGIRequest) -> Any:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
+
+        # create a sessions if none exists (necessary for anonymous users)
+        if not request.session or not request.session.session_key:
+            request.session.save()
+
         request_ip = get_client_ip(request)
         last_requests = redis.get("last_requests")
         last_requests[request_ip] = time.time()

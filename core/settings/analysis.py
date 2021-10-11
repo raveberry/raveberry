@@ -92,17 +92,17 @@ def analyse(request: WSGIRequest) -> HttpResponse:
         "highestVotedSong": (
             played_votes[0].song_displayname() + f" ({played_votes[0].votes})"
         ),
-        "mostActiveDevice": (devices[0]["address"] + f" ({devices[0]['count']})"),
+        "mostActiveDevice": (devices[0]["session_key"] + f" ({devices[0]['count']})"),
     }
-    requested_by_ip = requested.filter(address=devices[0]["address"])
+    requested_by_session = requested.filter(session_key=devices[0]["session_key"])
     for i in range(6):
-        if i >= len(requested_by_ip):
+        if i >= len(requested_by_session):
             break
         response["mostActiveDevice"] += "\n"
         if i == 5:
             response["mostActiveDevice"] += "..."
         else:
-            response["mostActiveDevice"] += requested_by_ip[i].item_displayname()
+            response["mostActiveDevice"] += requested_by_session[i].item_displayname()
 
     binsize = 3600
     number_of_bins = math.ceil((end - start).total_seconds() / binsize)

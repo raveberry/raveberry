@@ -52,7 +52,7 @@ def get_alarm_metadata() -> "Metadata":
 
 
 def do_request_music(
-    request_ip: str,
+    session_key: str,
     query: str,
     key: Optional[int],
     playlist: bool,
@@ -167,7 +167,7 @@ def do_request_music(
     for i, provider in enumerate(providers):
         try:
             provider.request(
-                request_ip, archive=archive, manually_requested=manually_requested
+                session_key, archive=archive, manually_requested=manually_requested
             )
             # the current provider could provide the song, don't try the other ones
             break
@@ -210,11 +210,8 @@ def request_music(request: WSGIRequest) -> HttpResponse:
     if key:
         ikey = int(key)
 
-    # only get ip on user requests
-    request_ip = user_manager.get_client_ip(request)
-
     successful, message, queue_key = do_request_music(
-        request_ip, query, ikey, playlist, platform
+        request.session.session_key, query, ikey, playlist, platform
     )
     if not successful:
         return HttpResponseBadRequest(message)
@@ -223,15 +220,12 @@ def request_music(request: WSGIRequest) -> HttpResponse:
 
 def request_radio(request: WSGIRequest) -> HttpResponse:
     """Endpoint to request radio for the current song."""
-    # only get ip on user requests
-    request_ip = user_manager.get_client_ip(request)
-
     try:
         current_song = CurrentSong.objects.get()
     except CurrentSong.DoesNotExist:
         return HttpResponseBadRequest("Need a song to play the radio")
     provider = SongProvider.create(external_url=current_song.external_url)
-    return provider.request_radio(request_ip)
+    return provider.request_radio(request.session.session_key)
 
 
 def index(request: WSGIRequest) -> HttpResponse:

@@ -110,10 +110,10 @@ class LocalSongProvider(SongProvider):
         entry = entries.all()[index]
         return entry.url
 
-    def request_radio(self, request_ip: str) -> HttpResponse:
+    def request_radio(self, session_key: str) -> HttpResponse:
         playlist = self._get_corresponding_playlist()
         musiq.do_request_music(
-            request_ip,
+            "",
             playlist.title,
             playlist.id,
             True,

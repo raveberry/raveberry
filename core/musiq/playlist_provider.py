@@ -147,7 +147,7 @@ class PlaylistProvider(MusicProvider):
                 return False
         return True
 
-    def persist(self, request_ip: str, archive: bool = True) -> None:
+    def persist(self, session_key: str, archive: bool = True) -> None:
         if self.is_radio():
             return
 
@@ -177,8 +177,10 @@ class PlaylistProvider(MusicProvider):
                 playlist=archived_playlist, query=self.query
             )
 
-        if storage.get("logging_enabled") and request_ip:
-            RequestLog.objects.create(playlist=archived_playlist, address=request_ip)
+        if storage.get("logging_enabled") and session_key:
+            RequestLog.objects.create(
+                playlist=archived_playlist, session_key=session_key
+            )
 
     def enqueue(self) -> None:
         for index, external_url in enumerate(self.urls):

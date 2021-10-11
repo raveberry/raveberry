@@ -15,7 +15,6 @@ def post_song(request: WSGIRequest) -> HttpResponse:
     """This endpoint is part of the API and exempt from CSRF checks.
     Shareberry uses this endpoint."""
     # only get ip on user requests
-    request_ip = user_manager.get_client_ip(request)
     query = request.POST.get("query")
     if not query:
         return HttpResponseBadRequest("No query to share.")
@@ -28,7 +27,7 @@ def post_song(request: WSGIRequest) -> HttpResponse:
     # It will automatically fall back to Youtube
     # if Spotify is not enabled or a youtube link was requested.
     successful, message, _ = musiq.do_request_music(
-        request_ip, query, None, False, "spotify"
+        request.session.session_key, query, None, False, "spotify"
     )
     if not successful:
         return HttpResponseBadRequest(message)

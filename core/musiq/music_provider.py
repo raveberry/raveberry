@@ -64,7 +64,7 @@ class MusicProvider:
         Returns False if an error occured, True otherwise."""
         raise NotImplementedError()
 
-    def persist(self, request_ip: str, archive: bool = True) -> None:
+    def persist(self, session_key: str, archive: bool = True) -> None:
         """Updates the database.
         Creates an archived entry or updates it.
         Also handles logging to database."""
@@ -75,7 +75,7 @@ class MusicProvider:
         raise NotImplementedError()
 
     def request(
-        self, request_ip: str, archive: bool = True, manually_requested: bool = True
+        self, session_key: str, archive: bool = True, manually_requested: bool = True
     ) -> None:
         """Tries to request this resource.
         Uses the local cache if possible, otherwise tries to retrieve it online."""
@@ -109,22 +109,22 @@ class MusicProvider:
 
         self.enqueue_placeholder(manually_requested)
 
-        enqueue_function.delay(self, request_ip, archive)
+        enqueue_function.delay(self, session_key, archive)
 
 
 @app.task
-def enqueue(provider: MusicProvider, request_ip: str, archive: bool) -> None:
+def enqueue(provider: MusicProvider, session_key: str, archive: bool) -> None:
     """Enqueue the music managed by the given provider."""
-    provider.persist(request_ip, archive=archive)
+    provider.persist(session_key, archive=archive)
     provider.enqueue()
 
 
 @app.task
-def fetch_enqueue(provider: MusicProvider, request_ip: str, archive: bool) -> None:
+def fetch_enqueue(provider: MusicProvider, session_key: str, archive: bool) -> None:
     """Fetch and enqueue the music managed by the given provider."""
     if not provider.make_available():
         provider.remove_placeholder()
         musiq.update_state()
         return
 
-    enqueue(provider, request_ip, archive)
+    enqueue(provider, session_key, archive)

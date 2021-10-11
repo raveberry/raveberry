@@ -158,7 +158,7 @@ class RequestLog(models.Model):
     playlist = models.ForeignKey(
         "ArchivedPlaylist", on_delete=models.SET_NULL, blank=True, null=True
     )
-    address = models.CharField(max_length=50)
+    session_key = models.CharField(max_length=50)
 
     def item_displayname(self) -> str:
         """Returns the displayname of the song or the title of the playlist"""
@@ -170,10 +170,10 @@ class RequestLog(models.Model):
 
     def __str__(self) -> str:
         if self.song is not None:
-            return self.address + ": " + self.song.displayname()
+            return self.session_key + ": " + self.song.displayname()
         if self.playlist is not None:
-            return self.address + ": " + self.playlist.title
-        return self.address + ": <None>"
+            return self.session_key + ": " + self.playlist.title
+        return self.session_key + ": <None>"
 
 
 class PlayLog(models.Model):

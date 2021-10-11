@@ -177,7 +177,7 @@ class SongProvider(MusicProvider):
     def make_available(self) -> bool:
         return True
 
-    def persist(self, request_ip: str, archive: bool = True) -> None:
+    def persist(self, session_key: str, archive: bool = True) -> None:
         metadata = self.get_metadata()
 
         # Increase counter of song/playlist
@@ -201,8 +201,8 @@ class SongProvider(MusicProvider):
                     song=archived_song, query=self.query
                 )
 
-        if storage.get("logging_enabled") and request_ip:
-            RequestLog.objects.create(song=archived_song, address=request_ip)
+        if storage.get("logging_enabled") and session_key:
+            RequestLog.objects.create(song=archived_song, session_key=session_key)
 
     def enqueue(self) -> None:
         assert self.queued_song
@@ -241,6 +241,6 @@ class SongProvider(MusicProvider):
         """Returns a dictionary of this song's metadata."""
         raise NotImplementedError()
 
-    def request_radio(self, request_ip) -> HttpResponse:
+    def request_radio(self, session_key) -> HttpResponse:
         """Enqueues a playlist of songs based on this one."""
         raise NotImplementedError()

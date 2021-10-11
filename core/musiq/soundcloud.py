@@ -141,7 +141,7 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
     def get_suggestion(self) -> str:
         return self._get_related_urls()[0]
 
-    def request_radio(self, request_ip: str) -> HttpResponse:
+    def request_radio(self, session_key: str) -> HttpResponse:
         urls = self._get_related_urls()
 
         for external_url in urls:

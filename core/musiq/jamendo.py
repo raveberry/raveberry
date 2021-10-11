@@ -189,7 +189,7 @@ class JamendoSongProvider(SongProvider, Jamendo):
 
         return external_url
 
-    def request_radio(self, request_ip: str) -> HttpResponse:
+    def request_radio(self, session_key: str) -> HttpResponse:
 
         result = self.web_client.get(
             "recommendations",
