@@ -365,6 +365,14 @@ function ripple() {
 
 /** Apply autoscrolling to the hashtag if necessary. */
 function decideHashtagScrolling() {
+  if ($('#hashtag-text-container').css('max-width').startsWith('0')) {
+    // On mobile, the keyboard causes a resize during hashtag input,
+    // which leads to a scrolling decision with size 0,
+    // causing a long scroll even for short hashtags.
+    // Prevent this by not scrolling when the text is not visible
+    // (=during input).
+    return;
+  }
   decideScrolling($('#hashtag-text'), 0.030, 2);
 }
 
