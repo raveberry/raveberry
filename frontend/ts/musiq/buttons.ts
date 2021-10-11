@@ -181,7 +181,12 @@ export function onReady() {
     el[0].setSelectionRange(contentLength, contentLength);
   });
   $('#clearbutton').on('click tap', function() {
-    $(this).prev('input').val('').trigger('change').focus();
+    // prevent scroll on focus, otherwise the page
+    // "overscrolls" to the right afterwards.
+    $(this).prev('input')
+        .val('')
+        .trigger('change')[0]
+        .focus({preventScroll: true});
   });
   $('#music-input').on('change input copy paste cut', function() {
     const icon = $(this).next('i');
