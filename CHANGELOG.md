@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.5 - 2021-10-18
+- Add option for server-side vote duplication checking by IP
+- Use session keys instead of IPs to link requests logs
+- Most active device entry is sorted correctly in analysis section
+- Page does not scroll on mobile after clearing the input field
+- Old hashtag doesn't start scrolling when adding a new one
+- Correct QR code is shown for hotspot wifi on `/network-info`
+- Improve documentation for remote feature
+- Pin postgres version in docker-compose files
+- Admin page in docker container looks fine now
+
 ## 0.9.4 - 2021-10-06
 - Frontend files are shipped with the pypi package
 - Long modals are scrollable (e.g. changelog, upgrade confirmation dialog)
