@@ -79,6 +79,7 @@ jobs:
           python-version: '3.7'
       - name: Install pip dependencies
         run: pip install -r requirements/backend_test.txt
+      - run: sudo apt-get update
       - run: sudo apt-get -y install ffmpeg mopidy gstreamer1.0-plugins-bad
       - name: Start mopidy
         run: |
@@ -100,6 +101,7 @@ jobs:
           python-version: '3.7'
       - name: Install pip dependencies
         run: pip install -r requirements/install.txt
+      - run: sudo apt-get update
       - run: sudo apt-get install -y expect
       - name: remove pyyaml
         run: |
