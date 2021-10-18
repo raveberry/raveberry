@@ -56,12 +56,8 @@ hotspot_password:
 homewifi:
 
 ### Remote ###
-# In order to use this feature you need a server that:
-# * is reachable via a global url
-# * allows raveberry to connect via the given ssh key
-# * forwards traffic to raveberry (see an example nginx configuration in `/docs`
-# If you meet these requirements you can configure raveberry to be accessible from the web via the url.
-# Otherwise just leave them blank.
+# Provide these values to make your instance accessible from the web.
+# See docs/remote.md for more information.
 # The absolute path to the private key that is used to build the ssh tunnel to the remote server.
 remote_key:
 # The address that the port on the remote machine will bind to. Optional, defaults to 127.0.0.1.

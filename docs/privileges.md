@@ -51,6 +51,6 @@ Configures whether a password is needed to connect to the hotspot.
 Configures whether network traffic is forwarded from the hotspot to the other interfaces i.e. whether the devices connected to the hotspot have internet access. Internally uses `iptables`.
 
 * **Remote**:
-Configures whether Raveberry is reachable through a remote URL. Uses a reverse ssh tunnel to connect to a worldwide accessible server controlled by you. See `raveberry-remote` for an example nginx configuration file.
+Configures whether Raveberry is reachable through a remote URL. Uses a reverse ssh tunnel to connect to a worldwide accessible server controlled by you. See [remote.md](remote.md) for a guide on how to setup this feature.
 
 * **Reboot**: You can also reboot the webserver and the system from the settings page.

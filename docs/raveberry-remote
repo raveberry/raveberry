@@ -1,23 +1,51 @@
 server {
-  listen 80;
-  listen [::]:80;
-  server_tokens off;
+	listen 80;
+	listen [::]:80;
+	server_tokens off;
 
-  location / {
-	  proxy_pass http://localhost:9070;
-	  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-	  proxy_set_header Host $host;
-	  proxy_set_header X-Real-IP $remote_addr;
-	  proxy_redirect     off;
+	# gzip compression is optional, but recommended
+	gzip on;
+	gzip_vary on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_min_length 256;
+	gzip_types
+		text/plain
+		text/css
+		text/js
+		text/xml
+		text/javascript
+		application/javascript
+		application/x-javascript
+		application/json
+		application/xml
+		application/rss+xml
+		image/svg+xml/javascript;
 
-	  location /state {
-		  proxy_pass http://localhost:9070;
-		  proxy_http_version 1.1;
-		  proxy_read_timeout 86400;
-		  proxy_set_header Upgrade $http_upgrade;
-		  proxy_set_header Connection "upgrade";
-		  proxy_set_header X-Forwarded-Host $server_name;
-	  }
-  }
+	location / {
+		proxy_pass http://localhost:8266;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_redirect off;
+
+		# This fallback lets you serve a custom index.html
+		# from the server when Raveberry is not connected.
+		#error_page 502 /index.html;
+		#location ^~ /index.html {
+		#	internal;
+		#	root /usr/share/nginx/html;
+		#}
+
+		# special handling for the websocket endpoint
+		location /state {
+			proxy_pass http://localhost:8266;
+			proxy_http_version 1.1;
+			proxy_read_timeout 86400;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header X-Forwarded-Host $server_name;
+		}
+	}
 }
 
