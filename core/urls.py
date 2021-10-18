@@ -31,11 +31,11 @@ urlpatterns = [
     path("musiq/", musiq.index, name="musiq"),
     path("lights/", lights.index, name="lights"),
     path("stream/", base.no_stream, name="no-stream"),
-    path("network_info/", network_info.index, name="network-info"),
+    path("network-info/", network_info.index, name="network-info"),
     path("settings/", settings.index, name="settings"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("login/", RedirectView.as_view(pattern_name="login", permanent=False)),
-    path("logged_in/", base.logged_in, name="logged-in"),
+    path("logged-in/", base.logged_in, name="logged-in"),
     path("logout/", RedirectView.as_view(pattern_name="logout", permanent=False)),
     path(
         "api/",
