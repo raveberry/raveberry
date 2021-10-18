@@ -8,6 +8,7 @@ import core.models as models
 defaults = {
     # basic settings
     "voting_enabled": False,
+    "ip_checking": False,
     "new_music_only": False,
     "logging_enabled": True,
     "hashtags_active": True,

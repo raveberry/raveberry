@@ -290,6 +290,11 @@ def vote(request: WSGIRequest) -> HttpResponse:
     if amount < -2 or amount > 2:
         return HttpResponseBadRequest()
 
+    if storage.get("ip_checking") and not user_manager.try_vote(
+        user_manager.get_client_ip(request), ikey, amount
+    ):
+        return HttpResponseBadRequest("nice try")
+
     models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") + amount)
     try:
         current_song = models.CurrentSong.objects.get()

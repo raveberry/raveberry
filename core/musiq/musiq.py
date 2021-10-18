@@ -215,6 +215,10 @@ def request_music(request: WSGIRequest) -> HttpResponse:
     )
     if not successful:
         return HttpResponseBadRequest(message)
+
+    if storage.get("ip_checking") and not playlist:
+        user_manager.try_vote(user_manager.get_client_ip(request), queue_key, 1)
+
     return JsonResponse({"message": message, "key": queue_key})
 
 

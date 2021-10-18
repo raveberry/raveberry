@@ -35,6 +35,13 @@ def set_voting_enabled(request: WSGIRequest) -> None:
 
 
 @control
+def set_ip_checking(request: WSGIRequest) -> None:
+    """Enables or disables ip checking based on the given value."""
+    enabled = request.POST.get("value") == "true"
+    storage.set("ip_checking", enabled)
+
+
+@control
 def set_new_music_only(request: WSGIRequest) -> None:
     """Enables or disables the new music only mode based on the given value."""
     enabled = request.POST.get("value") == "true"

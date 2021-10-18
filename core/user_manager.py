@@ -49,12 +49,33 @@ def partymode_enabled() -> bool:
 
 
 def get_client_ip(request: WSGIRequest):
-    if not storage.get("logging_enabled"):
-        return ""
     request_ip, _ = ipware.get_client_ip(request)
     if request_ip is None:
         request_ip = ""
     return request_ip
+
+
+def try_vote(request_ip: str, queue_key: int, amount: int) -> bool:
+    """If the user can not vote any more for the song into the given direction, return False.
+    Otherwise, perform the vote and returns True."""
+    # Votes are stored as individual (who, what) tuples in redis.
+    # A mapping who -> [what, ...] is not used,
+    # because each modification would require deserialization and subsequent serialization.
+    # Without such a mapping we cannot easily find all votes belonging to a session key,
+    # which would be required to update the view of a user whose client-votes got desynced.
+    # This should never happen during normal usage, so we optimize for our main use case:
+    # looking up whether a single user voted for a single song, which is constant with tuples.
+    entry = str((request_ip, queue_key))
+    vote = redis.get_maybe(entry)
+    if vote is None:
+        new_vote = amount
+    else:
+        new_vote = int(vote) + amount
+    if new_vote < -1 or new_vote > 1:
+        return False
+    # expire these entries to avoid accumulation over long runtimes.
+    redis.set(entry, new_vote, ex=24 * 60 * 60)
+    return True
 
 
 class SimpleMiddleware:

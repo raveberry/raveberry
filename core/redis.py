@@ -1,6 +1,6 @@
 """This module provides functionality to interface with Redis."""
 from ast import literal_eval
-from typing import Any, Union, List, Dict
+from typing import Any, Union, List, Dict, Optional
 
 from django.conf import settings as conf
 from redis import Redis
@@ -74,9 +74,16 @@ def get(key: str) -> Union[bool, int, float, str, List, Dict]:
     return type(default)(value)
 
 
-def set(key: str, value: Any) -> None:
-    """This method sets the value for the given :param key: to the given :param value:."""
-    redis_connection.set(key, str(value))
+def get_maybe(key: str) -> Optional[str]:
+    """This method returns the value for the given :param key: from redis,
+    or None if the key does not exist."""
+    return redis_connection.get(key)
+
+
+def set(key: str, value: Any, ex: Optional[float] = None) -> None:
+    """This method sets the value for the given :param key: to the given :param value:.
+    If set, the key will expire after :param ex: seconds."""
+    redis_connection.set(key, str(value), ex=ex)
 
 
 class Event:
