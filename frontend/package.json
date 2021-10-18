@@ -23,6 +23,7 @@
     "eslint": "^7.20.0",
     "eslint-config-google": "^0.14.0",
     "jest": "^26.6.3",
+    "popper.js": "^1.16.1",
     "postcss": "^8.2.8",
     "postcss-cli": "^8.3.1",
     "purgecss": "^4.0.2",
