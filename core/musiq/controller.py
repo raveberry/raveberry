@@ -278,29 +278,19 @@ def reorder(request: WSGIRequest) -> HttpResponse:
 
 
 @csrf_exempt
-def vote_up(request: WSGIRequest) -> HttpResponse:
-    """Increases the vote-count of the given song by one."""
-    key = request.POST.get("key")
-    if key is None:
-        return HttpResponseBadRequest()
-    ikey = int(key)
-
-    models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") + 1)
-    playback.queue.vote_up(ikey)
-    musiq.update_state()
-    return HttpResponse()
-
-
-@csrf_exempt
-def vote_down(request: WSGIRequest) -> HttpResponse:
-    """Decreases the vote-count of the given song by one.
+def vote(request: WSGIRequest) -> HttpResponse:
+    """Modify the vote-count of the given song by the given amount.
     If a song receives too many downvotes, it is removed."""
     key = request.POST.get("key")
-    if key is None:
+    amount = request.POST.get("amount")
+    if key is None or amount is None:
         return HttpResponseBadRequest()
     ikey = int(key)
+    amount = int(amount)
+    if amount < -2 or amount > 2:
+        return HttpResponseBadRequest()
 
-    models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") - 1)
+    models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") + amount)
     try:
         current_song = models.CurrentSong.objects.get()
         if current_song.queue_key == ikey and current_song.votes <= -storage.get(
@@ -312,7 +302,7 @@ def vote_down(request: WSGIRequest) -> HttpResponse:
     except models.CurrentSong.DoesNotExist:
         pass
 
-    removed = playback.queue.vote_down(ikey, -storage.get("downvotes_to_kick"))
+    removed = playback.queue.vote(ikey, amount, -storage.get("downvotes_to_kick"))
     # if we removed a song by voting, and it was added by autoplay,
     # we want it to be the new basis for autoplay
     if removed is not None:

@@ -170,15 +170,10 @@ class SongQueue(models.Manager):
             song.save()
 
     @transaction.atomic
-    def vote_up(self, key: int) -> None:
-        """Increase the vote-count of the song specified by :param key:."""
-        self.filter(id=key).update(votes=F("votes") + 1)
-
-    @transaction.atomic
-    def vote_down(self, key: int, threshold: int) -> Optional["QueuedSong"]:
-        """Decrease the vote-count of the song specified by :param key:
+    def vote(self, key: int, amount: int, threshold: int) -> Optional["QueuedSong"]:
+        """Modify the vote-count of the song specified by :param key: by :param amount: votes.
         If the song is now below the threshold, remove and return it."""
-        self.filter(id=key).update(votes=F("votes") - 1)
+        self.filter(id=key).update(votes=F("votes") + amount)
         try:
             song = self.get(id=key)
             if song.votes <= threshold:
