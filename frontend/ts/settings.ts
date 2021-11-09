@@ -185,12 +185,13 @@ export function onReady() {
     };
   });
 
-  registerPostOnClick('bluetooth-scanning', () => {
+  // Remove old devices when restarting scanning. Don't use registerPostOnClick,
+  // as the generic approach already assigns post functionality to this element.
+  $('#bluetooth-scanning').on('click tap', () => {
     const checked = $('#bluetooth-scanning').is(':checked');
     if (checked) {
       $('.bluetooth-device').remove();
     }
-    return {value: checked};
   });
 
   registerPostOnClick('connect-bluetooth', () => {
@@ -313,7 +314,6 @@ export function onReady() {
       enddate: $('#enddate').val(),
       endtime: $('#endtime').val(),
     }).done(function(data) {
-      console.log(data);
       $('#songs-played').text(data['songsPlayed']);
       $('#most-played-song').text(data['mostPlayedSong']);
       $('#votes-cast').text(data['votesCast']);
