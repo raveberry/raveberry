@@ -105,16 +105,21 @@ export function requestNewMusic(query, platform = localStorageGet('platform')) {
 
 /** Shows a modal with additional information for a song.
  * @param {HTMLElement} element the element that info should be shown about
+ * @param {string} duration the duration of the song
  * @param {string} url the external url that will be linked in the modal
  */
-function showTitleModal(element, url) {
-  const newModalText = element.contents().clone();
-  if (newModalText.length > 1) {
+function showTitleModal(element, duration, url) {
+  const contents = element.contents();
+  const modalText = $('#title-modal .modal-text');
+  modalText.empty();
+  if (contents.length > 1) {
+    modalText.append($('<strong/>').text(contents.get(0).innerText));
     // cut the character that connects artist and title
-    newModalText.get(1).data = newModalText.get(1).data.substring(3);
+    modalText.append($('<span/>').text(contents.get(1).data.substring(3)));
+  } else {
+    modalText.append($('<span/>').text(contents.get(0).data));
   }
-  newModalText.append('<br/>');
-  $('#title-modal .modal-text').html(newModalText);
+  modalText.append($('<span/>').text(duration));
   $('#external-link').attr('href', url);
   $('#title-modal').modal('show');
 }
@@ -216,7 +221,8 @@ export function onReady() {
       return;
     }
     const url = state.currentSong.externalUrl;
-    showTitleModal($('#current-song-title'), url);
+    const duration = state.currentSong.durationFormatted;
+    showTitleModal($('#current-song-title'), duration, url);
   });
 
   $('#volume-slider').change(function() {
@@ -253,7 +259,8 @@ export function onReady() {
   $('#song-queue').on('click tap', '.queue-title', function() {
     const index = $(this).closest('.queue-entry').parent().index();
     const url = state.songQueue[index].externalUrl;
-    showTitleModal($(this), url);
+    const duration = state.songQueue[index].durationFormatted;
+    showTitleModal($(this), duration, url);
   });
   // close modals on click
   $('#title-modal .modal-content').on('click tap', function() {

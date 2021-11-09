@@ -274,3 +274,8 @@ $entry-height: 50px;
 #vote-timeout-bar {
 	height: 100%;
 }
+
+#title-modal .modal-text {
+	display: flex;
+	flex-direction: column;
+}
