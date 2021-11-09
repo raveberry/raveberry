@@ -251,12 +251,10 @@ LOGGING = {
 LOGGING_CONFIG = None  # disables Django handling of logging
 logging.config.dictConfig(LOGGING)
 
-# Security Settings
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SECURE_BROWSER_XSS_FILTER = True
+# In local networks Raveberry is only accessible via http, secure cookies are not possible there.
+# If Raveberry is only used with https, these should be enabled.
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
-# X_FRAME_OPTIONS = 'DENY'
 
 # app settings
 try:
