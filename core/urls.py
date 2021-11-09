@@ -44,7 +44,12 @@ urlpatterns = [
                 path("version/", api.version, name="version"),
                 path(
                     "musiq/",
-                    include([path("post_song/", api.post_song, name="post-song")]),
+                    include(
+                        [
+                            path("post_song/", api.post_song, name="post_song"),
+                            path("post-song/", api.post_song, name="post-song"),
+                        ]
+                    ),
                 ),
             ]
         ),
