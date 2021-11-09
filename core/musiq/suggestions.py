@@ -4,6 +4,7 @@ type into the input field on the musiq page."""
 from __future__ import annotations
 
 import random
+import threading
 from typing import Dict, Union, List
 
 from django.core.handlers.wsgi import WSGIRequest
@@ -43,10 +44,33 @@ def random_suggestion(request: WSGIRequest) -> HttpResponse:
     return JsonResponse({"suggestion": playlist.title, "key": playlist.id})
 
 
-def _online_suggestions(query, suggest_playlist) -> List[Dict[str, Union[str, int]]]:
+def online_suggestions(request: WSGIRequest) -> JsonResponse:
+    """Returns online suggestions for a given query."""
+    query = request.GET["term"]
+    suggest_playlist = request.GET["playlist"] == "true"
+
+    if storage.get("new_music_only") and not suggest_playlist:
+        return JsonResponse([], safe=False)
+
     results: List[Dict[str, Union[str, int]]] = []
     if storage.get("online_suggestions") and redis.get("has_internet"):
-        if storage.get("spotify_enabled") and storage.get("spotify_suggestions") > 0:
+        threads = []
+        results_lock = threading.Lock()
+
+        def fetch_youtube() -> None:
+            from core.musiq.youtube import Youtube
+
+            youtube_suggestions = Youtube().get_search_suggestions(query)
+            youtube_suggestions = youtube_suggestions[
+                : storage.get("youtube_suggestions")
+            ]
+            with results_lock:
+                for suggestion in youtube_suggestions:
+                    results.append(
+                        {"key": -1, "value": suggestion, "type": "youtube-online"}
+                    )
+
+        def fetch_spotify() -> None:
             from core.musiq.spotify import Spotify
 
             spotify_suggestions = Spotify().get_search_suggestions(
@@ -55,62 +79,74 @@ def _online_suggestions(query, suggest_playlist) -> List[Dict[str, Union[str, in
             spotify_suggestions = spotify_suggestions[
                 : storage.get("spotify_suggestions")
             ]
-            for suggestion, external_url in spotify_suggestions:
-                results.append(
-                    {"key": external_url, "value": suggestion, "type": "spotify-online"}
-                )
+            with results_lock:
+                for suggestion, external_url in spotify_suggestions:
+                    results.append(
+                        {
+                            "key": external_url,
+                            "value": suggestion,
+                            "type": "spotify-online",
+                        }
+                    )
 
-        if (
-            storage.get("soundcloud_enabled")
-            and storage.get("soundcloud_suggestions") > 0
-        ):
+        def fetch_soundcloud() -> None:
             from core.musiq.soundcloud import Soundcloud
 
             soundcloud_suggestions = Soundcloud().get_search_suggestions(query)
             soundcloud_suggestions = soundcloud_suggestions[
                 : storage.get("soundcloud_suggestions")
             ]
-            for suggestion in soundcloud_suggestions:
-                results.append(
-                    {"key": -1, "value": suggestion, "type": "soundcloud-online"}
-                )
+            with results_lock:
+                for suggestion in soundcloud_suggestions:
+                    results.append(
+                        {"key": -1, "value": suggestion, "type": "soundcloud-online"}
+                    )
 
-        if storage.get("jamendo_enabled") and storage.get("jamendo_suggestions") > 0:
+        def fetch_jamendo() -> None:
             from core.musiq.jamendo import Jamendo
 
             jamendo_suggestions = Jamendo().get_search_suggestions(query)
             jamendo_suggestions = jamendo_suggestions[
                 : storage.get("jamendo_suggestions")
             ]
-            for suggestion in jamendo_suggestions:
-                results.append(
-                    {"key": -1, "value": suggestion, "type": "jamendo-online"}
-                )
+            with results_lock:
+                for suggestion in jamendo_suggestions:
+                    results.append(
+                        {"key": -1, "value": suggestion, "type": "jamendo-online"}
+                    )
 
-        if storage.get("youtube_enabled") and storage.get("youtube_suggestions") > 0:
-            from core.musiq.youtube import Youtube
+        suggestion_fetchers = {
+            "youtube": fetch_youtube,
+            "spotify": fetch_spotify,
+            "soundcloud": fetch_soundcloud,
+            "jamendo": fetch_jamendo,
+        }
 
-            youtube_suggestions = Youtube().get_search_suggestions(query)
-            youtube_suggestions = youtube_suggestions[
-                : storage.get("youtube_suggestions")
-            ]
-            for suggestion in youtube_suggestions:
-                results.append(
-                    {"key": -1, "value": suggestion, "type": "youtube-online"}
-                )
-    return results
+        for platform in ["youtube", "spotify", "soundcloud", "jamendo"]:
+            if (
+                storage.get(f"{platform}_enabled")
+                and storage.get(f"{platform}_suggestions") > 0
+            ):
+                thread = threading.Thread(target=suggestion_fetchers[platform])
+                threads.append(thread)
+                thread.start()
+
+        for thread in threads:
+            thread.join()
+
+    print(results)
+    return JsonResponse(results, safe=False)
 
 
-def get_suggestions(request: WSGIRequest) -> JsonResponse:
-    """Returns suggestions for a given query.
-    Combines online and offline suggestions."""
+def offline_suggestions(request: WSGIRequest) -> JsonResponse:
+    """Returns offline suggestions for a given query."""
     query = request.GET["term"]
     suggest_playlist = request.GET["playlist"] == "true"
 
     if storage.get("new_music_only") and not suggest_playlist:
         return JsonResponse([], safe=False)
 
-    results = _online_suggestions(query, suggest_playlist)
+    results = []
 
     if suggest_playlist:
         search_results = watson.search(query, models=(ArchivedPlaylist,))[

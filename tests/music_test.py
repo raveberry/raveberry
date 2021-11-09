@@ -76,7 +76,7 @@ class MusicTest(RaveberryTest):
     def _add_local_playlist(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("get-suggestions"), {"term": "ogg", "playlist": "true"}
+                reverse("offline-suggestions"), {"term": "ogg", "playlist": "true"}
             ).content
         )[-1]
         # add the same queue twice to get four songs into the queue

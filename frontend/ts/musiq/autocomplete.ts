@@ -15,17 +15,75 @@ import 'jquery-ui/ui/widgets/autocomplete';
 export function onReady() {
   $('.autocomplete').autocomplete({
     source: function(request, response) {
-      $.get(urls['musiq']['get-suggestions'], {
+      let firstResponse = true;
+      let offlineSuggestions = [];
+      let onlineSuggestions = [];
+      const searchEntry = {
+        'value': request.term,
+        'type': 'search',
+      };
+      const suggestionCounts = {
+        'youtube': YOUTUBE_SUGGESTIONS,
+        'spotify': SPOTIFY_SUGGESTIONS,
+        'soundcloud': SOUNDCLOUD_SUGGESTIONS,
+        'jamendo': JAMENDO_SUGGESTIONS,
+      };
+      let totalSuggestionCount = 0;
+      const placeholders = [];
+      for (const platform in suggestionCounts) {
+        totalSuggestionCount += suggestionCounts[platform];
+        for (let i = 0; i < suggestionCounts[platform]; i++) {
+          placeholders.push({
+            'value': '...',
+            'type': platform + '-placeholder',
+          });
+        }
+      }
+      response([searchEntry].concat(placeholders));
+
+      // autocomplete does not apply results from previous queries,
+      // so we do not need to check whether to call response
+      // depending on which request finishes first
+      $.get(urls['musiq']['offline-suggestions'], {
         'term': request.term,
         'playlist': playlistEnabled(),
       }).done(function(suggestions) {
-        const searchEntry = {
-          'value': request.term,
-          'type': 'search',
-        };
-
-        suggestions.unshift(searchEntry);
-        response(suggestions);
+        if (firstResponse) {
+          firstResponse = false;
+          offlineSuggestions = suggestions;
+          suggestions = placeholders.concat(suggestions);
+          suggestions.unshift(searchEntry);
+          response(suggestions);
+        } else {
+          suggestions = onlineSuggestions.concat(suggestions);
+          // don't prepend the searchEntry,
+          // it was already added to the onlineSuggestions
+          response(suggestions);
+        }
+      });
+      $.get(urls['musiq']['online-suggestions'], {
+        'term': request.term,
+        'playlist': playlistEnabled(),
+      }).done(function(suggestions) {
+        // Ensure that the suggestion contains as many entries
+        // as there were placeholders.
+        // This prevents content changes before user input.
+        while (suggestions.length < totalSuggestionCount) {
+          suggestions.push({
+            'value': '...',
+            'type': 'error',
+          });
+        }
+        if (firstResponse) {
+          firstResponse = false;
+          suggestions.unshift(searchEntry);
+          onlineSuggestions = suggestions;
+          response(suggestions);
+        } else {
+          suggestions = suggestions.concat(offlineSuggestions);
+          suggestions.unshift(searchEntry);
+          response(suggestions);
+        }
       });
     },
     appendTo: '#music-input-card',
@@ -51,6 +109,8 @@ export function onReady() {
       // the text was clicked, push the song and clear the input box
       if (ui.item.type == 'search') {
         requestNewMusic(ui.item.label);
+      } else if (ui.item.type == 'search') {
+        // do nothing
       } else if (ui.item.type == 'youtube-online') {
         requestNewMusic(ui.item.label, 'youtube');
       } else if (ui.item.type == 'spotify-online') {
@@ -87,6 +147,16 @@ export function onReady() {
           .appendTo(ul);
     }
 
+    if (item.type == 'error') {
+      const suggestionDiv = $('<div>')
+          .append('<i class="fas fa-exclamation-circle suggestion-type"></i>')
+          .append($('<em>').text('error'));
+      return $('<li class="ui-menu-item-with-icon"></li>')
+          .data('item.autocomplete', item)
+          .append(suggestionDiv)
+          .appendTo(ul);
+    }
+
     const icon = $('<i>')
         .addClass('suggestion-type')
         .addClass(item.type);
@@ -110,9 +180,21 @@ export function onReady() {
           .addClass('fa-wrench');
     }
 
-    const suggestionDiv = $('<div>')
-        .text(item.label)
-        .prepend(icon);
+    let suggestionDiv;
+    if (item.type.endsWith('placeholder')) {
+      const placeholder = $('<span>')
+          .addClass('placeholder')
+          .css('width', (30 + Math.random() * 50) + '%')
+          .css('animation-delay', (Math.random() * -10 - 60) + 's');
+      suggestionDiv = $('<div>')
+          .css('width', '100%')
+          .append(icon)
+          .append(placeholder);
+    } else {
+      suggestionDiv = $('<div>')
+          .text(item.label)
+          .prepend(icon);
+    }
 
     let infoText = '';
     // add duration where the name is not identifying
@@ -127,13 +209,18 @@ export function onReady() {
         .addClass('autocomplete-info')
         .text(infoText);
     if (item.type.endsWith('online')) {
-      infoDiv.addClass('suggestion-inserter')
+      infoDiv.addClass('suggestion-inserter');
       const insertIcon = $('<i>')
           .addClass('fas')
           .addClass('fa-reply')
           .addClass('insert-icon');
       infoDiv.append(insertIcon);
     }
+
+    // For some reason, placeholder entries are assigned the ui-menu-divider
+    // class instead of the ui-menu-item class.
+    // It is unclear to me why, but since this leads to them being unclickable,
+    // the behavior is exactly what we want.
 
     // modify the suggestions to contain an icon
     return $('<li class="ui-menu-item-with-icon"></li>')

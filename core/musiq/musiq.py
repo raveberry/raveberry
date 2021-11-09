@@ -242,6 +242,12 @@ def index(request: WSGIRequest) -> HttpResponse:
     context["forbidden_keywords"] = storage.get("forbidden_keywords")
     context["embed_stream"] = storage.get("embed_stream")
     context["dynamic_embedded_stream"] = storage.get("dynamic_embedded_stream")
+    for platform in ["youtube", "spotify", "soundcloud", "jamendo"]:
+        if storage.get("online_suggestions") and storage.get(f"{platform}_enabled"):
+            suggestion_count = storage.get(f"{platform}_suggestions")
+        else:
+            suggestion_count = 0
+        context[f"{platform}_suggestions"] = suggestion_count
     return render(request, "musiq.html", context)
 
 

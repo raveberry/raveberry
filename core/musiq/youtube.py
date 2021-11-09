@@ -32,10 +32,8 @@ if TYPE_CHECKING:
 @contextmanager
 def youtube_session() -> Iterator[requests.Session]:
     """This context opens a requests session and loads the youtube cookies file."""
-    session = requests.session()
 
     pickle_file = os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle")
-
     session = requests.session()
     # Have youtube-dl deal with consent cookies etc to setup a valid session
     extractor = youtube_dl.extractor.youtube.YoutubeIE()

@@ -104,6 +104,24 @@ span.clearable input {
 	color: var(--silent-text);
 	text-decoration: line-through;
 }
+@keyframes placeholderShimmer {
+	0% {
+		background-position: 0 0;
+	}
+	100% {
+		background-position: 50000px 0;
+	}
+}
+.placeholder {
+	// The animation does not loop perfectly. Use a long duration to avoid running into a janky transition.
+	animation-duration: 100s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+	animation-name: placeholderShimmer;
+	background: linear-gradient(to right, #eeeeee 0px, #cccccc 50px, #eeeeee 100px);
+	display: inline-block;
+	height: 1em;
+}
 
 // current song
 #current-song {

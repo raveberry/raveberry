@@ -9,6 +9,10 @@
 	{% else %}
 	let DYNAMIC_EMBEDDED_STREAM = false;
 	{% endif %}
+	YOUTUBE_SUGGESTIONS = {{ youtube_suggestions }};
+	SPOTIFY_SUGGESTIONS = {{ spotify_suggestions }};
+	SOUNDCLOUD_SUGGESTIONS = {{ soundcloud_suggestions }};
+	JAMENDO_SUGGESTIONS = {{ jamendo_suggestions }};
 
     urls['state'] = '{% url 'musiq-state' %}';
 	urls['musiq'] = {

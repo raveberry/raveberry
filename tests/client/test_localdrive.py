@@ -13,7 +13,7 @@ class LocaldriveTests(MusicTest):
     def test_suggested_song(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("get-suggestions"), {"term": "impact", "playlist": "false"}
+                reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
             ).content
         )[-1]
         self.client.post(
@@ -57,7 +57,7 @@ class LocaldriveTests(MusicTest):
     def test_autoplay(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("get-suggestions"), {"term": "impact", "playlist": "false"}
+                reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
             ).content
         )[-1]
         self.client.post(
@@ -89,7 +89,7 @@ class LocaldriveTests(MusicTest):
     def test_radio(self):
         suggestion = json.loads(
             self.client.get(
-                reverse("get-suggestions"), {"term": "impact", "playlist": "false"}
+                reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
             ).content
         )[-1]
         self.client.post(
