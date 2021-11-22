@@ -17,7 +17,7 @@ class Ring(Device):
     LED_INVERT = False  # True inverts the signal (when using NPN level shift)
     LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
-    LED_OFFSET = 8  # at which index the zeroth pixel is located.
+    LED_OFFSET = 14  # at which index the zeroth pixel is located.
 
     def __init__(self, manager) -> None:
         super().__init__(manager, "ring")

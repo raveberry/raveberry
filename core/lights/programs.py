@@ -16,16 +16,74 @@ if TYPE_CHECKING:
     from core.lights.worker import DeviceManager
 
 
-def stretched_hues(led_count: int, offset: float = 0) -> List[float]:
-    # map the leds to rainbow colors from red over green to blue
-    # (without pink-> hue values in [0, ⅔]
-    # stretch the outer regions (red and blue) and compress the inner region (green)
-    return [
-        (2 / 3)
-        * 1
-        / (1 + math.e ** (-6 * math.e * (((offset + led / led_count) % 1) - 0.5)))
-        for led in range(0, led_count)
-    ]
+def stretched_hues(led_count: int, offset: float = 0):
+    """Stretches red and blue, compresses green and pink."""
+    # Uses the logistic curve to make colors more prominent and compress the others
+    #
+    #  ^ out hue
+    # 1-        xx
+    #  |       x
+    #  |     xx
+    #  |    x
+    #  |   x
+    #  |   x
+    #  |  x
+    #  |xx
+    #  -|--|--|--|> in hue
+    #   R  G  B  R
+    #
+    # Two logistic curves are combined to compress two colors (green and pink).
+    # Green is compressed because the board is green and visible anyway.
+    # Pink just does not look that good.
+
+    M1 = 2 / 3
+    M2 = 1 / 3
+
+    def L(x):
+        # First curve, compresses green (hue = ⅓)
+        def L1(x):
+            return M1 / (1 + math.e ** (-16 * (x - 1 / 3)))
+
+        # First curve, compresses pink (hue = ⅚)
+        def L2(x):
+            return M2 / (1 + math.e ** (-16 * (x - 5 / 6)))
+
+        if x < 2 / 3:
+            # Vertically stretch and move the curve so it starts at y=0 and ends at y=M
+            y0 = L1(0)
+            scale = M1 / (M1 - 2 * y0)
+            return scale * (L1(x) - y0)
+        else:
+            y0 = L2(2 / 3)
+            scale = M2 / (M2 - 2 * y0)
+            return scale * (L2(x) - y0) + M1
+
+    return [L((offset + led / led_count) % 1) % 1 for led in range(0, led_count)]
+
+
+def stretched_hues_spectrum(led_count: int):
+    """Stretches red and blue, compressing green, but removes pink.
+    Doesn't take an offset, because the ends do not match up,
+    leading to jumps in hue. Only used for the spectrum."""
+    #  ^ out hue
+    # 1-
+    #  |
+    # ⅔-      xxx
+    #  |     x
+    #  |    x
+    #  |    x
+    #  |   x
+    #  |xxx
+    #  -|--|--|--|> in hue
+    #   R  G  B  R
+    M = 2 / 3
+
+    def L(x):
+        return M / (1 + math.e ** (-16 * (x - 0.5)))
+
+    y0 = L(0)
+    scale = M / (M - 2 * y0)
+    return [(scale * L(led / led_count) - y0) % 1 for led in range(0, led_count)]
 
 
 class VizProgram:
@@ -183,12 +241,16 @@ class Adaptive(LedProgram):
         self.cava = self.manager.cava_program
 
         # RING
-        ring_hues = stretched_hues(self.manager.ring.LED_COUNT)
+        # The spectrum needs to have a color for low frequencies (red)
+        # and a color for high frequencies (blue)
+        # In order to show a clean separation between the spectrum ends,
+        # the color between the two (pink) is removed from the pool of possible colors.
+        ring_hues = stretched_hues_spectrum(self.manager.ring.LED_COUNT)[::-1]
         self.ring_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in ring_hues]
 
         # WLED
         # identical to ring, but with a different number of leds
-        wled_hues = stretched_hues(self.manager.wled.led_count)
+        wled_hues = stretched_hues_spectrum(self.manager.wled.led_count)[::-1]
         self.wled_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in wled_hues]
 
         # STRIP
