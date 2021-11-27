@@ -68,16 +68,26 @@ def try_vote(request_ip: str, queue_key: int, amount: int) -> bool:
     # This should never happen during normal usage, so we optimize for our main use case:
     # looking up whether a single user voted for a single song, which is constant with tuples.
     entry = str((request_ip, queue_key))
-    vote = redis.get_maybe(entry)
-    if vote is None:
-        new_vote = amount
-    else:
-        new_vote = int(vote) + amount
-    if new_vote < -1 or new_vote > 1:
-        return False
-    # expire these entries to avoid accumulation over long runtimes.
-    redis.set(entry, new_vote, ex=24 * 60 * 60)
-    return True
+    allowed = True
+
+    # redis transaction: https://github.com/Redis/redis-py#pipelines
+    def check_entry(pipe) -> None:
+        nonlocal allowed
+        vote = pipe.get(entry)
+        if vote is None:
+            new_vote = amount
+        else:
+            new_vote = int(vote) + amount
+        if new_vote < -1 or new_vote > 1:
+            allowed = False
+            return
+        allowed = True
+        # expire these entries to avoid accumulation over long runtimes.
+        pipe.multi()
+        pipe.set(entry, new_vote, ex=24 * 60 * 60)
+
+    redis.transaction(check_entry, entry)
+    return allowed
 
 
 class SimpleMiddleware:

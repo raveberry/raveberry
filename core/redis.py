@@ -78,12 +78,6 @@ def get(key: str) -> Union[bool, int, float, str, List, Dict]:
     return type(default)(value)
 
 
-def get_maybe(key: str) -> Optional[str]:
-    """This method returns the value for the given :param key: from redis,
-    or None if the key does not exist."""
-    return redis_connection.get(key)
-
-
 def set(key: str, value: Any, ex: Optional[float] = None) -> None:
     """This method sets the value for the given :param key: to the given :param value:.
     If set, the key will expire after :param ex: seconds."""
