@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.6 - 2021-11-27
+- Suggestions are much more responsive:
+* The first line (the query itself) is shown immediately
+* Offline suggestions are shown as soon as they are ready and don't wait for the online suggestions
+* Placeholders for online suggestions until they are available
+* Different platforms (e.g. Youtube and Spotify) are queried in parallel
+
+- Increase dhcp ip range for hotspot
+- Bluetooth scanning and connecting does not spit a huge error anymore. Cause was that requests were sent twice.
+- Song duration is shown in song info modal. Current song duration can now be determined
+- Ring visualization improved
+- The Raspberry Pi's internal pwr led (red) is disabled when the ring is active
+- The internal act led (green) indicates active Raveberry requests
+
 ## 0.9.5 - 2021-10-18
 - Add option for server-side vote duplication checking by IP
 - Use session keys instead of IPs to link requests logs
