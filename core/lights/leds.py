@@ -1,15 +1,12 @@
 """Controls the Raspberry Pi's internal LEDs."""
+import os
 import subprocess
 
 
 def _control_led(led: str, action: str) -> None:
-    try:
-        subprocess.call(
-            ["sudo", "/usr/local/sbin/raveberry/control_led", led, action],
-            stderr=subprocess.DEVNULL,
-        )
-    except FileNotFoundError:
-        pass
+    control_led = "/usr/local/sbin/raveberry/control_led"
+    if os.path.isfile(control_led):
+        subprocess.call(["sudo", control_led, led, action], stderr=subprocess.DEVNULL)
 
 
 def enable_act_led() -> None:
