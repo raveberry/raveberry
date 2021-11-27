@@ -1,4 +1,4 @@
-- name: Install gpg
+- name: apt update (may take some time) + install gpg 
   apt:
     update_cache: yes
     pkg:
