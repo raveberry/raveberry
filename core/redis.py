@@ -38,6 +38,7 @@ defaults = {
     "bluetoothctl_active": False,
     "bluetooth_devices": [],
     # user manager
+    "active_requests": 0,
     "last_user_count_update": 0.0,
     "last_requests": {},
 }
@@ -54,6 +55,9 @@ def start() -> None:
 lock = redis_connection.lock
 pubsub = redis_connection.pubsub
 publish = redis_connection.publish
+transaction = redis_connection.transaction
+incr = redis_connection.incr
+decr = redis_connection.decr
 
 
 def get(key: str) -> Union[bool, int, float, str, List, Dict]:

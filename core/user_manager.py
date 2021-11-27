@@ -10,6 +10,8 @@ import core.settings.storage as storage
 from core import redis
 
 # kick users after some time without any request
+from core.lights import leds
+
 INACTIVITY_PERIOD = 600
 
 
@@ -99,7 +101,18 @@ class SimpleMiddleware:
         last_requests[request_ip] = time.time()
         redis.set("last_requests", last_requests)
 
+        def check():
+            active = redis.get("active_requests")
+            if active > 0:
+                leds.enable_act_led()
+            else:
+                leds.disable_act_led()
+
+        redis.incr("active_requests")
+        check()
         response = self.get_response(request)
+        redis.decr("active_requests")
+        check()
 
         # Code to be executed for each request/response after
         # the view is called.
