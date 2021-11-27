@@ -410,17 +410,14 @@ class Alarm(VizProgram):
         else:
             self.factor = 0
 
-        # the higher the factor the faster the pwr led should blink
-        # for factor == 0 it should be off, for factor == 1 on
-        y = math.sin(1 / (0.2 * (self.factor - 1.1)))
-        if self.factor != 1 and (y < 0 or self.factor == 0):
-            if not self.pwr_led_enabled:
-                leds.disable_pwr_led()
-                self.pwr_led_enabled = True
-        else:
-            if self.pwr_led_enabled:
-                leds.enable_pwr_led()
-                self.pwr_led_enabled = False
+        # Ideally, the pwr led would flash with increasing frequency,
+        # but the Pi can not handle enough script executions to make it look good.
+        if self.pwr_led_enabled and self.factor < 0.7:
+            leds.disable_pwr_led()
+            self.pwr_led_enabled = False
+        elif not self.pwr_led_enabled and self.factor >= 0.7:
+            leds.enable_pwr_led()
+            self.pwr_led_enabled = True
 
     def stop(self) -> None:
         self.factor = -1.0
