@@ -134,7 +134,6 @@ def online_suggestions(request: WSGIRequest) -> JsonResponse:
         for thread in threads:
             thread.join()
 
-    print(results)
     return JsonResponse(results, safe=False)
 
 
