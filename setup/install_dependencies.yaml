@@ -95,6 +95,7 @@
     pkg:
     - dnsmasq
     - hostapd
+    - iptables
     - rfkill
 
 - name: Install screen visualization dependencies
