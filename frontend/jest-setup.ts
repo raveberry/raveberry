@@ -19,6 +19,11 @@ global['CONTROLS_ENABLED'] = false;
 // needs to set here because it raises typing errors in  the test module
 global['ADDITIONAL_KEYWORDS'] = '';
 global['FORBIDDEN_KEYWORDS'] = '';
+global['YOUTUBE_SUGGESTIONS'] = 0;
+global['SPOTIFY_SUGGESTIONS'] = 0;
+global['SOUNDCLOUD_SUGGESTIONS'] = 0;
+global['JAMENDO_SUGGESTIONS'] = 0;
+
 
 // create the css file if necessary
 try {

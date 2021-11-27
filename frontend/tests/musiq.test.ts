@@ -19,6 +19,7 @@ afterEach(() => {
 test('autocomplete list', () => {
   autocomplete.onReady();
 
+  // this get is called twice, once for online and once for offline suggestions
   const get = jest.fn().mockImplementation(() => {
     const suggestions = [
       {'type': 'local'},
@@ -37,11 +38,15 @@ test('autocomplete list', () => {
   function iconClassesOf(element) {
     return $(element).find('i')[0].className;
   }
-  expect(suggestions.length).toBe(5);
+  expect(suggestions.length).toBe(9);
   expect(iconClassesOf(suggestions[0])).not.toEqual(iconClassesOf(suggestions[1]));
   expect(iconClassesOf(suggestions[1])).not.toEqual(iconClassesOf(suggestions[2]));
   expect(iconClassesOf(suggestions[2])).toEqual(iconClassesOf(suggestions[3]));
   expect(iconClassesOf(suggestions[3])).not.toEqual(iconClassesOf(suggestions[4]));
+  expect(iconClassesOf(suggestions[1])).toEqual(iconClassesOf(suggestions[5]));
+  expect(iconClassesOf(suggestions[2])).toEqual(iconClassesOf(suggestions[6]));
+  expect(iconClassesOf(suggestions[3])).toEqual(iconClassesOf(suggestions[7]));
+  expect(iconClassesOf(suggestions[4])).toEqual(iconClassesOf(suggestions[8]));
 });
 
 test('key retrieval of songs', () => {
