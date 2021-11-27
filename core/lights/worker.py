@@ -10,6 +10,7 @@ from django.db import connection
 
 from core import redis
 from core.celery import app
+from core.lights import leds
 from core.lights.circle.circle import Circle
 from core.lights.device import Device
 from core.lights.programs import Adaptive, LedProgram, ScreenProgram, VizProgram
@@ -162,6 +163,15 @@ class DeviceManager:
             if program.name == "Disabled":
                 device.clear()
 
+        # Disable the pwr led if the ring is active.
+        # The pwr led ruins the clean look of a ring spectrum,
+        # and an active led ring is enough of an indicator that the Pi is running.
+        if device.name == "ring":
+            if program.name == "Disabled":
+                leds.enable_pwr_led()
+            else:
+                leds.disable_pwr_led()
+
     def consumers_changed(self) -> None:
         """Stops the loop if no led is active, starts it otherwise"""
         if self.disabled_program.consumers == 4:
@@ -174,6 +184,9 @@ class DeviceManager:
     def alarm_started(self) -> None:
         """Makes alarm the current program but doesn't update the database."""
         self.alarm_program.use()
+
+        leds.disable_pwr_led()
+
         self.last_fixed_color = self.fixed_color
         for device in [self.ring, self.wled, self.strip]:
             self.set_program(device, self.led_programs["Fixed"])
@@ -183,6 +196,8 @@ class DeviceManager:
         """Restores the state from before the alarm."""
         self.alarm_program.release()
         self.fixed_color = self.last_fixed_color
+
+        leds.enable_pwr_led()
 
         # the database still contains the program from before the alarm. restore it.
         for device in [self.ring, self.wled, self.strip]:

@@ -12,6 +12,10 @@ from typing import Tuple, List, cast, Optional, TYPE_CHECKING
 
 from django.conf import settings
 
+from core.lights import leds
+
+enabled = True
+
 if TYPE_CHECKING:
     from core.lights.worker import DeviceManager
 
@@ -368,6 +372,8 @@ class Alarm(VizProgram):
         self.sound_count = 0
         self.increasing_duration = 0.45
         self.decreasing_duration = 0.8
+        # only during this program, thus False by default
+        self.pwr_led_enabled = False
         self.sound_duration = 2.1
         self.sound_repetition = 2.5
         self.factor = -1.0
@@ -403,6 +409,18 @@ class Alarm(VizProgram):
             )
         else:
             self.factor = 0
+
+        # the higher the factor the faster the pwr led should blink
+        # for factor == 0 it should be off, for factor == 1 on
+        y = math.sin(1 / (0.2 * (self.factor - 1.1)))
+        if self.factor != 1 and (y < 0 or self.factor == 0):
+            if not self.pwr_led_enabled:
+                leds.disable_pwr_led()
+                self.pwr_led_enabled = True
+        else:
+            if self.pwr_led_enabled:
+                leds.enable_pwr_led()
+                self.pwr_led_enabled = False
 
     def stop(self) -> None:
         self.factor = -1.0

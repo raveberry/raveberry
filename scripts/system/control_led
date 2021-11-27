@@ -1,0 +1,33 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+function usage {
+    echo "usage: $0 0|1 enable|disable"
+	exit 1
+}
+if (( $# != 2 )); then
+	usage
+fi
+
+if [[ "$1" == "act" ]]; then
+	led="0"
+elif [[ "$1" == "pwr" ]]; then
+	led="1"
+else
+	usage
+fi
+
+if [[ "$2" == "enable" ]]; then
+	val="255"
+elif [[ "$2" == "disable" ]]; then
+	val="0"
+else
+	usage
+fi
+
+# trigger does not need to be set, it is automatically set to "none" after manually changing brightness
+FILE="/sys/class/leds/led$led/brightness"
+[ -f "$FILE" ] && echo "$val" > "$FILE"
