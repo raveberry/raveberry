@@ -16,7 +16,6 @@ class Ring(Device):
     LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
     LED_INVERT = False  # True inverts the signal (when using NPN level shift)
     LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
-
     LED_OFFSET = 14  # at which index the zeroth pixel is located.
 
     def __init__(self, manager) -> None:
@@ -52,7 +51,7 @@ class Ring(Device):
             dimmed_color = (self.brightness * val for val in colors[led])
             scaled_color = tuple(int(val * 255) for val in dimmed_color)
             self.controller.setPixelColorRGB(
-                (led + self.LED_OFFSET) % self.LED_COUNT, *scaled_color
+                (self.LED_COUNT - led + self.LED_OFFSET) % self.LED_COUNT, *scaled_color
             )
         self.controller.show()
 

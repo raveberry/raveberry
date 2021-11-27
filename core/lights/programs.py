@@ -39,7 +39,7 @@ def stretched_hues(led_count: int, offset: float = 0):
     M1 = 2 / 3
     M2 = 1 / 3
 
-    def L(x):
+    def f(x):
         # First curve, compresses green (hue = ⅓)
         def L1(x):
             return M1 / (1 + math.e ** (-16 * (x - 1 / 3)))
@@ -58,32 +58,38 @@ def stretched_hues(led_count: int, offset: float = 0):
             scale = M2 / (M2 - 2 * y0)
             return scale * (L2(x) - y0) + M1
 
-    return [L((offset + led / led_count) % 1) % 1 for led in range(0, led_count)]
+    return [f((offset + led / led_count) % 1) % 1 for led in range(0, led_count)]
 
 
 def stretched_hues_spectrum(led_count: int):
     """Stretches red and blue, compressing green, but removes pink.
+    Adds a short red section, because red is chronically underrepresented.
     Doesn't take an offset, because the ends do not match up,
     leading to jumps in hue. Only used for the spectrum."""
     #  ^ out hue
     # 1-
     #  |
-    # ⅔-      xxx
+    # ⅔-       xx
+    #  |      x
+    #  |     x
     #  |     x
     #  |    x
-    #  |    x
-    #  |   x
-    #  |xxx
+    #  |xxxx
     #  -|--|--|--|> in hue
     #   R  G  B  R
     M = 2 / 3
 
-    def L(x):
-        return M / (1 + math.e ** (-16 * (x - 0.5)))
+    def f(x):
+        def L(x):
+            return M / (1 + math.e ** (-12 * (x - 9 / 16)))
 
-    y0 = L(0)
-    scale = M / (M - 2 * y0)
-    return [(scale * L(led / led_count) - y0) % 1 for led in range(0, led_count)]
+        if x < 1 / 8:
+            return 0
+        y0 = L(1 / 8)
+        scale = M / (M - 2 * y0)
+        return scale * L(x) - y0
+
+    return [f(led / led_count) % 1 for led in range(0, led_count)]
 
 
 class VizProgram:
@@ -245,12 +251,12 @@ class Adaptive(LedProgram):
         # and a color for high frequencies (blue)
         # In order to show a clean separation between the spectrum ends,
         # the color between the two (pink) is removed from the pool of possible colors.
-        ring_hues = stretched_hues_spectrum(self.manager.ring.LED_COUNT)[::-1]
+        ring_hues = stretched_hues_spectrum(self.manager.ring.LED_COUNT)
         self.ring_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in ring_hues]
 
         # WLED
         # identical to ring, but with a different number of leds
-        wled_hues = stretched_hues_spectrum(self.manager.wled.led_count)[::-1]
+        wled_hues = stretched_hues_spectrum(self.manager.wled.led_count)
         self.wled_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in wled_hues]
 
         # STRIP
