@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.7 - 2021-11-28
+- Small bugfix
+
 ## 0.9.6 - 2021-11-27
 - Suggestions are much more responsive:
 * The first line (the query itself) is shown immediately
