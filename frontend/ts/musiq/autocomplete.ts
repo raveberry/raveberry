@@ -109,7 +109,7 @@ export function onReady() {
       // the text was clicked, push the song and clear the input box
       if (ui.item.type == 'search') {
         requestNewMusic(ui.item.label);
-      } else if (ui.item.type == 'search') {
+      } else if (ui.item.type == 'search' || ui.item.type == 'error') {
         // do nothing
       } else if (ui.item.type == 'youtube-online') {
         requestNewMusic(ui.item.label, 'youtube');
