@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.9.7 - 2021-11-28
-- Small bugfix
+## 0.9.8 - 2021-11-30
+- Fixed bug where color definitions got lost in the css minification process
+- Tapping an "error" suggestion does nothing
+- Buttons for queue control are further apart (and thus harder to mit-select)
 
 ## 0.9.6 - 2021-11-27
 - Suggestions are much more responsive:
