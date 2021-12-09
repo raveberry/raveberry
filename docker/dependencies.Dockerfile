@@ -1,9 +1,9 @@
-FROM debian:buster
+FROM debian:bullseye
 
 COPY common.txt youtube.txt spotify.txt soundcloud.txt prod.txt docker.txt ./
 
 RUN apt-get update &&\
-	apt-get install -y python3-pip ffmpeg atomicparsley wget gnupg audiotools libfaad2 libpq-dev &&\
+	apt-get install -y python3-pip inetutils-ping ffmpeg wget gnupg audiotools libfaad2 libpq-dev &&\
 	apt-get clean
 
 RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \

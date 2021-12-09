@@ -19,6 +19,8 @@
     pkg:
     # python package management
     - python3-pip
+    # ping
+    - inetutils-ping
     # webserver
     - nginx
     # player
