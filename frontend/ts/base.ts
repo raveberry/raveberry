@@ -182,7 +182,8 @@ export function updateBaseState(state) {
     $('#progress-bar').removeClass('alarm');
   }
 
-  if (localStorageGet('platform') === null) {
+  if (localStorageGet('platform') === null ||
+      localStorageGet('platform') === undefined) {
     localStorageSet('platform', state.defaultPlatform, 1);
   }
 
