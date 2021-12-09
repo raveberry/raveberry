@@ -7,6 +7,9 @@ from django.db.models import QuerySet
 import core.musiq.song_queue
 import core.musiq.song_utils as song_utils
 
+if connection.vendor == "postgresql":
+    from django.contrib.postgres.indexes import GinIndex, OpClass
+
 if TYPE_CHECKING:
     from core.musiq.song_utils import Metadata
 
@@ -59,10 +62,9 @@ class ArchivedSong(models.Model):
         }
 
     class Meta:
-        if connection.vendor == "postgresql":
-            from django.contrib.postgres.indexes import GinIndex, OpClass
 
-            indexes = [
+        indexes = (
+            [
                 GinIndex(
                     OpClass("artist", "gin_trgm_ops"),
                     name="core_archivedsong_artist_trgm",
@@ -72,6 +74,9 @@ class ArchivedSong(models.Model):
                     name="core_archivedsong_title_trgm",
                 ),
             ]
+            if connection.vendor == "postgresql"
+            else []
+        )
 
 
 class ArchivedPlaylist(models.Model):
@@ -118,8 +123,6 @@ class ArchivedQuery(models.Model):
 
     class Meta:
         if connection.vendor == "postgresql":
-            from django.contrib.postgres.indexes import GinIndex, OpClass
-
             indexes = (
                 [
                     GinIndex(
