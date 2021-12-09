@@ -1,6 +1,28 @@
 # Changelog
 
-## 0.9.8 - 2021-11-30
+## 0.9.9 - 2021-12-09
+- Big suggestion improvements:
+* Trigram similarity is used instead of full text search
+* Now Raveberry can provide suggestions for substrings, stop words (and, a, the etc.) and typos
+* This is slower, but GIN indexes and config tweaking minimize overhead
+
+- Song metadata is cached in the database. Suggestions are now faster than before, despite the slower query.
+- Directly after the update, durations are shown incorrectly. Either wait until metadata is synced automatically overnight, or run:
+- `sudo -u www-data python3 /opt/raveberry/manage.py syncsongmetadata`
+
+- Upgraded to Django 4.0. This was necessary to use functional indexes.
+- Django 2.2 would be out of support soon anyway, so now was a good time.
+- Python 3.8 or higher is now required.
+- The main reason for not upgrading was that multiple asgi-requests could not be processed in parallel since Django 3.0.
+- In 4.0, context-aware `sync_to_async` removes this issue, finally allowing the upgrade without usability impact.
+
+- When checking whether voting is allowed on server side, a redis transaction is used to reduce performance impact.
+- Settings are cached for a short time, removing load from tasks that query settings often when they change very rarely.
+- Only some instead of all urls are used to measure activity (page loads, voting and musiq requests) to decrease performance impact.
+
+- Switched from youtube-dl to yt-dlp, significantly increasing download speed.
+
+## 0.9.8 - 2021-12-01
 - Fixed bug where color definitions got lost in the css minification process
 - Tapping an "error" suggestion does nothing
 - Buttons for queue control are further apart (and thus harder to mit-select)
