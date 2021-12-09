@@ -7,7 +7,6 @@ import random
 import threading
 from typing import Dict, Union, List
 
-from django.contrib.postgres.search import TrigramWordSimilarity
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q, F
 from django.db.models.functions import Greatest, Coalesce
@@ -171,6 +170,8 @@ def offline_suggestions(request: WSGIRequest) -> JsonResponse:
                 .distinct()[: storage.get("number_of_suggestions")]
             )
         else:
+            from django.contrib.postgres.search import TrigramWordSimilarity
+
             similar_playlists = remaining_playlists.annotate(
                 title_similarity=TrigramWordSimilarity(query, "title"),
                 query_similarity=TrigramWordSimilarity(query, "queries__query"),
@@ -224,6 +225,8 @@ def offline_suggestions(request: WSGIRequest) -> JsonResponse:
             # To combine, use union instead of | (or) in order to access the annotated values
             # similar_songs = union(matching_songs)
         else:
+            from django.contrib.postgres.search import TrigramWordSimilarity
+
             # Songs and queries that lead to the songs should both be searched.
             # However, they are stored in two different tables.
             # We first filter for similarity in each table separately (query <> artist, title).

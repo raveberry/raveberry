@@ -1,7 +1,6 @@
 """Contains all database models."""
 from typing import TYPE_CHECKING
 
-from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.db import models, connection
 from django.db.models import QuerySet
 
@@ -60,8 +59,10 @@ class ArchivedSong(models.Model):
         }
 
     class Meta:
-        indexes = (
-            [
+        if connection.vendor == "postgresql":
+            from django.contrib.postgres.indexes import GinIndex, OpClass
+
+            indexes = [
                 GinIndex(
                     OpClass("artist", "gin_trgm_ops"),
                     name="core_archivedsong_artist_trgm",
@@ -71,9 +72,6 @@ class ArchivedSong(models.Model):
                     name="core_archivedsong_title_trgm",
                 ),
             ]
-            if connection.vendor == "postgresql"
-            else []
-        )
 
 
 class ArchivedPlaylist(models.Model):
@@ -119,16 +117,19 @@ class ArchivedQuery(models.Model):
         return self.query
 
     class Meta:
-        indexes = (
-            [
-                GinIndex(
-                    OpClass("query", "gin_trgm_ops"),
-                    name="core_archivedquery_query_trgm",
-                )
-            ]
-            if connection.vendor == "postgresql"
-            else []
-        )
+        if connection.vendor == "postgresql":
+            from django.contrib.postgres.indexes import GinIndex, OpClass
+
+            indexes = (
+                [
+                    GinIndex(
+                        OpClass("query", "gin_trgm_ops"),
+                        name="core_archivedquery_query_trgm",
+                    )
+                ]
+                if connection.vendor == "postgresql"
+                else []
+            )
 
 
 class ArchivedPlaylistQuery(models.Model):
