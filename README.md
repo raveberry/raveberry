@@ -120,7 +120,7 @@ Specify a domain to make your Raveberry accessible from the world wide web.
 Play all the files you already have in your local filesystem. Various filetypes supported.
 
 * **YouTube Support**:
-With `youtube-dl` as a media provider, all of YouTube is available to play.
+With `yt-dlp` as a media provider, all of YouTube is available to play.
 
 * **Spotify Support**:
 Raveberry's music player `mopidy` can play songs from Spotify, if you to log in with your account. Spotify Premium is required.
@@ -235,7 +235,7 @@ Now you should be able to start the server with `raveberry run`, login with admi
 * Especially [Mopidy-Spotify](https://github.com/mopidy/mopidy-spotify), without which I could not have added Spotify support.
 * [django](https://www.djangoproject.com/), for providing one of the best documentations I have ever encountered.
 * [@karlstav](https://github.com/karlstav) for his audio visualizer [`cava`](https://github.com/karlstav/cava).
-* [`youtube-dl`](https://github.com/ytdl-org/youtube-dl/) for greatly simplifying the interaction with YouTube.
+* [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) for greatly simplifying the interaction with YouTube.
 * [Steven van Tetering](https://www.tikveel.nl/) for writing [the shader](https://www.shadertoy.com/view/llycWD) I based my visualization on.
 * All my friends for constantly beta testing this project.
 

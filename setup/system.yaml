@@ -242,14 +242,14 @@
     user: root
     job: "{{ config.backup_command }}"
 
-- name: Periodic youtube-dl updates
+- name: Periodic yt-dlp updates
   when: config.youtube is not defined or config.youtube
   cron:
-    name: "update youtube-dl"
+    name: "update yt-dlp"
     hour: "5"
     minute: "30"
     user: root
-    job: "/usr/bin/pip3 install -U youtube-dl"
+    job: "/usr/bin/pip3 install -U yt-dlp"
 
 - name: Periodic metadata sync
   when: config.youtube is not defined or config.youtube

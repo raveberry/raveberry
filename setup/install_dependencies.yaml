@@ -59,8 +59,6 @@
         pkg:
         #audio conversion
         - ffmpeg
-        #thumbnail embedding
-        - atomicparsley
     - name: "Install Youtube dependencies: Install python dependencies"
       pip:
         requirements: "{{ config.install_directory }}/requirements/youtube.txt"
