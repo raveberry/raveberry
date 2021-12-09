@@ -24,9 +24,7 @@ def start() -> None:
     storage.set("local_enabled", local_enabled)
 
     # in the docker container all dependencies are installed
-    youtube_available = (
-        conf.DOCKER or importlib.util.find_spec("youtube_dl") is not None
-    )
+    youtube_available = conf.DOCKER or importlib.util.find_spec("yt_dlp") is not None
     redis.set("youtube_available", youtube_available)
     if not youtube_available:
         # if youtube is not available, overwrite the database to disable it
