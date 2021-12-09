@@ -126,7 +126,9 @@ def _scan_library(library_path: str) -> None:
                         url=external_url,
                         artist=metadata["artist"],
                         title=metadata["title"],
+                        duration=metadata["duration"],
                         counter=0,
+                        cached=metadata["cached"],
                     )
 
     assert files_scanned == filecount

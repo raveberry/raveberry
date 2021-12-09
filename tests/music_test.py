@@ -78,7 +78,7 @@ class MusicTest(RaveberryTest):
             self.client.get(
                 reverse("offline-suggestions"), {"term": "ogg", "playlist": "true"}
             ).content
-        )[-1]
+        )[0]
         # add the same queue twice to get four songs into the queue
         self.client.post(
             reverse("request-music"),

@@ -1,6 +1,6 @@
 import os
 
-import youtube_dl
+import yt_dlp
 from django.conf import settings
 from django.urls import reverse
 
@@ -35,11 +35,11 @@ class YoutubeTests(MusicTest):
             # send a request and skip the test if there is an error
             ydl_opts = Youtube.get_ydl_opts()
             ydl_opts["logger"] = YoutubeDLLogger(self)
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 self.info_dict = ydl.download(
                     ["https://www.youtube.com/watch?v=wobbf3lb2nk"]
                 )
-        except (youtube_dl.utils.ExtractorError, youtube_dl.utils.DownloadError) as e:
+        except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as e:
             self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
 
         # reduce the number for youtube playlists
@@ -95,7 +95,7 @@ class YoutubeTests(MusicTest):
             current_song["externalUrl"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
         self.assertIn("MC Thunder", current_song["title"])
-        self.assertAlmostEqual(current_song["duration"], 267, delta=1)
+        self.assertAlmostEqual(current_song["duration"], 268, delta=1)
 
     def test_url(self):
         self._post_request(
@@ -106,7 +106,7 @@ class YoutubeTests(MusicTest):
             current_song["externalUrl"], "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
         self.assertIn("MC Thunder", current_song["title"])
-        self.assertAlmostEqual(current_song["duration"], 267, delta=1)
+        self.assertAlmostEqual(current_song["duration"], 268, delta=1)
 
     def test_playlist_url(self):
         self._post_request(
