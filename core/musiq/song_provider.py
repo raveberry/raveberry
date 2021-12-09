@@ -147,6 +147,7 @@ class SongProvider(MusicProvider):
             "internal_url": None,
             "external_url": self.get_external_url(),
             "stream_url": None,
+            "cached": False,
         }
         initial_votes = 1 if manually_requested else 0
         self.queued_song = playback.queue.enqueue(
@@ -189,7 +190,9 @@ class SongProvider(MusicProvider):
                     url=metadata["external_url"],
                     artist=metadata["artist"],
                     title=metadata["title"],
+                    duration=metadata["duration"],
                     counter=initial_counter,
+                    cached=metadata["cached"],
                 )
             else:
                 if archive:
@@ -212,12 +215,12 @@ class SongProvider(MusicProvider):
 
         metadata = self.get_metadata()
 
-        self.queued_song.internal_url = metadata["internal_url"]
-        self.queued_song.external_url = metadata["external_url"]
-        self.queued_song.stream_url = metadata["stream_url"]
         self.queued_song.artist = metadata["artist"]
         self.queued_song.title = metadata["title"]
         self.queued_song.duration = metadata["duration"]
+        self.queued_song.internal_url = metadata["internal_url"]
+        self.queued_song.external_url = metadata["external_url"]
+        self.queued_song.stream_url = metadata["stream_url"]
         # make sure not to overwrite the index as it may have changed in the meantime
         self.queued_song.save(
             update_fields=[

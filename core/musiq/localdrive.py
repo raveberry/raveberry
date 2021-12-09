@@ -7,7 +7,6 @@ import random
 from typing import Optional, TYPE_CHECKING
 
 from django.http.response import HttpResponse
-from watson import search as watson
 
 from core.models import ArchivedPlaylist, PlaylistEntry, ArchivedSong
 from core.musiq import song_utils
@@ -46,20 +45,9 @@ class LocalSongProvider(SongProvider):
 
     def check_available(self) -> bool:
         if not self.id:
-            # use the query to search for the local song
-            # use the same algorithm that also provides the suggestions
-            local_songs = ArchivedSong.objects.filter(url__startswith="local_library/")
-            try:
-                result = watson.search(self.query, models=(local_songs,))[0]
-            except IndexError:
-                self.error = "No local song found"
-                return False
-            url = result.meta["url"]
-            self.id = LocalSongProvider.get_id_from_external_url(url)
-            if not os.path.isfile(self._get_path()):
-                self.error = "No local song found"
-                return False
-            return True
+            # functionality from suggestions could be used to search for a song by query.
+            self.error = "Can't search for local songs."
+            return False
         else:
             if not os.path.isfile(self._get_path()):
                 # Local files can not be downloaded from the internet
@@ -74,13 +62,20 @@ class LocalSongProvider(SongProvider):
         return True
 
     def get_metadata(self) -> "Metadata":
-        metadata = song_utils.get_metadata(self._get_path())
-
-        if not metadata["title"]:
-            metadata["title"] = metadata["external_url"]
+        if not self.id:
+            raise ValueError()
+        try:
+            # Try to read the metadata from the database
+            archived_song = ArchivedSong.objects.get(url=self.get_external_url())
+            metadata = archived_song.get_metadata()
+        except ArchivedSong.DoesNotExist:
+            # If this is not possible, read it from the file system
+            metadata = song_utils.get_metadata(self._get_path())
         metadata["internal_url"] = self.get_internal_url()
         metadata["external_url"] = self.get_external_url()
         metadata["stream_url"] = None
+        if not metadata["title"]:
+            metadata["title"] = metadata["external_url"]
 
         return metadata
 

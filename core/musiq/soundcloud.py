@@ -104,6 +104,7 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
         self.metadata["internal_url"] = self.get_internal_url()
         self.metadata["external_url"] = result.permalink_url
         self.metadata["stream_url"] = None
+        self.metadata["cached"] = False
         return True
 
     def get_metadata(self) -> "Metadata":

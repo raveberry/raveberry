@@ -278,6 +278,7 @@ def reorder(request: WSGIRequest) -> HttpResponse:
 
 
 @csrf_exempt
+@user_manager.tracked
 def vote(request: WSGIRequest) -> HttpResponse:
     """Modify the vote-count of the given song by the given amount.
     If a song receives too many downvotes, it is removed."""

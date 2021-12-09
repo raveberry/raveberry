@@ -6,7 +6,6 @@ import atexit
 
 from django.apps import AppConfig
 from django.conf import settings as conf
-from watson import search as watson
 
 
 class CoreConfig(AppConfig):
@@ -39,23 +38,6 @@ class CoreConfig(AppConfig):
         start_raveberry = (
             "runserver" in sys.argv and os.environ.get("RUN_MAIN", None) == "true"
         ) or (sys.argv[0].endswith("daphne"))
-
-        if (
-            start_raveberry
-            or conf.TESTING
-            or any("watson" in arg for arg in sys.argv)
-            or any("celery" in arg for arg in sys.argv)
-        ):
-            watson.register(
-                self.get_model("ArchivedSong"),
-                fields=("url", "artist", "title", "queries__query"),
-                store=("id", "title", "url", "artist"),
-            )
-            watson.register(
-                self.get_model("ArchivedPlaylist"),
-                fields=("title", "queries__query"),
-                store=("id", "title", "counter"),
-            )
 
         if conf.TESTING:
             import core.musiq.controller as controller

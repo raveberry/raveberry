@@ -1,7 +1,10 @@
 -r common.txt
+-r install.txt
 -r screenvis.txt
 -r ledvis.txt
--r ci.txt
+-r frontend_build.txt
+-r frontend_test.txt
+-r backend_test.txt
 pylint==2.4.4  # pylint 2.5.x throws "No name in module" errors
 pylint-django
 mypy

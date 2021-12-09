@@ -147,6 +147,7 @@ class SpotifySongProvider(SongProvider, Spotify):
             self.metadata["internal_url"] = result["uri"]
             self.metadata["external_url"] = result["external_urls"]["spotify"]
             self.metadata["stream_url"] = None
+            self.metadata["cached"] = False
         except KeyError:
             self.error = "No song found"
             return False

@@ -149,12 +149,13 @@ class JamendoSongProvider(SongProvider, Jamendo):
             except (KeyError, IndexError):
                 self.error = f"id {self.id} not found"
                 return False
-        self.metadata["internal_url"] = self.get_internal_url()
-        self.metadata["external_url"] = result["shareurl"]
-        self.metadata["stream_url"] = result["audio"]
         self.metadata["artist"] = result["artist_name"]
         self.metadata["title"] = result["name"]
         self.metadata["duration"] = result["duration"]
+        self.metadata["internal_url"] = self.get_internal_url()
+        self.metadata["external_url"] = result["shareurl"]
+        self.metadata["stream_url"] = result["audio"]
+        self.metadata["cached"] = False
         return True
 
     def get_metadata(self) -> "Metadata":

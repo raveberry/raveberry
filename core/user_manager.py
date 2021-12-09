@@ -1,10 +1,12 @@
 """This module manages and counts user accesses and handles permissions."""
 import time
-from typing import Any, Callable
+from functools import wraps
+from typing import Callable, Optional
 
 import ipware
 from django.contrib.auth.models import AbstractUser
 from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
 
 import core.settings.storage as storage
 from core import redis
@@ -90,18 +92,13 @@ def try_vote(request_ip: str, queue_key: int, amount: int) -> bool:
     return allowed
 
 
-class SimpleMiddleware:
-    """This middleware tracks stores the last access for every connected ip
+def tracked(
+    func: Callable[[WSGIRequest], Optional[HttpResponse]]
+) -> Callable[[WSGIRequest], HttpResponse]:
+    """A decorator that stores the last access for every connected ip
     so the number of active users can be determined."""
 
-    def __init__(self, get_response: Callable[[WSGIRequest], Any]) -> None:
-        # One-time configuration and initialization.
-        self.get_response = get_response
-
-    def __call__(self, request: WSGIRequest) -> Any:
-        # Code to be executed for each request before
-        # the view (and later middleware) are called.
-
+    def _decorator(request: WSGIRequest) -> HttpResponse:
         # create a sessions if none exists (necessary for anonymous users)
         if not request.session or not request.session.session_key:
             request.session.save()
@@ -120,11 +117,10 @@ class SimpleMiddleware:
 
         redis.incr("active_requests")
         check()
-        response = self.get_response(request)
+        response = func(request)
         redis.decr("active_requests")
         check()
 
-        # Code to be executed for each request/response after
-        # the view is called.
-
         return response
+
+    return wraps(func)(_decorator)

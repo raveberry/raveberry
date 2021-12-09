@@ -63,5 +63,5 @@ def service_installed(service: str) -> bool:
     return len(out.splitlines()) > 3
 
 
-def csrf_failure(_request: WSGIRequest, _reason: str = "") -> HttpResponse:
+def csrf_failure(request, reason="", template_name=""):
     return HttpResponseForbidden("Please reload")

@@ -47,6 +47,7 @@ def _increment_counter() -> int:
     return counter.value
 
 
+@user_manager.tracked
 def context(request: WSGIRequest) -> Dict[str, Any]:
     """Returns the base context that is needed on every page.
     Increments the visitors counter."""

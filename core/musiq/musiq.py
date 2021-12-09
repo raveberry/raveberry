@@ -48,6 +48,7 @@ def get_alarm_metadata() -> "Metadata":
         "internal_url": "alarm",
         "external_url": "https://raveberry.party/alarm",
         "stream_url": None,
+        "cached": True,
     }
 
 
@@ -195,6 +196,7 @@ def do_request_music(
 
 # accessed by the discord bot
 @csrf_exempt
+@user_manager.tracked
 def request_music(request: WSGIRequest) -> HttpResponse:
     """Endpoint to request music. Calls internal function."""
     key = request.POST.get("key")
@@ -222,6 +224,7 @@ def request_music(request: WSGIRequest) -> HttpResponse:
     return JsonResponse({"message": message, "key": queue_key})
 
 
+@user_manager.tracked
 def request_radio(request: WSGIRequest) -> HttpResponse:
     """Endpoint to request radio for the current song."""
     try:

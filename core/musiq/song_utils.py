@@ -22,6 +22,7 @@ if TYPE_CHECKING:
             "internal_url": str,
             "external_url": Optional[str],
             "stream_url": Optional[str],
+            "cached": bool,
         },
         total=False,
     )
@@ -108,6 +109,7 @@ def get_metadata(path: str) -> "Metadata":
         metadata["duration"] = parsed.info.length
     else:
         metadata["duration"] = -1
+    metadata["cached"] = True
 
     return metadata
 

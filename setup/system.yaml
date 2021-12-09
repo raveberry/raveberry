@@ -233,15 +233,6 @@
     daemon_reload: yes
     name: pulseaudio
 
-- name: Periodic youtube-dl updates
-  when: config.youtube is not defined or config.youtube
-  cron:
-    name: "update youtube-dl"
-    hour: "6"
-    minute: "0"
-    user: root
-    job: "/usr/bin/pip3 install -U youtube-dl"
-
 - name: Periodic backup script
   when: config.backup_command
   cron:
@@ -250,3 +241,22 @@
     minute: "0"
     user: root
     job: "{{ config.backup_command }}"
+
+- name: Periodic youtube-dl updates
+  when: config.youtube is not defined or config.youtube
+  cron:
+    name: "update youtube-dl"
+    hour: "5"
+    minute: "30"
+    user: root
+    job: "/usr/bin/pip3 install -U youtube-dl"
+
+- name: Periodic metadata sync
+  when: config.youtube is not defined or config.youtube
+  cron:
+    name: "sync song metadata"
+    hour: "6"
+    minute: "0"
+    user: www-data
+    job: "/usr/bin/python3 {{ config.install_directory }}/manage.py syncsongmetadata"
+

@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "watson",
+    "django.contrib.postgres",
     "channels",
 ]
 
@@ -60,8 +60,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "core.user_manager.SimpleMiddleware",
-    "watson.middleware.SearchContextMiddleware",
 ]
 
 ROOT_URLCONF = "main.urls"
@@ -150,6 +148,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# In order to avoid unexpected migrations when the default value is changed to BigAutoField,
+# set it here explicitly.
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Internationalization
 LANGUAGE_CODE = "en-us"

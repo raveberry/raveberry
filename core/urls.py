@@ -4,8 +4,7 @@ import inspect
 from typing import Any, List
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.urls import include, URLPattern
-from django.urls import path
+from django.urls import include, path, URLPattern
 from django.views.generic import RedirectView
 
 import core.api as api

@@ -7,6 +7,8 @@
   become_user: postgres
   postgresql_db:
     name: raveberry
+    # Need to be owner in order to alter database and create extensions
+    owner: raveberry
   register: database
 
 - name: Prepare database
@@ -24,14 +26,6 @@
           User.objects.create_superuser('admin', email='', password='{{ lookup('env', 'ADMIN_PASSWORD') or 'admin' }}')
           User.objects.create_user('mod', password='mod')
       register: users
-
-    - name: "Prepare database: Initialize search engine"
-      become_user: www-data
-      command: python3 "{{ config.install_directory }}/manage.py" "{{ item }}"
-      with_items:
-        - migrate
-        - installwatson
-        - buildwatson
 
 - name: Restore backup
   when: config.db_backup
@@ -57,6 +51,7 @@
       become_user: postgres
       postgresql_db:
         name: raveberry
+        owner: raveberry
         state: present
     - name: "Restore backup: Copy database backup to target"
       copy:

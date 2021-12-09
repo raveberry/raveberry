@@ -42,11 +42,12 @@ class SongQueue(models.Manager):
             index=index,
             votes=votes,
             manually_requested=manually_requested,
-            internal_url=metadata["internal_url"],
-            external_url=metadata["external_url"],
             artist=metadata["artist"],
             title=metadata["title"],
             duration=metadata["duration"],
+            internal_url=metadata["internal_url"],
+            external_url=metadata["external_url"],
+            stream_url=metadata["stream_url"],
         )
         return song
 

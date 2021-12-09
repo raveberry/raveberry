@@ -2,6 +2,8 @@ from typing import Union, Any, Tuple
 
 from ast import literal_eval
 
+from cachetools import TTLCache, cached
+
 import core.models as models
 
 # maps key to default and type of value
@@ -90,7 +92,18 @@ defaults = {
     "last_screen_program": "Disabled",
 }
 
+# Settings change very rarely, cache them to reduce database roundtrips.
+# This is especially advantageous for suggestions which check whether platforms are enabled.
+# There is a data inconsistency issue when a setting is changed in one process.
+# Only that process would flush its cache, others would retain the stale value.
+# This could be fixed by communicating the cache flush through redis.
+# However, with the daphne setup there is currently only one process handling requests,
+# and settings are never changed outside a request (especially not in a celery worker).
+# So this is fine as long as no additional daphne (or other) workers are used.
+cache = TTLCache(ttl=10, maxsize=128)
 
+
+@cached(cache)
 def get(key: str) -> Union[bool, int, float, str, Tuple]:
     """This method returns the value for the given :param key:.
     Vaules of non-existing keys are set to their respective default value."""
@@ -118,3 +131,4 @@ def set(key: str, value: Any) -> None:
     )[0]
     setting.value = value
     setting.save()
+    cache.clear()

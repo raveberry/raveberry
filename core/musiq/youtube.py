@@ -21,6 +21,7 @@ from django.http.response import HttpResponse
 
 import core.musiq.song_utils as song_utils
 import core.settings.storage as storage
+from core.models import ArchivedSong
 from core.musiq import musiq
 from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
@@ -242,13 +243,16 @@ class YoutubeSongProvider(SongProvider, Youtube):
     def get_metadata(self) -> "Metadata":
         if not self.id:
             raise ValueError()
-        metadata = song_utils.get_metadata(self._get_path())
-
+        try:
+            archived_song = ArchivedSong.objects.get(url=self.get_external_url())
+            metadata = archived_song.get_metadata()
+        except ArchivedSong.DoesNotExist:
+            metadata = song_utils.get_metadata(self._get_path())
+        metadata["internal_url"] = self.get_internal_url()
+        metadata["external_url"] = self.get_external_url()
+        metadata["stream_url"] = None
         if not metadata["title"]:
             metadata["title"] = metadata["external_url"]
-        metadata["internal_url"] = self.get_internal_url()
-        metadata["external_url"] = "https://www.youtube.com/watch?v=" + self.id
-        metadata["stream_url"] = None
 
         return metadata
 

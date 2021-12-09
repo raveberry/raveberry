@@ -1,14 +1,9 @@
-# https://github.com/django/asgiref/issues/218
-# newer asgiref versions effectively make channels single-threaded
-asgiref==3.2.*
 cachetools>=4.2.1
 celery>=5.1.2
-# https://github.com/django/channels/issues/1390
-channels==2.*
-channels-redis>=2.4.0
-Django==2.2.*
+channels==3.*
+channels-redis==3.*
+Django==4.*
 django-ipware>=2.1.0
-django-watson>=1.5.5
 mopidyapi>=1.0.0
 mutagen>=1.42.0
 python-dateutil>=2.8.0
