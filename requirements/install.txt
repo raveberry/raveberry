@@ -1,5 +1,5 @@
 # Ansible 4.5.0 is required due to https://github.com/raveberry/raveberry/issues/115
 # Ansible 5 will require Python 3.8 but Raspberry Pis still use Python 3.7
-ansible==4.5.*
+ansible==5.*
 # newer pyyaml versions don't have wheels on piwheels
 pyyaml==5.4

@@ -34,7 +34,7 @@ setuptools.setup(
     ],
     packages=["raveberry"],
     include_package_data=True,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     extras_require={
         "install": install_packages,
         "run": run_packages,
