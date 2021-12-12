@@ -120,14 +120,17 @@ class DeviceManager:
                 self.alarm_stopped()
                 continue
 
+            if settings_changed == "adjust_screen":
+                self.screen.adjust()
+                continue
+
+            # flush the cache before accessing the database so no stale data is read
+            storage.cache.clear()
+
             if settings_changed == "base":
                 # base settings affecting every device were modified
                 self.fixed_color = storage.get("fixed_color")
                 self.program_speed = storage.get("program_speed")
-                continue
-
-            if settings_changed == "adjust_screen":
-                self.screen.adjust()
                 continue
 
             # a device was changed

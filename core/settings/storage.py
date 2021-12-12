@@ -100,13 +100,14 @@ defaults = {
 # However, with the daphne setup there is currently only one process handling requests,
 # and settings are never changed outside a request (especially not in a celery worker).
 # So this is fine as long as no additional daphne (or other) workers are used.
+# The lights flushes the cache in its update function.
 cache = TTLCache(ttl=10, maxsize=128)
 
 
 @cached(cache)
 def get(key: str) -> Union[bool, int, float, str, Tuple]:
     """This method returns the value for the given :param key:.
-    Vaules of non-existing keys are set to their respective default value."""
+    Values of non-existing keys are set to their respective default value."""
     # values are stored as string in the database
     # cast the value to its respective type, defined by the default value, before returning it
     default = defaults[key]
