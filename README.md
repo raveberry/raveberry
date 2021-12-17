@@ -2,8 +2,8 @@
 
 [![Build Status](https://img.shields.io/github/workflow/status/raveberry/raveberry/Publish%20Raveberry)](https://github.com/raveberry/raveberry/actions/workflows/publish.yml)
 [![PyPI](https://img.shields.io/pypi/v/raveberry)](https://pypi.org/project/raveberry/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/raveberry?style=social)](https://www.reddit.com/r/raveberry/)
+[![Discord](https://img.shields.io/discord/920392796173631500?logo=discord&style=social)](https://discord.gg/dy7Jxvjj9H )
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
@@ -241,9 +241,11 @@ Now you should be able to start the server with `raveberry run`, login with admi
 
 ## More Information
 
-Feel free to visit [`docs/`](docs/) for more information about usage, resources etc.
+The [`docs/`](docs/) folder contains more information about usage, resources etc.
 
-Don't hesitate to mail me for feedback or open an issue if you experience any problems.
+Don't hesitate to mail me for feedback or open an issue if you experience any problems. There is also a Reddit and a Discord community:
+* Reddit: https://www.reddit.com/r/raveberry/
+* Discord: https://discord.gg/dy7Jxvjj9H 
 
 If you like this project, you can support me here:  
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZUPUUHFQMZNQQ)
