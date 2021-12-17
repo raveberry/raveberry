@@ -28,6 +28,7 @@
     "postcss-cli": "^8.3.1",
     "purgecss": "^4.0.2",
     "sass": "^1.32.5",
+    "terser-webpack-plugin": "^5.2.5",
     "ts-jest": "^26.5.0",
     "typescript": "^4.1.3",
     "webpack": "^5.23.0",
@@ -35,11 +36,11 @@
     "webpack-cli": "^4.5.0"
   },
   "scripts": {
-    "js": "rm -f ../static/bundle.js && tsc && webpack --mode production && cp dist/bundle.js ../static/bundle.js",
-    "css": "sass scss/style.scss dist/style.css && purgecss -c purgecss.config.js --css dist/style.css -o dist/style.purged.css && postcss dist/style.purged.css > ../static/style.css",
-    "fonts": "./subtype.sh",
-    "watch-js": "rm -f ../static/bundle.js && mkdir -p dist && touch dist/bundle.js && ln dist/bundle.js ../static/bundle.js && tsc --watch & webpack --mode development --no-devtool --watch",
-    "watch-css": "sass --watch scss/style.scss ../static/style.css",
+    "js": "tsc && webpack --mode production && cp dist/bundle.js ../backend/static/",
+    "css": "sass scss/style.scss dist/style.full.css && purgecss -c purgecss.config.js --css dist/style.full.css -o dist/style.purged.css && postcss dist/style.purged.css > dist/style.css && cp dist/style.css ../backend/static/",
+    "fonts": "./subtype.sh && cp dist/*.woff2 ../backend/static/",
+    "watch-js": "rm -f ../backend/static/bundle.js && mkdir -p dist && touch dist/bundle.js && ln dist/bundle.js ../backend/static/bundle.js && tsc --watch & webpack --mode development --no-devtool --watch",
+    "watch-css": "sass --watch scss/style.scss ../backend/static/style.css",
     "test": "jest --runInBand",
     "build": "yarn js && yarn css && yarn fonts"
   }

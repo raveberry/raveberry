@@ -1,20 +1,20 @@
 import setuptools
 
-with open("raveberry/VERSION") as f:
+with open("backend/VERSION") as f:
     version = f.read().strip()
 
-with open("raveberry/README.md") as f:
+with open("README.md") as f:
     long_description = f.read()
 
-with open("raveberry/requirements/common.txt") as f:
+with open("backend/requirements/common.txt") as f:
     run_packages = f.read().splitlines()
-with open("raveberry/requirements/youtube.txt") as f:
+with open("backend/requirements/youtube.txt") as f:
     run_packages.extend(f.read().splitlines())
 
-with open("raveberry/requirements/install.txt") as f:
+with open("backend/requirements/install.txt") as f:
     install_packages = f.read().splitlines()
 
-with open("raveberry/requirements/screenvis.txt") as f:
+with open("backend/requirements/screenvis.txt") as f:
     screenvis_packages = f.read().splitlines()
 
 setuptools.setup(
@@ -28,7 +28,7 @@ setuptools.setup(
     url="https://github.com/raveberry/raveberry",
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Framework :: Django :: 2.2",
+        "Framework :: Django",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Programming Language :: Python :: 3",
     ],
@@ -40,5 +40,5 @@ setuptools.setup(
         "run": run_packages,
         "screenvis": screenvis_packages,
     },
-    scripts=["raveberry/bin/raveberry"],
+    scripts=["bin/raveberry"],
 )

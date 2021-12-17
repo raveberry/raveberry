@@ -19,7 +19,7 @@ except ModuleNotFoundError:
     module_found = False
     module_raveberry_directory = None
 
-local_raveberry_directory = str(pathlib.Path(__file__).parent.parent)
+local_raveberry_directory = str(pathlib.Path(__file__).parent.parent / "backend")
 raveberry_directory = None
 module_used = None
 default_config = None

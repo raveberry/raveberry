@@ -75,8 +75,8 @@ Install dev dependencies
 ```
 cd raveberry/
 pip3 install wheel
-pip3 install -r requirements/common.txt
-pip3 install -r requirements/dev.txt
+pip3 install -r backend/requirements/common.txt
+pip3 install -r backend/requirements/dev.txt
 ```
 
 Start development server

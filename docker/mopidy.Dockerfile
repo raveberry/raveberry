@@ -20,7 +20,7 @@ COPY docker/mopidy.conf /config/mopidy.conf
 # Copy the pulse-client configuration.
 COPY docker/pulse-client.conf /etc/pulse/client.conf
 
-COPY config/sounds/alarm.m4a /opt/raveberry/config/sounds/
+COPY backend/config/sounds/alarm.m4a /opt/raveberry/config/sounds/
 
 # Allows any user to run mopidy, but runs by default as a randomly generated UID/GID.
 ENV HOME=/var/lib/mopidy

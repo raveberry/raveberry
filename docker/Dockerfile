@@ -7,11 +7,11 @@ RUN pip install -U -r /youtube.txt &&\
 	mkdir logs
 
 # copying multiple directories in one layer is not easily doable
-COPY core /opt/raveberry/core
-COPY config /opt/raveberry/config
-COPY main /opt/raveberry/main
-COPY templates /opt/raveberry/templates
-COPY AUTHORS LICENSE manage.py VERSION /opt/raveberry/
+COPY backend/core /opt/raveberry/core
+COPY backend/config /opt/raveberry/config
+COPY backend/main /opt/raveberry/main
+COPY backend/templates /opt/raveberry/templates
+COPY AUTHORS LICENSE backend/manage.py backend/VERSION /opt/raveberry/
 COPY docker/entrypoint.sh /entrypoint.sh
 
 RUN mkdir -p /Music/raveberry

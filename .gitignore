@@ -2,11 +2,10 @@ __pycache__
 *.pyc
 *.swp
 
-/backup_*
-/db.sqlite3
+/backend/db.sqlite3
 
-/test_cache
-/test_library
+/backend/test_cache
+/backend/test_library
 
 # mypy
 /.mypy_cache/
@@ -16,7 +15,7 @@ __pycache__
 .venv/
 
 # frontend libraries
-node_modules/
+/frontend/node_modules/
 # frontend generated files
 /frontend/js
 /frontend/dist
@@ -25,12 +24,12 @@ node_modules/
 
 
 # generated static files
-/static/admin
-/static/bundle.js
-/static/*.css
-/static/*.css.map
-/static/*.woff2
-/static/apk/shareberry.apk
+/backend/static/admin
+/backend/static/bundle.js
+/backend/static/*.css
+/backend/static/*.css.map
+/backend/static/*.woff2
+/backend/static/apk/shareberry.apk
 
 # generated frontend
 /frontend/js
@@ -39,10 +38,10 @@ node_modules/
 /frontend/body.html
 
 # instance-specifig config files
-/config/secret_key.txt
-/config/homewifi
-/config/youtube_cookies.pickle
-/config/cache_dir
+/backend/config/secret_key.txt
+/backend/config/homewifi
+/backend/config/youtube_cookies.pickle
+/backend/config/cache_dir
 
 # log files
-/logs/*.log
+/backend/logs/*.log

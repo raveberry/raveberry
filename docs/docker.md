@@ -15,7 +15,7 @@ Note: Playback and voting should work as expected, but additional features like 
 
 If you want to use the remote streaming feature, use the separate docker-compose file:
 ```
-wget https://raw.githubusercontent.com/raveberry/raveberry/master/icecast.docker-compose.yml
+wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker/icecast.docker-compose.yml
 docker-compose -f icecast.docker-compose.yml up -d
 ```
 
