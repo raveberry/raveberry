@@ -1,5 +1,6 @@
-const webpack = require('webpack');
 const glob = require('glob');
+const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = {
   entry: glob.sync('./js/**/*.js'),
@@ -12,6 +13,19 @@ module.exports = {
   ],
   output: {
     filename: './bundle.js',
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+      }),
+    ],
   },
   externals: {
     // Popper is only used for dropdowns and tooltips, neither of which is used
