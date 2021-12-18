@@ -168,6 +168,7 @@ jobs:
         with:
           name: frontend-files
           path: backend/static/
+      - run: echo "VERSION=$(cat backend/VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
@@ -183,5 +184,5 @@ jobs:
       - run: pip install "django==4.*"
       - name: Copy static admin files
         run: cp -r "$(python -c 'import django, os; print(f"{os.path.dirname(django.__file__)}/contrib/admin/static/admin")')" static/admin
-      - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry .
-      - run: docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx .
+      - run: "docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/Dockerfile -t raveberry/raveberry:$VERSION -t raveberry/raveberry ."
+      - run: "docker buildx build --platform linux/amd64,linux/arm/v7 --output type=registry -f docker/nginx.Dockerfile -t raveberry/raveberry-nginx:$VERSION -t raveberry/raveberry-nginx ."
