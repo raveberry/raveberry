@@ -1,4 +1,4 @@
 -r common.txt
 # https://github.com/psycopg/psycopg2/issues/1293
-psycopg2==2.8.*
+psycopg2>=2.8
 hiredis>=2.0.0

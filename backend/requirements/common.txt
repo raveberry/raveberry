@@ -7,8 +7,7 @@ django-ipware>=2.1.0
 mopidyapi>=1.0.0
 mutagen>=1.42.0
 python-dateutil>=2.8.0
-# newer pyyaml versions don't have wheels on piwheels
-pyyaml==5.4
+pyyaml>=5.4
 qrcode>=6.1
 redis>=3.5.3
 requests>=2.22.0
