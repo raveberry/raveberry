@@ -11,3 +11,5 @@ pyyaml>=5.4
 qrcode>=6.1
 redis>=3.5.3
 requests>=2.22.0
+# https://www.piwheels.org/project/cryptography/
+cryptography==36.0.0
