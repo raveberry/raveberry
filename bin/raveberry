@@ -128,17 +128,18 @@ def run_server():
             print(line)
             if "HTTP server running" in line:
                 break
-    try:
-        subprocess.check_call(
-            ["pgrep", "-f", "celery -A core"], stdout=subprocess.DEVNULL
-        )
-    except subprocess.CalledProcessError:
-        print("celery not yet running, starting...")
-        celery = subprocess.Popen(
-            "python3 manage.py celery".split(),
-            env={"DJANGO_DEBUG": "1", **os.environ},
-            stdin=subprocess.DEVNULL,
-        )
+    if bool(os.environ.get("DJANGO_CELERY")):
+        try:
+            subprocess.check_call(
+                ["pgrep", "-f", "celery -A core"], stdout=subprocess.DEVNULL
+            )
+        except subprocess.CalledProcessError:
+            print("celery not yet running, starting...")
+            celery = subprocess.Popen(
+                "python3 manage.py celery".split(),
+                env={"DJANGO_DEBUG": "1", **os.environ},
+                stdin=subprocess.DEVNULL,
+            )
     try:
         subprocess.call(
             "python3 manage.py migrate".split(), env={"DJANGO_DEBUG": "1", **os.environ}
