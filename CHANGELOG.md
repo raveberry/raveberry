@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.10 - 2021-12-18
+- Restructured code into a backend folder to clean up the root folder
+- Added link to new discord server into readme
+- Debug setup uses threads instead of celery, speeding up reload significantly
+- Docker images are tagged with the version
+- Lights worker flushes the settings cache before loading settings. Program changes apply immediately.
+
 ## 0.9.9 - 2021-12-09
 - Big suggestion improvements:
 * Trigram similarity is used instead of full text search
@@ -25,7 +32,7 @@
 ## 0.9.8 - 2021-12-01
 - Fixed bug where color definitions got lost in the css minification process
 - Tapping an "error" suggestion does nothing
-- Buttons for queue control are further apart (and thus harder to mit-select)
+- Buttons for queue control are further apart (and thus harder to mis-select)
 
 ## 0.9.6 - 2021-11-27
 - Suggestions are much more responsive:
