@@ -265,7 +265,7 @@ For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config bef
             "-i",
             "localhost,",
             "-e",
-            "ansible_python_interpreter=auto",
+            "ansible_python_interpreter=auto_silent",
             "--connection",
             "local",
             "setup/system_install.yaml",
