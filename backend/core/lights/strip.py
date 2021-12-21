@@ -13,12 +13,18 @@ class Strip(Device):
         self.monochrome = True
 
         try:
-            import Adafruit_PCA9685
+            # from https://github.com/adafruit/Adafruit_CircuitPython_PCA9685/blob/main/examples/pca9685_simpletest.py
+            from board import SCL, SDA
+            import busio
+            from adafruit_pca9685 import PCA9685
         except ModuleNotFoundError:
             return
 
         try:
-            self.controller = Adafruit_PCA9685.PCA9685()
+            i2c_bus = busio.I2C(SCL, SDA)
+            self.controller = PCA9685(i2c_bus)
+            self.controller.frequency = 60
+
             self.initialized = True
             redis.set("strip_initialized", True)
         except (RuntimeError, OSError):
@@ -31,10 +37,9 @@ class Strip(Device):
             return
 
         for channel, val in enumerate(color):
-            # map the value to the interval [0, 4095]
             dimmed_val = val * self.brightness
             scaled_val = round(dimmed_val * 4095)
-            self.controller.set_pwm(channel, 0, scaled_val)
+            self.controller.channels[channel].duty_cycle = scaled_val
 
     def clear(self) -> None:
         """Turns off the strip by setting its color to black."""
@@ -42,4 +47,4 @@ class Strip(Device):
             return
 
         for channel in range(3):
-            self.controller.set_pwm(channel, 0, 0)
+            self.controller.channels[channel].duty_cycle = 0
