@@ -1,1 +1,1 @@
-raveberry_visualization
+raveberry_visualization>=0.1.0
