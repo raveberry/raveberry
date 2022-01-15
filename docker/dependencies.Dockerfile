@@ -20,5 +20,6 @@ RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
 
 RUN pip3 install -U pip
 
-RUN pip3 install -r docker.txt &&\
+# add piwheels index for armv7 wheels
+RUN pip3 install --extra-index-url https://www.piwheels.org/simple -r docker.txt &&\
 	rm -rf ~/.cache/pip
