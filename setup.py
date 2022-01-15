@@ -6,16 +6,24 @@ with open("backend/VERSION") as f:
 with open("README.md") as f:
     long_description = f.read()
 
+
+def parse_requirements(lines):
+    # remove comments, empty lines and arguments
+    return list(
+        line.split(" ")[0] for line in lines if line and not line.startswith("#")
+    )
+
+
 with open("backend/requirements/common.txt") as f:
-    run_packages = f.read().splitlines()
+    run_packages = parse_requirements(f.read().splitlines())
 with open("backend/requirements/youtube.txt") as f:
-    run_packages.extend(f.read().splitlines())
+    run_packages.extend(parse_requirements(f.read().splitlines()))
 
 with open("backend/requirements/install.txt") as f:
-    install_packages = f.read().splitlines()
+    install_packages = parse_requirements(f.read().splitlines())
 
 with open("backend/requirements/screenvis.txt") as f:
-    screenvis_packages = f.read().splitlines()
+    screenvis_packages = parse_requirements(f.read().splitlines())
 
 setuptools.setup(
     name="raveberry",
