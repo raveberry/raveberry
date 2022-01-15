@@ -212,8 +212,11 @@ This is a known issue on Ubuntu 20.04 and Debian Bullseye.
 To fix it, downgrade `libshout3`:
 ```
 cd /tmp
-wget http://mirrors.kernel.org/ubuntu/pool/main/libs/libshout/libshout3_2.4.1-2build1_amd64.deb
-sudo dpkg -i libshout3_2.4.1-2build1_amd64.deb
+# for x86_64
+wget http://mirrors.kernel.org/ubuntu/pool/main/libs/libshout/libshout3_2.4.1-2build1_amd64.deb -O libshout.deb
+# for armhf (Raspberry Pi)
+wget http://raspbian.raspberrypi.org/raspbian/pool/main/libs/libshout/libshout3_2.4.1-2_armhf.deb -O libshout.deb
+sudo dpkg -i libshout.deb
 sudo apt-mark hold libshout3
 ```
 
