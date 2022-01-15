@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.10.0 - 2022-01-15
+- Big visualization rework:
+* Visualization is more robust and more performant
+* A Pi 4 can comfortably render HD@30fps, before performance always degraded significantly
+* Switched library from [pi3d](https://github.com/tipam/pi3d/tree/master/pi3d) (Python) to [glium](https://github.com/glium/glium) (Rust)
+* Moved the code into its own repository: [https://github.com/raveberry/visualization](https://github.com/raveberry/visualization)
+* Optimized for tile-based GPUs: render directly to framebuffer, smaller and less complex shaders, less draw calls, moved computation to the CPU
+* Programs are loaded dynamically, new shaders will show up as new programs
+* UPS and resolution can be can be configured in `/lights`
+* X resolution is adjusted to adapt to performance fluctuations
+* Instead of a white xterm, the Raveberry logo is shown when no screen program is active
+* Added new screen program that loops through a colored Raveberry logo
+* Removed old code and dependencies
+* Hide programs that require cava if it is not installed
+
+- Raveberry exits explicitly when restarting. Sometimes, it needed to wait for a timeout, now restarts are much faster.
+- Task strategy can be switched between celery and threads for low memory devices
+
+- Visualization is possible from docker setup
+- Added environment variable for docker setup to deal with CSRF issue
+- Host and IP for all services can be set via environment variables
+- Merged `icecast.docker-compose.yml` and `docker-compose.yml`, only the latter one exists now
+- `MOPIDY_OUTPUT` can now contain slashes, e.g. for paths of filesinks
+
+- Created dedicated resources folder for images/videos/sounds
+- `raveberry system-install` is now just `raveberry install`
+- Added `raveberry install --use-default-password-i-promise-ill-change-it` to allow easier scripted installs
+- Move to actively developed PCA library for the led strip
+- Problematic python dependencies are forced to be install from wheels, speeding up installation
+- Install cava from apt instead of building from source, speeding up installation
+- Simplified cava config
+- Changed message when there are no hashtags
+- Removed unused scripts
+- Buzzer cooldown is a float
+- Ansible warning silenced
+
 ## 0.9.10 - 2021-12-18
 - Restructured code into a backend folder to clean up the root folder
 - Added link to new discord server into readme
