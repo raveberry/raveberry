@@ -1,9 +1,18 @@
 """This module provides app wide utility functions."""
 import subprocess
-from typing import List
+from contextlib import contextmanager
+from typing import List, Tuple
 
-from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden
+
+
+@contextmanager
+def optional(condition, context_manager):
+    if condition:
+        with context_manager:
+            yield
+    else:
+        yield
 
 
 def camelize(snake_dict: dict) -> dict:
@@ -65,3 +74,7 @@ def service_installed(service: str) -> bool:
 
 def csrf_failure(request, reason="", template_name=""):
     return HttpResponseForbidden("Please reload")
+
+
+def format_resolution(resolution: Tuple[int]) -> str:
+    return "{}x{}".format(*resolution)

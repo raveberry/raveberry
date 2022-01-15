@@ -2,14 +2,14 @@ cachetools>=4.2.1
 celery>=5.1.2
 channels==3.*
 channels-redis==3.*
+# Avoid building from source as it would require a Rust toolchain
+cryptography --only-binary=cryptography
 Django==4.*
 django-ipware>=2.1.0
 mopidyapi>=1.0.0
 mutagen>=1.42.0
 python-dateutil>=2.8.0
-pyyaml>=5.4
+pyyaml>=5.4 --only-binary=pyyaml
 qrcode>=6.1
 redis>=3.5.3
 requests>=2.22.0
-# https://www.piwheels.org/project/cryptography/
-cryptography==36.0.0

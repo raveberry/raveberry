@@ -27,7 +27,7 @@ class Strip(Device):
 
             self.initialized = True
             redis.set("strip_initialized", True)
-        except (RuntimeError, OSError):
+        except ValueError:
             # LED strip is not connected
             return
 

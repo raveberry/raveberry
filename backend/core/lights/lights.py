@@ -9,7 +9,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from core import user_manager, base, redis
+from core import user_manager, base, redis, util
 from core.settings import storage
 from core.state_handler import send_state
 
@@ -34,6 +34,15 @@ def state_dict() -> Dict[str, Any]:
     lights_state["stripBrightness"] = storage.get("strip_brightness")
     lights_state["screenConnected"] = redis.get("screen_initialized")
     lights_state["screenProgram"] = storage.get("screen_program")
+    lights_state["initialResolution"] = util.format_resolution(
+        storage.get("initial_resolution")
+    )
+    lights_state["dynamicResolution"] = storage.get("dynamic_resolution")
+    lights_state["currentResolution"] = util.format_resolution(
+        redis.get("current_resolution")
+    )
+    lights_state["currentFps"] = f"{redis.get('current_fps'):.2f}"
+    lights_state["ups"] = storage.get("ups")
     lights_state["programSpeed"] = storage.get("program_speed")
     lights_state["fixedColor"] = "#{:02x}{:02x}{:02x}".format(
         *(int(val * 255) for val in storage.get("fixed_color"))
@@ -51,9 +60,11 @@ def index(request: WSGIRequest) -> HttpResponse:
     context = base.context(request)
     context["urls"] = urls.lights_paths
     # programs that have a strip_color or ring_color function are color programs
-    # programs that have a draw function are screen programs
-    context["color_program_names"] = ["Disabled", "Fixed", "Rainbow", "Rave"]
-    context["screen_program_names"] = ["Disabled", "Circular"]
+    context["led_programs"] = redis.get("led_programs")
+    context["screen_programs"] = redis.get("screen_programs")
+    context["resolutions"] = [
+        util.format_resolution(resolution) for resolution in redis.get("resolutions")
+    ]
     return render(request, "lights.html", context)
 
 

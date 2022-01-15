@@ -1,2 +1,2 @@
-class RenderingStoppedException(Exception):
+class ScreenProgramStopped(Exception):
     pass

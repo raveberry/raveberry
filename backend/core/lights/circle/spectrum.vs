@@ -1,1 +1,0 @@
-fixed_z.vs

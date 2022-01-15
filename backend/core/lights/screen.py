@@ -1,12 +1,15 @@
 """This module handles the screen configuration."""
-
-import importlib.util
+import math
+import re
 import subprocess
-import time
 import os
+from typing import List, Tuple, Optional
 
-from core import redis
+import main.settings as conf
+from core import redis, util
+from core.lights import lights
 from core.lights.device import Device
+from core.settings import storage
 
 
 class Screen(Device):
@@ -14,61 +17,24 @@ class Screen(Device):
 
     def __init__(self, manager) -> None:
         super().__init__(manager, "screen")
-        self.initialized = False
-        self.adjust()
 
-    def adjust(self) -> None:
-        """Check whether the system is set up to run screen visualization.
-        Resets the resolution, needed after hotplugging Raspberry Pis for higher resolution."""
-
-        # require pi3d to be installed
-        spec = importlib.util.find_spec("pi3d")
-        if spec is None:
+        # set the DISPLAY environment variable the correct X Display is used
+        os.environ["DISPLAY"] = ":0"
+        # the visualization needs X to work, so we check if it is running
+        try:
+            subprocess.check_call(
+                "xset q".split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            # Cannot connect to X
             return
 
-        # pi3d needs X to work, so we check if it is running
-        # set the DISPLAY environment variable so pi3d uses the correct X Display
-        os.environ["DISPLAY"] = ":0"
-        # https://github.com/tipam/pi3d/issues/249
-        # from Ubuntu 20, EGL_PLATFORM needs to be explicitly set to x11
-        os.environ["EGL_PLATFORM"] = "x11"
+        # disable blanking and power saving
+        subprocess.call("xset s off".split())
+        subprocess.call("xset s noblank".split())
+        subprocess.call("xset -dpms".split())
 
-        # don't offer this feature on raspberry pi 3
-        try:
-            with open("/proc/device-tree/model") as f:
-                model = f.read()
-                if model.startswith("Raspberry Pi 3"):
-                    return
-                if model.startswith("Raspberry Pi 4"):
-                    # restart X to increase resolution if the cable was plugged in after boot
-                    subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_x"])
-
-                    for _ in range(20):
-                        try:
-                            subprocess.check_call(
-                                "xset q".split(),
-                                stdout=subprocess.DEVNULL,
-                                stderr=subprocess.DEVNULL,
-                            )
-                            break
-                        except subprocess.CalledProcessError:
-                            time.sleep(0.1)
-                    else:
-                        # X could not be started for some reason
-                        return
-        except FileNotFoundError:
-            # we are not running on a raspberry pi
-            try:
-                subprocess.check_call(
-                    "xset q".split(),
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-            except subprocess.CalledProcessError:
-                # Cannot connect to X
-                return
-
-        # this method should additionally check whether hdmi is connected
+        # method should additionally check whether hdmi is connected
         # however, I found no way to do that
         # without hdmi_force_hotplug=1:
         # tvservice -M gives attached events, but tvserice -s is always connected
@@ -81,5 +47,102 @@ class Screen(Device):
         self.initialized = True
         redis.set("screen_initialized", True)
 
+        self.output = self.get_primary()
+        self.resolution = (0, 0)  # set in adjust
+        self.adjust()
+
+    def adjust(self) -> None:
+        """Updates resolutions and resets the current one.
+        Needed after changing screens or hotplugging after booting without a connected screen."""
+        self.resolution = storage.get("initial_resolution")
+        resolutions = list(reversed(sorted(self.list_resolutions())))
+        redis.set("resolutions", resolutions)
+        # if unset, initialize with the highest resolution
+        if self.resolution == (0, 0):
+            storage.set("initial_resolution", resolutions[0])
+            self.resolution = resolutions[0]
+        self.set_resolution(self.resolution)
+
     def clear(self) -> None:
+        # when no program is running, nothing is shown on screen
         pass
+
+    def get_primary(self) -> Optional[str]:
+        for line in subprocess.check_output(
+            "xrandr -q".split(), text=True
+        ).splitlines():
+            output = re.match(r"(\S+) connected primary", line)
+            if output:
+                return output.group(1)
+        return None
+
+    def list_resolutions(self) -> List[Tuple[int]]:
+        """Returns all supported resolutions that match the preferred resolution in aspect ratio."""
+        if not self.initialized:
+            return []
+        modes = []
+        listing_modes = False
+        preferred_mode = (1280, 720)
+        for line in subprocess.check_output(
+            "xrandr -q".split(), text=True
+        ).splitlines():
+            output = re.match(r"(\S+) connected", line)
+            if output:
+                if output.group(1) == self.output:
+                    listing_modes = True
+                else:
+                    listing_modes = False
+            if not listing_modes:
+                continue
+            match = re.match(r"\s+(\d+x\d+)\s+\d+\.\d+", line)
+            if match:
+                mode = tuple(map(int, match.group(1).split("x")))
+                modes.append(mode)
+                if "+" in line:
+                    preferred_mode = mode
+        preferred_ratio = preferred_mode[0] / preferred_mode[1]
+        usable_modes = []
+        for mode in modes:
+            ratio = mode[0] / mode[1]
+            if math.isclose(ratio, preferred_ratio, rel_tol=0.1):
+                usable_modes.append(mode)
+        return usable_modes
+
+    def set_resolution(self, resolution: Tuple[int]) -> None:
+        if not self.initialized:
+            return
+        subprocess.call(
+            [
+                "xrandr",
+                "--output",
+                self.output,
+                "--mode",
+                util.format_resolution(resolution),
+            ]
+        )
+
+        if not conf.DEBUG:
+            # show a background that is visible when the visualization is not rendering
+            # needs to be reset every resolution change
+            try:
+                subprocess.call(
+                    [
+                        "feh",
+                        "--bg-max",
+                        os.path.join(conf.BASE_DIR, "resources/images/background.png"),
+                    ]
+                )
+            except FileNotFoundError:
+                pass
+
+        redis.set("current_resolution", resolution)
+        self.resolution = resolution
+        lights.update_state()
+
+    def lower_resolution(self) -> None:
+        if not self.initialized:
+            return
+        resolutions = redis.get("resolutions")
+        index = resolutions.index(self.resolution)
+        index = min(index + 1, len(resolutions) - 1)
+        self.set_resolution(resolutions[index])

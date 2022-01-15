@@ -3,6 +3,7 @@ import sys
 import logging
 import os
 import atexit
+from distutils.util import strtobool
 
 from django.apps import AppConfig
 from django.conf import settings as conf
@@ -14,7 +15,7 @@ class CoreConfig(AppConfig):
     name = "core"
 
     def ready(self) -> None:
-        if "celery" in sys.argv and os.environ.get("RUN_MAIN", None) == "true":
+        if "celery" in sys.argv and strtobool(os.environ.get("RUN_MAIN", "0")):
             # if the development celery process starts,
             # have it import all modules containing celery tasks
             # this way, its autoreload is notified on changes in these modules
@@ -36,7 +37,7 @@ class CoreConfig(AppConfig):
         # in debug mode and the main application is run (not autoreload)
         # or in prod mode (run by daphne)
         start_raveberry = (
-            "runserver" in sys.argv and os.environ.get("RUN_MAIN", None) == "true"
+            "runserver" in sys.argv and strtobool(os.environ.get("RUN_MAIN", "0"))
         ) or (sys.argv[0].endswith("daphne"))
 
         if conf.TESTING:

@@ -425,6 +425,21 @@
 		<button class="btn" id="enable-remote">Enable Remote</button>
 	</li>
 </ul>
+	<ul class="list-group system-install-only">
+		<li class="list-group-item list-item">
+			<span class="description">Task Strategy:</span>
+			<div id="task-strategy"></div>
+		</li>
+		<li class="list-group-item">
+			Celery is slightly slower during startup and requires more RAM, but faster when running.
+			Choose Threads if you restart your server often or are on a weak system (e.g. Pi Zero).
+			Changing strategy restarts the server.
+		</li>
+		<li class="list-group-item list-item">
+			<button class="btn" id="disable-celery">Use Threads</button>
+			<button class="btn" id="enable-celery">Use Celery</button>
+		</li>
+	</ul>
 <ul class="list-group system-install-only">
 	<li class="list-group-item list-item">
 		<button class="btn" id="restart-server">Restart Server</button>

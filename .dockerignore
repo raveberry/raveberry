@@ -7,3 +7,4 @@ frontend
 
 # don't have the container inherit our cache path
 backend/config/cache_dir
+backend/config/cava_fifo

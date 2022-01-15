@@ -69,7 +69,9 @@ class Playback:
             # this works because everything is run in a single process
             self.player = controller.player
         else:
-            self.player: MopidyAPI = MopidyAPI(host=conf.MOPIDY_HOST)
+            self.player: MopidyAPI = MopidyAPI(
+                host=conf.MOPIDY_HOST, port=conf.MOPIDY_PORT
+            )
         self.playback_started = Event()
         redis.set("playing", False)
 
@@ -97,7 +99,8 @@ class Playback:
                 self.player.tracklist.clear()
             self.player.tracklist.add(
                 uris=[
-                    "file://" + os.path.join(conf.BASE_DIR, "config/sounds/alarm.m4a")
+                    "file://"
+                    + os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
                 ]
             )
             self.player.playback.play()

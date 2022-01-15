@@ -1,5 +1,5 @@
 [Unit]
-Description=test install
+Description=Upgrade Raveberry
 
 [Service]
 # Type=oneshot would wait for the script to exit

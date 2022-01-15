@@ -1,14 +1,15 @@
+# https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+# Dependencies cannot be overriden,
+# so the base service needs to be the one without celery
 [Unit]
-Description=daphne daemon
-After=celery.service
-Requires=celery.service
+Description=daphne daemon without celery
 
 [Service]
 PIDFile=/run/daphne/pid
 User=www-data
 Group=www-data
 WorkingDirectory={{ config.install_directory }}
-Environment="DJANGO_SETTINGS_MODULE=main.settings"
+Environment="DJANGO_SETTINGS_MODULE=main.settings" "DJANGO_NO_CELERY=1"
 ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application
 StandardOutput=file:{{ config.install_directory }}/logs/daphne_info.log
 StandardError=file:{{ config.install_directory }}/logs/daphne_error.log

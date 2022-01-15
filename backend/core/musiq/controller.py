@@ -50,7 +50,7 @@ SEEK_DISTANCE = 10
 def start() -> None:
     """Initializes this module by restoring the volume."""
     global player
-    player = MopidyAPI(host=conf.MOPIDY_HOST)
+    player = MopidyAPI(host=conf.MOPIDY_HOST, port=conf.MOPIDY_PORT)
     volume = storage.get("volume")
     _set_volume(volume)
 
@@ -180,7 +180,7 @@ def _set_volume(volume) -> None:
         # This is faster and does not impact visualization
         subprocess.run(
             f"pactl set-sink-volume @DEFAULT_SINK@ {round(volume*100)}%".split(),
-            env={"PULSE_SERVER": "127.0.0.1"},
+            env={"PULSE_SERVER": conf.PULSE_SERVER},
             check=True,
         )
     except (FileNotFoundError, subprocess.CalledProcessError):

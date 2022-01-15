@@ -2,4 +2,5 @@
 -r youtube.txt
 -r spotify.txt
 -r soundcloud.txt
+-r screenvis.txt
 https://github.com/DarwinAwardWinner/rganalysis/archive/refs/tags/v3.6.zip

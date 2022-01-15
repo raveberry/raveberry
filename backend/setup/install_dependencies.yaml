@@ -1,4 +1,4 @@
-- name: apt update (may take some time) + install gpg 
+- name: apt update (may take some time) + install gpg
   apt:
     update_cache: yes
     pkg:
@@ -104,16 +104,11 @@
     - name: "Install screen visualization dependencies: Install apt dependencies"
       apt:
         pkg:
-        # these packages are installed via apt because pip ships too new versions
-        - python3-numpy
-        - python3-scipy
-        - python3-pil
-        - mesa-utils # graphics drivers
-        - mesa-utils-extra # contains libgles2
+        - feh # image viewer
         - xorg # X is needed for displaying
     - name: "Install screen visualization dependencies: Install python dependencies"
       pip:
-        name: pi3d
+        requirements: "{{ config.install_directory }}/requirements/screenvis.txt"
 
 - name: Install buzzer dependencies
   when: config.buzzer is defined and config.buzzer
@@ -125,39 +120,11 @@
   pip:
     requirements: "{{ config.install_directory }}/requirements/ledvis.txt"
 
-- name: Check if cava executable is present
-  shell: type cava
-  register: type_cava
-  changed_when: no
-  failed_when: no
-
 - name: Install cava
-  when: (config.led_visualization or config.screen_visualization) and type_cava.rc != 0
-  block:
-    # from https://github.com/karlstav/cava
-    - name: "Install cava: Install apt dependencies"
-      apt:
-        pkg:
-          - git
-          - libfftw3-dev
-          - libasound2-dev
-          - libncursesw5-dev
-          - libpulse-dev
-          - libtool
-          - m4
-          - automake
-          - libtool
-    - name: "Install cava: Git checkout"
-      git:
-        repo: https://github.com/karlstav/cava
-        dest: /opt/cava
-    - name: "Install cava: Build"
-      command: chdir=/opt/cava/ {{ item }}
-      with_items:
-      - ./autogen.sh
-      - ./configure
-      - make
-      - make install
+  when: config.led_visualization or config.screen_visualization
+  apt:
+    pkg:
+      - cava
 
 - name: Check if rganalysis executable is present
   shell: type rganalysis
@@ -204,6 +171,38 @@
     - name: "Install rganalysis: Install rganalysis"
       pip:
         name: https://github.com/DarwinAwardWinner/rganalysis/archive/refs/tags/v3.6.zip
+
+- name: Check if omxplayer executable is present
+  shell: type omxplayer
+  register: type_omxplayer
+  changed_when: no
+  failed_when: no
+
+# omxplayer was deprecated in bullseye, but is the only player that provides smooth looping with hardware acceleration.
+# Download the latest package from the Raspberry Pi repository.
+- name: Install omxplayer
+  when: config.screen_visualization and type_omxplayer.rc != 0 and pi
+  block:
+    - name: "Install omxplayer: Download package"
+      get_url:
+        url: http://archive.raspberrypi.org/debian/pool/main/o/omxplayer/omxplayer_20190723+gitf543a0d-1+bullseye_armhf.deb
+        dest: /tmp/omxplayer.deb
+    - name: "Install omxplayer: Install omxplayer"
+      apt:
+        deb: /tmp/omxplayer.deb
+
+- name: Check if /opt/vc is present
+  stat:
+    path: /opt/vc
+  register: opt_vc
+
+# omxplayer requires the /opt/vc binaries to work
+# downloading single folders from github is (still) easiest with svn
+- name: Download /opt/vc
+  when: config.screen_visualization and not opt_vc.stat.exists and pi
+  subversion:
+    repo: https://github.com/raspberrypi/firmware/trunk/opt/vc
+    dest: /opt/vc
 
 - name: Install system scripts
   copy:

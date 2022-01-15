@@ -6,6 +6,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from typing import Dict, Optional, Tuple
 
 import cachetools.func
@@ -230,9 +231,26 @@ def enable_remote(_request: WSGIRequest) -> None:
 
 
 @control
+def disable_celery(_request: WSGIRequest) -> None:
+    """Disables the use of celery and switches to using threads instead."""
+    subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_celery"])
+    sys.exit(0)
+
+
+@control
+def enable_celery(_request: WSGIRequest) -> None:
+    """Enables the use of celery for long running tasks."""
+    subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_celery"])
+    sys.exit(0)
+
+
+@control
 def restart_server(_request: WSGIRequest) -> None:
     """Restarts the server."""
     subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_server"])
+    # if the restart was triggered from the web UI, the service is stuck on deactivating
+    # exit this process to restart immediately
+    sys.exit(0)
 
 
 @control
@@ -278,7 +296,10 @@ def fetch_latest_version() -> Optional[str]:
         if "from versions" in line:
             versions = [re.sub(r"[^0-9.]", "", token) for token in line.split()]
             versions = [version for version in versions if version]
-            latest_version = versions[-1]
+            try:
+                latest_version = versions[-1]
+            except IndexError:
+                return None
             return latest_version
     else:
         return None
@@ -315,7 +336,5 @@ def get_upgrade_config(_request: WSGIRequest) -> HttpResponse:
 @control
 def upgrade_raveberry(_request: WSGIRequest) -> HttpResponse:
     """Performs an upgrade of raveberry."""
-
     subprocess.call(["sudo", "/usr/local/sbin/raveberry/start_upgrade_service"])
-
     return HttpResponse("Upgrading... Look for logs in /var/www/")

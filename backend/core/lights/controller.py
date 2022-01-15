@@ -47,11 +47,16 @@ def alarm_stopped() -> None:
     _notify_settings_changed("alarm_stopped")
 
 
-def set_program(device: str, program: str) -> None:
-    """Updates the given device to the given program."""
+def persist_program_change(device, program) -> None:
+    """Persist the program in the database."""
     current_program = storage.get(f"{device}_program")
     storage.set(f"last_{device}_program", current_program)
     storage.set(f"{device}_program", program)
+
+
+def set_program(device: str, program: str) -> None:
+    """Updates the given device to the given program."""
+    persist_program_change(device, program)
     _notify_settings_changed(device)
 
 
@@ -72,6 +77,14 @@ def set_lights_shortcut(request: WSGIRequest) -> None:
     else:
         for device in ["ring", "wled", "strip"]:
             set_program(device, "Disabled")
+
+
+@control
+def set_ups(request: WSGIRequest) -> None:
+    """Updates the global speed of programs supporting it."""
+    value = float(request.POST.get("value"))  # type: ignore
+    storage.set("ups", value)
+    _notify_settings_changed("base")
 
 
 @control
@@ -199,23 +212,30 @@ def set_strip_brightness(request: WSGIRequest) -> None:
 
 
 @control
+def adjust_screen(_request: WSGIRequest) -> None:
+    """Adjusts the resolution of the screen."""
+    _notify_settings_changed("adjust_screen")
+
+
+@control
 def set_screen_program(request: WSGIRequest) -> None:
     """Updates the screen program."""
     _handle_program_request("screen", request)
 
 
 @control
-def adjust_screen(_request: WSGIRequest) -> HttpResponse:
-    """Adjusts the resolution of the screen."""
-    if storage.get("screen_program") != "Disabled":
-        return HttpResponseBadRequest("Disable the screen program before readjusting")
-    # _notify_settings_changed("adjust_screen")
-    # After disabling the screen program, it cannot be started again
-    # (pi3d only shows the black background)
-    # We restart the lights worker so the library is reloaded,
-    # allowing the screen program to be shown again.
-    # During initialization, the screen will adjust itself.
-    redis.publish("lights_settings_changed", "stop")
-    worker.start()
+def set_initial_resolution(request: WSGIRequest) -> None:
+    """Sets the resolution used on the screen."""
+    value = request.POST.get("value")
+    resolution = tuple(map(int, value.split("x")))
+    storage.set("initial_resolution", resolution)
+    # adjusting sets the resolution and restarts the screen program
+    _notify_settings_changed("adjust_screen")
 
-    return HttpResponse()
+
+@control
+def set_dynamic_resolution(request: WSGIRequest) -> None:
+    """Sets whether the resolution should be dynamically adjusted depending on the performance."""
+    enabled = request.POST.get("value") == "true"  # type: ignore
+    storage.set("dynamic_resolution", enabled)
+    _notify_settings_changed("base")

@@ -7,6 +7,12 @@ if [[ "$1" == *"daphne" || "${@}" == *"manage.py"* ]]; then
 
 	python3 manage.py migrate --noinput
 
+	if [ -z "$ADMIN_PASSWORD" ]; then
+		echo "\$ADMIN_PASSWORD not set"
+		echo "Do you have the .env in your directory?"
+		exit 1
+	fi
+
 	# create users in the database
 	python3 manage.py shell <<EOF
 from django.contrib.auth.models import User

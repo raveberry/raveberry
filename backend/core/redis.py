@@ -1,6 +1,7 @@
 """This module provides functionality to interface with Redis."""
 from ast import literal_eval
-from typing import Any, Union, List, Dict, Optional
+from distutils.util import strtobool
+from typing import Any, Union, List, Dict, Optional, Tuple
 
 from django.conf import settings as conf
 from redis import Redis
@@ -28,6 +29,11 @@ defaults = {
     "wled_initialized": False,
     "strip_initialized": False,
     "screen_initialized": False,
+    "led_programs": [],
+    "screen_programs": [],
+    "resolutions": [],
+    "current_resolution": (0, 0),
+    "current_fps": 0.0,
     # settings
     "has_internet": False,
     "youtube_available": False,
@@ -60,7 +66,7 @@ incr = redis_connection.incr
 decr = redis_connection.decr
 
 
-def get(key: str) -> Union[bool, int, float, str, List, Dict]:
+def get(key: str) -> Union[bool, int, float, str, List, Dict, Tuple]:
     """This method returns the value for the given :param key: from redis.
     Vaules of non-existing keys are set to their respective default value."""
     # values are stored as string in redis
@@ -71,8 +77,8 @@ def get(key: str) -> Union[bool, int, float, str, List, Dict]:
         return default
     if type(default) == bool:
         # bool("False") does not return False -> special case for bool
-        return value == "True"
-    elif type(default) in (list, dict):
+        return strtobool(value)
+    elif type(default) in (list, dict, tuple):
         # evaluate the stored literal
         return literal_eval(value)
     return type(default)(value)

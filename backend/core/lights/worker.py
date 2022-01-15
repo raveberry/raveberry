@@ -2,26 +2,30 @@
 
 from __future__ import annotations
 
+import math
+import os
+import shutil
+import signal
+import subprocess
 from threading import Thread, Event
 import time
 from typing import Dict, TYPE_CHECKING, TypeVar
 
 from django.db import connection
 
+from django.conf import settings as conf
 from core import redis
 from core.celery import app
+from core.lights import controller, lights
 from core.lights import leds
-from core.lights.circle.circle import Circle
 from core.lights.device import Device
-from core.lights.programs import Adaptive, LedProgram, ScreenProgram, VizProgram
-from core.lights.programs import Alarm
-from core.lights.programs import Cava
-from core.lights.programs import Disabled
-from core.lights.programs import Fixed
-from core.lights.programs import Rainbow
-from core.lights.exceptions import RenderingStoppedException
+from core.lights.programs import LedProgram, LightProgram, ScreenProgram
+from core.lights.programs import Alarm, Cava, Disabled
+from core.lights.led_programs import Adaptive, Fixed, Rainbow
+from core.lights.exceptions import ScreenProgramStopped
+from core.lights.screen_programs import Visualization, Video
 from core.settings import storage
-
+from core.util import optional
 
 if TYPE_CHECKING:
     from core.lights.ring import Ring
@@ -50,7 +54,7 @@ class DeviceManager:
         from core.lights.strip import Strip
         from core.lights.screen import Screen
 
-        self.ups = 30
+        self.ups = storage.get("ups")
         self.seconds_per_frame = 1 / self.ups
 
         self.loop_active = Event()
@@ -62,7 +66,10 @@ class DeviceManager:
         self.strip = Strip(self)
         self.screen = Screen(self)
 
+        self.dynamic_resolution = storage.get("dynamic_resolution")
+
         self.cava_program = Cava(self)
+        cava_installed = shutil.which("cava") is not None
         self.alarm_program = Alarm(self)
 
         # a dictionary containing all devices by their name
@@ -71,19 +78,30 @@ class DeviceManager:
             for device in [self.ring, self.wled, self.strip, self.screen]
         }
         # a dictionary containing all led programs by their name
-        self.led_programs: Dict[str, LedProgram] = {"Disabled": self.disabled_program}
-        for led_program_class in [Fixed, Rainbow, Adaptive]:
-            led_instance = led_program_class(self)
-            self.led_programs[led_instance.name] = led_instance
+        self.led_programs: Dict[str, LedProgram] = {
+            self.disabled_program.name: self.disabled_program
+        }
+        led_program_classes = [Fixed, Rainbow]
+        if cava_installed:
+            led_program_classes.append(Adaptive)
+        for led_program_class in led_program_classes:
+            led_program = led_program_class(self)
+            self.led_programs[led_program.name] = led_program
         # a dictionary containing all screen programs by their name
         self.screen_programs: Dict[str, ScreenProgram] = {
-            "Disabled": self.disabled_program
+            self.disabled_program.name: self.disabled_program
         }
-        for screen_program_class in [Circle]:
-            screen_instance = screen_program_class(self)
-            self.screen_programs[screen_instance.name] = screen_instance
+        logo_loop = Video(self, "LogoLoop.mp4", loop=True)
+        self.screen_programs[logo_loop.name] = logo_loop
+        if cava_installed:
+            for variant in sorted(Visualization.get_variants()):
+                self.screen_programs[variant] = Visualization(self, variant)
+
+        redis.set("led_programs", list(self.led_programs.keys()))
+        redis.set("screen_programs", list(self.screen_programs.keys()))
+
         # a dictionary containing *all* programs by their name
-        self.all_programs: Dict[str, VizProgram] = {
+        self.all_programs: Dict[str, LightProgram] = {
             **self.led_programs,
             **self.screen_programs,
         }
@@ -120,15 +138,29 @@ class DeviceManager:
                 self.alarm_stopped()
                 continue
 
-            if settings_changed == "adjust_screen":
-                self.screen.adjust()
-                continue
-
             # flush the cache before accessing the database so no stale data is read
             storage.cache.clear()
 
+            if settings_changed == "adjust_screen":
+                self.screen.adjust()
+                # restart the screen program after a resolution change so it fits the screen again
+                if storage.get("initial_resolution") != self.screen.resolution:
+                    # changing resolutions takes a while, wait until it was applied
+                    self.restart_screen_program(sleep_time=2)
+                else:
+                    self.restart_screen_program()
+                continue
+
             if settings_changed == "base":
                 # base settings affecting every device were modified
+                if not math.isclose(self.ups, storage.get("ups")):
+                    # only update ups if they actually changed,
+                    # because cava and the screen program need to be restarted
+                    old_ups = self.ups
+                    self.ups = storage.get("ups")
+                    self.set_cava_framerate()
+                    self.restart_screen_program(sleep_time=1 / old_ups * 5)
+                self.dynamic_resolution = storage.get("dynamic_resolution")
                 self.fixed_color = storage.get("fixed_color")
                 self.program_speed = storage.get("program_speed")
                 continue
@@ -147,18 +179,29 @@ class DeviceManager:
             self.set_program(device, program)
         connection.close()
 
-    def set_program(self, device: Device, program: VizProgram) -> None:
+    def set_program(
+        self, device: Device, program: LightProgram, has_lock=False
+    ) -> None:
         # don't allow program change on disconnected devices
         if not device.initialized:
             return
 
-        with lights_lock:
+        with optional(not has_lock, lights_lock):
             if device.program == program:
                 # nothing to do
                 return
 
             device.program.release()
-            program.use()
+            # see explanation in except ScreenProgramStopped why we don't always use() here
+            if not (
+                isinstance(
+                    self.all_programs[storage.get("last_screen_program")], Visualization
+                )
+                and isinstance(
+                    self.all_programs[storage.get("screen_program")], Visualization
+                )
+            ):
+                program.use()
 
             device.program = program
             self.consumers_changed()
@@ -208,10 +251,33 @@ class DeviceManager:
                 device, self.led_programs[storage.get(f"{device.name}_program")]
             )
 
+    def restart_screen_program(self, sleep_time=None, has_lock=False) -> None:
+        if self.screen.program == self.disabled_program:
+            return
+        screen_program = self.screen.program
+        self.set_program(self.screen, self.disabled_program, has_lock=has_lock)
+        # wait until the program was computed, so it executed its shutdown
+        if sleep_time:
+            time.sleep(sleep_time)
+        else:
+            time.sleep(1 / self.ups * 5)
+        self.set_program(self.screen, screen_program, has_lock=has_lock)
+
+    def set_cava_framerate(self):
+        subprocess.call(
+            [
+                "sed",
+                "-i",
+                "-r",
+                "-e",
+                f"s/(^framerate\\s*=).*/\\1 {self.ups}/",
+                os.path.join(conf.BASE_DIR, "config/cava.config"),
+            ]
+        )
+        if self.cava_program.cava_process:
+            self.cava_program.cava_process.send_signal(signal.SIGUSR1)
+
     def loop(self):
-        iteration_count = 0
-        adaptive_quality_window = self.ups * 10
-        time_sum = 0.0
         while True:
             try:
                 self.loop_active.wait()
@@ -229,12 +295,6 @@ class DeviceManager:
                 self.cava_program.compute()
                 self.alarm_program.compute()
 
-                if self.screen.program.name != "Disabled":
-                    try:
-                        self.screen.program.draw()
-                    except RenderingStoppedException:
-                        self.set_program(self.screen, self.disabled_program)
-
                 self.ring.program.compute()
                 if self.wled.program != self.ring.program:
                     self.wled.program.compute()
@@ -251,6 +311,10 @@ class DeviceManager:
                         ring_colors = self.ring.program.ring_colors()
                     self.ring.set_colors(ring_colors)
 
+                if self.strip.program.name != "Disabled":
+                    strip_color = self.strip.program.strip_color()
+                    self.strip.set_color(strip_color)
+
                 if self.wled.program.name != "Disabled":
                     if self.wled.monochrome:
                         wled_colors = [
@@ -261,35 +325,39 @@ class DeviceManager:
                         wled_colors = self.wled.program.wled_colors()
                     self.wled.set_colors(wled_colors)
 
-                if self.strip.program.name != "Disabled":
-                    strip_color = self.strip.program.strip_color()
-                    self.strip.set_color(strip_color)
+                try:
+                    self.screen.program.compute()
+                except ScreenProgramStopped:
+                    # If the program changes from one Visualization program to another,
+                    # the new program will set active to true immediately,
+                    # but the old program will set active to false only during the next frame.
+                    # This would mean that active will stay false even though rendering takes place.
+                    # We prevent this by starting the new program only after the old one stopped.
+                    # This happens when this exception was catched
+                    # and we switched from one Visualization program to another.
+                    #
+                    # This exception is also thrown if the window is closed.
+                    # For these cases, set the program to disabled.
+                    # This means that if the windows *is* closed
+                    # after switching from one Visualization program to another,
+                    # the program will not be set to disabled. This is a corner case we accept.
+                    # It would be fixed by introducing a variable
+                    # and checking whether such a change occurred in the recent past.
+                    if isinstance(
+                        self.all_programs[storage.get("last_screen_program")],
+                        Visualization,
+                    ) and isinstance(
+                        self.all_programs[storage.get("screen_program")], Visualization
+                    ):
+                        self.all_programs[storage.get("screen_program")].use()
+                    else:
+                        self.set_program(
+                            self.screen, self.disabled_program, has_lock=True
+                        )
+                        controller.persist_program_change("screen", "Disabled")
+                        lights.update_state()
 
             computation_time = time.time() - computation_start
-
-            if self.screen.program.name != "Disabled":
-                time_sum += computation_time
-                iteration_count += 1
-                if (
-                    iteration_count >= adaptive_quality_window
-                    or time_sum
-                    >= 1.5 * adaptive_quality_window * self.seconds_per_frame
-                ):
-                    average_computation_time = time_sum / adaptive_quality_window
-                    iteration_count = 0
-                    time_sum = 0.0
-
-                    # print(f"avg: {average_computation_time/seconds_per_frame}")
-                    if average_computation_time > 0.9 * self.seconds_per_frame:
-                        # if the loop takes too long and a screen program is active,
-                        # it can be reduced in resolution to save time
-                        self.screen.program.decrease_resolution()
-                    elif average_computation_time < 0.6 * self.seconds_per_frame:
-                        # if the loop has time to spare and a screen program is active,
-                        # we can increase its quality
-                        self.screen.program.increase_resolution()
-
-            # print(f'computation took {computation_time:.5f}s')
             try:
                 time.sleep(self.seconds_per_frame - computation_time)
             except ValueError:

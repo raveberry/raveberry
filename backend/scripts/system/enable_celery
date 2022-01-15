@@ -1,0 +1,14 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+if [ -d /etc/systemd/system/daphne.service.d ]; then
+	exit
+fi
+
+mv /etc/systemd/system/daphne.service.d.override-inactive /etc/systemd/system/daphne.service.d
+systemctl daemon-reload
+systemctl enable celery
+systemctl restart daphne

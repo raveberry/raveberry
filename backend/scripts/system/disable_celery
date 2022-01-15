@@ -1,0 +1,17 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+then echo "Please run as root"
+	exit
+fi
+
+if [ -d /etc/systemd/system/daphne.service.d.override-inactive ]; then
+	exit
+fi
+
+mv /etc/systemd/system/daphne.service.d /etc/systemd/system/daphne.service.d.override-inactive
+systemctl daemon-reload
+# celery can not successfully stop if it does not get the command to stop long running tasks from daphne
+# daphne would only send that when stopping, which we can't do because it would kill this script
+# thus, celery will be left running until the next reboot
+systemctl disable celery
+systemctl restart daphne

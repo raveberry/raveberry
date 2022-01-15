@@ -17,7 +17,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 
-from core import user_manager, base, redis
+from core import user_manager, base, redis, celery
 from core.settings.storage import get
 from core.state_handler import send_state
 
@@ -107,6 +107,7 @@ def state_dict() -> Dict[str, Any]:
         settings_state["remoteEnabled"] = (
             subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
         )
+        settings_state["taskStrategy"] = "celery" if celery.active else "threads"
     except FileNotFoundError:
         settings_state["systemInstall"] = False
     else:

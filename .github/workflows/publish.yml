@@ -100,13 +100,12 @@ jobs:
       - name: Install pip dependencies
         run: pip install -r backend/requirements/install.txt
       - run: sudo apt-get update
-      - run: sudo apt-get install -y expect
       - name: remove pyyaml
         run: |
           sudo rm -rf /usr/lib/python3/dist-packages/yaml
           sudo rm -rf /usr/lib/python3/dist-packages/PyYAML-*
       - run: sudo systemctl start postgresql
-      - run: expect -c 'set timeout -1; spawn bin/raveberry --confirm-config system-install; expect ":"; send "admin\r"; expect ":"; send "admin\r"; expect eof; catch wait result; exit [lindex $result 3]'
+      - run: bin/raveberry --confirm-config --use-default-password-i-promise-ill-change-it install
       - name: Check if server is up
         run: |
           counter=0

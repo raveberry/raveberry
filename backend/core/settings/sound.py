@@ -7,6 +7,7 @@ import time
 from threading import Thread
 from typing import Optional
 
+from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -226,7 +227,7 @@ def list_outputs(_request: WSGIRequest) -> JsonResponse:
     """Returns a list of all sound output devices currently available."""
     output = subprocess.check_output(
         "pactl list short sinks".split(),
-        env={"PULSE_SERVER": "127.0.0.1"},
+        env={"PULSE_SERVER": conf.PULSE_SERVER},
         universal_newlines=True,
     )
     tokenized_lines = [line.split() for line in output.splitlines()]
@@ -261,7 +262,7 @@ def _set_output(output: str) -> HttpResponse:
                 ["pactl", "set-default-sink", output],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
-                env={"PULSE_SERVER": "127.0.0.1"},
+                env={"PULSE_SERVER": conf.PULSE_SERVER},
                 check=True,
             )
             mopidy_output = "pulse"

@@ -1,3 +1,4 @@
+from distutils.util import strtobool
 from typing import Union, Any, Tuple
 
 from ast import literal_eval
@@ -20,7 +21,7 @@ defaults = {
     "number_of_suggestions": 20,
     "people_to_party": 3,
     "alarm_probability": 0.0,
-    "buzzer_cooldown": 60,
+    "buzzer_cooldown": 60.0,
     "downvotes_to_kick": 2,
     "max_download_size": 0.0,
     "max_playlist_items": 10,
@@ -54,6 +55,7 @@ defaults = {
     "repeat": False,
     "autoplay": False,
     # lights
+    "ups": 30.0,
     "fixed_color": (0, 0, 0),
     "program_speed": 0.5,
     "wled_led_count": 10,
@@ -90,6 +92,8 @@ defaults = {
     "screen_monochrome": False,
     "screen_program": "Disabled",
     "last_screen_program": "Disabled",
+    "initial_resolution": (0, 0),
+    "dynamic_resolution": False,
 }
 
 # Settings change very rarely, cache them to reduce database roundtrips.
@@ -118,7 +122,7 @@ def get(key: str) -> Union[bool, int, float, str, Tuple]:
         return type(default)(value)
     if type(default) == bool:
         # bool("False") does not return False -> special case for bool
-        return value == "True"
+        return strtobool(value)
     elif type(default) == tuple:
         # evaluate the stored literal
         return literal_eval(value)

@@ -1,18 +1,19 @@
 """This module configures django."""
-import logging
 import logging.config
 import os
 import pathlib
-import shutil
+import subprocess
 import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from distutils.util import strtobool
 from typing import List
 
+import yaml
 from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEMO = bool(os.environ.get("DJANGO_DEMO"))
+DEMO = strtobool(os.environ.get("DJANGO_DEMO", "0"))
 
 try:
     with open(os.path.join(BASE_DIR, "config/secret_key.txt")) as f:
@@ -29,11 +30,11 @@ try:
 except FileNotFoundError:
     VERSION = "undefined"
 
-DEBUG = bool(os.environ.get("DJANGO_DEBUG"))
+DEBUG = strtobool(os.environ.get("DJANGO_DEBUG", "0"))
 TESTING = "test" in sys.argv
 
-DOCKER = "DOCKER" in os.environ
-DOCKER_ICECAST = "DOCKER_ICECAST" in os.environ
+DOCKER = strtobool(os.environ.get("DOCKER", "0"))
+DOCKER_ICECAST = strtobool(os.environ.get("DOCKER_ICECAST", "0"))
 
 ALLOWED_HOSTS = ["*"]
 
@@ -82,29 +83,65 @@ TEMPLATES = [
 ]
 
 CSRF_FAILURE_VIEW = "core.util.csrf_failure"
+with open(os.path.join(BASE_DIR, "config/raveberry.yaml")) as f:
+    config = yaml.safe_load(f)
+try:
+    # Since django 4.0 not only the Referer is checked for csrf protection, but also HTTP_ORIGIN
+    # This leads to csrf failures if there is a protocol mismatch
+    # e.g. http://demo.raveberry.party vs https://demo.raveberry.party
+    # this happens when django is proxied behind a server that does the ssl-handling
+    # list the provided remote url as a trusted origin
+    remote_url = config["remote_url"]
+    # override from environment variable, if present
+    env_remote_url = os.environ.get("REMOTE_URL", None)
+    if env_remote_url:
+        remote_url = env_remote_url
+    if remote_url is not None:
+        if not remote_url.startswith("https://") and not remote_url.startswith(
+            "http://"
+        ):
+            remote_url = "https://" + remote_url
+        CSRF_TRUSTED_ORIGINS = [remote_url]
+except KeyError:
+    pass
 
 WSGI_APPLICATION = "main.wsgi.application"
 
 # Docker changes
 if DOCKER:
     POSTGRES_HOST = "db"
+    POSTGRES_PORT = "5432"
     REDIS_HOST = "redis"
     REDIS_PORT = "6379"
     MOPIDY_HOST = "mopidy"
+    MOPIDY_PORT = "6680"
     ICECAST_HOST = "icecast"
+    ICECAST_PORT = "8000"
     DEFAULT_CACHE_DIR = "/Music/raveberry/"
     TEST_CACHE_DIR = DEFAULT_CACHE_DIR
 else:
     POSTGRES_HOST = "127.0.0.1"
+    POSTGRES_PORT = "5432"
     REDIS_HOST = "127.0.0.1"
     REDIS_PORT = "6379"
     MOPIDY_HOST = "localhost"
+    MOPIDY_PORT = "6680"
     ICECAST_HOST = "localhost"
+    ICECAST_PORT = "8000"
     DEFAULT_CACHE_DIR = "~/Music/raveberry/"
     TEST_CACHE_DIR = os.path.join(BASE_DIR, "test_cache/")
 
-# Database
+# Allow these settings to be overwritten with environment variables
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST", None) or POSTGRES_HOST
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT", None) or POSTGRES_PORT
+REDIS_HOST = os.environ.get("REDIS_HOST", None) or REDIS_HOST
+REDIS_PORT = os.environ.get("REDIS_PORT", None) or REDIS_PORT
+MOPIDY_HOST = os.environ.get("MOPIDY_HOST", None) or MOPIDY_HOST
+MOPIDY_PORT = os.environ.get("MOPIDY_PORT", None) or MOPIDY_PORT
+ICECAST_HOST = os.environ.get("ICECAST_HOST", None) or ICECAST_HOST
+ICECAST_PORT = os.environ.get("ICECAST_PORT", None) or ICECAST_PORT
 
+# Database
 if DEBUG:
     DATABASES = {
         "default": {
@@ -121,7 +158,7 @@ else:
             "USER": "raveberry",
             "PASSWORD": "raveberry",
             "HOST": POSTGRES_HOST,
-            "PORT": "5432",
+            "PORT": POSTGRES_PORT,
         }
     }
 
@@ -269,6 +306,17 @@ if SONGS_CACHE_DIR == "":
     with open(os.path.join(BASE_DIR, "config/cache_dir"), "w") as f:
         f.write(SONGS_CACHE_DIR)
     print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
+
+# sound
+PULSE_SERVER = "127.0.0.1"
+if DEBUG:
+    try:
+        output = subprocess.check_output(
+            "pactl info".split(), text=True, stderr=subprocess.DEVNULL
+        )
+        PULSE_SERVER = output.splitlines()[0].split(":")[1].strip()
+    except (FileNotFoundError, subprocess.CalledProcessError, IndexError):
+        pass
 
 # use a different cache directory for testing
 if TESTING:

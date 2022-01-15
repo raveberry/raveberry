@@ -18,18 +18,18 @@
 	<li class="list-group-item list-item">
 		<span class="description">Program</span>
 		<select class="form-control" id="ring-program">
-			{% for program_name in color_program_names %}
-			<option>{{ program_name }}</option>
+			{% for program in led_programs %}
+			<option>{{ program }}</option>
 			{% endfor %}
 		</select>
 	</li>
 	<li class="list-group-item list-item">
 		<span class="description">Brightness</span>
-		<input type="range" id="ring-brightness" min="0" max="1" step="0.01">
+		<input type="range" id="ring-brightness" min="0" max="1" step="0.01"/>
 	</li>
 	<li class="list-group-item list-item">
 		<span class="description">Monochrome</span>
-		<input type="checkbox" id="ring-monochrome">
+		<input type="checkbox" id="ring-monochrome"/>
 	</li>
 </ul>
 
@@ -52,18 +52,18 @@
     <li class="list-group-item list-item">
         <span class="description">Program</span>
         <select class="form-control" id="wled-program">
-            {% for program_name in color_program_names %}
-                <option>{{ program_name }}</option>
+            {% for program in led_programs %}
+                <option>{{ program }}</option>
             {% endfor %}
         </select>
     </li>
     <li class="list-group-item list-item">
         <span class="description">Brightness</span>
-        <input type="range" id="wled-brightness" min="0" max="1" step="0.01">
+        <input type="range" id="wled-brightness" min="0" max="1" step="0.01"/>
     </li>
     <li class="list-group-item list-item">
         <span class="description">Monochrome</span>
-        <input type="checkbox" id="wled-monochrome">
+        <input type="checkbox" id="wled-monochrome"/>
     </li>
 </ul>
 
@@ -74,14 +74,14 @@
 	<li class="list-group-item list-item">
 		<span class="description">Program</span>
 		<select class="form-control" id="strip-program">
-			{% for program_name in color_program_names %}
-			<option>{{ program_name }}</option>
+			{% for program in led_programs %}
+				<option>{{ program }}</option>
 			{% endfor %}
 		</select>
 	</li>
 	<li class="list-group-item list-item">
 		<span class="description">Brightness</span>
-		<input type="range" id="strip-brightness" min="0" max="1" step="0.01">
+		<input type="range" id="strip-brightness" min="0" max="1" step="0.01"/>
 	</li>
 </ul>
 
@@ -93,10 +93,30 @@
 	<li class="list-group-item list-item">
 		<span class="description">Program</span>
 		<select class="form-control" id="screen-program">
-			{% for program_name in screen_program_names %}
-			<option>{{ program_name }}</option>
+			{% for program in screen_programs %}
+				<option>{{ program }}</option>
 			{% endfor %}
 		</select>
+	</li>
+	<li class="list-group-item list-item">
+		<span class="description">Resolution (dynamic will start here and not go above)</span>
+		<select class="form-control" id="initial-resolution">
+			{% for resolution in resolutions %}
+				<option>{{ resolution }}</option>
+			{% endfor %}
+		</select>
+	</li>
+	<li class="list-group-item list-item">
+		<span class="description">Dynamic Resolution</span>
+		<input type="checkbox" id="dynamic-resolution"/>
+	</li>
+	<li class="list-group-item list-item">
+		<span class="description">Current Resolution</span>
+		<span id="current-resolution"></span>
+	</li>
+	<li class="list-group-item list-item">
+		<span class="description">Current FPS</span>
+		<span id="current-fps"></span>
 	</li>
 </ul>
 
@@ -105,12 +125,16 @@
 		Program Options
 	</li>
 	<li class="list-group-item list-item">
+		<span class="description">UPS</span>
+		<input id="ups"/>
+	</li>
+	<li class="list-group-item list-item">
 		<span class="description">Rainbow Speed</span>
-		<input type="range" id="program-speed" min="0" max="1" step="0.01">
+		<input type="range" id="program-speed" min="0" max="1" step="0.01"/>
 	</li>
 	<li class="list-group-item list-item">
 		<span class="description">Fixed Color</span>
-		<input type="color" id="fixed-color">
+		<input type="color" id="fixed-color"/>
 	</li>
 </ul>
 {% endblock %}

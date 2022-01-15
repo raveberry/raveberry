@@ -71,7 +71,7 @@ def set_embed_stream(request: WSGIRequest) -> None:
 
 @control
 def set_dynamic_embedded_stream(request: WSGIRequest) -> None:
-    """Enables or disables logging of requests and play logs based on the given value."""
+    """Enables or disables dynamic streaming based on the given value."""
     enabled = request.POST.get("value") == "true"
     storage.set("dynamic_embedded_stream", enabled)
 
@@ -107,7 +107,7 @@ def set_alarm_probability(request: WSGIRequest) -> None:
 @control
 def set_buzzer_cooldown(request: WSGIRequest) -> None:
     """Sets the minimum time that needs to pass between buzzer presses."""
-    value = int(request.POST.get("value"))  # type: ignore
+    value = float(request.POST.get("value"))  # type: ignore
     storage.set("buzzer_cooldown", value)
 
 

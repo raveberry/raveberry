@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo -u pulse_user /usr/bin/orig_cava "$@"

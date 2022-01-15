@@ -27,17 +27,54 @@ services:
     image: raveberry/raveberry
     volumes:
       - songs-cache:/Music/raveberry
+      # used for visualization
+      - /tmp/.X11-unix:/tmp/.X11-unix # X server to open a window
+      - /dev/dri:/dev/dri # graphics card for hardware acceleration
+      - "/run/user/${UID:-1000}/pulse:/run/pulse" # pulse access to get audio data
     depends_on:
       - db
       - redis
     environment:
+      - ADMIN_PASSWORD
+      - MOD_PASSWORD
+      - REMOTE_URL
+      - SPOTIFY_USERNAME
+      - SPOTIFY_PASSWORD
+      - SPOTIFY_CLIENT_ID
+      - SPOTIFY_CLIENT_SECRET
+      - SOUNDCLOUD_AUTH_TOKEN
+      - JAMENDO_CLIENT_ID
       - DOCKER=1
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - REDIS_HOST
+      - REDIS_PORT
+      - MOPIDY_HOST
+      - MOPIDY_PORT
+      - ICECAST_HOST
+      - ICECAST_PORT
     command: /usr/local/bin/celery -A core worker -O fair -c 6
+    restart: always
+  icecast:
+    image: raveberry/raveberry-icecast
+    environment:
+      - ICECAST_ADMIN_PASSWORD
+      - STREAM_USERNAME
+      - STREAM_PASSWORD
+      - STREAM_NOAUTH
+    # uncomment this port mapping if you need to access icecast's web interface
+    #ports:
+    #  - 8000:8000
+    # use a custom icecast config with this mapping
+    #volumes:
+    #  - /path/to/icecast.xml:/etc/icecast.xml
     restart: always
   mopidy:
     image: raveberry/raveberry-mopidy
+    # run with the same id as host user in order to access pulseaudio
     user: "${UID:-1000}:${GID:-1000}"
     environment:
+      - MOPIDY_OUTPUT
       - SPOTIFY_USERNAME
       - SPOTIFY_PASSWORD
       - SPOTIFY_CLIENT_ID
@@ -47,9 +84,11 @@ services:
     volumes:
       - songs-cache:/Music/raveberry
       # Comment this line if pulse does not work.
-      - "/run/user/${UID:-1000}/pulse:/run/user/105/pulse"
+      - "/run/user/${UID:-1000}/pulse:/run/pulse"
       # to customize mopidy config, mount a custom config file with this line
       # - /path/to/mopidy.conf:/config/mopidy.conf
+    depends_on:
+      - icecast
     restart: always
     # Use these three lines to use alsa if pulse is not working.
     #user: root
@@ -69,6 +108,7 @@ services:
     environment:
       - ADMIN_PASSWORD
       - MOD_PASSWORD
+      - REMOTE_URL
       - SPOTIFY_USERNAME
       - SPOTIFY_PASSWORD
       - SPOTIFY_CLIENT_ID
@@ -76,6 +116,14 @@ services:
       - SOUNDCLOUD_AUTH_TOKEN
       - JAMENDO_CLIENT_ID
       - DOCKER=1
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - REDIS_HOST
+      - REDIS_PORT
+      - MOPIDY_HOST
+      - MOPIDY_PORT
+      - ICECAST_HOST
+      - ICECAST_PORT
     restart: always
   nginx:
     image: raveberry/raveberry-nginx

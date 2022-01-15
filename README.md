@@ -29,16 +29,16 @@ This method uses a development server, with limited performance and a restricted
 
 ### Installation
 
-In order to gain access to all features of Raveberry, perform a system installation:
+In order to gain access to all features of Raveberry, install it:
 ```
 pip3 install raveberry[install]
-raveberry system-install
+raveberry install
 ```
 
 If you get `raveberry: command not found` you need to run `export PATH="$HOME/.local/bin:$PATH"`.
 Raveberry was developed for the Raspberry Pi. If you need help setting yours up up, visit [this guide](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up).
 
-The installer will ask you to confirm the config file it uses. The default install supports YouTube and local files. To customize (e.g. to use Spotify), cancel the installation, edit the config at the provided path and rerun `raveberry system-install`.
+The installer will ask you to confirm the config file it uses. The default install supports YouTube and local files. To customize (e.g. to use Spotify), cancel the installation, edit the config at the provided path and rerun `raveberry install`.
 
 Although everything *should* work fine, I recommend taking a backup of your system. On a Raspberry Pi this can be done by creating a copy of its SD card.
 
@@ -48,7 +48,8 @@ The installation will take at most 30 minutes, most of which is spent on install
 
 Alternatively, you can use [docker-compose](https://docs.docker.com/compose/install/):
 ```
-wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker-compose.yml
+wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker/docker-compose.yml
+wget https://raw.githubusercontent.com/raveberry/raveberry/master/docker/.env
 docker-compose up -d
 ```
 
@@ -59,7 +60,7 @@ For more information, consult [`docs/docker.md`](docs/docker.md).
 You can also install Raveberry on a remote machine you have ssh access to:
 ```
 pip3 install raveberry[install]
-cd "$(pip3 show pi3d | grep Location: | sed 's/.*: //')/raveberry"
+cd "$(pip3 show raveberry | grep Location: | sed 's/.*: //')/raveberry"
 ansible-playbook --user <user> --key-file <private_key> -i <ip>, -e "config_file=/path/to/raveberry.yaml" setup/system_install.yaml
 ```
 If omitted, `config_file` defaults to `backend/config/raveberry.yaml`. `--user` and `--key-file` can be omitted if the target host is configured in your ssh config.
@@ -83,10 +84,10 @@ A Log will be written to `/var/www`.
 
 ### Manual
 
-Update the PyPi package and rerun the system installation.
+Update the PyPi package and rerun the installation.
 ```
 pip3 install -U raveberry[install]
-raveberry system-install
+raveberry install
 ```
 Your database will be preserved, unless you specify a database backup in your config file.
 
@@ -99,7 +100,7 @@ docker-compose pull
 ## Features
 
 * **Live Updates**:
-Web page content is updated instantly using websockets.
+Web page content is updated instantly across all clients using websockets.
 
 * **Remote Streaming**:
 With `icecast`, it is possible to remotely listen to Raveberry. See [`docs/streaming.md`](docs/streaming.md).
@@ -144,7 +145,7 @@ Control your Raveberry instance from the discord chat with the [Raveberry bot](h
 Raveberry uses replaygain to analyze the volume of songs and prevent sharp volume transitions.
 
 * **Screen visualization**:
-With the tool `cava`, the current music is split into its frequencies and visualized on a connected screen (See screenshot below). Can also be configured to run in [user mode](#user_visualization).
+With the tool `cava`, the current music is split into its frequencies and visualized on a connected screen (See screenshot below). Code in [separate Repository](https://github.com/raveberry/visualization).
 
 * **Audio visualization**:
 Using the same tool, Raveberry can also make connected LEDs flash to the rhythm of the music.
@@ -167,7 +168,7 @@ The quality of the internal Raspberry Pi sound card varies from model to model. 
 * **USB Stick**:
 If you don't want to use the Raspberry Pi's internal filesystem, you can insert an external medium like a USB stick. Its label can be specified in the config file and is then used to cache the songs.
 
-## <a name="tested_hardware"></a> Tested Hardware
+## Tested Hardware
 
 Raveberry is known to work on the following Hardware:
 * Raspberry Pi 4
@@ -191,13 +192,23 @@ sudo scripts/uninstall.sh
 
 ## FAQ
 
+### The current song is displayed in red and there is no sound
+Red text means that Raveberry can't communicate with the player anymore. Either the player crashed or the interfacing library can't reconnect.
+
+To fix this, first restart the player (`/settings` in "Sound Output") and wait a few seconds. If it still does not work, restart the server (`/settings` at the bottom).
+
+### I can't log in, it always says "Please reload"
+You ran into CSRF protection. This happens when you host Raveberry behind a proxy and the protocols don't match up, e.g. `http://demo.raveberry.party` vs `https://demo.raveberry.party`.
+
+Avoid this by providing your url either in the `raveberry.yaml` (install) or in the `.env` file (docker).
+
 ### Where are my YouTube files?
 
-If you specified a path in your config file before installing, you will find them there. If no path was given, it will default to `~/Music/raveberry`. If you run it as `pi` using `raveberry run`, this will be `/home/pi/Music/raveberry`. If Raveberry was installed on the system, the process is running as `www-data` and you will find the directory at `/var/www/Music/raveberry`.
+If you specified a path in your config file before installing, you will find them there. If no path was given, it will default to `~/Music/raveberry`. If you run it as `pi` using `raveberry run`, this will be `/home/pi/Music/raveberry`. If Raveberry was installed, the process is running as `www-data` and you will find the directory at `/var/www/Music/raveberry`.
 
 ### Streaming doesn't work (there is only silence)
 
-This is [a known issue](https://jc-lan.org/2020/05/26/mopidy-fails-to-connect-to-icecast2-server-with-ubuntu-20-04/) on Ubuntu 20.04.
+This is a known issue on Ubuntu 20.04 and Debian Bullseye.
 To fix it, downgrade `libshout3`:
 ```
 cd /tmp
@@ -206,36 +217,29 @@ sudo dpkg -i libshout3_2.4.1-2build1_amd64.deb
 sudo apt-mark hold libshout3
 ```
 
-### <a name="user_visualization"></a> I want to use the visualization without doing a system install.
+### I want to use the visualization without doing an install.
 
-Install the required python packages
+Install the required packages
 ```
+sudo apt-get install cava
 pip3 install raveberry[screenvis]
 ```
-Install cava (Instructions from [the repository](https://github.com/karlstav/cava))
-```
-sudo apt-get install git libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool automake libiniparser-dev
-export CPPFLAGS=-I/usr/include/iniparser
-git clone https://github.com/karlstav/cava
-cd cava
-./autogen.sh
-./configure
-make
-cp cava ~/.local/bin  # or add the binary to your PATH
-```
-comment out the following line in the used cava config (add the `#`):
+If `cava` is not available on apt, you need to [build it from source](https://github.com/karlstav/cava#from-source).
+
+Then comment out the following line in the used cava config (add the `#`):
 ```
 # source = cava.monitor
 ```
-Now you should be able to start the server with `raveberry run`, login with admin:admin at `localhost:8080/login` and enable the visualization at `localhost:8080/lights`.
+Now you can start the server with `raveberry run`, login with admin:admin at `localhost:8080/login` and enable the visualization at `localhost:8080/lights`.
 
 ## Special Thanks
 
 * All the awesome people that created [Mopidy](https://mopidy.com/) for this incredibly versatile music player.
-* Especially [Mopidy-Spotify](https://github.com/mopidy/mopidy-spotify), without which I could not have added Spotify support.
-* [django](https://www.djangoproject.com/), for providing one of the best documentations I have ever encountered.
+    * Especially [Mopidy-Spotify](https://github.com/mopidy/mopidy-spotify), without which I could not have added Spotify support.
+* [django](https://www.djangoproject.com/) for providing one of the best documentations I have ever encountered.
 * [@karlstav](https://github.com/karlstav) for his audio visualizer [`cava`](https://github.com/karlstav/cava).
 * [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) for greatly simplifying the interaction with YouTube.
+* [Glium](https://github.com/glium/glium) for making OpenGL a lot less painful.
 * [Steven van Tetering](https://www.tikveel.nl/) for writing [the shader](https://www.shadertoy.com/view/llycWD) I based my visualization on.
 * All my friends for constantly beta testing this project.
 

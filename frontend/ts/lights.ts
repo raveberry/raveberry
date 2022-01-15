@@ -26,6 +26,8 @@ function updateState(state) {
       element.val(value);
     } else if (element.is('select')) {
       element.val(value);
+    } else if (element.is('span')) {
+      element.text(value);
     }
   }
 

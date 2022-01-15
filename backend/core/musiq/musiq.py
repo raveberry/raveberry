@@ -43,7 +43,7 @@ def get_alarm_metadata() -> "Metadata":
         "artist": "Raveberry",
         "title": "ALARM!",
         "duration": song_utils.get_metadata(
-            os.path.join(conf.BASE_DIR, "config/sounds/alarm.m4a")
+            os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
         )["duration"],
         "internal_url": "alarm",
         "external_url": "https://raveberry.party/alarm",

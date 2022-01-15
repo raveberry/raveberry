@@ -25,7 +25,5 @@ Raveberry uses the `bluetoothctl` tool to manage bluetooth connections. It can a
 In the `scripts` directory you can find a collection of useful scripts for developing.
 
 * `scripts/install_system_scripts.sh` moves the content of `scripts/system` to `/usr/local/sbin/raveberry`
-* `scripts/runserver.sh [user]` runs the debug server under the specified user or www-data if no user was given.
-* `scripts/set_permissions.sh` grants www-data necessary permissions to run Raveberry.
 * `scripts/system/` contains a number of configuration scripts used by Raveberry to control the system.
 * `scripts/uninstall.sh` removes files created by Raveberry.

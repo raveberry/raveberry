@@ -13,4 +13,4 @@ LOGFILE="/var/www/raveberry_install_log_$(date +%Y-%m-%d-%H:%M:%S)"
 # so upgrade the base package explicitly
 pip3 install -U raveberry >> "$LOGFILE" 2>&1
 pip3 install -U raveberry[install] >> "$LOGFILE" 2>&1
-raveberry system-install --config-file "$1" --confirm-config >> "$LOGFILE" 2>&1
+raveberry install --config-file "$1" --confirm-config >> "$LOGFILE" 2>&1

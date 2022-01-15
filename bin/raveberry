@@ -8,8 +8,6 @@ import argparse
 import pathlib
 import importlib
 
-import pkg_resources
-
 try:
     import raveberry
 
@@ -37,17 +35,17 @@ def main():
     )
     parser.add_argument(
         "command",
+        nargs="?",
         help="""\
-    run             run a basic version of raveberry
-    system-install  install raveberry into the system
-    version         print the version of this module
-    help            show this help and exit""",
+    run         run a basic version of Raveberry
+    install     install Raveberry into the system
+    help        show this help and exit""",
     )
     parser.add_argument(
-        "--config-file",
-        "-c",
-        type=str,
-        help="specify a config file to use for system-install",
+        "--version", "-v", action="store_true", help="print version and exit"
+    )
+    parser.add_argument(
+        "--config-file", "-c", type=str, help="specify a config file to use for install"
     )
     parser.add_argument(
         "--confirm-config",
@@ -58,6 +56,14 @@ def main():
         "--local",
         action="store_true",
         help="use the local folder even if the module is installed",
+    )
+    parser.add_argument(
+        "--celery", action="store_true", help="use celery to handle long running tasks"
+    )
+    parser.add_argument(
+        "--use-default-password-i-promise-ill-change-it",
+        action="store_true",
+        help="don't ask for an admin password and use 'admin'",
     )
     args = parser.parse_args()
 
@@ -78,33 +84,47 @@ def main():
     used_config = default_config
     if args.config_file:
         used_config = os.path.abspath(args.config_file)
-
     os.chdir(raveberry_directory)
+
+    if args.version:
+        version()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
     command = args.command.lstrip("-")
-    choices = ["run", "system-install", "version", "v"]
+    choices = ["run", "install", "system-install", "version", "v"]
     if command not in choices:
         parser.print_help()
         sys.exit(1)
     elif command == "run":
-        run_server()
-    elif command == "system-install":
-        system_install(config_confirmed=args.confirm_config)
-    elif command == "version" or command == "v":
-        version()
+        run_server(args.celery)
+    elif command == "install" or command == "system-install":
+        install(
+            config_confirmed=args.confirm_config,
+            use_default_password=args.use_default_password_i_promise_ill_change_it,
+        )
     else:
         print("unknown command")
         sys.exit(1)
 
 
 def version():
-    try:
-        print(pkg_resources.require("raveberry")[0].version)
-    except pkg_resources.DistributionNotFound:
-        print("raveberry is currently not installed")
-        sys.exit(1)
+    with open("VERSION") as f:
+        version = f.read().strip()
+    if module_used:
+        if os.path.isdir("/usr/local/sbin/raveberry"):
+            version += " (system install)"
+        else:
+            version += " (user install)"
+    else:
+        version += " (local)"
+    print(version)
+    sys.exit(0)
 
 
-def run_server():
+def run_server(celery=False):
     spec = importlib.util.find_spec("django")
     if spec is None:
         print("Please install required dependencies:")
@@ -114,9 +134,8 @@ def run_server():
         print("first time running raveberry, preparing...")
         user_install()
     print("This is the basic raveberry version using a debug server.")
-    print("To install with all features run `raveberry system-install`")
+    print("To install with all features run `raveberry install`")
     mopidy = None
-    celery = None
     try:
         subprocess.check_call("pgrep mopidy".split(), stdout=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
@@ -128,25 +147,27 @@ def run_server():
             print(line)
             if "HTTP server running" in line:
                 break
-    if bool(os.environ.get("DJANGO_CELERY")):
+    additional_env = {}
+    if celery:
         try:
             subprocess.check_call(
                 ["pgrep", "-f", "celery -A core"], stdout=subprocess.DEVNULL
             )
         except subprocess.CalledProcessError:
-            print("celery not yet running, starting...")
-            celery = subprocess.Popen(
+            subprocess.Popen(
                 "python3 manage.py celery".split(),
                 env={"DJANGO_DEBUG": "1", **os.environ},
                 stdin=subprocess.DEVNULL,
             )
+    else:
+        additional_env["DJANGO_NO_CELERY"] = "1"
     try:
         subprocess.call(
             "python3 manage.py migrate".split(), env={"DJANGO_DEBUG": "1", **os.environ}
         )
         subprocess.call(
             "python3 manage.py runserver 0:8080".split(),
-            env={"DJANGO_DEBUG": "1", **os.environ},
+            env={"DJANGO_DEBUG": "1", **additional_env, **os.environ},
         )
     except KeyboardInterrupt:
         pass
@@ -173,7 +194,7 @@ def user_install():
     subprocess.call(["/bin/bash", "setup/user_install.sh"])
 
 
-def system_install(config_confirmed=False):
+def install(config_confirmed=False, use_default_password=False):
     global used_config
     if not shutil.which("ansible-playbook"):
 
@@ -252,13 +273,16 @@ For advanced features (e.g. Spotify, Visualization, Hotspot) edit the config bef
         # another database is already present, do not ask for a new admin password
         pass
     else:
-        while True:
-            admin_password = getpass.getpass("Set admin password: ")
-            admin_password_confirmed = getpass.getpass("Confirm admin password: ")
-            if admin_password == admin_password_confirmed:
-                os.environ["ADMIN_PASSWORD"] = admin_password
-                break
-            print("Passwords didn't match")
+        if use_default_password:
+            os.environ["ADMIN_PASSWORD"] = "admin"
+        else:
+            while True:
+                admin_password = getpass.getpass("Set admin password: ")
+                admin_password_confirmed = getpass.getpass("Confirm admin password: ")
+                if admin_password == admin_password_confirmed:
+                    os.environ["ADMIN_PASSWORD"] = admin_password
+                    break
+                print("Passwords didn't match")
     returncode = subprocess.call(
         [
             "ansible-playbook",

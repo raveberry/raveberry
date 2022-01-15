@@ -11,11 +11,19 @@
       lineinfile:
         path: /boot/config.txt
         line: "hdmi_force_hotplug=1"
-    # without access to renderD128 another slow method is used
+    # without fkms or kms, rendering is not hardware accelerated
+    # omxplayer is incompatible with kms -> we use fkms
+    - name: "Screen visualization: Enable fkms"
+      when: pi
+      lineinfile:
+        path: /boot/config.txt
+        line: "dtoverlay=vc4-fkms-v3d"
+    # without access to renderD128 (render) another slow method is used
+    # in order to play video, www-data needs to be in the video group
     - name: "Screen visualization: Rendering privileges"
       user:
         name: www-data
-        groups: render
+        groups: render,video
         append: yes
 
     - name: "Screen visualization: Start X on boot"
@@ -47,7 +55,7 @@
             DISPLAY: :0
 
         - name: "Screen visualization: X privileges: .xsessionrc"
-          lineinfile: 
+          lineinfile:
             path: "{{ home.stdout }}/.xsessionrc"
             line: "xhost +si:localuser:www-data"
             create: true

@@ -1,11 +1,13 @@
 """This module contains the celery app."""
 import os
+from distutils.util import strtobool
 from threading import Thread
 from typing import Callable, Any
 
-if bool(os.environ.get("DJANGO_DEBUG")) and not bool(os.environ.get("DJANGO_CELERY")):
+if strtobool(os.environ.get("DJANGO_NO_CELERY", "0")):
     # For debugging, celery's startup is quite slow, especially when reloading on every change.
     # Instead, use Threads to keep asynchronicity but with a much faster startup.
+    active = False
 
     class MockCelery:
         def task(self, function: Callable) -> Callable:
@@ -25,6 +27,8 @@ if bool(os.environ.get("DJANGO_DEBUG")) and not bool(os.environ.get("DJANGO_CELE
 
     app = MockCelery()
 else:
+    active = True
+
     from celery import Celery
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")

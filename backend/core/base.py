@@ -25,7 +25,7 @@ from core.state_handler import send_state
 def _get_random_hashtag() -> str:
     active_hashtags = models.Tag.objects.filter(active=True)
     if active_hashtags.count() == 0:
-        return "no hashtags present :("
+        return "Add your first hashtag!"
     index = random.randint(0, active_hashtags.count() - 1)
     hashtag = active_hashtags[index]
     return hashtag.text

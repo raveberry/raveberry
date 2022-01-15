@@ -25,6 +25,14 @@
   template:
     src: files/daphne.service
     dest: /etc/systemd/system/daphne.service
+- name: Create override directory for daphne service
+  file:
+    path: /etc/systemd/system/daphne.service.d
+    state: directory
+- name: daphne override config
+  copy:
+    src: files/celery_enabled.conf
+    dest: /etc/systemd/system/daphne.service.d/celery_enabled.conf
 - name: celery service
   template:
     src: files/celery.service
