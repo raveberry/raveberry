@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.1 - 2022-01-15
+- Include resources folder in PyPi package
+
 ## 0.10.0 - 2022-01-15
 - Big visualization rework:
 * Visualization is more robust and more performant
