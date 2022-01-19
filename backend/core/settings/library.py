@@ -167,17 +167,27 @@ def _create_playlists() -> None:
     update_frequency = 0.5
     files_processed = 0
     files_added = 0
-    for (dirpath, _, filenames) in os.walk(library_path):
+
+    def _scan_playlist(dirpath):
+        nonlocal last_update, update_frequency, local_files, files_processed, fi>
         now = time.time()
         if now - last_update > update_frequency:
             last_update = now
-            _set_scan_progress(f"{local_files} / {files_processed} / {files_added}")
+            _set_scan_progress(f"{local_files} / {files_processed} / {files_adde>
 
         song_urls = []
-        # unfortunately there is no way to access track numbers accross different file types
+
+        # unfortunately there is no way to access track numbers accross differen>
         # so we have to add songs to playlists alphabetically
-        for filename in sorted(filenames):
+
+        for filename in sorted(os.listdir(dirpath)):
+
             path = os.path.join(dirpath, filename)
+
+            if os.path.isdir(path):
+                song_urls.extend(_scan_playlist(path))
+                continue
+
             library_relative_path = path[len(library_path) + 1 :]
             external_url = os.path.join("local_library", library_relative_path)
             if ArchivedSong.objects.filter(url=external_url).exists():
@@ -185,16 +195,16 @@ def _create_playlists() -> None:
                 song_urls.append(external_url)
 
         if not song_urls:
-            continue
+            return song_urls
 
-        playlist_id = os.path.join("local_library", dirpath[len(library_path) + 1 :])
+        playlist_id = os.path.join("local_library", dirpath[len(library_path) + >
         playlist_title = os.path.split(dirpath)[1]
         playlist, created = ArchivedPlaylist.objects.get_or_create(
             list_id=playlist_id, title=playlist_title, counter=0
         )
         if not created:
             # this playlist already exists, skip
-            continue
+            return song_urls
 
         song_index = 0
         for external_url in song_urls:
@@ -203,5 +213,9 @@ def _create_playlists() -> None:
             )
             files_added += 1
             song_index += 1
+
+        return song_urls
+
+    _scan_playlist(library_path)
 
     _set_scan_progress(f"{local_files} / {files_processed} / {files_added}")
