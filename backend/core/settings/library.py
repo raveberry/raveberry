@@ -169,15 +169,15 @@ def _create_playlists() -> None:
     files_added = 0
 
     def _scan_playlist(dirpath):
-        nonlocal last_update, update_frequency, local_files, files_processed, fi>
+        nonlocal last_update, update_frequency, local_files, files_processed, files_added
         now = time.time()
         if now - last_update > update_frequency:
             last_update = now
-            _set_scan_progress(f"{local_files} / {files_processed} / {files_adde>
+            _set_scan_progress(f"{local_files} / {files_processed} / {files_added}")
 
         song_urls = []
 
-        # unfortunately there is no way to access track numbers accross differen>
+        # unfortunately there is no way to access track numbers accross different file types
         # so we have to add songs to playlists alphabetically
 
         for filename in sorted(os.listdir(dirpath)):
@@ -197,7 +197,7 @@ def _create_playlists() -> None:
         if not song_urls:
             return song_urls
 
-        playlist_id = os.path.join("local_library", dirpath[len(library_path) + >
+        playlist_id = os.path.join("local_library", dirpath[len(library_path) + 1 :])
         playlist_title = os.path.split(dirpath)[1]
         playlist, created = ArchivedPlaylist.objects.get_or_create(
             list_id=playlist_id, title=playlist_title, counter=0
