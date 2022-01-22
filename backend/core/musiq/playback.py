@@ -7,6 +7,7 @@ import logging
 import os
 import random
 import time
+import urllib.parse
 from contextlib import contextmanager
 from threading import Event
 from typing import Iterator, Optional, Tuple
@@ -97,7 +98,9 @@ class Playback:
             self.player.tracklist.add(
                 uris=[
                     "file://"
-                    + os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
+                    + urllib.parse.quote(
+                        os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
+                    )
                 ]
             )
             self.player.playback.play()

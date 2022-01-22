@@ -10,6 +10,7 @@ import logging
 import os
 import pickle
 import subprocess
+import urllib.parse
 from contextlib import contextmanager
 from typing import Any, Dict, Iterator, List, Optional, cast
 from urllib.parse import parse_qs, urlparse
@@ -235,7 +236,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
         return song_utils.get_path(self.id + ".m4a")
 
     def get_internal_url(self) -> str:
-        return "file://" + self.get_path()
+        return "file://" + urllib.parse.quote(self.get_path())
 
     def get_external_url(self) -> str:
         if not self.id:
