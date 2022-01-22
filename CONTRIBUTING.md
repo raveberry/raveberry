@@ -98,8 +98,12 @@ Give your PR a good title and description that we can see what you've added / fi
 Check if the diff of your changes is what you expected
 Push the "Create pull request" button!
 
-## Type Checking & Linting
+## Code Quality
 
+Format code
+```
+black backend bin/raveberry
+```
 Check types
 ```
 # mypy does not work if backend/__init__.py is present
