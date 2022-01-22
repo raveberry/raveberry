@@ -1,9 +1,26 @@
 # Changelog
 
+## 0.10.2 - 2022-01-22
+
+- Refactoring: mypy and pylint run without complaining
+* Simplified control flow, added type hints, sorted imports, etc.
+* Added instructions to CONTRIBUTING.md
+
+- Reordering songs works from mobile devices
+- The host that is used to check internet connectivity can be configured
+- New music only mode: removed suggestions for playlists, no "Error" suggestions are shown
+- manage.py celery is now manage.py startcelery
+- celery module renamed, update your docker-compose.yml. systemd service is updated automatically
+- Sites other than `/musiq` are not tracked for user activity anymore
+- Filepaths are quoted, allowing for more obscure filenames in the local library (#126)
+- PYTHONOPTIMIZE is set in production, stripping docstrings and skipping asserts
+
 ## 0.10.1 - 2022-01-15
+
 - Include resources folder in PyPi package
 
 ## 0.10.0 - 2022-01-15
+
 - Big visualization rework:
 * Visualization is more robust and more performant
 * A Pi 4 can comfortably render HD@30fps, before performance always degraded significantly
@@ -40,6 +57,7 @@
 - Ansible warning silenced
 
 ## 0.9.10 - 2021-12-18
+
 - Restructured code into a backend folder to clean up the root folder
 - Added link to new discord server into readme
 - Debug setup uses threads instead of celery, speeding up reload significantly
@@ -47,6 +65,7 @@
 - Lights worker flushes the settings cache before loading settings. Program changes apply immediately.
 
 ## 0.9.9 - 2021-12-09
+
 - Big suggestion improvements:
 * Trigram similarity is used instead of full text search
 * Now Raveberry can provide suggestions for substrings, stop words (and, a, the etc.) and typos
@@ -69,11 +88,13 @@
 - Switched from youtube-dl to yt-dlp, significantly increasing download speed.
 
 ## 0.9.8 - 2021-12-01
+
 - Fixed bug where color definitions got lost in the css minification process
 - Tapping an "error" suggestion does nothing
 - Buttons for queue control are further apart (and thus harder to mis-select)
 
 ## 0.9.6 - 2021-11-27
+
 - Suggestions are much more responsive:
 * The first line (the query itself) is shown immediately
 * Offline suggestions are shown as soon as they are ready and don't wait for the online suggestions
@@ -88,6 +109,7 @@
 - The internal act led (green) indicates active Raveberry requests
 
 ## 0.9.5 - 2021-10-18
+
 - Add option for server-side vote duplication checking by IP
 - Use session keys instead of IPs to link requests logs
 - Most active device entry is sorted correctly in analysis section
@@ -99,16 +121,19 @@
 - Admin page in docker container looks fine now
 
 ## 0.9.4 - 2021-10-06
+
 - Frontend files are shipped with the pypi package
 - Long modals are scrollable (e.g. changelog, upgrade confirmation dialog)
 
 ## 0.9.3 - 2021-09-27
+
 - Bind address can be specified for reverse ssh tunnel
 - If specified, remote ssh key is always overwritten, even if one already exists (#118)
 - Allowed discord bot to receive the queue key of requested songs
 - System install is tested in CI
 
 ## 0.9.2 - 2021-09-24
+
 - Database is registered correctly in celery workers. New songs will directly appear in suggestions again.
 - Current song can be deleted in settings to help recover from disconnection problems (#116)
 - Add donation link to readme
@@ -121,10 +146,12 @@
 - Red and blue colors are more prominent in rainbow LED visualization
 
 ## 0.9.1 - 2021-09-16
+
 - Fix installation issue by quoting rsync argument and pinning ansible (#115).
 - Mopidy container also loads jamendo client id from environment.
 
 ## 0.9.0 - 2021-07-27
+
 - _Big_ Architecture rewrite: 
 - State is not kept in a single god-object, but stored in Redis and the database
 - Celery is used for long-running tasks
