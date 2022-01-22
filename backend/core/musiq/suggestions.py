@@ -72,7 +72,7 @@ def online_suggestions(request: WSGIRequest) -> JsonResponse:
     query = request.GET["term"]
     suggest_playlist = request.GET["playlist"] == "true"
 
-    if storage.get("new_music_only") and not suggest_playlist:
+    if storage.get("new_music_only"):
         return JsonResponse([], safe=False)
 
     results: List[SuggestionResult] = []
@@ -409,7 +409,7 @@ def offline_suggestions(request: WSGIRequest) -> JsonResponse:
     query = request.GET["term"]
     suggest_playlist = request.GET["playlist"] == "true"
 
-    if storage.get("new_music_only") and not suggest_playlist:
+    if storage.get("new_music_only"):
         return JsonResponse([], safe=False)
 
     if suggest_playlist:

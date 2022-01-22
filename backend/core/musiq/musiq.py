@@ -199,8 +199,10 @@ def index(request: WSGIRequest) -> HttpResponse:
     context["embed_stream"] = storage.get("embed_stream")
     context["dynamic_embedded_stream"] = storage.get("dynamic_embedded_stream")
     for platform in ["youtube", "spotify", "soundcloud", "jamendo"]:
-        if storage.get("online_suggestions") and storage.get(
-            cast(PlatformEnabled, f"{platform}_enabled")
+        if (
+            storage.get("online_suggestions")
+            and not storage.get("new_music_only")
+            and storage.get(cast(PlatformEnabled, f"{platform}_enabled"))
         ):
             suggestion_count = storage.get(
                 cast(PlatformSuggestions, f"{platform}_suggestions")
