@@ -13,7 +13,7 @@ class Strip(Device):
         self.monochrome = True
 
         try:
-            # from https://github.com/adafruit/Adafruit_CircuitPython_PCA9685/blob/main/examples/pca9685_simpletest.py
+            # https://github.com/adafruit/Adafruit_CircuitPython_PCA9685/blob/main/examples/pca9685_simpletest.py
             from board import SCL, SDA
             import busio
             from adafruit_pca9685 import PCA9685
@@ -26,7 +26,7 @@ class Strip(Device):
             self.controller.frequency = 60
 
             self.initialized = True
-            redis.set("strip_initialized", True)
+            redis.put("strip_initialized", True)
         except ValueError:
             # LED strip is not connected
             return

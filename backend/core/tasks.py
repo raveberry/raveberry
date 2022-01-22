@@ -1,33 +1,39 @@
 """This module contains the celery app."""
 import os
-from distutils.util import strtobool
 from threading import Thread
-from typing import Callable, Any
+from typing import Any, Callable
+
+from core.util import strtobool
+
+app: Any
 
 if strtobool(os.environ.get("DJANGO_NO_CELERY", "0")):
     # For debugging, celery's startup is quite slow, especially when reloading on every change.
     # Instead, use Threads to keep asynchronicity but with a much faster startup.
-    active = False
+    CELERY_ACTIVE = False
 
     class MockCelery:
+        """A mock class that starts threads instead of dispatching the tasks to celery workers."""
+
         def task(self, function: Callable) -> Callable:
             """This decorator mocks celery's delay function.
-            This delay() creates a thread and starts it."""
+           This delay() creates a thread and starts it."""
 
             def delay(*args: Any, **kwargs: Any) -> None:
                 thread = Thread(target=function, args=args, kwargs=kwargs, daemon=True)
                 thread.start()
 
-            function.delay = delay
+            # monkeypatch-add this method
+            function.delay = delay  # type: ignore[attr-defined]
 
             return function
 
     def start() -> None:
-        pass
+        """MockCelery does not need to be initialized."""
 
     app = MockCelery()
 else:
-    active = True
+    CELERY_ACTIVE = True
 
     from celery import Celery
 
@@ -39,8 +45,6 @@ else:
 
     class CeleryNotReachable(Exception):
         """Raised when celery should be reachable but is not."""
-
-        pass
 
     def start() -> None:
         """Initializes celery."""
@@ -54,6 +58,6 @@ else:
         # stop running celery tasks from old django instance
         active_tasks = app.control.inspect().active()
         if active_tasks:
-            for hostname, tasks in active_tasks.items():
+            for _, tasks in active_tasks.items():
                 for task in tasks:
                     app.control.revoke(task_id=task["id"], terminate=True)

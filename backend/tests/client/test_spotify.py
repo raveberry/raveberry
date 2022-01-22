@@ -7,7 +7,7 @@ from tests.music_test import MusicTest
 
 
 class SpotifyTests(MusicTest):
-    def setUp(self):
+    def setUp(self) -> None:
         try:
             username = os.environ["SPOTIFY_USERNAME"]
             password = os.environ["SPOTIFY_PASSWORD"]
@@ -33,7 +33,7 @@ class SpotifyTests(MusicTest):
 
         self.client.post(reverse("set-spotify-enabled"), {"value": "true"})
 
-    def test_query(self):
+    def test_query(self) -> None:
         self.client.post(
             reverse("request-music"),
             {
@@ -49,9 +49,9 @@ class SpotifyTests(MusicTest):
         )
         self.assertEqual(current_song["artist"], "Eskimo Callboy")
         self.assertEqual(current_song["title"], "MC Thunder")
-        self.assertEqual(current_song["duration"], 230)
+        self.assertAlmostEqual(current_song["duration"], 230, delta=1)
 
-    def test_url(self):
+    def test_url(self) -> None:
         self.client.post(
             reverse("request-music"),
             {
@@ -67,9 +67,9 @@ class SpotifyTests(MusicTest):
         )
         self.assertEqual(current_song["artist"], "Bring Me The Horizon")
         self.assertEqual(current_song["title"], "Avalanche")
-        self.assertEqual(current_song["duration"], 262)
+        self.assertAlmostEqual(current_song["duration"], 262, delta=1)
 
-    def test_playlist_url(self):
+    def test_playlist_url(self) -> None:
         self.client.post(
             reverse("request-music"),
             {
@@ -161,13 +161,7 @@ class SpotifyTests(MusicTest):
         old_id = state["musiq"]["songQueue"][0]["id"]
 
         self.client.post(reverse("skip"))
-        # make sure another song is enqueued
-        self._poll_musiq_state(
-            lambda state: len(state["musiq"]["songQueue"]) == 1
-            and state["musiq"]["songQueue"][0]["internalUrl"]
-            and state["musiq"]["songQueue"][0]["id"] != old_id,
-            timeout=10,
-        )
+        self._wait_for_new_song(old_id)
 
     def test_radio(self):
         self.client.post(

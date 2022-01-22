@@ -2,30 +2,27 @@
 
 import os
 import re
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, TypedDict
 
 import mutagen.easymp4
 
-import core.settings.storage as storage
-from main import settings as conf
+from core.settings import storage
+from django.conf import settings as conf
 
 if TYPE_CHECKING:
-    from typing_extensions import TypedDict
     from core.models import ArchivedPlaylist
 
-    Metadata = TypedDict(  # pylint: disable=invalid-name
-        "Metadata",
-        {
-            "artist": str,
-            "title": str,
-            "duration": float,
-            "internal_url": str,
-            "external_url": Optional[str],
-            "stream_url": Optional[str],
-            "cached": bool,
-        },
-        total=False,
-    )
+
+class Metadata(TypedDict, total=False):
+    """A type that describes all metadata a song can and should have."""
+
+    artist: str
+    title: str
+    duration: float
+    internal_url: Optional[str]
+    external_url: Optional[str]
+    stream_url: Optional[str]
+    cached: bool
 
 
 def get_path(basename: str) -> str:
@@ -75,8 +72,8 @@ def format_seconds(seconds: int) -> str:
 
     formatted = ""
     if hours > 0:
-        formatted += "{:d}:".format(int(hours))
-    formatted += "{0:02d}:{1:02d}".format(int(minutes), int(seconds))
+        formatted += f"{int(hours):}:"
+    formatted += f"{int(minutes):02d}:{int(seconds):02d}"
     return formatted
 
 
@@ -114,7 +111,7 @@ def get_metadata(path: str) -> "Metadata":
     return metadata
 
 
-def is_forbidden(s: str) -> bool:
+def is_forbidden(string: str) -> bool:
     """Returns whether the given string should be filtered according to the forbidden keywords."""
     # We can't access the variable in settings/basic.py
     # since we are in a static context without a reference to bes
@@ -124,6 +121,6 @@ def is_forbidden(s: str) -> bool:
     words = [word for word in words if word]
 
     for word in words:
-        if re.search(word, s, re.IGNORECASE):
+        if re.search(word, string, re.IGNORECASE):
             return True
     return False

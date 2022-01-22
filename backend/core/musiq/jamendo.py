@@ -4,20 +4,16 @@ from __future__ import annotations
 
 import logging
 from contextlib import closing
-from typing import Optional, List, TYPE_CHECKING
+from typing import List, Optional
 from urllib.parse import urlparse
 
 import requests
 from django.http.response import HttpResponse
 
-import core.settings.storage as storage
 from core.musiq import song_utils
-from core.musiq import musiq
-from core.musiq.song_provider import SongProvider
 from core.musiq.playlist_provider import PlaylistProvider
-
-if TYPE_CHECKING:
-    from core.musiq.song_utils import Metadata
+from core.musiq.song_provider import SongProvider
+from core.settings import storage
 
 
 class JamendoClient:
@@ -38,21 +34,24 @@ class JamendoClient:
         params["client_id"] = self.client_id
         try:
             with closing(self.session.get(url, params=params)) as res:
-                logging.debug(f"Requested {res.url}")
+                logging.debug("Requested %s", res.url)
                 res.raise_for_status()
                 return res.json()
-        except Exception as e:
-            if isinstance(e, requests.HTTPError) and e.response.status_code == 401:
+        except requests.RequestException as error:
+            if (
+                isinstance(error, requests.HTTPError)
+                and error.response.status_code == 401
+            ):
                 logging.error('Invalid "client_id" used for Jamendo authentication!')
             else:
-                logging.error(f"Jamendo API request failed: {e}")
+                logging.error("Jamendo API request failed: %s", error)
         return {}
 
 
 class Jamendo:
     """This class contains code for both the song and playlist provider"""
 
-    _web_client: JamendoClient = None  # type: ignore
+    _web_client: JamendoClient = None  # type: ignore[assignment]
 
     @staticmethod
     def _get_web_client() -> JamendoClient:
@@ -111,12 +110,7 @@ class JamendoSongProvider(SongProvider, Jamendo):
         self.type = "jamendo"
         super().__init__(query, key)
 
-        self.metadata: "Metadata" = {}
         self.external_url = None
-
-    def check_cached(self) -> bool:
-        # Jamendo songs cannot be cached and have to be streamed everytime
-        return False
 
     def check_available(self) -> bool:
         if not self.gather_metadata():
@@ -131,16 +125,10 @@ class JamendoSongProvider(SongProvider, Jamendo):
         if not self.id:
             results = self.web_client.get("tracks", {"search": self.query})["results"]
 
-            # apply the filterlist from the settings
-            for item in results:
-                artist = item["artist_name"]
-                title = item["name"]
-                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
-                    continue
-                result = item
-                break
-            else:
-                # all tracks got filtered
+            result = self.first_unfiltered_item(
+                results, lambda item: (item["artist_name"], item["name"])
+            )
+            if not result:
                 return False
             self.id = result["id"]
         else:
@@ -149,6 +137,7 @@ class JamendoSongProvider(SongProvider, Jamendo):
             except (KeyError, IndexError):
                 self.error = f"id {self.id} not found"
                 return False
+        assert result
         self.metadata["artist"] = result["artist_name"]
         self.metadata["title"] = result["name"]
         self.metadata["duration"] = result["duration"]
@@ -157,15 +146,6 @@ class JamendoSongProvider(SongProvider, Jamendo):
         self.metadata["stream_url"] = result["audio"]
         self.metadata["cached"] = False
         return True
-
-    def get_metadata(self) -> "Metadata":
-        if not self.metadata:
-            self.gather_metadata()
-        return self.metadata
-
-    def _get_path(self) -> str:
-        # Jamendo is not cached in the cache directory
-        raise NotImplementedError()
 
     def get_internal_url(self) -> str:
         if not self.id:
@@ -184,30 +164,22 @@ class JamendoSongProvider(SongProvider, Jamendo):
 
         try:
             external_url = result["results"][0]["shareurl"]
-        except IndexError:
+        except (IndexError, KeyError) as error:
             self.error = "no recommendation found"
-            raise ValueError("No suggested track")
+            raise ValueError("No suggested song") from error
 
         return external_url
 
     def request_radio(self, session_key: str) -> HttpResponse:
-
         result = self.web_client.get(
             "recommendations",
-            params={"id": self.id, "limit": storage.get("basic.max_playlist_items")},
+            params={"id": self.id, "limit": storage.get("max_playlist_items")},
         )
 
         for track in result["results"]:
             external_url = track["shareurl"]
-            musiq.do_request_music(
-                "",
-                external_url,
-                None,
-                False,
-                "jamendo",
-                archive=False,
-                manually_requested=False,
-            )
+            provider = JamendoSongProvider(external_url, None)
+            provider.request("", archive=False, manually_requested=False)
 
         return HttpResponse("queueing radio")
 
@@ -244,9 +216,6 @@ class JamendoPlaylistProvider(PlaylistProvider, Jamendo):
         self.title = playlist["name"]
 
         return list_id
-
-    def is_radio(self) -> bool:
-        return False
 
     def fetch_metadata(self) -> bool:
         if self.title is None:

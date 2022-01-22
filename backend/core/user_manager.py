@@ -1,28 +1,27 @@
 """This module manages and counts user accesses and handles permissions."""
 import time
 from functools import wraps
-from typing import Callable, Optional
+from typing import Callable
 
 import ipware
-from django.contrib.auth.models import AbstractUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 
-import core.settings.storage as storage
 from core import redis
 
 # kick users after some time without any request
 from core.lights import leds
+from core.settings import storage
 
 INACTIVITY_PERIOD = 600
 
 
-def has_controls(user: AbstractUser) -> bool:
+def has_controls(user) -> bool:
     """Determines whether the given user is allowed to control playback."""
     return user.username == "mod" or is_admin(user)
 
 
-def is_admin(user: AbstractUser) -> bool:
+def is_admin(user) -> bool:
     """Determines whether the given user is the admin."""
     return user.is_superuser
 
@@ -34,8 +33,8 @@ def update_user_count() -> None:
     for key, value in list(last_requests.items()):
         if now - value >= INACTIVITY_PERIOD:
             del last_requests[key]
-            redis.set("last_requests", last_requests)
-    redis.set("last_user_count_update", now)
+            redis.put("last_requests", last_requests)
+    redis.put("last_user_count_update", now)
 
 
 def get_count() -> int:
@@ -53,6 +52,7 @@ def partymode_enabled() -> bool:
 
 
 def get_client_ip(request: WSGIRequest):
+    """Returns the origin IP of a given request or "" if not possible."""
     request_ip, _ = ipware.get_client_ip(request)
     if request_ip is None:
         request_ip = ""
@@ -86,14 +86,14 @@ def try_vote(request_ip: str, queue_key: int, amount: int) -> bool:
         allowed = True
         # expire these entries to avoid accumulation over long runtimes.
         pipe.multi()
-        pipe.set(entry, new_vote, ex=24 * 60 * 60)
+        pipe.set(entry, new_vote, expire=24 * 60 * 60)
 
-    redis.transaction(check_entry, entry)
+    redis.connection.transaction(check_entry, entry)
     return allowed
 
 
 def tracked(
-    func: Callable[[WSGIRequest], Optional[HttpResponse]]
+    func: Callable[[WSGIRequest], HttpResponse]
 ) -> Callable[[WSGIRequest], HttpResponse]:
     """A decorator that stores the last access for every connected ip
     so the number of active users can be determined."""
@@ -106,7 +106,7 @@ def tracked(
         request_ip = get_client_ip(request)
         last_requests = redis.get("last_requests")
         last_requests[request_ip] = time.time()
-        redis.set("last_requests", last_requests)
+        redis.put("last_requests", last_requests)
 
         def check():
             active = redis.get("active_requests")
@@ -115,10 +115,10 @@ def tracked(
             else:
                 leds.disable_act_led()
 
-        redis.incr("active_requests")
+        redis.connection.incr("active_requests")
         check()
         response = func(request)
-        redis.decr("active_requests")
+        redis.connection.decr("active_requests")
         check()
 
         return response

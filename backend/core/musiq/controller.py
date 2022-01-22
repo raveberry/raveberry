@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import subprocess
 import datetime
+import subprocess
 from functools import wraps
 from typing import Callable
 
@@ -17,12 +17,13 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from mopidyapi import MopidyAPI
 
-import core.models as models
-from core import user_manager, redis
-from core.musiq import playback, musiq
+from core import models, redis, user_manager
+from core.musiq import musiq, playback
 from core.settings import storage
+from core.util import extract_value
 
-player: MopidyAPI = None
+PLAYER = MopidyAPI(host=conf.MOPIDY_HOST, port=conf.MOPIDY_PORT)
+SEEK_DISTANCE = 10
 
 
 def control(func: Callable) -> Callable:
@@ -44,13 +45,8 @@ def control(func: Callable) -> Callable:
     return wraps(func)(_decorator)
 
 
-SEEK_DISTANCE = 10
-
-
 def start() -> None:
     """Initializes this module by restoring the volume."""
-    global player
-    player = MopidyAPI(host=conf.MOPIDY_HOST, port=conf.MOPIDY_PORT)
     volume = storage.get("volume")
     _set_volume(volume)
 
@@ -60,7 +56,7 @@ def restart(_request: WSGIRequest) -> None:
     """Restarts the current song from the beginning."""
     with playback.mopidy_command() as allowed:
         if allowed:
-            player.playback.seek(0)
+            PLAYER.playback.seek(0)
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.created = timezone.now()
@@ -74,8 +70,8 @@ def seek_backward(_request: WSGIRequest) -> None:
     """Jumps back in the current song."""
     with playback.mopidy_command() as allowed:
         if allowed:
-            current_position = player.playback.get_time_position()
-            player.playback.seek(current_position - SEEK_DISTANCE * 1000)
+            current_position = PLAYER.playback.get_time_position()
+            PLAYER.playback.seek(current_position - SEEK_DISTANCE * 1000)
     try:
         current_song = models.CurrentSong.objects.get()
         now = timezone.now()
@@ -92,7 +88,7 @@ def play(_request: WSGIRequest) -> None:
     No-op if already playing."""
     with playback.mopidy_command() as allowed:
         if allowed:
-            player.playback.play()
+            PLAYER.playback.play()
     try:
         # move the creation timestamp into the future for the duration of the pause
         # this ensures that the progress calculation (starting from created) is correct
@@ -104,7 +100,7 @@ def play(_request: WSGIRequest) -> None:
         current_song.save()
     except models.CurrentSong.DoesNotExist:
         pass
-    storage.set("paused", False)
+    storage.put("paused", False)
 
 
 @control
@@ -113,14 +109,14 @@ def pause(_request: WSGIRequest) -> None:
     No-op if already paused."""
     with playback.mopidy_command() as allowed:
         if allowed:
-            player.playback.pause()
+            PLAYER.playback.pause()
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.last_paused = timezone.now()
         current_song.save()
     except models.CurrentSong.DoesNotExist:
         pass
-    storage.set("paused", True)
+    storage.put("paused", True)
 
 
 @control
@@ -128,8 +124,8 @@ def seek_forward(_request: WSGIRequest) -> None:
     """Jumps forward in the current song."""
     with playback.mopidy_command() as allowed:
         if allowed:
-            current_position = player.playback.get_time_position()
-            player.playback.seek(current_position + SEEK_DISTANCE * 1000)
+            current_position = PLAYER.playback.get_time_position()
+            PLAYER.playback.seek(current_position + SEEK_DISTANCE * 1000)
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.created -= datetime.timedelta(seconds=SEEK_DISTANCE)
@@ -143,8 +139,8 @@ def skip(_request: WSGIRequest) -> None:
     """Skips the current song and continues with the next one."""
     with playback.mopidy_command() as allowed:
         if allowed:
-            redis.set("backup_playing", False)
-            player.playback.next()
+            redis.put("backup_playing", False)
+            PLAYER.playback.next()
 
 
 @control
@@ -153,7 +149,7 @@ def set_shuffle(request: WSGIRequest) -> None:
     If enabled, a random song in the queue is chosen as the next one.
     If not, the first one is chosen."""
     enabled = request.POST.get("value") == "true"
-    storage.set("shuffle", enabled)
+    storage.put("shuffle", enabled)
 
 
 @control
@@ -161,7 +157,7 @@ def set_repeat(request: WSGIRequest) -> None:
     """Enables or disables repeat depending on the given value.
     If enabled, a song is enqueued again after it finished playing."""
     enabled = request.POST.get("value") == "true"
-    storage.set("repeat", enabled)
+    storage.put("repeat", enabled)
 
 
 @control
@@ -170,7 +166,7 @@ def set_autoplay(request: WSGIRequest) -> None:
     If enabled and the current song is the last one,
     a new song is enqueued, based on the current one."""
     enabled = request.POST.get("value") == "true"
-    storage.set("autoplay", enabled)
+    storage.put("autoplay", enabled)
     playback.handle_autoplay()
 
 
@@ -188,16 +184,17 @@ def _set_volume(volume) -> None:
         # change mopidy's volume
         with playback.mopidy_command() as allowed:
             if allowed:
-                player.mixer.set_volume(round(volume * 100))
+                PLAYER.mixer.set_volume(round(volume * 100))
 
 
 @control
-def set_volume(request: WSGIRequest) -> None:
+def set_volume(request: WSGIRequest) -> HttpResponse:
     """Sets the playback volume.
     value has to be a float between 0 and 1."""
-    volume = float(request.POST.get("value"))  # type: ignore
-    _set_volume(volume)
-    storage.set("volume", volume)
+    volume, response = extract_value(request.POST)
+    _set_volume(float(volume))
+    storage.put("volume", float(volume))
+    return response
 
 
 @control
@@ -224,23 +221,23 @@ def remove_all(request: WSGIRequest) -> HttpResponse:
 @control
 def prioritize(request: WSGIRequest) -> HttpResponse:
     """Prioritizes song by making it the first one in the queue."""
-    key = request.POST.get("key")
-    if key is None:
+    key_param = request.POST.get("key")
+    if key_param is None:
         return HttpResponseBadRequest()
-    ikey = int(key)
-    playback.queue.prioritize(ikey)
+    key = int(key_param)
+    playback.queue.prioritize(key)
     return HttpResponse()
 
 
 @control
 def remove(request: WSGIRequest) -> HttpResponse:
     """Removes a song identified by the given key from the queue."""
-    key = request.POST.get("key")
-    if key is None:
+    key_param = request.POST.get("key")
+    if key_param is None:
         return HttpResponseBadRequest()
-    ikey = int(key)
+    key = int(key_param)
     try:
-        removed = playback.queue.remove(ikey)
+        removed = playback.queue.remove(key)
         # if we removed a song and it was added by autoplay,
         # we want it to be the new basis for autoplay
         if not removed.manually_requested:
@@ -256,22 +253,22 @@ def remove(request: WSGIRequest) -> HttpResponse:
 def reorder(request: WSGIRequest) -> HttpResponse:
     """Reorders the queue.
     The song specified by element is inserted between prev and next."""
-    prev_key = request.POST.get("prev")
-    cur_key = request.POST.get("element")
-    next_key = request.POST.get("next")
-    if not cur_key:
+    prev_key_param = request.POST.get("prev")
+    cur_key_param = request.POST.get("element")
+    next_key_param = request.POST.get("next")
+    if not cur_key_param:
         return HttpResponseBadRequest()
-    if not prev_key:
-        iprev_key = None
+    if not prev_key_param:
+        prev_key = None
     else:
-        iprev_key = int(prev_key)
-    icur_key = int(cur_key)
-    if not next_key:
-        inext_key = None
+        prev_key = int(prev_key_param)
+    cur_key = int(cur_key_param)
+    if not next_key_param:
+        next_key = None
     else:
-        inext_key = int(next_key)
+        next_key = int(next_key_param)
     try:
-        playback.queue.reorder(iprev_key, icur_key, inext_key)
+        playback.queue.reorder(prev_key, cur_key, next_key)
     except ValueError:
         return HttpResponseBadRequest("request on old state")
     return HttpResponse()
@@ -282,33 +279,41 @@ def reorder(request: WSGIRequest) -> HttpResponse:
 def vote(request: WSGIRequest) -> HttpResponse:
     """Modify the vote-count of the given song by the given amount.
     If a song receives too many downvotes, it is removed."""
-    key = request.POST.get("key")
-    amount = request.POST.get("amount")
-    if key is None or amount is None:
+    key_param = request.POST.get("key")
+    amount_param = request.POST.get("amount")
+    if key_param is None or amount_param is None:
         return HttpResponseBadRequest()
-    ikey = int(key)
-    amount = int(amount)
+    key = int(key_param)
+    amount = int(amount_param)
     if amount < -2 or amount > 2:
         return HttpResponseBadRequest()
 
     if storage.get("ip_checking") and not user_manager.try_vote(
-        user_manager.get_client_ip(request), ikey, amount
+        user_manager.get_client_ip(request), key, amount
     ):
         return HttpResponseBadRequest("nice try")
 
-    models.CurrentSong.objects.filter(queue_key=ikey).update(votes=F("votes") + amount)
+    models.CurrentSong.objects.filter(queue_key=key).update(votes=F("votes") + amount)
     try:
         current_song = models.CurrentSong.objects.get()
-        if current_song.queue_key == ikey and current_song.votes <= -storage.get(
-            "downvotes_to_kick"
+        if (
+            current_song.queue_key == key
+            and current_song.votes
+            <= -storage.get(  # pylint: disable=invalid-unary-operand-type
+                "downvotes_to_kick"
+            )
         ):
             with playback.mopidy_command() as allowed:
                 if allowed:
-                    player.playback.next()
+                    PLAYER.playback.next()
     except models.CurrentSong.DoesNotExist:
         pass
 
-    removed = playback.queue.vote(ikey, amount, -storage.get("downvotes_to_kick"))
+    removed = playback.queue.vote(
+        key,
+        amount,
+        -storage.get("downvotes_to_kick"),  # pylint: disable=invalid-unary-operand-type
+    )
     # if we removed a song by voting, and it was added by autoplay,
     # we want it to be the new basis for autoplay
     if removed is not None:

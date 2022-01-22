@@ -2,25 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Optional, List, TYPE_CHECKING
+from typing import List, Optional
 
 import requests
-import soundcloud
 from bs4 import BeautifulSoup
 from django.http.response import HttpResponse
 
-from core.musiq import song_utils, musiq
-from core.musiq.song_provider import SongProvider
+import soundcloud
+from core.musiq import song_utils
 from core.musiq.playlist_provider import PlaylistProvider
-
-if TYPE_CHECKING:
-    from core.musiq.song_utils import Metadata
+from core.musiq.song_provider import SongProvider
 
 
 class Soundcloud:
     """This class contains code for both the song and playlist provider"""
 
-    _web_client: soundcloud.Client.Client = None  # type: ignore
+    _web_client: soundcloud.Client.Client = None
 
     @staticmethod
     def _get_web_client() -> soundcloud.Client.Client:
@@ -40,7 +37,7 @@ class Soundcloud:
         """Returns a list of suggested items for the given query."""
 
         response = self.web_client.get(
-            f"https://api-v2.soundcloud.com/search/queries", q=query
+            "https://api-v2.soundcloud.com/search/queries", q=query
         )
 
         suggestions = [
@@ -68,12 +65,7 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
         self.type = "soundcloud"
         super().__init__(query, key)
 
-        self.metadata: "Metadata" = {}
         self.external_url = None
-
-    def check_cached(self) -> bool:
-        # Soundcloud songs cannot be cached and have to be streamed everytime
-        return False
 
     def check_available(self) -> bool:
         return self.gather_metadata()
@@ -84,37 +76,24 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
         if not self.id:
             results = self.web_client.get("/tracks", q=self.query, limit=20)
 
-            # apply the filterlist from the settings
-            for item in results:
-                artist = item.user["username"]
-                title = item.title
-                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
-                    continue
-                result = item
-                break
-            else:
-                # all tracks got filtered
+            result = self.first_unfiltered_item(
+                results._asdict(),
+                lambda item: (item["user"]["username"], item["title"]),
+            )
+            if not result:
                 return False
-            self.id = result.id
+            self.id = result["id"]
         else:
             result = self.web_client.get(f"tracks/{self.id}")
-        self.metadata["artist"] = result.user["username"]
-        self.metadata["title"] = result.title
-        self.metadata["duration"] = result.duration / 1000
+        assert result
+        self.metadata["artist"] = result["user"]["username"]
+        self.metadata["title"] = result["title"]
+        self.metadata["duration"] = result["duration"] / 1000
         self.metadata["internal_url"] = self.get_internal_url()
-        self.metadata["external_url"] = result.permalink_url
+        self.metadata["external_url"] = result["permalink_url"]
         self.metadata["stream_url"] = None
         self.metadata["cached"] = False
         return True
-
-    def get_metadata(self) -> "Metadata":
-        if not self.metadata:
-            self.gather_metadata()
-        return self.metadata
-
-    def _get_path(self) -> str:
-        # soundcloud is not cached in the cache directory
-        raise NotImplementedError()
 
     def get_internal_url(self) -> str:
         if not self.id:
@@ -124,7 +103,9 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
     def get_external_url(self) -> str:
         if not self.id:
             raise ValueError()
-        return self.get_metadata()["external_url"]
+        external_url = self.get_metadata()["external_url"]
+        assert external_url
+        return external_url
 
     def _get_related_urls(self) -> List[str]:
         response = requests.get(self.get_external_url() + "/recommended")
@@ -146,15 +127,8 @@ class SoundcloudSongProvider(SongProvider, Soundcloud):
         urls = self._get_related_urls()
 
         for external_url in urls:
-            musiq.do_request_music(
-                "",
-                external_url,
-                None,
-                False,
-                "soundcloud",
-                archive=False,
-                manually_requested=False,
-            )
+            provider = SoundcloudSongProvider(external_url, None)
+            provider.request("", archive=False, manually_requested=False)
 
         return HttpResponse("queueing radio")
 
@@ -186,9 +160,6 @@ class SoundcloudPlaylistProvider(PlaylistProvider, Soundcloud):
         self.title = playlist.title
 
         return list_id
-
-    def is_radio(self) -> bool:
-        return False
 
     def fetch_metadata(self) -> bool:
         if self.title is None:

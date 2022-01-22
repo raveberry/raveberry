@@ -3,20 +3,24 @@ import logging
 import os
 import subprocess
 import time
-from typing import List
+from typing import List, TYPE_CHECKING, Optional
 
-import main.settings as conf
+from django.conf import settings as conf
 from core import redis
 from core.lights import lights
 from core.lights.exceptions import ScreenProgramStopped
 from core.lights.programs import ScreenProgram
 
+if TYPE_CHECKING:
+    from core.lights.worker import DeviceManager
+
 
 class Video(ScreenProgram):
+    """Plays a given Video."""
+
     def __init__(self, manager: "DeviceManager", video: str, loop=False):
-        super().__init__(manager)
-        self.name = os.path.splitext(os.path.basename(video))[0]
-        self.player = None
+        super().__init__(manager, os.path.splitext(os.path.basename(video))[0])
+        self.player: Optional[subprocess.Popen] = None
         if not os.path.isabs(video):
             video = os.path.join(conf.BASE_DIR, "resources", "videos", video)
         if not os.path.isfile(video):
@@ -51,14 +55,16 @@ class Video(ScreenProgram):
                         args.append("-loop")
                         args.append("0")
                     self.player = subprocess.Popen(args, stdout=subprocess.DEVNULL)
-                except FileNotFoundError:
-                    raise ValueError("No video player found")
+                except FileNotFoundError as error:
+                    raise ValueError("No video player found") from error
 
     def compute(self) -> None:
         if not self.player or self.player.poll() is not None:
             raise ScreenProgramStopped
 
     def stop(self) -> None:
+        if not self.player:
+            return
         if self.omxplayer:
             # for some reason omxplayer refuses to exit on sigterm from python
             self.player.communicate(b"q")
@@ -74,10 +80,11 @@ class Visualization(ScreenProgram):
 
     @staticmethod
     def get_variants() -> List[str]:
+        """Returns all possible visualization variants by listing the available shaders."""
         # don't offer this feature on raspberry pi 3
         try:
-            with open("/proc/device-tree/model") as f:
-                model = f.read()
+            with open("/proc/device-tree/model", encoding="utf-8") as model_file:
+                model = model_file.read()
                 if model.startswith("Raspberry Pi 3"):
                     return []
         except FileNotFoundError:
@@ -93,20 +100,19 @@ class Visualization(ScreenProgram):
             return []
 
     def __init__(self, manager: "DeviceManager", variant: str) -> None:
-        super().__init__(manager)
+        super().__init__(manager, variant)
         # __init__ is called for every variant reported by get_variants
         # that method acts as a guard that the module is installed
         import raveberry_visualization
 
-        self.name = variant
         self.controller = raveberry_visualization.Controller()
         self.last_fps_check = time.time()
 
     def start(self) -> None:
-        self.manager.cava_program.use()
+        self.manager.utilities.cava.use()
         self.controller.start(
             self.name,
-            self.manager.ups,
+            self.manager.settings["ups"],
             Visualization.NUM_PARTICLES,
             Visualization.FPS_MEASURE_WINDOW,
         )
@@ -116,9 +122,12 @@ class Visualization(ScreenProgram):
         if now - self.last_fps_check > Visualization.FPS_MEASURE_WINDOW / 2:
             self.last_fps_check = now
             current_fps = self.controller.get_fps()
-            redis.set("current_fps", current_fps)
-            if self.manager.dynamic_resolution and current_fps < 0.9 * self.manager.ups:
-                self.manager.screen.lower_resolution()
+            redis.put("current_fps", current_fps)
+            if (
+                self.manager.settings["dynamic_resolution"]
+                and current_fps < 0.9 * self.manager.settings["ups"]
+            ):
+                self.manager.devices.screen.lower_resolution()
                 # restart the program with the new resolution
                 self.manager.restart_screen_program(sleep_time=2, has_lock=True)
             else:
@@ -126,9 +135,10 @@ class Visualization(ScreenProgram):
         if not self.controller.is_active():
             raise ScreenProgramStopped
         self.controller.set_parameters(
-            self.manager.alarm_program.factor, self.manager.cava_program.current_frame
+            self.manager.utilities.alarm.factor,
+            self.manager.utilities.cava.current_frame,
         )
 
     def stop(self) -> None:
         self.controller.stop()
-        self.manager.cava_program.release()
+        self.manager.utilities.cava.release()

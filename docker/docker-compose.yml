@@ -53,7 +53,7 @@ services:
       - MOPIDY_PORT
       - ICECAST_HOST
       - ICECAST_PORT
-    command: /usr/local/bin/celery -A core worker -O fair -c 6
+    command: /usr/local/bin/celery -A core.tasks worker -O fair -c 6
     restart: always
   icecast:
     image: raveberry/raveberry-icecast

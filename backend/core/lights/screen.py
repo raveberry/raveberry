@@ -3,9 +3,9 @@ import math
 import re
 import subprocess
 import os
-from typing import List, Tuple, Optional
+from typing import List, Tuple, cast
 
-import main.settings as conf
+from django.conf import settings as conf
 from core import redis, util
 from core.lights import lights
 from core.lights.device import Device
@@ -14,6 +14,17 @@ from core.settings import storage
 
 class Screen(Device):
     """This class provides an interface to control the screen."""
+
+    @staticmethod
+    def get_primary() -> str:
+        """Return the primary screen"""
+        for line in subprocess.check_output(
+            "xrandr -q".split(), text=True
+        ).splitlines():
+            output = re.match(r"(\S+) connected primary", line)
+            if output:
+                return output.group(1)
+        raise ValueError("Could not find primary screen")
 
     def __init__(self, manager) -> None:
         super().__init__(manager, "screen")
@@ -45,7 +56,7 @@ class Screen(Device):
         #
         # so we set hotplug and initialize the screen even if none is connected
         self.initialized = True
-        redis.set("screen_initialized", True)
+        redis.put("screen_initialized", True)
 
         self.output = self.get_primary()
         self.resolution = (0, 0)  # set in adjust
@@ -56,10 +67,10 @@ class Screen(Device):
         Needed after changing screens or hotplugging after booting without a connected screen."""
         self.resolution = storage.get("initial_resolution")
         resolutions = list(reversed(sorted(self.list_resolutions())))
-        redis.set("resolutions", resolutions)
+        redis.put("resolutions", resolutions)
         # if unset, initialize with the highest resolution
         if self.resolution == (0, 0):
-            storage.set("initial_resolution", resolutions[0])
+            storage.put("initial_resolution", resolutions[0])
             self.resolution = resolutions[0]
         self.set_resolution(self.resolution)
 
@@ -67,16 +78,7 @@ class Screen(Device):
         # when no program is running, nothing is shown on screen
         pass
 
-    def get_primary(self) -> Optional[str]:
-        for line in subprocess.check_output(
-            "xrandr -q".split(), text=True
-        ).splitlines():
-            output = re.match(r"(\S+) connected primary", line)
-            if output:
-                return output.group(1)
-        return None
-
-    def list_resolutions(self) -> List[Tuple[int]]:
+    def list_resolutions(self) -> List[Tuple[int, int]]:
         """Returns all supported resolutions that match the preferred resolution in aspect ratio."""
         if not self.initialized:
             return []
@@ -88,15 +90,13 @@ class Screen(Device):
         ).splitlines():
             output = re.match(r"(\S+) connected", line)
             if output:
-                if output.group(1) == self.output:
-                    listing_modes = True
-                else:
-                    listing_modes = False
+                listing_modes = output.group(1) == self.output
             if not listing_modes:
                 continue
             match = re.match(r"\s+(\d+x\d+)\s+\d+\.\d+", line)
             if match:
                 mode = tuple(map(int, match.group(1).split("x")))
+                mode = cast(Tuple[int, int], mode)
                 modes.append(mode)
                 if "+" in line:
                     preferred_mode = mode
@@ -108,7 +108,9 @@ class Screen(Device):
                 usable_modes.append(mode)
         return usable_modes
 
-    def set_resolution(self, resolution: Tuple[int]) -> None:
+    def set_resolution(self, resolution: Tuple[int, int]) -> None:
+        """Sets the current output to the given resolution.
+        Also updates the background in production."""
         if not self.initialized:
             return
         subprocess.call(
@@ -135,11 +137,12 @@ class Screen(Device):
             except FileNotFoundError:
                 pass
 
-        redis.set("current_resolution", resolution)
+        redis.put("current_resolution", resolution)
         self.resolution = resolution
         lights.update_state()
 
     def lower_resolution(self) -> None:
+        """Sets the resolution to the next resolution with similar ratio that is smaller."""
         if not self.initialized:
             return
         resolutions = redis.get("resolutions")

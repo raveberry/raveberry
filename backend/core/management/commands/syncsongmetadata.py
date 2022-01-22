@@ -1,9 +1,12 @@
+"""This module contains the syncsongmetadata command."""
 from django.core.management.base import BaseCommand
 
 from core.musiq import song_utils
 
 
 class Command(BaseCommand):
+    """Defines the syncsongmetadata command."""
+
     help = (
         "Goes through every archived song and syncs its metadata from the file system."
     )
@@ -21,12 +24,14 @@ class Command(BaseCommand):
                 continue
             cached = provider.check_cached()
             if cached:
-                from django.forms.models import model_to_dict
-
                 # sync the metadata in the database with the file system
                 # _get_path is defined for localdrive and youtube,
                 # the only two providers that may be cached
-                metadata = song_utils.get_metadata(provider._get_path())
+                from core.musiq.local import LocalSongProvider
+                from core.musiq.youtube import YoutubeSongProvider
+
+                assert isinstance(provider, (YoutubeSongProvider, LocalSongProvider))
+                metadata = song_utils.get_metadata(provider.get_path())
                 song.artist = metadata["artist"]
                 song.title = metadata["title"]
                 song.duration = metadata["duration"]

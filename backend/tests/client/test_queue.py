@@ -9,37 +9,21 @@ from tests.music_test import MusicTest
 
 
 class QueueTests(MusicTest):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self._setup_test_library()
         self._add_local_playlist()
 
-    def test_add(self):
+    def test_add(self) -> None:
         suggestion = json.loads(
             self.client.get(reverse("random-suggestion"), {"playlist": "false"}).content
         )
-        self.client.post(
-            reverse("request-music"),
-            {
-                "key": suggestion["key"],
-                "query": "",
-                "playlist": "false",
-                "platform": "local",
-            },
-        )
+        self._request_suggestion(suggestion["key"])
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 4)
-        self.client.post(
-            reverse("request-music"),
-            {
-                "key": suggestion["key"],
-                "query": "",
-                "playlist": "false",
-                "platform": "local",
-            },
-        )
+        self._request_suggestion(suggestion["key"])
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 5)
 
-    def test_remove(self):
+    def test_remove(self) -> None:
         state = json.loads(self.client.get(reverse("musiq-state")).content)
         key = state["musiq"]["songQueue"][1]["id"]
 
@@ -60,7 +44,7 @@ class QueueTests(MusicTest):
         self.client.post(reverse("remove"), {"key": str(key)})
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 1)
 
-    def test_prioritize(self):
+    def test_prioritize(self) -> None:
         state = json.loads(self.client.get(reverse("musiq-state")).content)
         key = state["musiq"]["songQueue"][1]["id"]
 
@@ -83,12 +67,12 @@ class QueueTests(MusicTest):
             lambda state: state["musiq"]["songQueue"][0]["id"] == key
         )
 
-    def test_reorder(self):
+    def test_reorder(self) -> None:
         state = json.loads(self.client.get(reverse("musiq-state")).content)
         # key1 -> key2 -> key3
-        key1 = state["musiq"]["songQueue"][0]["id"]
-        key2 = state["musiq"]["songQueue"][1]["id"]
-        key3 = state["musiq"]["songQueue"][2]["id"]
+        key1, key2, key3 = (
+            state["musiq"]["songQueue"][index]["id"] for index in range(3)
+        )
 
         # key2 -> key1 -> key3
         # both keys are given
@@ -121,30 +105,30 @@ class QueueTests(MusicTest):
             == [key2, key1, key3]
         )
 
-    def test_remove_all(self):
+    def test_remove_all(self) -> None:
         self.client.post(reverse("remove-all"))
         self._poll_musiq_state(lambda state: len(state["musiq"]["songQueue"]) == 0)
 
 
 class QueueVotingTests(MusicTest):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self._setup_test_library()
         self._add_local_playlist()
 
-        storage.set("voting_enabled", True)
+        storage.put("voting_enabled", True)
         self.client.logout()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         util.admin_login(self.client)
         super().tearDown()
 
-    def test_votes(self):
+    def test_votes(self) -> None:
         state = json.loads(self.client.get(reverse("musiq-state")).content)
         # key1 -> key2 -> key3
-        key1 = state["musiq"]["songQueue"][0]["id"]
-        key2 = state["musiq"]["songQueue"][1]["id"]
-        key3 = state["musiq"]["songQueue"][2]["id"]
+        key1, key2, key3 = (
+            state["musiq"]["songQueue"][index]["id"] for index in range(3)
+        )
 
         self.client.post(reverse("vote"), {"key": str(key2), "amount": 1})
         self.client.post(reverse("vote"), {"key": str(key3), "amount": 1})
@@ -167,7 +151,7 @@ class QueueVotingTests(MusicTest):
             == [key3, key1, key2]
         )
 
-    def test_vote_remove(self):
+    def test_vote_remove(self) -> None:
         state = json.loads(self.client.get(reverse("musiq-state")).content)
         # key1 -> key2 -> key3
         key1 = state["musiq"]["songQueue"][0]["id"]
@@ -181,7 +165,7 @@ class QueueVotingTests(MusicTest):
             == [key1, key3]
         )
 
-    def test_vote_skip(self):
+    def test_vote_skip(self) -> None:
         state = json.loads(self.client.get(reverse("musiq-state")).content)
         # key1 -> key2 -> key3
         key = state["musiq"]["currentSong"]["queueKey"]

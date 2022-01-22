@@ -1,11 +1,28 @@
 [MASTER]
-load-plugins=pylint_django
-django-settings-module=main.settings
 disable=
-    E203, # whitespace before ':' https://github.com/PyCQA/pycodestyle/issues/373
-    bad-continuation, # https://github.com/psf/black/issues/48
-    unsubscriptable-object, # https://github.com/PyCQA/pylint/issues/3139
-    import-outside-toplevel, # resolves circular imports
-ignore=core.migrations
+	# triggers for Popen. Since processes are used across different functions,
+	# using contextmanagers is not possible
+	consider-using-with,
+	# platform-specific modules are not always installed and their imports guarded
+	import-error,
+	# used for conditional importing and sometimes for resolving circular dependencies
+    import-outside-toplevel,
+	# false positives in base classes and mocks
+	no-self-use,
+	# sometimes there needs to be a class, even if it's just for one method
+	too-few-public-methods,
+	# isinstance(False, int) returns True, because bool subclasses int.
+	# isinstance is not a valid replacement for type() is bool
+	unidiomatic-typecheck,
+module=backend
+init-hook="import sys;sys.path.insert(0, 'backend')"
+load-plugins=pylint_django
+django-settings-module=backend.main.settings
+[SIMILARITIES]
+# There are 4 line similarities across multiple methods for simple logic that should not be deduplicated
+min-similarity-lines=5
 [FORMAT]
-good-names=e,f,i,id,x,y,z
+# id uniquely identifies songs in all providers
+# instance attribute, does not shadow the builtin
+good-names=id,ip
+ignore-long-lines: ^\s*(# )?https?:\/\/\S*$

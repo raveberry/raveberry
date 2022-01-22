@@ -41,6 +41,7 @@
     "fonts": "./subtype.sh && cp dist/*.woff2 ../backend/static/",
     "watch-js": "rm -f ../backend/static/bundle.js && mkdir -p dist && touch dist/bundle.js && ln dist/bundle.js ../backend/static/bundle.js && tsc --watch & webpack --mode development --no-devtool --watch",
     "watch-css": "sass --watch scss/style.scss ../backend/static/style.css",
+    "lint": "eslint --config eslintrc.js 'ts/**/*.ts' '*.js'",
     "test": "jest --runInBand",
     "build": "yarn js && yarn css && yarn fonts"
   }

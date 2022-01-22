@@ -74,11 +74,13 @@ function updateState(state) {
     $('.system-install-only').attr('disabled-note',
         'This feature is only available in a system install.');
   } else {
-    for (const module of ['hotspot', 'remote', 'youtube', 'spotify', 'soundcloud', 'jamendo']) {
+    for (const module of
+      ['hotspot', 'remote', 'youtube', 'spotify', 'soundcloud', 'jamendo']) {
       if (!state.settings[module + 'Configured']) {
         $('.' + module + '-functionality').addClass('is-disabled');
         $('.' + module + '-functionality').attr('disabled-note',
-            'Please configure ' + module + ' during installation to use this feature.');
+            'Please configure ' + module +
+            ' during installation to use this feature.');
       }
     }
   }

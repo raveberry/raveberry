@@ -15,9 +15,10 @@ from core.state_handler import send_state
 
 
 def state_dict() -> Dict[str, Any]:
+    """Extends the base state with lights-specific information and returns it."""
     state = base.state_dict()
 
-    lights_state = {}
+    lights_state: Dict[str, Any] = {}
     lights_state["ringConnected"] = redis.get("ring_initialized")
     lights_state["ringProgram"] = storage.get("ring_program")
     lights_state["ringBrightness"] = storage.get("ring_brightness")
@@ -44,9 +45,8 @@ def state_dict() -> Dict[str, Any]:
     lights_state["currentFps"] = f"{redis.get('current_fps'):.2f}"
     lights_state["ups"] = storage.get("ups")
     lights_state["programSpeed"] = storage.get("program_speed")
-    lights_state["fixedColor"] = "#{:02x}{:02x}{:02x}".format(
-        *(int(val * 255) for val in storage.get("fixed_color"))
-    )
+    red, green, blue = (int(val * 255) for val in storage.get("fixed_color"))
+    lights_state["fixedColor"] = f"#{red:02x}{green:02x}{blue:02x}"
 
     state["lights"] = lights_state
     return state

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import Optional
 
-from core.settings import storage
-from core.celery import app
-from core.models import ArchivedSong
 from core.musiq import musiq, playback
+from core.settings import storage
+from core.tasks import app
 
 
 class ProviderError(Exception):
@@ -30,14 +29,9 @@ class MusicProvider:
             # the type should already have been set by the base class
             self.type = "unknown"
             assert False
-        self.id: Optional[str] = self.extract_id()
+        self.id: Optional[str] = None
         self.ok_message = "ok"
         self.error = "error"
-
-    def extract_id(self) -> Optional[str]:
-        """Tries to extract the id from the given query.
-        Returns the id if possible, otherwise None"""
-        return None
 
     def check_cached(self) -> bool:
         """Returns whether this resource is available on disk."""
@@ -62,6 +56,10 @@ class MusicProvider:
         If possible, downloads it to disk.
         If this takes a long time, calls update_state so the placeholder is visible.
         Returns False if an error occured, True otherwise."""
+        raise NotImplementedError()
+
+    def was_requested_before(self) -> bool:
+        """Returns whether this resource has been manually requested at least once."""
         raise NotImplementedError()
 
     def persist(self, session_key: str, archive: bool = True) -> None:
@@ -96,16 +94,10 @@ class MusicProvider:
             # overwrite the enqueue function and make the resource available before calling it
             enqueue_function = fetch_enqueue
 
-        from core.musiq.song_provider import SongProvider
-
-        if storage.get("new_music_only") and isinstance(self, SongProvider):
-            try:
-                archived_song = ArchivedSong.objects.get(url=self.get_external_url())
-                if archived_song.counter > 0:
-                    self.error = "Only new music is allowed!"
-                    raise ProviderError(self.error)
-            except ArchivedSong.DoesNotExist:
-                pass
+        if storage.get("new_music_only"):
+            if self.was_requested_before():
+                self.error = "Only new music is allowed!"
+                raise ProviderError(self.error)
 
         self.enqueue_placeholder(manually_requested)
 

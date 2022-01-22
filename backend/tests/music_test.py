@@ -16,22 +16,24 @@ class MusicTest(RaveberryTest):
         super().setUp()
 
         # reduce number of downloaded songs for the test
-        storage.set("max_playlist_items", "5")
+        storage.put("max_playlist_items", 5)
 
         # for testing we set CELERY_ALWAY_EAGER, which runs all tasks in sync
         # the playback loop must still run in background of course
         # thus, we run it in a background thread instead of using playback.start()
         # which uses a celery task that would never end
-        self.playback_thread = Thread(target=playback._loop)
+        self.playback_thread = Thread(
+            target=playback._loop  # pylint: disable=protected-access
+        )
         self.playback_thread.start()
 
         # mute player for testing
-        self.player = controller.player
+        self.player = controller.PLAYER
         self.player.mixer.set_volume(0)
 
     def tearDown(self):
         # restore player state
-        storage.set("autoplay", False)
+        storage.put("autoplay", False)
         self._poll_musiq_state(lambda state: not state["musiq"]["autoplay"])
 
         # ensure that the player is not waiting for a song to finish
@@ -105,3 +107,17 @@ class MusicTest(RaveberryTest):
             timeout=3,
         )
         return state
+
+    def _request_suggestion(self, key):
+        self.client.post(
+            reverse("request-music"),
+            {"key": key, "query": "", "playlist": "false", "platform": "local"},
+        )
+
+    def _wait_for_new_song(self, old_id):
+        self._poll_musiq_state(
+            lambda state: len(state["musiq"]["songQueue"]) == 1
+            and state["musiq"]["songQueue"][0]["internalUrl"]
+            and state["musiq"]["songQueue"][0]["id"] != old_id,
+            timeout=20,
+        )

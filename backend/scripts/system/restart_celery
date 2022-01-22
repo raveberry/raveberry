@@ -15,7 +15,7 @@ pidFile=/tmp/restart_celery.pid
 ( systemctl restart celery; rm $pidFile) &
 pid=$!
 echo $pid > $pidFile
-( sleep 20; if [[ -e $pidFile ]]; then pkill -9 -f "celery -A core"; fi) &
+( sleep 20; if [[ -e $pidFile ]]; then pkill -9 -f "celery -A core.tasks"; fi) &
 killerPid=$!
 
 wait $pid

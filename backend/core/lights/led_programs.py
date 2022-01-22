@@ -1,9 +1,12 @@
 """This module contains all programs that use leds."""
 import colorsys
 import math
-from typing import List, Tuple, cast
+from typing import List, Tuple, cast, TYPE_CHECKING
 
 from core.lights.programs import LedProgram
+
+if TYPE_CHECKING:
+    from core.lights.worker import DeviceManager
 
 
 def stretched_hues(led_count: int, offset: float = 0):
@@ -26,29 +29,29 @@ def stretched_hues(led_count: int, offset: float = 0):
     # Green is compressed because the board is green and visible anyway.
     # Pink just does not look that good.
 
-    M1 = 2 / 3
-    M2 = 1 / 3
+    max1 = 2 / 3
+    max2 = 1 / 3
 
-    def f(x):
+    def logistic(fraction: float) -> float:
         # First curve, compresses green (hue = ⅓)
-        def L1(x):
-            return M1 / (1 + math.e ** (-16 * (x - 1 / 3)))
+        def logistic1(val: float) -> float:
+            return max1 / (1 + math.e ** (-16 * (val - 1 / 3)))
 
         # First curve, compresses pink (hue = ⅚)
-        def L2(x):
-            return M2 / (1 + math.e ** (-16 * (x - 5 / 6)))
+        def logistic2(val: float) -> float:
+            return max2 / (1 + math.e ** (-16 * (val - 5 / 6)))
 
-        if x < 2 / 3:
+        if fraction < 2 / 3:
             # Vertically stretch and move the curve so it starts at y=0 and ends at y=M
-            y0 = L1(0)
-            scale = M1 / (M1 - 2 * y0)
-            return scale * (L1(x) - y0)
-        else:
-            y0 = L2(2 / 3)
-            scale = M2 / (M2 - 2 * y0)
-            return scale * (L2(x) - y0) + M1
+            yoffset = logistic1(0)
+            scale = max1 / (max1 - 2 * yoffset)
+            return scale * (logistic1(fraction) - yoffset)
 
-    return [f((offset + led / led_count) % 1) % 1 for led in range(0, led_count)]
+        yoffset = logistic2(2 / 3)
+        scale = max2 / (max2 - 2 * yoffset)
+        return scale * (logistic2(fraction) - yoffset) + max1
+
+    return [logistic((offset + led / led_count) % 1) % 1 for led in range(0, led_count)]
 
 
 def stretched_hues_spectrum(led_count: int):
@@ -67,52 +70,54 @@ def stretched_hues_spectrum(led_count: int):
     #  |xxxx
     #  -|--|--|--|> in hue
     #   R  G  B  R
-    M = 2 / 3
+    max_value = 2 / 3
 
-    def f(x):
-        def L(x):
-            return M / (1 + math.e ** (-12 * (x - 9 / 16)))
+    def scaled_logistic(fraction: float) -> float:
+        def logistic(val: float) -> float:
+            return max_value / (1 + math.e ** (-12 * (val - 9 / 16)))
 
-        if x < 1 / 8:
+        if fraction < 1 / 8:
             return 0
-        y0 = L(1 / 8)
-        scale = M / (M - 2 * y0)
-        return scale * L(x) - y0
+        yoffset = logistic(1 / 8)
+        scale = max_value / (max_value - 2 * yoffset)
+        return scale * logistic(fraction) - yoffset
 
-    return [f(led / led_count) % 1 for led in range(0, led_count)]
+    return [scaled_logistic(led / led_count) % 1 for led in range(0, led_count)]
 
 
 class Fixed(LedProgram):
     """Show one fixed color only. The color is controlled in the "DeviceManager" class."""
 
     def __init__(self, manager: "DeviceManager") -> None:
-        super().__init__(manager)
-        self.manager = manager
-        self.name = "Fixed"
+        super().__init__(manager, "Fixed")
 
     def compute(self) -> None:
         # show a red color if the alarm is active
-        alarm_factor = self.manager.alarm_program.factor
+        alarm_factor = self.manager.utilities.alarm.factor
         if alarm_factor != -1.0:
-            self.manager.fixed_color = (alarm_factor, 0, 0)
+            self.manager.settings["fixed_color"] = (alarm_factor, 0, 0)
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
-        return [self.manager.fixed_color for _ in range(self.manager.ring.LED_COUNT)]
+        return [
+            self.manager.settings["fixed_color"]
+            for _ in range(self.manager.devices.ring.LED_COUNT)
+        ]
 
     def wled_colors(self) -> List[Tuple[float, float, float]]:
-        return [self.manager.fixed_color for _ in range(self.manager.wled.led_count)]
+        return [
+            self.manager.settings["fixed_color"]
+            for _ in range(self.manager.devices.wled.led_count)
+        ]
 
     def strip_color(self) -> Tuple[float, float, float]:
-        return self.manager.fixed_color
+        return self.manager.settings["fixed_color"]
 
 
 class Rainbow(LedProgram):
     """Continuously cycles through all colors. Affected by the speed setting."""
 
     def __init__(self, manager: "DeviceManager") -> None:
-        super().__init__(manager)
-        self.manager = manager
-        self.name = "Rainbow"
+        super().__init__(manager, "Rainbow")
         self.program_duration = 1
         self.time_passed = 0.0
         self.current_fraction = 0.0
@@ -121,7 +126,9 @@ class Rainbow(LedProgram):
         self.time_passed = 0.0
 
     def compute(self) -> None:
-        self.time_passed += self.manager.seconds_per_frame * self.manager.program_speed
+        self.time_passed += (
+            1 / self.manager.settings["ups"] * self.manager.settings["program_speed"]
+        )
         self.time_passed %= self.program_duration
         self.current_fraction = self.time_passed / self.program_duration
 
@@ -132,10 +139,10 @@ class Rainbow(LedProgram):
         ]
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
-        return self._colors(self.manager.ring.LED_COUNT)
+        return self._colors(self.manager.devices.ring.LED_COUNT)
 
     def wled_colors(self) -> List[Tuple[float, float, float]]:
-        return self._colors(self.manager.wled.led_count)
+        return self._colors(self.manager.devices.wled.led_count)
 
     def strip_color(self) -> Tuple[float, float, float]:
         return colorsys.hsv_to_rgb(self.current_fraction, 1, 1)
@@ -146,22 +153,20 @@ class Adaptive(LedProgram):
     Low frequencies are represented by red, high ones by blue."""
 
     def __init__(self, manager: "DeviceManager") -> None:
-        super().__init__(manager)
-        self.manager = manager
-        self.name = "Rave"
-        self.cava = self.manager.cava_program
+        super().__init__(manager, "Rave")
+        self.cava = self.manager.utilities.cava
 
         # RING
         # The spectrum needs to have a color for low frequencies (red)
         # and a color for high frequencies (blue)
         # In order to show a clean separation between the spectrum ends,
         # the color between the two (pink) is removed from the pool of possible colors.
-        ring_hues = stretched_hues_spectrum(self.manager.ring.LED_COUNT)
+        ring_hues = stretched_hues_spectrum(self.manager.devices.ring.LED_COUNT)
         self.ring_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in ring_hues]
 
         # WLED
         # identical to ring, but with a different number of leds
-        wled_hues = stretched_hues_spectrum(self.manager.wled.led_count)
+        wled_hues = stretched_hues_spectrum(self.manager.devices.wled.led_count)
         self.wled_base_colors = [colorsys.hsv_to_rgb(hue, 1, 1) for hue in wled_hues]
 
         # STRIP
@@ -218,7 +223,7 @@ class Adaptive(LedProgram):
         return aggregated
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
-        aggregated = self._aggregate_frame(self.manager.ring.LED_COUNT)
+        aggregated = self._aggregate_frame(self.manager.devices.ring.LED_COUNT)
         colors = [
             tuple(factor * val for val in color)
             for factor, color in zip(aggregated, self.ring_base_colors)
@@ -227,7 +232,7 @@ class Adaptive(LedProgram):
         return cast(List[Tuple[float, float, float]], colors)
 
     def wled_colors(self) -> List[Tuple[float, float, float]]:
-        aggregated = self._aggregate_frame(self.manager.wled.led_count)
+        aggregated = self._aggregate_frame(self.manager.devices.wled.led_count)
         colors = [
             tuple(factor * val for val in color)
             for factor, color in zip(aggregated, self.wled_base_colors)

@@ -4,16 +4,18 @@ import urllib.request
 import urllib.error
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from django.test import Client
 
 
-def admin_login(client):
-    if not User.objects.filter(username="admin").exists():
-        User.objects.create_superuser("admin", "", "admin")
+def admin_login(client: Client) -> None:
+    user = get_user_model()
+    if not user.objects.filter(username="admin").exists():
+        user.objects.create_superuser("admin", "", "admin")
     client.login(username="admin", password="admin")
 
 
-def download_test_library():
+def download_test_library() -> bool:
     test_library = os.path.join(settings.TEST_CACHE_DIR, "test_library")
     pathlib.Path(test_library).mkdir(parents=True, exist_ok=True)
     pathlib.Path(os.path.join(test_library, "ogg")).mkdir(parents=True, exist_ok=True)

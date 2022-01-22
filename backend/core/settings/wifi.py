@@ -7,9 +7,7 @@ import subprocess
 
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
-from django.http import HttpResponseBadRequest
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 
 from core.settings.settings import control
 
@@ -36,8 +34,8 @@ def connect_to_wifi(request: WSGIRequest) -> HttpResponse:
             ["sudo", "/usr/local/sbin/raveberry/connect_to_wifi", ssid, password]
         ).decode()
         return HttpResponse(output)
-    except subprocess.CalledProcessError as e:
-        output = e.output.decode()
+    except subprocess.CalledProcessError as error:
+        output = error.output.decode()
         return HttpResponseBadRequest(output)
 
 
@@ -70,6 +68,8 @@ def set_homewifi_ssid(request: WSGIRequest) -> HttpResponse:
     homewifi_ssid = request.POST.get("value")
     if homewifi_ssid is None:
         return HttpResponseBadRequest("homewifi ssid was not supplied.")
-    with open(os.path.join(settings.BASE_DIR, "config/homewifi"), "w+") as f:
-        f.write(homewifi_ssid)
+    with open(
+        os.path.join(settings.BASE_DIR, "config/homewifi"), "w+", encoding="utf-8"
+    ) as homewifi_file:
+        homewifi_file.write(homewifi_ssid)
     return HttpResponse()

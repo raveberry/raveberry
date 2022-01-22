@@ -21,7 +21,7 @@ expected_playlist = [
 
 
 class JamendoTests(MusicTest):
-    def setUp(self):
+    def setUp(self) -> None:
         try:
             client_id = os.environ["JAMENDO_CLIENT_ID"]
         except KeyError:
@@ -36,7 +36,7 @@ class JamendoTests(MusicTest):
         self.client.post(reverse("set-max-playlist-items"), {"value": "4"})
         self.client.post(reverse("set-jamendo-enabled"), {"value": "true"})
 
-    def test_query(self):
+    def test_query(self) -> None:
         self.client.post(
             reverse("request-music"),
             {
@@ -55,11 +55,11 @@ class JamendoTests(MusicTest):
         )
         self.assertEqual(current_song["duration"], 294)
 
-    def test_url(self):
+    def test_url(self) -> None:
         self.client.post(
             reverse("request-music"),
             {
-                "query": "https://www.jamendo.com/track/1646305/africa-the-cradle-of-life-epic-version",
+                "query": "https://www.jamendo.com/track/1646305/",
                 "playlist": "false",
                 "platform": "jamendo",
             },
@@ -74,7 +74,7 @@ class JamendoTests(MusicTest):
         )
         self.assertEqual(current_song["duration"], 294)
 
-    def test_playlist_url(self):
+    def test_playlist_url(self) -> None:
         self.client.post(
             reverse("request-music"),
             {
@@ -93,7 +93,7 @@ class JamendoTests(MusicTest):
         for song in state["musiq"]["songQueue"]:
             self.assertIn(song["externalUrl"], expected_playlist)
 
-    def test_playlist_query(self):
+    def test_playlist_query(self) -> None:
         # https://www.jamendo.com/playlist/500502579/long-live-the-king
         self.client.post(
             reverse("request-music"),

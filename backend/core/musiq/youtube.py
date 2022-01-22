@@ -1,4 +1,6 @@
 """This module contains all Youtube related code."""
+# We need to access yt-dlp's internal methods for some features
+# pylint: disable=protected-access
 
 from __future__ import annotations
 
@@ -7,34 +9,27 @@ import json
 import logging
 import os
 import pickle
-import shutil
 import subprocess
 from contextlib import contextmanager
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Iterator, cast
-from urllib.parse import parse_qs
-from urllib.parse import urlparse
+from typing import Any, Dict, Iterator, List, Optional, cast
+from urllib.parse import parse_qs, urlparse
 
 import requests
 import yt_dlp
 from django.conf import settings
 from django.http.response import HttpResponse
 
-import core.musiq.song_utils as song_utils
-import core.settings.storage as storage
-from core.models import ArchivedSong
-from core.musiq import musiq
-from core.musiq.song_provider import SongProvider
+from core.musiq import musiq, song_utils
 from core.musiq.playlist_provider import PlaylistProvider
-
-if TYPE_CHECKING:
-    from core.musiq.song_utils import Metadata
+from core.musiq.song_provider import SongProvider
+from core.settings import storage
 
 
 @contextmanager
 def youtube_session() -> Iterator[requests.Session]:
     """This context opens a requests session and loads the youtube cookies file."""
 
-    pickle_file = os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle")
+    cookies_path = os.path.join(settings.BASE_DIR, "config/youtube_cookies.pickle")
     session = requests.session()
     # Have yt-dlp deal with consent cookies etc to setup a valid session
     extractor = yt_dlp.extractor.youtube.YoutubeIE()
@@ -43,9 +38,9 @@ def youtube_session() -> Iterator[requests.Session]:
     session.cookies.update(extractor._downloader.cookiejar)
 
     try:
-        if os.path.getsize(pickle_file) > 0:
-            with open(pickle_file, "rb") as f:
-                session.cookies.update(pickle.load(f))
+        if os.path.getsize(cookies_path) > 0:
+            with open(cookies_path, "rb") as cookies_file:
+                session.cookies.update(pickle.load(cookies_file))
     except FileNotFoundError:
         pass
 
@@ -53,8 +48,8 @@ def youtube_session() -> Iterator[requests.Session]:
     session.headers.update(headers)
     yield session
 
-    with open(pickle_file, "wb") as f:
-        pickle.dump(session.cookies, f)
+    with open(cookies_path, "wb") as cookies_file:
+        pickle.dump(session.cookies, cookies_file)
 
 
 class YoutubeDLLogger:
@@ -161,10 +156,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
     def check_cached(self) -> bool:
         if not self.id:
             return False
-        return os.path.isfile(self._get_path())
+        return os.path.isfile(self.get_path())
 
     def check_available(self) -> bool:
-
         # directly use the search extractors entry function so we can process each result
         # as soon as it's available instead of waiting for all of them
         extractor = yt_dlp.extractor.youtube.YoutubeSearchIE()
@@ -177,9 +171,9 @@ class YoutubeSongProvider(SongProvider, Youtube):
                 with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
                     self.info_dict = ydl.extract_info(entry["id"], download=False)
                 break
-            except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as e:
+            except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as error:
                 logging.warning("error during availability check for %s:", entry["id"])
-                logging.warning(e)
+                logging.warning(error)
         else:
             self.error = "No songs found"
             return False
@@ -189,14 +183,14 @@ class YoutubeSongProvider(SongProvider, Youtube):
         return self.check_not_too_large(self.info_dict["filesize"])
 
     def _download(self) -> bool:
-        error = None
+        download_error = None
         location = None
 
         try:
             with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
                 ydl.download([self.get_external_url()])
 
-            location = self._get_path()
+            location = self.get_path()
             base = os.path.splitext(location)[0]
             thumbnail = base + ".jpg"
             try:
@@ -211,57 +205,46 @@ class YoutubeSongProvider(SongProvider, Youtube):
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
-            except OSError as e:
-                if e.errno == errno.ENOENT:
+            except OSError as error:
+                if error.errno == errno.ENOENT:
                     pass  # the rganalysis package was not found. Skip normalization
                 else:
                     raise
 
-        except yt_dlp.utils.DownloadError as e:
-            error = e
+        except yt_dlp.utils.DownloadError as error:
+            download_error = error
 
-        if error is not None or location is None:
+        if download_error is not None or location is None:
             logging.error("accessible video could not be downloaded: %s", self.id)
             logging.error("location: %s", location)
-            logging.error(error)
+            logging.error(download_error)
             return False
         return True
 
     def make_available(self) -> bool:
-        if not os.path.isfile(self._get_path()):
+        if not os.path.isfile(self.get_path()):
             musiq.update_state()
             # only download the file if it was not already downloaded
             return self._download()
         return True
 
-    def get_metadata(self) -> "Metadata":
-        if not self.id:
-            raise ValueError()
-        try:
-            archived_song = ArchivedSong.objects.get(url=self.get_external_url())
-            metadata = archived_song.get_metadata()
-        except ArchivedSong.DoesNotExist:
-            metadata = song_utils.get_metadata(self._get_path())
-        metadata["internal_url"] = self.get_internal_url()
-        metadata["external_url"] = self.get_external_url()
-        metadata["stream_url"] = None
-        if not metadata["title"]:
-            metadata["title"] = metadata["external_url"]
-
-        return metadata
-
-    def _get_path(self) -> str:
+    def get_path(self) -> str:
+        """Return the path in the local filesystem to the cached sound file of this song."""
         if not self.id:
             raise ValueError()
         return song_utils.get_path(self.id + ".m4a")
 
     def get_internal_url(self) -> str:
-        return "file://" + self._get_path()
+        return "file://" + self.get_path()
 
     def get_external_url(self) -> str:
         if not self.id:
             raise ValueError()
         return "https://www.youtube.com/watch?v=" + self.id
+
+    def gather_metadata(self) -> bool:
+        self.metadata = self.get_local_metadata(self.get_path())
+        return True
 
     def get_suggestion(self) -> str:
         with youtube_session() as session:
@@ -362,6 +345,7 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
 
     def fetch_metadata(self) -> bool:
         # in case of a radio playlist, restrict the number of songs that are downloaded
+        assert self.id
         if self.is_radio():
             self.ydl_opts["playlistend"] = storage.get("max_playlist_items")
             # radios are not viewable with the /playlist?list= url,
@@ -377,8 +361,8 @@ class YoutubePlaylistProvider(PlaylistProvider, Youtube):
         try:
             with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
                 info_dict = ydl.extract_info(query_url, download=False)
-        except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as e:
-            self.error = e
+        except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as error:
+            self.error = error
             return False
 
         if info_dict["_type"] != "playlist" or "entries" not in info_dict:

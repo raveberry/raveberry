@@ -365,7 +365,7 @@ function applyQueueChange(oldState, newState) {
         // instead of after the animation.
         // -> faster updates and updates for cases where no animation is started
         // (e.g. placeholder updates)
-        const song = newState.songQueue[newIndices[index]]
+        const song = newState.songQueue[newIndices[index]];
         updateInformation($(li), song);
 
         // skip items that don't move at all

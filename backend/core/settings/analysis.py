@@ -9,15 +9,12 @@ from dateutil import tz
 from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
-from django.http import HttpResponse
-from django.http import HttpResponseBadRequest
-from django.http import JsonResponse
-from django.utils import dateparse
-from django.utils import timezone
+from django.db.models import QuerySet
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.utils import dateparse, timezone
 
-import core.musiq.song_utils as song_utils
-from core.models import PlayLog, ArchivedPlaylist, PlaylistEntry
-from core.models import RequestLog
+from core.models import ArchivedPlaylist, PlaylistEntry, PlayLog, RequestLog
+from core.musiq import song_utils
 from core.settings.settings import control
 
 
@@ -48,27 +45,66 @@ def _parse_datetimes(request: WSGIRequest) -> Tuple[datetime, datetime]:
     return start, end
 
 
+def _most_active_device(
+    session_key: str, count: int, request_logs: QuerySet[RequestLog]
+) -> str:
+    most_active_device = f"{session_key} ({count})"
+    for index in range(6):
+        if index >= request_logs.count():
+            break
+        most_active_device += "\n"
+        if index == 5:
+            most_active_device += "..."
+        else:
+            most_active_device += request_logs[index].item_displayname()
+    return most_active_device
+
+
+def _request_activity(
+    start: datetime, end: datetime, request_logs: QuerySet[RequestLog]
+) -> str:
+    binsize = 3600
+    number_of_bins = math.ceil((end - start).total_seconds() / binsize)
+    request_bins = [0 for _ in range(number_of_bins)]
+
+    for request_log in request_logs:
+        seconds = (request_log.created - start).total_seconds()
+        index = int(seconds / binsize)
+        request_bins[index] += 1
+
+    request_activity = ""
+    current_time = start
+    current_index = 0
+    while current_time < end:
+        request_activity += current_time.strftime("%H:%M")
+        request_activity += ":\t" + str(request_bins[current_index])
+        request_activity += "\n"
+        current_time += timedelta(seconds=binsize)
+        current_index += 1
+
+    return request_activity
+
+
 @control
 def analyse(request: WSGIRequest) -> HttpResponse:
     """Perform an analysis of the database in the given timeframe."""
 
     try:
         start, end = _parse_datetimes(request)
-    except ValueError as e:
-        return HttpResponseBadRequest(e.args[0])
+    except ValueError as error:
+        return HttpResponseBadRequest(error.args[0])
 
     played = PlayLog.objects.all().filter(created__gte=start).filter(created__lt=end)
     if not played.exists():
         return HttpResponseBadRequest("No songs played in the given time span")
 
-    requested = (
+    request_logs = (
         RequestLog.objects.all().filter(created__gte=start).filter(created__lt=end)
     )
     played_count = (
         played.values("song__url", "song__artist", "song__title")
-        .values(
-            "song__url", "song__artist", "song__title", count=models.Count("song__url")
-        )
+        .annotate(count=models.Count("song__url"))
+        .values("song__url", "song__artist", "song__title", "count")
         .order_by("-count")
     )
     played_votes = (
@@ -78,8 +114,9 @@ def analyse(request: WSGIRequest) -> HttpResponse:
         .order_by("-votes")
     )
     devices = (
-        requested.values("session_key")
-        .values("session_key", count=models.Count("session_key"))
+        request_logs.values("session_key")
+        .annotate(count=models.Count("session_key"))
+        .values("session_key", "count")
         .order_by("-count")
     )
 
@@ -94,44 +131,20 @@ def analyse(request: WSGIRequest) -> HttpResponse:
         "highestVotedSong": (
             played_votes[0].song_displayname() + f" ({played_votes[0].votes})"
         ),
-        "mostActiveDevice": (devices[0]["session_key"] + f" ({devices[0]['count']})"),
     }
-    requested_by_session = requested.filter(session_key=devices[0]["session_key"])
-    for i in range(6):
-        if i >= len(requested_by_session):
-            break
-        response["mostActiveDevice"] += "\n"
-        if i == 5:
-            response["mostActiveDevice"] += "..."
-        else:
-            response["mostActiveDevice"] += requested_by_session[i].item_displayname()
+    response["mostActiveDevice"] = _most_active_device(
+        devices[0]["session_key"],
+        devices[0]["count"],
+        request_logs.filter(session_key=devices[0]["session_key"]),
+    )
 
-    binsize = 3600
-    number_of_bins = math.ceil((end - start).total_seconds() / binsize)
-    request_bins = [0 for _ in range(number_of_bins)]
-
-    for request_log in requested:
-        seconds = (request_log.created - start).total_seconds()
-        index = int(seconds / binsize)
-        request_bins[index] += 1
-
-    current_time = start
-    current_index = 0
-    response["requestActivity"] = ""
-    while current_time < end:
-        response["requestActivity"] += current_time.strftime("%H:%M")
-        response["requestActivity"] += ":\t" + str(request_bins[current_index])
-        response["requestActivity"] += "\n"
-        current_time += timedelta(seconds=binsize)
-        current_index += 1
+    response["requestActivity"] = _request_activity(start, end, request_logs)
 
     localtz = tz.gettz(conf.TIME_ZONE)
     playlist = ""
     for play_log in played:
         localtime = play_log.created.astimezone(localtz)
-        playlist += "[{:02d}:{:02d}] {}\n".format(
-            localtime.hour, localtime.minute, play_log.song_displayname()
-        )
+        playlist += f"[{localtime.hour:02d}:{localtime.minute:02d}] {play_log.song_displayname()}\n"
     response["playlist"] = playlist
 
     return JsonResponse(response)
@@ -143,8 +156,8 @@ def save_as_playlist(request: WSGIRequest) -> HttpResponse:
 
     try:
         start, end = _parse_datetimes(request)
-    except ValueError as e:
-        return HttpResponseBadRequest(e.args[0])
+    except ValueError as error:
+        return HttpResponseBadRequest(error.args[0])
 
     name = request.POST.get("name")
     if not name:
@@ -162,6 +175,8 @@ def save_as_playlist(request: WSGIRequest) -> HttpResponse:
 
     song_index = 0
     for log in played:
+        if not log.song:
+            continue
         external_url = log.song.url
         PlaylistEntry.objects.create(
             playlist=playlist, index=song_index, url=external_url

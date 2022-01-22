@@ -1,31 +1,30 @@
 """This module contains all url endpoints and maps them to their corresponding functions."""
 import inspect
-
-from typing import Any, List
+from typing import Any, List, Union
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.urls import include, path, URLPattern
+from django.urls import URLPattern, URLResolver, include, path
 from django.views.generic import RedirectView
 
-import core.api as api
-import core.network_info as network_info
-import core.base as base
-import core.lights.lights as lights
-import core.lights.controller as lights_controller
-import core.musiq.musiq as musiq
-import core.musiq.controller as musiq_controller
-import core.musiq.suggestions as suggestions
-import core.settings.settings as settings
-import core.settings.analysis as analysis
-import core.settings.basic as basic
-import core.settings.library as library
-import core.settings.platforms as platforms
-import core.settings.sound as sound
-import core.settings.system as system
-import core.settings.wifi as wifi
+from core import api
+from core import base
+from core.lights import controller as lights_controller
+from core.lights import lights
+from core.musiq import controller as musiq_controller
+from core.musiq import musiq
+from core.musiq import suggestions
+from core import network_info
+from core.settings import analysis
+from core.settings import basic
+from core.settings import library
+from core.settings import platforms
+from core.settings import settings
+from core.settings import sound
+from core.settings import system
+from core.settings import wifi
 from core import state_handler
 
-urlpatterns = [
+urlpatterns: List[Union[URLPattern, URLResolver]] = [
     path("", RedirectView.as_view(pattern_name="musiq", permanent=False), name="base"),
     path("musiq/", musiq.index, name="musiq"),
     path("lights/", lights.index, name="lights"),

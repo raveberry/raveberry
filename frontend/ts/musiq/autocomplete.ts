@@ -31,6 +31,9 @@ export function onReady() {
       let totalSuggestionCount = 0;
       const placeholders = [];
       for (const platform in suggestionCounts) {
+        if (!suggestionCounts.hasOwnProperty(platform)) {
+          continue;
+        }
         totalSuggestionCount += suggestionCounts[platform];
         for (let i = 0; i < suggestionCounts[platform]; i++) {
           placeholders.push({

@@ -12,8 +12,6 @@ from django.conf import settings as conf
 
 from core.lights import leds
 
-enabled = True
-
 if TYPE_CHECKING:
     from core.lights.worker import DeviceManager
 
@@ -21,10 +19,10 @@ if TYPE_CHECKING:
 class LightProgram:
     """The base class for all programs."""
 
-    def __init__(self, manager: "DeviceManager") -> None:
+    def __init__(self, manager: "DeviceManager", name: str) -> None:
         self.manager = manager
         self.consumers = 0
-        self.name = "Unknown"
+        self.name = name
 
     def start(self) -> None:
         """Initializes the program, allocates resources."""
@@ -71,15 +69,11 @@ class ScreenProgram(LightProgram):
     """Base calls for all programs showing something on screen."""
 
 
-class Disabled(LedProgram, LightProgram):
+class Disabled(LedProgram, ScreenProgram):
     """A null class to represent inactivity."""
 
     def __init__(self, manager: "DeviceManager") -> None:
-        super().__init__(manager)
-        self.name = "Disabled"
-
-    def draw(self) -> None:
-        raise NotImplementedError()
+        super().__init__(manager, "Disabled")
 
     def ring_colors(self) -> List[Tuple[float, float, float]]:
         raise NotImplementedError()
@@ -95,18 +89,17 @@ class Alarm(LightProgram):
     """This program makes the leds flash red in sync to the played sound.
     Only computes the brightness, does not display it."""
 
+    INCREASING_DURATION = 0.45
+    DECREASING_DURATION = 0.8
+    SOUND_DURATION = 2.1
+    SOUND_REPETITION = 2.5
+
     def __init__(self, manager: "DeviceManager") -> None:
-        super().__init__(manager)
-        self.manager = manager
-        self.name = "Alarm"
+        super().__init__(manager, "Alarm")
         self.time_passed = 0.0
         self.sound_count = 0
-        self.increasing_duration = 0.45
-        self.decreasing_duration = 0.8
         # only during this program, thus False by default
         self.pwr_led_enabled = False
-        self.sound_duration = 2.1
-        self.sound_repetition = 2.5
         self.factor = -1.0
 
     def start(self) -> None:
@@ -120,23 +113,26 @@ class Alarm(LightProgram):
         # do not compute if the alarm is not active
         if self.consumers == 0:
             return
-        self.time_passed += self.manager.seconds_per_frame
-        if self.time_passed >= self.sound_repetition:
+        self.time_passed += 1 / self.manager.settings["ups"]
+        if self.time_passed >= Alarm.SOUND_REPETITION:
             self.sound_count += 1
-            self.time_passed %= self.sound_repetition
+            self.time_passed %= Alarm.SOUND_REPETITION
 
         if self.sound_count >= 4:
             self.factor = 0
             return
-        if self.time_passed < self.increasing_duration:
-            self.factor = self.time_passed / self.increasing_duration
-        elif self.time_passed < self.sound_duration - self.decreasing_duration:
+        if self.time_passed < Alarm.INCREASING_DURATION:
+            self.factor = self.time_passed / Alarm.INCREASING_DURATION
+        elif self.time_passed < Alarm.SOUND_DURATION - Alarm.DECREASING_DURATION:
             self.factor = 1
-        elif self.time_passed < self.sound_duration:
+        elif self.time_passed < Alarm.SOUND_DURATION:
             self.factor = (
                 1
-                - (self.time_passed - (self.sound_duration - self.decreasing_duration))
-                / self.decreasing_duration
+                - (
+                    self.time_passed
+                    - (Alarm.SOUND_DURATION - Alarm.DECREASING_DURATION)
+                )
+                / Alarm.DECREASING_DURATION
             )
         else:
             self.factor = 0
@@ -158,25 +154,24 @@ class Cava(LightProgram):
     """This Program manages the interaction with cava.
     It provides the current frequencies for other programs to use."""
 
+    # Keep these configurations in sync with config/cava.config
+    BARS = 256
+    BIT_FORMAT = 8
+
     def __init__(self, manager: "DeviceManager") -> None:
-        super().__init__(manager)
-        self.manager = manager
+        super().__init__(manager, "Cava")
 
         self.cava_fifo_path = os.path.join(conf.BASE_DIR, "config/cava_fifo")
 
-        # Keep these configurations in sync with config/cava.config
-        self.bars = 256
-        self.bit_format = 8
-
-        self.frame_length = self.bars * (self.bit_format // 8)
+        self.frame_length = Cava.BARS * (Cava.BIT_FORMAT // 8)
 
         self.current_frame: List[float] = []
         self.growing_frame = b""
-        self.cava_process: Optional[subprocess.Popen[bytes]] = None
+        self.cava_process: Optional[subprocess.Popen] = None
         self.cava_fifo = -1
 
     def start(self) -> None:
-        self.current_frame = [0 for _ in range(self.bars)]
+        self.current_frame = [0 for _ in range(Cava.BARS)]
         self.growing_frame = b""
         try:
             # delete old contents of the pipe
@@ -199,7 +194,6 @@ class Cava(LightProgram):
             cwd=conf.BASE_DIR,
             env={"PULSE_SERVER": conf.PULSE_SERVER, **os.environ},
         )
-        # cava_fifo = open(cava_fifo_path, 'r')
         self.cava_fifo = os.open(self.cava_fifo_path, os.O_RDONLY | os.O_NONBLOCK)
 
     def compute(self) -> None:
@@ -218,8 +212,8 @@ class Cava(LightProgram):
                 if read == b"":
                     return
                 self.growing_frame += read
-            except OSError as e:
-                if e.errno == errno.EAGAIN or e.errno == errno.EWOULDBLOCK:
+            except OSError as error:
+                if error.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
                     # there were not enough bytes for a whole frame, keep the old frame
                     return
 
@@ -231,16 +225,16 @@ class Cava(LightProgram):
     def stop(self) -> None:
         try:
             os.close(self.cava_fifo)
-        except OSError as e:
-            logging.info("fifo already closed: %s", e)
-        except TypeError as e:
-            logging.info("fifo does not exist: %s", e)
+        except OSError as error:
+            logging.info("fifo already closed: %s", error)
+        except TypeError as error:
+            logging.info("fifo does not exist: %s", error)
 
         if self.cava_process:
             self.cava_process.terminate()
 
         try:
             os.remove(self.cava_fifo_path)
-        except FileNotFoundError as e:
+        except FileNotFoundError as error:
             # the file was already deleted
-            logging.info("%s not found while deleting: %s", self.cava_fifo_path, e)
+            logging.info("%s not found while deleting: %s", self.cava_fifo_path, error)

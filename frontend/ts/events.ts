@@ -30,11 +30,12 @@ stateSocket.addEventListener('open', (e) => {
 });
 
 stateSocket.addEventListener('close', (e) => {
-  if (unloading)
+  if (unloading) {
     return;
+  }
   $('#disconnected-banner').slideDown('fast');
 });
 
-addEventListener("beforeunload", () => {
+addEventListener('beforeunload', () => {
   unloading = true;
 }, {capture: true});

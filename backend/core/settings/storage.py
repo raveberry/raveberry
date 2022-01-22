@@ -1,11 +1,17 @@
-from distutils.util import strtobool
-from typing import Union, Any, Tuple
-
+"""This module provides methods to access database settings."""
 from ast import literal_eval
+from typing import Union, Literal
 
 from cachetools import TTLCache, cached
 
-import core.models as models
+from core import models
+from core.util import strtobool
+
+PlatformEnabled = Literal
+PlatformSuggestions = Literal
+DeviceBrightness = Literal
+DeviceMonochrome = Literal
+DeviceProgram = Literal
 
 # maps key to default and type of value
 defaults = {
@@ -56,7 +62,7 @@ defaults = {
     "autoplay": False,
     # lights
     "ups": 30.0,
-    "fixed_color": (0, 0, 0),
+    "fixed_color": (0.0, 0.0, 0.0),
     "program_speed": 0.5,
     "wled_led_count": 10,
     "wled_ip": "",
@@ -105,11 +111,11 @@ defaults = {
 # and settings are never changed outside a request (especially not in a celery worker).
 # So this is fine as long as no additional daphne (or other) workers are used.
 # The lights flushes the cache in its update function.
-cache = TTLCache(ttl=10, maxsize=128)
+cache: TTLCache = TTLCache(ttl=10, maxsize=128)
 
 
 @cached(cache)
-def get(key: str) -> Union[bool, int, float, str, Tuple]:
+def get(key: str) -> Union[bool, int, float, str, tuple]:
     """This method returns the value for the given :param key:.
     Values of non-existing keys are set to their respective default value."""
     # values are stored as string in the database
@@ -118,22 +124,26 @@ def get(key: str) -> Union[bool, int, float, str, Tuple]:
     value = models.Setting.objects.get_or_create(
         key=key, defaults={"value": str(default)}
     )[0].value
-    if type(default) in (str, int, float):
-        return type(default)(value)
-    if type(default) == bool:
-        # bool("False") does not return False -> special case for bool
+    if type(default) is str:
+        return str(value)
+    if type(default) is int:
+        return int(value)
+    if type(default) is float:
+        return float(value)
+    if type(default) is bool:
         return strtobool(value)
-    elif type(default) == tuple:
+    if type(default) is tuple:
         # evaluate the stored literal
         return literal_eval(value)
+    raise ValueError(f"{key} not defined")
 
 
-def set(key: str, value: Any) -> None:
+def put(key: str, value: Union[bool, int, float, str, tuple]) -> None:
     """This method sets the :param value: for the given :param key:."""
     default = defaults[key]
     setting = models.Setting.objects.get_or_create(
         key=key, defaults={"value": str(default)}
     )[0]
-    setting.value = value
+    setting.value = str(value)
     setting.save()
     cache.clear()

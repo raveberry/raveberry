@@ -1,19 +1,20 @@
 """This module handles all settings regarding the music platforms."""
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import os
 import subprocess
+from typing import cast
+
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse, HttpResponseBadRequest
 
 from django.conf import settings as conf
-from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
-from django.http import HttpResponseBadRequest
-
 from core import redis
-from core.settings import library, system
+from core.settings import library, storage, system
 from core.settings.settings import control
-from core.settings import storage
+from core.settings.storage import PlatformEnabled
+from core.util import extract_value, strtobool
 
 
 def start() -> None:
@@ -21,14 +22,14 @@ def start() -> None:
 
     # local songs are enabled if a library is set
     local_enabled = os.path.islink(library.get_library_path())
-    storage.set("local_enabled", local_enabled)
+    storage.put("local_enabled", local_enabled)
 
     # in the docker container all dependencies are installed
     youtube_available = conf.DOCKER or importlib.util.find_spec("yt_dlp") is not None
-    redis.set("youtube_available", youtube_available)
+    redis.put("youtube_available", youtube_available)
     if not youtube_available:
         # if youtube is not available, overwrite the database to disable it
-        storage.set("youtube_enabled", False)
+        storage.put("youtube_enabled", False)
 
     # Spotify has no python dependencies we could easily check.
     try:
@@ -42,16 +43,16 @@ def start() -> None:
     except FileNotFoundError:
         # mopidy is not installed (eg in docker). Since we can't check, enable
         spotify_available = True
-    redis.set("spotify_available", spotify_available)
+    redis.put("spotify_available", spotify_available)
     if not spotify_available:
-        storage.set("spotify_enabled", False)
+        storage.put("spotify_enabled", False)
 
     soundcloud_available = (
         conf.DOCKER or importlib.util.find_spec("soundcloud") is not None
     )
-    redis.set("soundcloud_available", soundcloud_available)
+    redis.put("soundcloud_available", soundcloud_available)
     if not soundcloud_available:
-        storage.set("soundcloud_enabled", False)
+        storage.put("soundcloud_enabled", False)
 
     # Jamendo has no python dependencies we could easily check.
     try:
@@ -64,23 +65,25 @@ def start() -> None:
         )
     except FileNotFoundError:
         jamendo_available = True
-    redis.set("jamendo_available", jamendo_available)
+    redis.put("jamendo_available", jamendo_available)
     if not jamendo_available:
-        storage.set("jamendo_enabled", False)
+        storage.put("jamendo_enabled", False)
 
 
 @control
-def set_youtube_enabled(request: WSGIRequest):
+def set_youtube_enabled(request: WSGIRequest) -> HttpResponse:
     """Enables or disables youtube to be used as a song provider."""
-    enabled = request.POST.get("value") == "true"
-    storage.set("youtube_enabled", enabled)
+    value, response = extract_value(request.POST)
+    storage.put("youtube_enabled", strtobool(value))
+    return response
 
 
 @control
-def set_youtube_suggestions(request: WSGIRequest):
+def set_youtube_suggestions(request: WSGIRequest) -> HttpResponse:
     """Sets the number of online suggestions from youtube to be shown."""
-    value = int(request.POST.get("value"))  # type: ignore
-    storage.set("youtube_suggestions", value)
+    value, response = extract_value(request.POST)
+    storage.put("youtube_suggestions", int(value))
+    return response
 
 
 def _set_extension_enabled(extension, enabled) -> HttpResponse:
@@ -97,7 +100,8 @@ def _set_extension_enabled(extension, enabled) -> HttpResponse:
             response = HttpResponse(message)
     else:
         response = HttpResponse("Disabled extension")
-    storage.set(f"{extension}_enabled", enabled)
+    assert extension in ["local", "youtube", "spotify", "soundcloud", "jamendo"]
+    storage.put(cast(PlatformEnabled, f"{extension}_enabled"), enabled)
     return response
 
 
@@ -105,15 +109,16 @@ def _set_extension_enabled(extension, enabled) -> HttpResponse:
 def set_spotify_enabled(request: WSGIRequest) -> HttpResponse:
     """Enables or disables spotify to be used as a song provider.
     Makes sure mopidy has correct spotify configuration."""
-    enabled = request.POST.get("value") == "true"
-    return _set_extension_enabled("spotify", enabled)
+    value, _ = extract_value(request.POST)
+    return _set_extension_enabled("spotify", strtobool(value))
 
 
 @control
-def set_spotify_suggestions(request: WSGIRequest):
+def set_spotify_suggestions(request: WSGIRequest) -> HttpResponse:
     """Sets the number of online suggestions from spotify to be shown."""
-    value = int(request.POST.get("value"))  # type: ignore
-    storage.set("spotify_suggestions", value)
+    value, response = extract_value(request.POST)
+    storage.put("spotify_suggestions", int(value))
+    return response
 
 
 @control
@@ -127,10 +132,10 @@ def set_spotify_credentials(request: WSGIRequest) -> HttpResponse:
     if not username or not password or not client_id or not client_secret:
         return HttpResponseBadRequest("All fields are required")
 
-    storage.set("spotify_username", username)
-    storage.set("spotify_password", password)
-    storage.set("spotify_client_id", client_id)
-    storage.set("spotify_client_secret", client_secret)
+    storage.put("spotify_username", username)
+    storage.put("spotify_password", password)
+    storage.put("spotify_client_id", client_id)
+    storage.put("spotify_client_secret", client_secret)
 
     system.update_mopidy_config("pulse")
     return HttpResponse("Updated credentials")
@@ -140,15 +145,16 @@ def set_spotify_credentials(request: WSGIRequest) -> HttpResponse:
 def set_soundcloud_enabled(request: WSGIRequest) -> HttpResponse:
     """Enables or disables soundcloud to be used as a song provider.
     Makes sure mopidy has correct soundcloud configuration."""
-    enabled = request.POST.get("value") == "true"
-    return _set_extension_enabled("soundcloud", enabled)
+    value, _ = extract_value(request.POST)
+    return _set_extension_enabled("soundcloud", strtobool(value))
 
 
 @control
-def set_soundcloud_suggestions(request: WSGIRequest):
+def set_soundcloud_suggestions(request: WSGIRequest) -> HttpResponse:
     """Sets the number of online suggestions from soundcloud to be shown."""
-    value = int(request.POST.get("value"))  # type: ignore
-    storage.set("soundcloud_suggestions", value)
+    value, response = extract_value(request.POST)
+    storage.put("soundcloud_suggestions", int(value))
+    return response
 
 
 @control
@@ -159,7 +165,7 @@ def set_soundcloud_credentials(request: WSGIRequest) -> HttpResponse:
     if not auth_token:
         return HttpResponseBadRequest("All fields are required")
 
-    storage.set("soundcloud_auth_token", auth_token)
+    storage.put("soundcloud_auth_token", auth_token)
 
     system.update_mopidy_config("pulse")
     return HttpResponse("Updated credentials")
@@ -169,15 +175,16 @@ def set_soundcloud_credentials(request: WSGIRequest) -> HttpResponse:
 def set_jamendo_enabled(request: WSGIRequest) -> HttpResponse:
     """Enables or disables jamendo to be used as a song provider.
     Makes sure mopidy has correct jamendo configuration."""
-    enabled = request.POST.get("value") == "true"
-    return _set_extension_enabled("jamendo", enabled)
+    value, _ = extract_value(request.POST)
+    return _set_extension_enabled("jamendo", strtobool(value))
 
 
 @control
-def set_jamendo_suggestions(request: WSGIRequest):
+def set_jamendo_suggestions(request: WSGIRequest) -> HttpResponse:
     """Sets the number of online suggestions from jamendo to be shown."""
-    value = int(request.POST.get("value"))  # type: ignore
-    storage.set("jamendo_suggestions", value)
+    value, response = extract_value(request.POST)
+    storage.put("jamendo_suggestions", int(value))
+    return response
 
 
 @control
@@ -188,7 +195,7 @@ def set_jamendo_credentials(request: WSGIRequest) -> HttpResponse:
     if not client_id:
         return HttpResponseBadRequest("All fields are required")
 
-    storage.set("jamendo_client_id", client_id)
+    storage.put("jamendo_client_id", client_id)
 
     system.update_mopidy_config("pulse")
     return HttpResponse("Updated credentials")

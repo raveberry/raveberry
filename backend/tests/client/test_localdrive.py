@@ -6,25 +6,17 @@ from tests.music_test import MusicTest
 
 
 class LocaldriveTests(MusicTest):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self._setup_test_library()
 
-    def test_suggested_song(self):
+    def test_suggested_song(self) -> None:
         suggestion = json.loads(
             self.client.get(
                 reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
             ).content
         )[-1]
-        self.client.post(
-            reverse("request-music"),
-            {
-                "key": suggestion["key"],
-                "query": "",
-                "playlist": "false",
-                "platform": "local",
-            },
-        )
+        self._request_suggestion(suggestion["key"])
         state = self._poll_musiq_state(lambda state: state["musiq"]["currentSong"])
         current_song = state["musiq"]["currentSong"]
         # which song is enqueued is not deterministic, as they all are named identically…
@@ -35,7 +27,7 @@ class LocaldriveTests(MusicTest):
         self.assertEqual(current_song["artist"], "Kevin MacLeod")
         self.assertEqual(current_song["title"], "Impact Moderato")
 
-    def test_suggested_playlist(self):
+    def test_suggested_playlist(self) -> None:
         state = self._add_local_playlist()
         self.assertEqual(
             state["musiq"]["currentSong"]["externalUrl"],
@@ -54,7 +46,7 @@ class LocaldriveTests(MusicTest):
             "local_library/ogg/file_example_OOG_2MG.ogg",
         )
 
-    def test_autoplay(self):
+    def test_autoplay(self) -> None:
         suggestion = json.loads(
             self.client.get(
                 reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
@@ -79,28 +71,15 @@ class LocaldriveTests(MusicTest):
         old_id = state["musiq"]["songQueue"][0]["id"]
 
         self.client.post(reverse("skip"))
-        # make sure another song is enqueued
-        self._poll_musiq_state(
-            lambda state: len(state["musiq"]["songQueue"]) == 1
-            and state["musiq"]["songQueue"][0]["internalUrl"]
-            and state["musiq"]["songQueue"][0]["id"] != old_id
-        )
+        self._wait_for_new_song(old_id)
 
-    def test_radio(self):
+    def test_radio(self) -> None:
         suggestion = json.loads(
             self.client.get(
                 reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
             ).content
         )[-1]
-        self.client.post(
-            reverse("request-music"),
-            {
-                "key": suggestion["key"],
-                "query": "",
-                "playlist": "false",
-                "platform": "local",
-            },
-        )
+        self._request_suggestion(suggestion["key"])
         self._poll_current_song()
         self.client.post(reverse("request-radio"))
         # ensure that at least 2 songs are enqueued (the ogg folder only has two files)

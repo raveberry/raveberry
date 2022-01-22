@@ -1,12 +1,13 @@
 """Contains the core app configuration."""
-import sys
+import atexit
 import logging
 import os
-import atexit
-from distutils.util import strtobool
+import sys
 
 from django.apps import AppConfig
+
 from django.conf import settings as conf
+from core.util import strtobool
 
 
 class CoreConfig(AppConfig):
@@ -21,14 +22,8 @@ class CoreConfig(AppConfig):
             # this way, its autoreload is notified on changes in these modules
 
             for module in conf.CELERY_IMPORTS:
+                assert isinstance(module, str)
                 __import__(module)
-
-            # these are used by the lights worker but imported locally.
-            # in order to trigger autoreloads they need to imported here as well
-            import core.lights.ring
-            import core.lights.wled
-            import core.lights.strip
-            import core.lights.screen
 
             return
 
@@ -37,11 +32,13 @@ class CoreConfig(AppConfig):
         # in debug mode and the main application is run (not autoreload)
         # or in prod mode (run by daphne)
         start_raveberry = (
-            "runserver" in sys.argv and strtobool(os.environ.get("RUN_MAIN", "0"))
-        ) or (sys.argv[0].endswith("daphne"))
+            strtobool(os.environ.get("RUN_MAIN", "0"))
+            if "runserver" in sys.argv
+            else sys.argv[0].endswith("daphne")
+        )
 
         if conf.TESTING:
-            import core.musiq.controller as controller
+            from core.musiq import controller
 
             # when MopidyAPI instances are created too often,
             # mopidy runs into a "Set changed size during iteration" error.
@@ -49,18 +46,18 @@ class CoreConfig(AppConfig):
             controller.start()
 
         if start_raveberry:
-            import core.celery as celery
-            import core.redis as redis
-            import core.musiq.musiq as musiq
-            import core.musiq.playback as playback
-            import core.settings.basic as basic
-            import core.settings.platforms as platforms
-            import core.lights.worker as worker
+            from core import tasks
+            from core import redis
+            from core.musiq import musiq
+            from core.musiq import playback
+            from core.settings import basic
+            from core.settings import platforms
+            from core.lights import worker
 
             logging.info("starting raveberry")
 
             redis.start()
-            celery.start()
+            tasks.start()
 
             worker.start()
             musiq.start()
@@ -69,13 +66,13 @@ class CoreConfig(AppConfig):
 
             def stop_workers() -> None:
                 # wake up the playback thread and stop it
-                redis.set("stop_playback_loop", True)
+                redis.put("stop_playback_loop", True)
                 playback.queue_changed.set()
 
                 # wake the buzzer thread so it exits
                 playback.buzzer_stopped.set()
 
                 # wake up the listener thread with an instruction to stop the lights worker
-                redis.publish("lights_settings_changed", "stop")
+                redis.connection.publish("lights_settings_changed", "stop")
 
             atexit.register(stop_workers)

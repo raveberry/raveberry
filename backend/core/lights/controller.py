@@ -7,11 +7,13 @@ from functools import wraps
 from typing import cast, Tuple, Callable
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 
 from core import user_manager, redis
-from core.lights import lights, worker
+from core.lights import lights
 from core.settings import storage
+from core.settings.storage import DeviceBrightness, DeviceMonochrome, DeviceProgram
+from core.util import extract_value, strtobool
 
 
 def control(func: Callable) -> Callable:
@@ -34,7 +36,7 @@ def control(func: Callable) -> Callable:
 
 def _notify_settings_changed(settings: str) -> None:
     # notifies the worker thread that the given settings (eg <device> or "base") changed
-    redis.publish(f"lights_settings_changed", settings)
+    redis.connection.publish("lights_settings_changed", settings)
 
 
 def alarm_started() -> None:
@@ -49,9 +51,10 @@ def alarm_stopped() -> None:
 
 def persist_program_change(device, program) -> None:
     """Persist the program in the database."""
-    current_program = storage.get(f"{device}_program")
-    storage.set(f"last_{device}_program", current_program)
-    storage.set(f"{device}_program", program)
+    assert device in ["ring", "strip", "wled", "screen"]
+    current_program = storage.get(cast(DeviceProgram, f"{device}_program"))
+    storage.put(cast(DeviceProgram, f"last_{device}_program"), current_program)
+    storage.put(cast(DeviceProgram, f"{device}_program"), program)
 
 
 def set_program(device: str, program: str) -> None:
@@ -61,154 +64,169 @@ def set_program(device: str, program: str) -> None:
 
 
 @control
-def set_lights_shortcut(request: WSGIRequest) -> None:
+def set_lights_shortcut(request: WSGIRequest) -> HttpResponse:
     """Stores the current lights state and restores the previous one."""
-    should_enable = request.POST.get("value") == "true"
+    value, response = extract_value(request.POST)
+    should_enable = strtobool(value)
     is_enabled = (
         storage.get("ring_program") != "Disabled"
         or storage.get("wled_program") != "Disabled"
         or storage.get("strip_program") != "Disabled"
     )
     if should_enable == is_enabled:
-        return
+        return HttpResponse()
     if should_enable:
         for device in ["ring", "wled", "strip"]:
-            set_program(device, storage.get(f"last_{device}_program"))
+            set_program(
+                device, storage.get(cast(DeviceProgram, f"last_{device}_program"))
+            )
     else:
         for device in ["ring", "wled", "strip"]:
             set_program(device, "Disabled")
+    return response
 
 
 @control
-def set_ups(request: WSGIRequest) -> None:
+def set_ups(request: WSGIRequest) -> HttpResponse:
     """Updates the global speed of programs supporting it."""
-    value = float(request.POST.get("value"))  # type: ignore
-    storage.set("ups", value)
+    value, response = extract_value(request.POST)
+    storage.put("ups", float(value))
     _notify_settings_changed("base")
+    return response
 
 
 @control
-def set_program_speed(request: WSGIRequest) -> None:
+def set_program_speed(request: WSGIRequest) -> HttpResponse:
     """Updates the global speed of programs supporting it."""
-    value = float(request.POST.get("value"))  # type: ignore
-    storage.set("program_speed", value)
+    value, response = extract_value(request.POST)
+    storage.put("program_speed", float(value))
     _notify_settings_changed("base")
+    return response
 
 
 @control
-def set_fixed_color(request: WSGIRequest) -> None:
+def set_fixed_color(request: WSGIRequest) -> HttpResponse:
     """Updates the static color used for some programs."""
-    hex_col = request.POST.get("value").lstrip("#")  # type: ignore
-    # raises IndexError on wrong input, caught in option decorator
-    color = tuple(int(hex_col[i : i + 2], 16) / 255 for i in (0, 2, 4))
+    hex_col, response = extract_value(request.POST)
+    hex_col = hex_col.lstrip("#")
+    try:
+        color = tuple(int(hex_col[i : i + 2], 16) / 255 for i in (0, 2, 4))
+    except IndexError:
+        return HttpResponseBadRequest("color needs to be in #rrggbb format")
     # https://github.com/python/mypy/issues/5068
     color = cast(Tuple[float, float, float], color)
-    storage.set("fixed_color", str(color))
+    storage.put("fixed_color", color)
     _notify_settings_changed("base")
+    return response
 
 
-def _handle_program_request(device: str, request: WSGIRequest) -> None:
-    program = request.POST.get("value")
-    if not program:
-        return
-    if program == storage.get(f"{device}_program"):
+def _handle_program_request(device: str, request: WSGIRequest) -> HttpResponse:
+    program, response = extract_value(request.POST)
+    assert device in ["ring", "strip", "wled", "screen"]
+    if program == storage.get(cast(DeviceProgram, f"{device}_program")):
         # the program doesn't change, return immediately
-        return
+        return HttpResponse()
     set_program(device, program)
+    return response
 
 
-def _handle_brightness_request(device: str, request: WSGIRequest) -> None:
-    # raises ValueError on wrong input, caught in option decorator
-    value = float(request.POST.get("value"))  # type: ignore
-    storage.set(f"{device}_brightness", value)
+def _handle_brightness_request(device: str, request: WSGIRequest) -> HttpResponse:
+    value, response = extract_value(request.POST)
+    assert device in ["ring", "strip", "wled", "screen"]
+    storage.put(cast(DeviceBrightness, f"{device}_brightness"), float(value))
     _notify_settings_changed(device)
+    return response
 
 
-def _handle_monochrome_request(device: str, request: WSGIRequest) -> None:
-    # raises ValueError on wrong input, caught in option decorator
-    enabled = request.POST.get("value") == "true"  # type: ignore
-    storage.set(f"{device}_monochrome", enabled)
+def _handle_monochrome_request(device: str, request: WSGIRequest) -> HttpResponse:
+    value, response = extract_value(request.POST)
+    assert device in ["ring", "strip", "wled", "screen"]
+    storage.put(cast(DeviceMonochrome, f"{device}_monochrome"), strtobool(value))
     _notify_settings_changed(device)
+    return response
 
 
 @control
-def set_ring_program(request: WSGIRequest) -> None:
+def set_ring_program(request: WSGIRequest) -> HttpResponse:
     """Updates the ring program."""
-    _handle_program_request("ring", request)
+    return _handle_program_request("ring", request)
 
 
 @control
-def set_ring_brightness(request: WSGIRequest) -> None:
+def set_ring_brightness(request: WSGIRequest) -> HttpResponse:
     """Updates the ring brightness."""
-    _handle_brightness_request("ring", request)
+    return _handle_brightness_request("ring", request)
 
 
 @control
-def set_ring_monochrome(request: WSGIRequest) -> None:
+def set_ring_monochrome(request: WSGIRequest) -> HttpResponse:
     """Sets whether the ring should be in one color only."""
-    _handle_monochrome_request("ring", request)
+    return _handle_monochrome_request("ring", request)
 
 
 @control
-def set_wled_led_count(request: WSGIRequest) -> None:
+def set_wled_led_count(request: WSGIRequest) -> HttpResponse:
     """Updates the wled led_count."""
-    value = int(request.POST.get("value"))  # type: ignore
-    if not (2 <= value <= 490):
-        return
-    storage.set("wled_led_count", value)
+    value, response = extract_value(request.POST)
+    if not 2 <= int(value) <= 490:
+        return HttpResponseBadRequest("must be between 2 and 490")
+    storage.put("wled_led_count", int(value))
     _notify_settings_changed("wled")
+    return response
 
 
 @control
-def set_wled_ip(request: WSGIRequest) -> None:
+def set_wled_ip(request: WSGIRequest) -> HttpResponse:
     """Updates the wled ip."""
-    value = request.POST.get("value")  # type: ignore
+    value, response = extract_value(request.POST)
     try:
         socket.inet_aton(value)
     except socket.error:
-        return
-    storage.set("wled_ip", value)
+        return HttpResponseBadRequest("invalid ip")
+    storage.put("wled_ip", value)
     _notify_settings_changed("wled")
+    return response
 
 
 @control
-def set_wled_port(request: WSGIRequest) -> None:
+def set_wled_port(request: WSGIRequest) -> HttpResponse:
     """Updates the wled port."""
-    value = int(request.POST.get("value"))  # type: ignore
-    if not (1024 <= value <= 65535):
-        return
-    storage.set("wled_port", value)
+    value, response = extract_value(request.POST)
+    if not 1024 <= int(value) <= 65535:
+        return HttpResponseBadRequest("invalid port")
+    storage.put("wled_port", int(value))
     _notify_settings_changed("wled")
+    return response
 
 
 @control
-def set_wled_program(request: WSGIRequest) -> None:
+def set_wled_program(request: WSGIRequest) -> HttpResponse:
     """Updates the wled program."""
-    _handle_program_request("wled", request)
+    return _handle_program_request("wled", request)
 
 
 @control
-def set_wled_brightness(request: WSGIRequest) -> None:
+def set_wled_brightness(request: WSGIRequest) -> HttpResponse:
     """Updates the wled brightness."""
-    _handle_brightness_request("wled", request)
+    return _handle_brightness_request("wled", request)
 
 
 @control
-def set_wled_monochrome(request: WSGIRequest) -> None:
+def set_wled_monochrome(request: WSGIRequest) -> HttpResponse:
     """Sets whether the wled should be in one color only."""
-    _handle_monochrome_request("wled", request)
+    return _handle_monochrome_request("wled", request)
 
 
 @control
-def set_strip_program(request: WSGIRequest) -> None:
+def set_strip_program(request: WSGIRequest) -> HttpResponse:
     """Updates the strip program."""
-    _handle_program_request("strip", request)
+    return _handle_program_request("strip", request)
 
 
 @control
-def set_strip_brightness(request: WSGIRequest) -> None:
+def set_strip_brightness(request: WSGIRequest) -> HttpResponse:
     """Updates the strip brightness."""
-    _handle_brightness_request("strip", request)
+    return _handle_brightness_request("strip", request)
 
 
 @control
@@ -218,24 +236,27 @@ def adjust_screen(_request: WSGIRequest) -> None:
 
 
 @control
-def set_screen_program(request: WSGIRequest) -> None:
+def set_screen_program(request: WSGIRequest) -> HttpResponse:
     """Updates the screen program."""
-    _handle_program_request("screen", request)
+    return _handle_program_request("screen", request)
 
 
 @control
-def set_initial_resolution(request: WSGIRequest) -> None:
+def set_initial_resolution(request: WSGIRequest) -> HttpResponse:
     """Sets the resolution used on the screen."""
-    value = request.POST.get("value")
+    value, response = extract_value(request.POST)
     resolution = tuple(map(int, value.split("x")))
-    storage.set("initial_resolution", resolution)
+    resolution = cast(Tuple[int, int], resolution)
+    storage.put("initial_resolution", resolution)
     # adjusting sets the resolution and restarts the screen program
     _notify_settings_changed("adjust_screen")
+    return response
 
 
 @control
-def set_dynamic_resolution(request: WSGIRequest) -> None:
+def set_dynamic_resolution(request: WSGIRequest) -> HttpResponse:
     """Sets whether the resolution should be dynamically adjusted depending on the performance."""
-    enabled = request.POST.get("value") == "true"  # type: ignore
-    storage.set("dynamic_resolution", enabled)
+    value, response = extract_value(request.POST)
+    storage.put("dynamic_resolution", strtobool(value))
     _notify_settings_changed("base")
+    return response

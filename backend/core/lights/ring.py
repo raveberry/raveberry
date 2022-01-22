@@ -38,7 +38,7 @@ class Ring(Device):
         try:
             self.controller.begin()
             self.initialized = True
-            redis.set("ring_initialized", True)
+            redis.put("ring_initialized", True)
         except RuntimeError:
             # could not connect to led ring
             return

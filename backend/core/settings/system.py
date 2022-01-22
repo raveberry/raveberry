@@ -21,7 +21,8 @@ from core.settings import storage
 from core.settings.settings import control
 
 
-def _restart_mopidy() -> None:
+def restart_mopidy() -> None:
+    """Restarts the mopidy systemd service."""
     subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
     try:
         player_lock.release()
@@ -63,7 +64,7 @@ def update_mopidy_config(output: str) -> None:
             jamendo_client_id,
         ]
     )
-    _restart_mopidy()
+    restart_mopidy()
 
 
 def check_mopidy_extensions() -> Dict[str, Tuple[bool, str]]:
@@ -108,49 +109,73 @@ def _check_mopidy_extensions_service() -> Dict[str, Tuple[bool, str]]:
         ["sudo", "/usr/local/sbin/raveberry/read_mopidy_log"], universal_newlines=True
     )
 
+    # a dict that defines for each extension possible errors that can occur during mopidy start
+    # for each error, there is a lambda that returns True if the error is present in a line
+    # and a message that should be shown.
+    error_handling = {
+        "spotify": [
+            (
+                lambda line: line.startswith("ERROR")
+                and "spotify.session" in line
+                and "USER_NEEDS_PREMIUM" in line,
+                "Spotify Premium is required",
+            ),
+            (
+                lambda line: line.startswith("ERROR") and "spotify.session" in line,
+                "User or Password are wrong",
+            ),
+            (
+                lambda line: line.startswith("ERROR") and "mopidy_spotify.web" in line,
+                "Client ID or Client Secret are wrong or expired",
+            ),
+            (
+                lambda line: line.startswith("WARNING")
+                and "spotify" in line
+                and "The extension has been automatically disabled" in line,
+                "Configuration Error",
+            ),
+        ],
+        "soundcloud": [
+            (
+                lambda line: line.startswith("ERROR")
+                and 'Invalid "auth_token"' in line,
+                "auth_token is invalid",
+            ),
+            (
+                lambda line: line.startswith("WARNING")
+                and "soundcloud" in line
+                and "The extension has been automatically disabled" in line,
+                "Configuration Error",
+            ),
+        ],
+        "jamendo": [
+            (
+                lambda line: line.startswith("ERROR") and 'Invalid "client_id"' in line,
+                "client_id is invalid",
+            )
+        ],
+    }
+    success_messages = {
+        "spotify": "Login successful",
+        "soundcloud": "auth_token valid",
+        "jamendo": "client_id could not be checked",
+    }
+
     extensions = {}
     for line in log.split("\n")[::-1]:
-        if "spotify" not in extensions:
-
+        for extension in ["spotify", "soundcloud", "jamendo"]:
+            # stop checking for errors if an error was already found for the extension
+            if extension in extensions:
+                continue
+            for error_condition, error_message in error_handling[extension]:
+                if error_condition(line):
+                    extensions[extension] = (False, error_message)
             if (
-                line.startswith("ERROR")
-                and "spotify.session" in line
-                and "USER_NEEDS_PREMIUM"
-            ):
-                extensions["spotify"] = (False, "Spotify Premium is required")
-            elif line.startswith("ERROR") and "spotify.session" in line:
-                extensions["spotify"] = (False, "User or Password are wrong")
-            elif line.startswith("ERROR") and "mopidy_spotify.web" in line:
-                extensions["spotify"] = (
-                    False,
-                    "Client ID or Client Secret are wrong or expired",
-                )
-            elif (
                 line.startswith("WARNING")
-                and "spotify" in line
+                and extension in line
                 and "The extension has been automatically disabled" in line
             ):
-                extensions["spotify"] = (False, "Configuration Error")
-
-        if "soundcloud" not in extensions:
-            if line.startswith("ERROR") and 'Invalid "auth_token"' in line:
-                extensions["soundcloud"] = (False, "auth_token is invalid")
-            elif (
-                line.startswith("WARNING")
-                and "soundcloud" in line
-                and "The extension has been automatically disabled" in line
-            ):
-                extensions["soundcloud"] = (False, "Configuration Error")
-
-        if "jamendo" not in extensions:
-            if line.startswith("ERROR") and 'Invalid "client_id"' in line:
-                extensions["jamendo"] = (False, "client_id is invalid")
-            elif (
-                line.startswith("WARNING")
-                and "jamendo" in line
-                and "The extension has been automatically disabled" in line
-            ):
-                extensions["jamendo"] = (False, "Configuration Error")
+                extensions[extension] = (False, "Configuration Error")
 
         if (
             "spotify" in extensions
@@ -160,21 +185,14 @@ def _check_mopidy_extensions_service() -> Dict[str, Tuple[bool, str]]:
             break
 
         if line.startswith("Started Mopidy music server."):
-            if "spotify" not in extensions:
-                extensions["spotify"] = (True, "Login successful")
-            if "soundcloud" not in extensions:
-                extensions["soundcloud"] = (True, "auth_token valid")
-            if "jamendo" not in extensions:
-                extensions["jamendo"] = (True, "client_id could not be checked")
+            for extension in ["spotify", "soundcloud", "jamendo"]:
+                if extension not in extensions:
+                    extensions[extension] = (True, success_messages[extension])
             break
-    else:
-        # there were too many lines in the log, could not determine whether there was an error
-        if "spotify" not in extensions:
-            extensions["spotify"] = (True, "No info found, enabling to be safe")
-        if "soundcloud" not in extensions:
-            extensions["soundcloud"] = (True, "No info found, enabling to be safe")
-        if "jamendo" not in extensions:
-            extensions["jamendo"] = (True, "No info found, enabling to be safe")
+    for extension in ["spotify", "soundcloud", "jamendo"]:
+        if extension not in extensions:
+            # there were too many lines in the log, could not determine whether there was an error
+            extensions[extension] = (True, "No info found, enabling to be safe")
     return extensions
 
 
@@ -275,16 +293,18 @@ def shutdown_system(_request: WSGIRequest) -> None:
 def fetch_latest_version() -> Optional[str]:
     """Looks up the newest version number from PyPi and returns it."""
     # https://github.com/pypa/pip/issues/9139
-    p = subprocess.run(
+    # these subprocesses are expected to fail
+    # move to pip index versions raveberry once that's not experimental anymore
+    pip = subprocess.run(  # pylint: disable=subprocess-run-check
         "pip3 install --use-deprecated=legacy-resolver raveberry==nonexistingversion".split(),
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         universal_newlines=True,
     )
-    if p.returncode == 2:
+    if pip.returncode == 2:
         # pip does not now the --use-deprecated=legacy-resolver
         # probably an older version that does not need it
-        p = subprocess.run(
+        pip = subprocess.run(  # pylint: disable=subprocess-run-check
             "pip3 install raveberry==nonexistingversion".split(),
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
@@ -292,7 +312,7 @@ def fetch_latest_version() -> Optional[str]:
         )
 
     # parse the newest verson from pip output
-    for line in p.stderr.splitlines():
+    for line in pip.stderr.splitlines():
         if "from versions" in line:
             versions = [re.sub(r"[^0-9.]", "", token) for token in line.split()]
             versions = [version for version in versions if version]
@@ -301,8 +321,7 @@ def fetch_latest_version() -> Optional[str]:
             except IndexError:
                 return None
             return latest_version
-    else:
-        return None
+    return None
 
 
 @control
@@ -326,8 +345,10 @@ def get_changelog(_request: WSGIRequest) -> HttpResponse:
 @control
 def get_upgrade_config(_request: WSGIRequest) -> HttpResponse:
     """Returns the config that will be used for the upgrade."""
-    with open(os.path.join(settings.BASE_DIR, "config/raveberry.yaml")) as f:
-        config = f.read()
+    with open(
+        os.path.join(settings.BASE_DIR, "config/raveberry.yaml"), encoding="utf-8"
+    ) as config_file:
+        config = config_file.read()
     lines = config.splitlines()
     lines = [line for line in lines if not line.startswith("#")]
     return HttpResponse("\n".join(lines))

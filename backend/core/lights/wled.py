@@ -22,11 +22,11 @@ class WLED(Device):
                 device = util.get_devices()[0]
                 broadcast = util.broadcast_of_device(device)
                 self.ip = broadcast
-            except:
+            except Exception:  # pylint: disable=broad-except
                 # we don't want the startup to fail
                 # just because the broadcast address could not be determined
                 self.ip = "127.0.0.1"
-            storage.set("wled_ip", self.ip)
+            storage.put("wled_ip", self.ip)
         self.port = storage.get("wled_port")
 
         self.header = bytes(
@@ -37,7 +37,7 @@ class WLED(Device):
         )
 
         self.initialized = True
-        redis.set("wled_initialized", True)
+        redis.put("wled_initialized", True)
 
     def set_colors(self, colors: List[Tuple[float, float, float]]) -> None:
         """Sets the colors of the WLED to the given list of triples."""

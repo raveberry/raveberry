@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import random
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple
 
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import F, QuerySet
 
 import core.models
@@ -75,6 +74,18 @@ class SongQueue(models.Manager):
         to_prioritize.save()
 
     @transaction.atomic
+    def deprioritize(self, key: int) -> None:
+        """Moves the song specified by :param key: to the end of the queue."""
+        to_deprioritize = self.get(id=key)
+        last = self.last()
+        if to_deprioritize == last:
+            return
+
+        self.filter(index__gt=to_deprioritize.index).update(index=F("index") - 1)
+        to_deprioritize.index = self.count()
+        to_deprioritize.save()
+
+    @transaction.atomic
     def remove(self, key: int) -> "QueuedSong":
         """Removes the song specified by :param key: from the queue and returns it."""
         to_remove = self.get(id=key)
@@ -89,18 +100,12 @@ class SongQueue(models.Manager):
         """Moves the song specified by :param element_id:
         between the two songs :param new_prev_id: and :param new_next_id:."""
 
-        try:
-            new_prev = self.get(id=new_prev_id)
-        except core.models.QueuedSong.DoesNotExist:
-            new_prev = None
+        new_prev = self.filter(id=new_prev_id).first()
         try:
             to_reorder = self.get(id=element_id)
-        except core.models.QueuedSong.DoesNotExist:
-            raise ValueError("reordered song does not exist")
-        try:
-            new_next = self.get(id=new_next_id)
-        except core.models.QueuedSong.DoesNotExist:
-            new_next = None
+        except core.models.QueuedSong.DoesNotExist as error:
+            raise ValueError("reordered song does not exist") from error
+        new_next = self.filter(id=new_next_id).first()
 
         first = self.first()
         last = self.last()
@@ -109,53 +114,41 @@ class SongQueue(models.Manager):
             # to_reorder has to be the only element in the queue
             if first != to_reorder or last != to_reorder:
                 raise ValueError("reordered song is not the only one")
-        if new_prev is None and new_next is not None:
+            # nothing to do
+            return
+        if new_prev is None:
             # new_next has to be the first element
             if new_next != first:
                 raise ValueError("given first is not head of the queue")
-        if new_prev is not None and new_next is None:
+            assert new_next
+            self.prioritize(element_id)
+            return
+        if new_next is None:
             # new_prev has to be the last element
             if new_prev != last:
                 raise ValueError("given last is not tail of the queue")
-        if new_prev is not None and new_next is not None:
-            # new_prev and new_next have to be adjacent
-            if new_next.index != new_prev.index + 1:
-                raise ValueError("given pair of songs is not adjacent")
-
-        try:
-            old_prev = self.get(index=to_reorder.index - 1)
-        except core.models.QueuedSong.DoesNotExist:
-            old_prev = None
-        try:
-            old_next = self.get(index=to_reorder.index + 1)
-        except core.models.QueuedSong.DoesNotExist:
-            old_next = None
+            self.deprioritize(element_id)
+            return
+        # neither new_prev and new_next are None
+        # new_prev and new_next have to be adjacent
+        if new_next.index != new_prev.index + 1:
+            raise ValueError("given pair of songs is not adjacent")
 
         # update indices
         moving_up = True
-        if new_prev is not None:
-            if new_prev.index > to_reorder.index:
-                moving_up = False
-        elif new_next is not None:
-            if new_next.index > to_reorder.index:
-                moving_up = False
+        if new_prev.index > to_reorder.index or new_next.index > to_reorder.index:
+            moving_up = False
 
         to_update = self.all()
         if moving_up:
-            if old_prev is not None:
-                to_update = to_update.filter(index__lte=old_prev.index)
-            new_index = 1
-            if new_next is not None:
-                new_index = new_next.index
-                to_update = to_update.filter(index__gte=new_next.index)
+            new_index = new_next.index
+            to_update = to_update.filter(index__lte=to_reorder.index - 1)
+            to_update = to_update.filter(index__gte=new_next.index)
             to_update.update(index=F("index") + 1)
         else:
-            new_index = 1
-            if new_prev is not None:
-                new_index = new_prev.index
-                to_update = to_update.filter(index__lte=new_prev.index)
-            if old_next is not None:
-                to_update = to_update.filter(index__gte=old_next.index)
+            new_index = new_prev.index
+            to_update = to_update.filter(index__lte=new_prev.index)
+            to_update = to_update.filter(index__gte=to_reorder.index + 1)
             to_update.update(index=F("index") - 1)
 
         to_reorder.index = new_index

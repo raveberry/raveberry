@@ -2,25 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Optional, List, Tuple, TYPE_CHECKING
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 from django.http.response import HttpResponse
 
-import core.settings.storage as storage
-from core.musiq import song_utils, musiq
-from core.musiq.song_provider import SongProvider
+from core.musiq import song_utils
 from core.musiq.playlist_provider import PlaylistProvider
+from core.musiq.song_provider import SongProvider
 from core.musiq.spotify_web import OAuthClient
-
-if TYPE_CHECKING:
-    from core.musiq.song_utils import Metadata
+from core.settings import storage
 
 
 class Spotify:
     """This class contains code for both the song and playlist provider"""
 
-    _web_client: OAuthClient = None  # type: ignore
+    _web_client: OAuthClient = None  # type: ignore[assignment]
 
     @property
     def web_client(self) -> OAuthClient:
@@ -98,12 +95,6 @@ class SpotifySongProvider(SongProvider, Spotify):
         self.type = "spotify"
         super().__init__(query, key)
 
-        self.metadata: "Metadata" = {}
-
-    def check_cached(self) -> bool:
-        # Spotify songs cannot be cached and have to be streamed everytime
-        return False
-
     def check_available(self) -> bool:
         if not self.gather_metadata():
             return False
@@ -125,21 +116,16 @@ class SpotifySongProvider(SongProvider, Spotify):
                 },
             )
 
-            # apply the filterlist from the settings
-            for item in results["tracks"]["items"]:
-                artist = item["artists"][0]["name"]
-                title = item["name"]
-                if song_utils.is_forbidden(artist) or song_utils.is_forbidden(title):
-                    continue
-                result = item
-                break
-            else:
-                # all tracks got filtered
-                self.error = "All results filtered"
+            result = self.first_unfiltered_item(
+                results["tracks"]["items"],
+                lambda item: (item["artists"][0]["name"], item["name"]),
+            )
+            if not result:
                 return False
             self.id = result["id"]
         else:
             result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"})
+        assert result
         try:
             self.metadata["artist"] = result["artists"][0]["name"]
             self.metadata["title"] = result["name"]
@@ -152,15 +138,6 @@ class SpotifySongProvider(SongProvider, Spotify):
             self.error = "No song found"
             return False
         return True
-
-    def get_metadata(self) -> "Metadata":
-        if not self.metadata:
-            self.gather_metadata()
-        return self.metadata
-
-    def _get_path(self) -> str:
-        # spotify is not cached in the cache directory
-        raise NotImplementedError()
 
     def get_internal_url(self) -> str:
         if not self.id:
@@ -180,9 +157,9 @@ class SpotifySongProvider(SongProvider, Spotify):
 
         try:
             external_url = result["tracks"][0]["external_urls"]["spotify"]
-        except IndexError:
+        except (IndexError, KeyError) as error:
             self.error = "no recommendation found"
-            raise ValueError("No suggested track")
+            raise ValueError("No suggested track") from error
 
         return external_url
 
@@ -198,15 +175,8 @@ class SpotifySongProvider(SongProvider, Spotify):
 
         for track in result["tracks"]:
             external_url = track["external_urls"]["spotify"]
-            musiq.do_request_music(
-                "",
-                external_url,
-                None,
-                False,
-                "spotify",
-                archive=False,
-                manually_requested=False,
-            )
+            provider = SpotifySongProvider(external_url, None)
+            provider.request("", archive=False, manually_requested=False)
 
         return HttpResponse("queueing radio")
 
@@ -272,9 +242,6 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
         self.title = list_info["name"]
 
         return list_id
-
-    def is_radio(self) -> bool:
-        return False
 
     def fetch_metadata(self) -> bool:
         if self.title is None:

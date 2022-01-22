@@ -1,22 +1,22 @@
 """This module contains the base class of all playlist providers."""
 import logging
 import time
-from typing import Optional, Type, List
+from typing import List, Optional, Type
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models.expressions import F
 
-import core.settings.storage as storage
 from core.models import (
     ArchivedPlaylist,
-    PlaylistEntry,
     ArchivedPlaylistQuery,
+    PlaylistEntry,
     RequestLog,
 )
 from core.musiq import song_utils
 from core.musiq.music_provider import MusicProvider, ProviderError
 from core.musiq.song_provider import SongProvider
+from core.settings import storage
 
 
 class PlaylistProvider(MusicProvider):
@@ -39,14 +39,14 @@ class PlaylistProvider(MusicProvider):
             raise ValueError
         try:
             archived_playlist = ArchivedPlaylist.objects.get(id=key)
-        except ArchivedPlaylist.DoesNotExist:
+        except ArchivedPlaylist.DoesNotExist as error:
             logging.error("archived song requested for nonexistent key %s", key)
-            raise ValueError
+            raise ValueError from error
 
         playlist_type = song_utils.determine_playlist_type(archived_playlist)
         provider_class: Optional[Type[PlaylistProvider]] = None
         if playlist_type == "local":
-            from core.musiq.localdrive import LocalPlaylistProvider
+            from core.musiq.local import LocalPlaylistProvider
 
             provider_class = LocalPlaylistProvider
         elif storage.get("youtube_enabled") and playlist_type == "youtube":
@@ -68,7 +68,7 @@ class PlaylistProvider(MusicProvider):
         elif playlist_type == "playlog":
             # The playlist may contain various song types, but all of them will be archived.
             # We can use the local playlist provider to enqueue them.
-            from core.musiq.localdrive import LocalPlaylistProvider
+            from core.musiq.local import LocalPlaylistProvider
 
             provider_class = LocalPlaylistProvider
         if not provider_class:
@@ -123,7 +123,8 @@ class PlaylistProvider(MusicProvider):
         """Returns whether this playlist is a radio.
         A radio as a playlist that was created for a given song.
         The result can be different if called another time for the same song."""
-        raise NotImplementedError()
+        # only youtube can have persisted radios
+        return False
 
     def fetch_metadata(self) -> bool:
         """Fetches the title and list of songs for this playlist from the internet."""
@@ -146,6 +147,15 @@ class PlaylistProvider(MusicProvider):
             if not self.fetch_metadata():
                 return False
         return True
+
+    def was_requested_before(self) -> bool:
+        try:
+            archived_playlist = ArchivedPlaylist.objects.filter(list_id=self.id).get()
+            if archived_playlist.counter > 0:
+                return True
+        except ArchivedPlaylist.DoesNotExist:
+            pass
+        return False
 
     def persist(self, session_key: str, archive: bool = True) -> None:
         if self.is_radio():
@@ -190,14 +200,14 @@ class PlaylistProvider(MusicProvider):
             try:
                 song_provider = SongProvider.create(external_url=external_url)
                 song_provider.request("", archive=False, manually_requested=False)
-            except (ProviderError, NotImplementedError) as e:
+            except (ProviderError, NotImplementedError) as error:
                 logging.warning(
                     "Error while enqueuing url %s to playlist %s: %s",
                     external_url,
                     self.title,
                     self.id,
                 )
-                logging.exception(e)
+                logging.exception(error)
                 continue
 
             if settings.DEBUG:

@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-import core.models as models
+from core import models
 
 # Register your models here.
 for model in [

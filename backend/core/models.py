@@ -1,14 +1,17 @@
 """Contains all database models."""
 from typing import TYPE_CHECKING
 
-from django.db import models, connection
+from django.db import connection, models
 from django.db.models import QuerySet
 
-import core.musiq.song_queue
-import core.musiq.song_utils as song_utils
+from core.musiq import song_queue, song_utils
 
 if connection.vendor == "postgresql":
-    from django.contrib.postgres.indexes import GinIndex, OpClass
+    # Only import these modules when using postgres as a database backend
+    from django.contrib.postgres.indexes import (  # pylint: disable=ungrouped-imports
+        GinIndex,
+        OpClass,
+    )
 
 if TYPE_CHECKING:
     from core.musiq.song_utils import Metadata
@@ -53,6 +56,7 @@ class ArchivedSong(models.Model):
         return song_utils.displayname(self.artist, self.title)
 
     def get_metadata(self) -> "Metadata":
+        """Return the combined Metadata object of this song."""
         return {
             "artist": self.artist,
             "title": self.title,
@@ -160,10 +164,10 @@ class QueuedSong(models.Model):
     artist = models.CharField(max_length=1000)
     title = models.CharField(max_length=1000)
     duration = models.FloatField()
-    objects = core.musiq.song_queue.SongQueue()
+    objects = song_queue.SongQueue()
 
     def __str__(self) -> str:
-        return str(self.index) + ": " + self.title + " (" + self.internal_url + ")"
+        return f"{self.index}: {self.title} ({self.internal_url})"
 
     def displayname(self) -> str:
         """Formats the song using the utility method."""

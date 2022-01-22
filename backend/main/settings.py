@@ -4,28 +4,30 @@ import os
 import pathlib
 import subprocess
 import sys
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from distutils.util import strtobool
 from typing import List
 
 import yaml
 from django.core.management.utils import get_random_secret_key
 
+from core.util import strtobool
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEMO = strtobool(os.environ.get("DJANGO_DEMO", "0"))
 
 try:
-    with open(os.path.join(BASE_DIR, "config/secret_key.txt")) as f:
+    with open(os.path.join(BASE_DIR, "config/secret_key.txt"), encoding="utf-8") as f:
         SECRET_KEY = f.read().strip()
 except FileNotFoundError:
     SECRET_KEY = get_random_secret_key()
-    with open(os.path.join(BASE_DIR, "config/secret_key.txt"), "w") as f:
+    with open(
+        os.path.join(BASE_DIR, "config/secret_key.txt"), "w", encoding="utf-8"
+    ) as f:
         f.write(SECRET_KEY)
     print("created secret key")
 
 try:
-    with open(os.path.join(BASE_DIR, "VERSION")) as f:
+    with open(os.path.join(BASE_DIR, "VERSION"), encoding="utf-8") as f:
         VERSION = f.read().strip()
 except FileNotFoundError:
     VERSION = "undefined"
@@ -83,7 +85,7 @@ TEMPLATES = [
 ]
 
 CSRF_FAILURE_VIEW = "core.util.csrf_failure"
-with open(os.path.join(BASE_DIR, "config/raveberry.yaml")) as f:
+with open(os.path.join(BASE_DIR, "config/raveberry.yaml"), encoding="utf-8") as f:
     config = yaml.safe_load(f)
 try:
     # Since django 4.0 not only the Referer is checked for csrf protection, but also HTTP_ORIGIN
@@ -132,14 +134,14 @@ else:
     TEST_CACHE_DIR = os.path.join(BASE_DIR, "test_cache/")
 
 # Allow these settings to be overwritten with environment variables
-POSTGRES_HOST = os.environ.get("POSTGRES_HOST", None) or POSTGRES_HOST
-POSTGRES_PORT = os.environ.get("POSTGRES_PORT", None) or POSTGRES_PORT
-REDIS_HOST = os.environ.get("REDIS_HOST", None) or REDIS_HOST
-REDIS_PORT = os.environ.get("REDIS_PORT", None) or REDIS_PORT
-MOPIDY_HOST = os.environ.get("MOPIDY_HOST", None) or MOPIDY_HOST
-MOPIDY_PORT = os.environ.get("MOPIDY_PORT", None) or MOPIDY_PORT
-ICECAST_HOST = os.environ.get("ICECAST_HOST", None) or ICECAST_HOST
-ICECAST_PORT = os.environ.get("ICECAST_PORT", None) or ICECAST_PORT
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "") or POSTGRES_HOST
+POSTGRES_PORT = os.environ.get("POSTGRES_PORT", "") or POSTGRES_PORT
+REDIS_HOST = os.environ.get("REDIS_HOST", "") or REDIS_HOST
+REDIS_PORT = os.environ.get("REDIS_PORT", "") or REDIS_PORT
+MOPIDY_HOST = os.environ.get("MOPIDY_HOST", "") or MOPIDY_HOST
+MOPIDY_PORT = os.environ.get("MOPIDY_PORT", "") or MOPIDY_PORT
+ICECAST_HOST = os.environ.get("ICECAST_HOST", "") or ICECAST_HOST
+ICECAST_PORT = os.environ.get("ICECAST_PORT", "") or ICECAST_PORT
 
 # Database
 if DEBUG:
@@ -297,13 +299,13 @@ logging.config.dictConfig(LOGGING)
 
 # app settings
 try:
-    with open(os.path.join(BASE_DIR, "config/cache_dir")) as f:
+    with open(os.path.join(BASE_DIR, "config/cache_dir"), encoding="utf-8") as f:
         SONGS_CACHE_DIR = f.read().strip()
 except FileNotFoundError:
     SONGS_CACHE_DIR = ""
 if SONGS_CACHE_DIR == "":
     SONGS_CACHE_DIR = os.path.expanduser(DEFAULT_CACHE_DIR)
-    with open(os.path.join(BASE_DIR, "config/cache_dir"), "w") as f:
+    with open(os.path.join(BASE_DIR, "config/cache_dir"), "w", encoding="utf-8") as f:
         f.write(SONGS_CACHE_DIR)
     print(f"no song caching directory specified, using {DEFAULT_CACHE_DIR}")
 

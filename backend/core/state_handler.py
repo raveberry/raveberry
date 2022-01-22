@@ -1,6 +1,6 @@
 """This module handles realtime communication via websockets."""
 import json
-from typing import Dict, Any
+from typing import Any, Dict
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -17,6 +17,7 @@ def send_state(state: Dict[str, Any]) -> None:
 
 
 def get_state(_request: WSGIRequest, module) -> JsonResponse:
+    """Calls the get_state function of the given module and returns its result."""
     state = module.state_dict()
     return JsonResponse(state)
 

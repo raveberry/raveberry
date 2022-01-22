@@ -9,15 +9,13 @@ from typing import Optional
 
 from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
-from django.http import HttpResponseBadRequest
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 
-from core import util, redis
-from core.celery import app
+from core import redis, util
 from core.models import CurrentSong
-from core.settings import storage, system, settings
+from core.settings import settings, storage, system
 from core.settings.settings import control
+from core.tasks import app
 
 # to control that only one bluetoothctl process is active at a time
 # we use a redis variable instead of a redis lock
@@ -30,11 +28,11 @@ from core.settings.settings import control
 @control
 def set_backup_stream(request: WSGIRequest) -> None:
     """Sets the given internet stream as backup stream."""
-    stream = request.POST.get("value")
-    storage.set("backup_stream", stream)
+    stream = str(request.POST.get("value"))
+    storage.put("backup_stream", stream)
 
 
-def _get_bluetoothctl_line(bluetoothctl: subprocess.Popen[bytes]) -> str:
+def _get_bluetoothctl_line(bluetoothctl: subprocess.Popen) -> str:
     assert bluetoothctl.stdout
     line = bluetoothctl.stdout.readline().decode()
     ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
@@ -43,28 +41,28 @@ def _get_bluetoothctl_line(bluetoothctl: subprocess.Popen[bytes]) -> str:
     return line
 
 
-def _start_bluetoothctl() -> Optional[subprocess.Popen[bytes]]:
+def _start_bluetoothctl() -> Optional[subprocess.Popen]:
     if redis.get("bluetoothctl_active"):
         return None
-    redis.set("bluetoothctl_active", True)
+    redis.put("bluetoothctl_active", True)
     bluetoothctl = subprocess.Popen(
         ["bluetoothctl"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     return bluetoothctl
 
 
-def _stop_bluetoothctl(bluetoothctl: subprocess.Popen[bytes]) -> None:
+def _stop_bluetoothctl(bluetoothctl: subprocess.Popen) -> None:
     assert bluetoothctl.stdin
     bluetoothctl.stdin.close()
     bluetoothctl.wait()
-    redis.set("bluetoothctl_active", False)
+    redis.put("bluetoothctl_active", False)
 
 
 @app.task
 def _scan_bluetooth() -> None:
     bluetoothctl = _start_bluetoothctl()
-    redis.set("bluetooth_devices", [])
-    assert bluetoothctl.stdin
+    redis.put("bluetooth_devices", [])
+    assert bluetoothctl and bluetoothctl.stdin
 
     bluetoothctl.stdin.write(b"devices\n")
     bluetoothctl.stdin.write(b"scan on\n")
@@ -88,7 +86,7 @@ def _scan_bluetooth() -> None:
                 continue
             bluetooth_devices = redis.get("bluetooth_devices")
             bluetooth_devices.append({"address": address, "name": name})
-            redis.set("bluetooth_devices", bluetooth_devices)
+            redis.put("bluetooth_devices", bluetooth_devices)
             settings.update_state()
 
 
@@ -108,7 +106,7 @@ def set_bluetooth_scanning(request: WSGIRequest) -> HttpResponse:
     # this is another request, so we don't have a handle of the current bluetoothctl process
     # terminate the process by name and release the lock
     subprocess.call("pkill bluetoothctl".split())
-    redis.set("bluetoothctl_active", False)
+    redis.put("bluetoothctl_active", False)
     return HttpResponse("Stopped scanning")
 
 
@@ -217,7 +215,7 @@ def disconnect_bluetooth(request: WSGIRequest) -> HttpResponse:
 def set_feed_cava(request: WSGIRequest) -> None:
     """Enables or disables whether mopidy should output to the cava fake device."""
     enabled = request.POST.get("value") == "true"
-    storage.set("feed_cava", enabled)
+    storage.put("feed_cava", enabled)
     # update mopidy config to apply the change
     system.update_mopidy_config("pulse")
 
@@ -266,8 +264,8 @@ def _set_output(output: str) -> HttpResponse:
                 check=True,
             )
             mopidy_output = "pulse"
-        except subprocess.CalledProcessError as e:
-            return HttpResponseBadRequest(e.stderr)
+        except subprocess.CalledProcessError as error:
+            return HttpResponseBadRequest(error.stderr)
 
     if icecast_installed and output != "icecast":
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_icecast"])
@@ -291,7 +289,7 @@ def set_output(request: WSGIRequest) -> HttpResponse:
     if output == request.POST.get("output"):
         return HttpResponseBadRequest("Output unchanged")
 
-    storage.set("output", output)
+    storage.put("output", output)
 
     return _set_output(output)
 
@@ -310,4 +308,4 @@ def delete_current_song(_request: WSGIRequest) -> HttpResponse:
 @control
 def restart_player(_request: WSGIRequest) -> None:
     """Restarts mopidy."""
-    system._restart_mopidy()
+    system.restart_mopidy()

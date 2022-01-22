@@ -14,7 +14,8 @@ declare let SOUNDCLOUD_SUGGESTIONS: number;
 declare let JAMENDO_SUGGESTIONS: number;
 
 interface JQuery {
-  // unfortunately, bootstrap and jqueryui introduce conflicts with types 'button' and 'tooltip'
+  // unfortunately, bootstrap and jqueryui
+  // introduce conflicts with types 'button' and 'tooltip'
   // mock the types for the few jqueryui elements we use
   autocomplete: any;
   sortable: any;

@@ -5,10 +5,9 @@ from __future__ import annotations
 import os
 import subprocess
 from functools import wraps
+from typing import Any, Callable, Dict, Optional
 
 import yaml
-from typing import Dict, Any, Callable, Optional
-
 from django.conf import settings as conf
 from django.contrib.auth.decorators import user_passes_test
 from django.core.handlers.wsgi import WSGIRequest
@@ -17,7 +16,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 
-from core import user_manager, base, redis, celery
+from core import base, redis, tasks, user_manager
 from core.settings.storage import get
 from core.state_handler import send_state
 
@@ -39,10 +38,52 @@ def control(
     return wraps(func)(_decorator)
 
 
+def _add_homewifi_state(settings_state: Dict[str, Any]) -> None:
+    try:
+        with open(
+            os.path.join(conf.BASE_DIR, "config/homewifi"), encoding="utf-8"
+        ) as homewifi_file:
+            settings_state["homewifiSsid"] = homewifi_file.read()
+    except FileNotFoundError:
+        settings_state["homewifiSsid"] = ""
+
+
+def _add_system_install_state(settings_state: Dict[str, Any]) -> None:
+    try:
+        settings_state["homewifiEnabled"] = (
+            subprocess.call(["/usr/local/sbin/raveberry/homewifi_enabled"]) != 0
+        )
+        settings_state["hotspotEnabled"] = (
+            subprocess.call(["/usr/local/sbin/raveberry/hotspot_enabled"]) != 0
+        )
+        settings_state["wifiProtectionEnabled"] = (
+            subprocess.call(["/usr/local/sbin/raveberry/wifi_protection_enabled"]) != 0
+        )
+        settings_state["tunnelingEnabled"] = (
+            subprocess.call(["sudo", "/usr/local/sbin/raveberry/tunneling_enabled"])
+            != 0
+        )
+        settings_state["remoteEnabled"] = (
+            subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
+        )
+        settings_state["taskStrategy"] = "celery" if tasks.CELERY_ACTIVE else "threads"
+    except FileNotFoundError:
+        settings_state["systemInstall"] = False
+    else:
+        settings_state["systemInstall"] = True
+        with open(
+            os.path.join(conf.BASE_DIR, "config/raveberry.yaml"), encoding="utf-8"
+        ) as config_file:
+            config = yaml.safe_load(config_file)
+        settings_state["hotspotConfigured"] = config["hotspot"]
+        settings_state["remoteConfigured"] = config["remote_key"] is not None
+
+
 def state_dict() -> Dict[str, Any]:
+    """Extends the base state with settings-specific information and returns it."""
     state = base.state_dict()
 
-    settings_state = {}
+    settings_state: Dict[str, Any] = {}
     settings_state["votingEnabled"] = get("voting_enabled")
     settings_state["newMusicOnly"] = get("new_music_only")
     settings_state["loggingEnabled"] = get("logging_enabled")
@@ -82,40 +123,11 @@ def state_dict() -> Dict[str, Any]:
     settings_state["feedCava"] = get("feed_cava")
     settings_state["output"] = get("output")
 
-    try:
-        with open(os.path.join(conf.BASE_DIR, "config/homewifi")) as f:
-            settings_state["homewifiSsid"] = f.read()
-    except FileNotFoundError:
-        settings_state["homewifiSsid"] = ""
+    _add_homewifi_state(settings_state)
 
     settings_state["scanProgress"] = redis.get("library_scan_progress")
 
-    try:
-        settings_state["homewifiEnabled"] = (
-            subprocess.call(["/usr/local/sbin/raveberry/homewifi_enabled"]) != 0
-        )
-        settings_state["hotspotEnabled"] = (
-            subprocess.call(["/usr/local/sbin/raveberry/hotspot_enabled"]) != 0
-        )
-        settings_state["wifiProtectionEnabled"] = (
-            subprocess.call(["/usr/local/sbin/raveberry/wifi_protection_enabled"]) != 0
-        )
-        settings_state["tunnelingEnabled"] = (
-            subprocess.call(["sudo", "/usr/local/sbin/raveberry/tunneling_enabled"])
-            != 0
-        )
-        settings_state["remoteEnabled"] = (
-            subprocess.call(["/usr/local/sbin/raveberry/remote_enabled"]) != 0
-        )
-        settings_state["taskStrategy"] = "celery" if celery.active else "threads"
-    except FileNotFoundError:
-        settings_state["systemInstall"] = False
-    else:
-        settings_state["systemInstall"] = True
-        with open(os.path.join(conf.BASE_DIR, "config/raveberry.yaml")) as f:
-            config = yaml.safe_load(f)
-        settings_state["hotspotConfigured"] = config["hotspot"]
-        settings_state["remoteConfigured"] = config["remote_key"] is not None
+    _add_system_install_state(settings_state)
 
     settings_state["youtubeConfigured"] = redis.get("youtube_available")
     settings_state["spotifyConfigured"] = redis.get("spotify_available")

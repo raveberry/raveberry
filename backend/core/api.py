@@ -1,13 +1,13 @@
 """This module contains all public api endpoints."""
 import re
-from django.conf import settings as conf
+
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 
-import core.settings.storage as storage
-from core import user_manager
+from django.conf import settings as conf
 from core.musiq import musiq
+from core.musiq.music_provider import ProviderError
 
 
 @csrf_exempt
@@ -23,17 +23,17 @@ def post_song(request: WSGIRequest) -> HttpResponse:
     if match:
         query = match.group("url")
 
-    # Set the requested platform to 'spotify'.
-    # It will automatically fall back to Youtube
-    # if Spotify is not enabled or a youtube link was requested.
-    successful, message, _ = musiq.do_request_music(
-        request.session.session_key, query, None, False, "spotify"
-    )
-    if not successful:
-        return HttpResponseBadRequest(message)
-    return HttpResponse(message)
+    try:
+        providers = musiq.get_providers(query)
+    except ProviderError as error:
+        return HttpResponseBadRequest(str(error))
+    provider = musiq.try_providers(request.session.session_key, providers)
+    if provider.error:
+        return HttpResponseBadRequest(provider.error)
+    return HttpResponse(provider.ok_message)
 
 
 def version(request: WSGIRequest) -> HttpResponse:
     """Return the version of the running instance."""
+
     return HttpResponse(f"Raveberry version {conf.VERSION}")

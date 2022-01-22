@@ -41,8 +41,9 @@ class Migration(migrations.Migration):
             # With the default value of 0.6 many typos result in no suggestions.
             migrations.RunSQL(
                 "ALTER DATABASE raveberry SET pg_trgm.word_similarity_threshold=0.3;",
-                # for some reason there is a permission denied error when trying to reset the threshold
-                # simply do nothing, reversing this parameter is not important.
+                # For some reason there is a permission denied error
+                # when trying to reset the threshold, even with owner privileges.
+                # Simply do nothing, reversing this parameter is not important.
                 reverse_sql="",
             ),
         ]

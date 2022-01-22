@@ -1,4 +1,5 @@
 import os
+from typing import Callable, Optional
 
 import yt_dlp
 from django.conf import settings
@@ -27,7 +28,7 @@ class YoutubeDLLogger:
 
 
 class YoutubeTests(MusicTest):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
 
         try:
@@ -39,11 +40,13 @@ class YoutubeTests(MusicTest):
                 self.info_dict = ydl.download(
                     ["https://www.youtube.com/watch?v=wobbf3lb2nk"]
                 )
-        except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as e:
-            self.skipTest(f"Error when interacting with youtube, skipping test: {e}")
+        except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as error:
+            self.skipTest(
+                f"Error when interacting with youtube, skipping test: {error}"
+            )
 
         # reduce the number for youtube playlists
-        storage.set("max_playlist_items", "3")
+        storage.put("max_playlist_items", 3)
 
         # if we want to make sure that the songs can be downloaded,
         # we could delete all songs in the test_cache folder
@@ -53,12 +56,17 @@ class YoutubeTests(MusicTest):
         #        if os.path.isfile(member_path):
         #            os.remove(member_path)
 
-    def _poll_musiq_state(self, break_condition, timeout=1):
+    def _poll_musiq_state(
+        self, break_condition: Callable[[dict], bool], timeout: float = 1
+    ) -> dict:
         """ Wrap the poll method of the super class to skip tests if Youtube doesn't play along."""
         try:
             return super()._poll_musiq_state(break_condition, timeout=timeout)
         except AssertionError:
-            with open(os.path.join(settings.BASE_DIR, "logs/info.log")) as log:
+            with open(
+                os.path.join(settings.BASE_DIR, "logs/info.log"), encoding="utf-8"
+            ) as log:
+                line = None
                 for line in log:
                     pass
                 last_line = line
@@ -69,7 +77,9 @@ class YoutubeTests(MusicTest):
                     self.skipTest("Youtube provided no video formats")
             raise
 
-    def _post_request(self, url, query=None, playlist=False):
+    def _post_request(
+        self, url: str, query: Optional[str] = None, playlist: bool = False
+    ) -> None:
         if not query:
             response = self.client.post(reverse(url))
         else:
@@ -88,7 +98,7 @@ class YoutubeTests(MusicTest):
         ):
             self.skipTest("This IP sent too many requests to Youtube.")
 
-    def test_query(self):
+    def test_query(self) -> None:
         self._post_request("request-music", "Eskimo Callboy MC Thunder Official Video")
         current_song = self._poll_current_song()
         self.assertEqual(
@@ -160,7 +170,7 @@ class YoutubeTests(MusicTest):
     #     ]
     #     self.assertEqual(actual_playlist, expected_playlist)
 
-    def test_autoplay(self):
+    def test_autoplay(self) -> None:
         self._post_request(
             "request-music", "https://www.youtube.com/watch?v=wobbf3lb2nk"
         )
@@ -176,14 +186,9 @@ class YoutubeTests(MusicTest):
 
         self.client.post(reverse("skip"))
         # make sure another song is enqueued
-        self._poll_musiq_state(
-            lambda state: len(state["musiq"]["songQueue"]) == 1
-            and state["musiq"]["songQueue"][0]["internalUrl"]
-            and state["musiq"]["songQueue"][0]["id"] != old_id,
-            timeout=20,
-        )
+        self._wait_for_new_song(old_id)
 
-    def test_radio(self):
+    def test_radio(self) -> None:
         self._post_request(
             "request-music", "https://www.youtube.com/watch?v=w8KQmps-Sog"
         )

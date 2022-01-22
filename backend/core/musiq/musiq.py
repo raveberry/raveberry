@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import importlib
 import logging
 import os
-from typing import Any, Dict, Optional, Union, List, Tuple, cast, Type
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
@@ -12,33 +13,34 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponseBadRequest
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from django.utils import timezone
-
-import core.musiq.song_utils as song_utils
-import core.settings.storage as storage
-from core import util, base, redis, user_manager
-from core.models import CurrentSong
-from core.models import QueuedSong
-from core.musiq.localdrive import LocalSongProvider
-from core.musiq.music_provider import MusicProvider, WrongUrlError, ProviderError
-from core.musiq.song_provider import SongProvider
+from core import base, redis, user_manager, util
+from core.models import CurrentSong, QueuedSong
+from core.musiq import controller, playback, song_utils
+from core.musiq.music_provider import MusicProvider, ProviderError, WrongUrlError
 from core.musiq.playlist_provider import PlaylistProvider
+from core.musiq.song_provider import SongProvider
+from core.settings import storage
 from core.state_handler import send_state
+from core.settings.storage import PlatformEnabled, PlatformSuggestions
 
 queue = QueuedSong.objects
 
+if TYPE_CHECKING:
+    from core.musiq.song_utils import Metadata
+
 
 def start() -> None:
-    import core.musiq.controller as controller
-    import core.musiq.playback as playback
+    """Initializes the required modules."""
 
     controller.start()
     playback.start()
 
 
 def get_alarm_metadata() -> "Metadata":
+    """Returns a metadata object for the alarm. The duration is dynamically determined."""
     return {
         "artist": "Raveberry",
         "title": "ALARM!",
@@ -52,176 +54,126 @@ def get_alarm_metadata() -> "Metadata":
     }
 
 
-def do_request_music(
-    session_key: str,
+def enabled_platforms_py_priority() -> List[str]:
+    """Returns a list of all available platforms, ordered by priority."""
+    # local music can only be searched explicitly by key and thus is last
+    return [
+        platform
+        for platform in ["spotify", "youtube", "soundcloud", "jamendo", "local"]
+        if storage.get(cast(PlatformEnabled, f"{platform}_enabled"))
+    ]
+
+
+def get_providers(
     query: str,
-    key: Optional[int],
-    playlist: bool,
-    platform: str,
-    archive: bool = True,
-    manually_requested: bool = True,
-) -> Tuple[bool, str, Optional[int]]:
-    """Performs the actual requesting of the music, not an endpoint.
-    Enqueues the requested song or playlist into the queue, using appropriate providers.
-    Returns a 3-tuple: successful, message, queue_key"""
-    providers: List[MusicProvider] = []
-
-    provider: MusicProvider
-    music_provider_class: Union[Type[PlaylistProvider], Type[SongProvider]]
-    local_provider_class: Type[MusicProvider]
-    jamendo_provider_class: Type[MusicProvider]
-    soundcloud_provider_class: Type[MusicProvider]
-    spotify_provider_class: Type[MusicProvider]
-    youtube_provider_class: Type[MusicProvider]
-
-    if playlist:
-        music_provider_class = PlaylistProvider
-        local_provider_class = PlaylistProvider
-        if storage.get("jamendo_enabled"):
-            from core.musiq.jamendo import JamendoPlaylistProvider
-
-            jamendo_provider_class = JamendoPlaylistProvider
-        if storage.get("soundcloud_enabled"):
-            from core.musiq.soundcloud import SoundcloudPlaylistProvider
-
-            soundcloud_provider_class = SoundcloudPlaylistProvider
-        if storage.get("spotify_enabled"):
-            from core.musiq.spotify import SpotifyPlaylistProvider
-
-            spotify_provider_class = SpotifyPlaylistProvider
-        if storage.get("youtube_enabled"):
-            from core.musiq.youtube import YoutubePlaylistProvider
-
-            youtube_provider_class = YoutubePlaylistProvider
-    else:
-        music_provider_class = SongProvider
-        local_provider_class = LocalSongProvider
-        if storage.get("jamendo_enabled"):
-            from core.musiq.jamendo import JamendoSongProvider
-
-            jamendo_provider_class = JamendoSongProvider
-        if storage.get("soundcloud_enabled"):
-            from core.musiq.soundcloud import SoundcloudSongProvider
-
-            soundcloud_provider_class = SoundcloudSongProvider
-        if storage.get("spotify_enabled"):
-            from core.musiq.spotify import SpotifySongProvider
-
-            spotify_provider_class = SpotifySongProvider
-        if storage.get("youtube_enabled"):
-            from core.musiq.youtube import YoutubeSongProvider
-
-            youtube_provider_class = YoutubeSongProvider
+    key: Optional[int] = None,
+    playlist: bool = False,
+    preferred_platform: Optional[str] = None,
+) -> List[MusicProvider]:
+    """Returns a list of all available providers for the given query, ordered by priority.
+    If a preferred platform is given, that provider will be first."""
 
     if key is not None:
         # an archived entry was requested.
         # The key determines the Provider
-        provider = music_provider_class.create(query, key)
+        provider: MusicProvider
+        if playlist:
+            provider = PlaylistProvider.create(query, key)
+        else:
+            provider = SongProvider.create(query, key)
         if provider is None:
-            return False, "No provider found for requested key", None
-        providers.append(provider)
-    else:
-        if platform == "local":
-            # local music can only be searched explicitly
-            providers.append(local_provider_class(query, key))
-        if storage.get("soundcloud_enabled"):
-            try:
-                soundcloud_provider = soundcloud_provider_class(query, key)
-                if platform == "soundcloud":
-                    providers.insert(0, soundcloud_provider)
-                else:
-                    providers.append(soundcloud_provider)
-            except WrongUrlError:
-                pass
-        if storage.get("spotify_enabled"):
-            try:
-                spotify_provider = spotify_provider_class(query, key)
-                if platform == "spotify":
-                    providers.insert(0, spotify_provider)
-                else:
-                    providers.append(spotify_provider)
-            except WrongUrlError:
-                pass
-        if storage.get("jamendo_enabled"):
-            try:
-                jamendo_provider = jamendo_provider_class(query, key)
-                if platform == "jamendo":
-                    providers.insert(0, jamendo_provider)
-                else:
-                    providers.append(jamendo_provider)
-            except WrongUrlError:
-                pass
-        if storage.get("youtube_enabled"):
-            try:
-                youtube_provider = youtube_provider_class(query, key)
-                if platform == "youtube":
-                    providers.insert(0, youtube_provider)
-                else:
-                    providers.append(youtube_provider)
-            except WrongUrlError:
-                pass
+            raise ProviderError("No provider found for requested key")
+        return [provider]
+
+    providers: List[MusicProvider] = []
+    for platform in enabled_platforms_py_priority():
+        module = importlib.import_module(f"core.musiq.{platform}")
+        if playlist:
+            provider_class = getattr(module, f"{platform.title()}PlaylistProvider")
+        else:
+            provider_class = getattr(module, f"{platform.title()}SongProvider")
+        try:
+            provider = provider_class(query, key)
+            if platform == preferred_platform:
+                providers.insert(0, provider)
+            else:
+                providers.append(provider)
+        except WrongUrlError:
+            pass
 
     if not providers:
-        return False, "No backend configured to handle your request.", None
+        raise ProviderError("No backend configured to handle your request.")
+
+    return providers
+
+
+def try_providers(session_key: str, providers: List[MusicProvider]) -> MusicProvider:
+    """Goes through every given provider and tries to request its music.
+    Returns the first provider that was successful with an empty error.
+    If unsuccessful, return the last provider."""
 
     fallback = False
-    for i, provider in enumerate(providers):
+    last_provider = providers[-1]
+    provider = providers[0]
+    for provider in providers:
         try:
-            provider.request(
-                session_key, archive=archive, manually_requested=manually_requested
-            )
+            provider.request(session_key)
             # the current provider could provide the song, don't try the other ones
             break
         except ProviderError:
             # this provider cannot provide this song, use the next provider
             # if this was the last provider, show its error
             # in new music only mode, do not allow fallbacks
-            if storage.get("new_music_only") or i == len(providers) - 1:
-                return False, provider.error, None
+            if storage.get("new_music_only") or provider == last_provider:
+                return provider
             fallback = True
-    message = provider.ok_message
-    queue_key = None
-    if not playlist:
-        queued_song = cast(SongProvider, provider).queued_song
-        if not queued_song:
-            logging.error(
-                "no placeholder was created for query '%s' and key '%s'", query, key
-            )
-            return False, "No placeholder was created", None
-        queue_key = queued_song.id
+    provider.error = ""
     if fallback:
-        message += " (used fallback)"
-    return True, message, queue_key
+        provider.ok_message += " (used fallback)"
+    return provider
 
 
 # accessed by the discord bot
 @csrf_exempt
 @user_manager.tracked
 def request_music(request: WSGIRequest) -> HttpResponse:
-    """Endpoint to request music. Calls internal function."""
-    key = request.POST.get("key")
+    """Endpoint to request music."""
+    key_param = request.POST.get("key")
     query = request.POST.get("query")
     playlist = request.POST.get("playlist") == "true"
     platform = request.POST.get("platform")
 
-    if query is None or not platform:
-        return HttpResponseBadRequest(
-            "query, playlist and platform have to be specified."
-        )
-    ikey = None
-    if key:
-        ikey = int(key)
+    if query is None:
+        return HttpResponseBadRequest("No query given")
+    key = None
+    if key_param:
+        key = int(key_param)
 
-    successful, message, queue_key = do_request_music(
-        request.session.session_key, query, ikey, playlist, platform
-    )
-    if not successful:
-        return HttpResponseBadRequest(message)
+    try:
+        providers = get_providers(query, key, playlist, platform)
+    except ProviderError as error:
+        return HttpResponseBadRequest(str(error))
 
-    if storage.get("ip_checking") and not playlist:
-        user_manager.try_vote(user_manager.get_client_ip(request), queue_key, 1)
+    provider = try_providers(request.session.session_key, providers)
+    if provider.error:
+        return HttpResponseBadRequest(provider.error)
 
-    return JsonResponse({"message": message, "key": queue_key})
+    queue_key = None
+    if not playlist:
+        assert isinstance(provider, SongProvider)
+        queued_song = provider.queued_song
+        if not queued_song:
+            logging.error(
+                "no placeholder was created for query '%s' and key '%s'", query, key
+            )
+            return HttpResponseBadRequest("No placeholder was created")
+        queue_key = queued_song.id
+
+        if storage.get("ip_checking"):
+            assert queue_key
+            user_manager.try_vote(user_manager.get_client_ip(request), queue_key, 1)
+
+    return JsonResponse({"message": provider.ok_message, "key": queue_key})
 
 
 @user_manager.tracked
@@ -235,6 +187,7 @@ def request_radio(request: WSGIRequest) -> HttpResponse:
     return provider.request_radio(request.session.session_key)
 
 
+@user_manager.tracked
 def index(request: WSGIRequest) -> HttpResponse:
     """Renders the /musiq page."""
     from core import urls
@@ -246,8 +199,12 @@ def index(request: WSGIRequest) -> HttpResponse:
     context["embed_stream"] = storage.get("embed_stream")
     context["dynamic_embedded_stream"] = storage.get("dynamic_embedded_stream")
     for platform in ["youtube", "spotify", "soundcloud", "jamendo"]:
-        if storage.get("online_suggestions") and storage.get(f"{platform}_enabled"):
-            suggestion_count = storage.get(f"{platform}_suggestions")
+        if storage.get("online_suggestions") and storage.get(
+            cast(PlatformEnabled, f"{platform}_enabled")
+        ):
+            suggestion_count = storage.get(
+                cast(PlatformSuggestions, f"{platform}_suggestions")
+            )
         else:
             suggestion_count = 0
         context[f"{platform}_suggestions"] = suggestion_count
@@ -255,9 +212,10 @@ def index(request: WSGIRequest) -> HttpResponse:
 
 
 def state_dict() -> Dict[str, Any]:
+    """Extends the base state with musiq-specific information and returns it."""
     state = base.state_dict()
 
-    musiq_state = {}
+    musiq_state: Dict[str, Any] = {}
 
     musiq_state["paused"] = storage.get("paused")
     musiq_state["shuffle"] = storage.get("shuffle")
@@ -311,7 +269,8 @@ def state_dict() -> Dict[str, Any]:
             "manuallyRequested": False,
             "votes": 0,
             "created": "",
-            **util.camelize(get_alarm_metadata()),
+            # https://github.com/python/mypy/issues/4976
+            **util.camelize(cast(Dict[Any, Any], get_alarm_metadata())),
         }
         musiq_state["progress"] = 0
         musiq_state["paused"] = False

@@ -2,23 +2,21 @@
 
 import os
 import random
-from typing import Dict, Any
+from typing import Any, Dict
 
-from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import transaction
-from django.http import HttpResponseBadRequest
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-import core.settings.storage as storage
-import core.lights.controller as lights_controller
-from core import models
-
-from core import user_manager
-from core import redis
+from django.conf import settings as conf
+from core import models, redis, user_manager
+from core.lights import controller
+from core.musiq import musiq
+from core.settings import storage
+from core.settings import system
 from core.state_handler import send_state
 
 
@@ -34,6 +32,7 @@ def _get_random_hashtag() -> str:
 def _get_apk_link() -> str:
     local_apk = os.path.join(conf.STATIC_FILES, "apk/shareberry.apk")
     if os.path.isfile(local_apk):
+        assert conf.STATIC_URL
         return os.path.join(conf.STATIC_URL, "apk/shareberry.apk")
     return "https://github.com/raveberry/shareberry/releases/latest/download/shareberry.apk"
 
@@ -47,7 +46,6 @@ def _increment_counter() -> int:
     return counter.value
 
 
-@user_manager.tracked
 def context(request: WSGIRequest) -> Dict[str, Any]:
     """Returns the base context that is needed on every page.
     Increments the visitors counter."""
@@ -83,7 +81,7 @@ def state_dict() -> Dict[str, Any]:
         "lightsEnabled": redis.get("lights_active"),
         "playbackError": redis.get("playback_error"),
         "alarm": redis.get("alarm_playing"),
-        "defaultPlatform": "spotify" if storage.get("spotify_enabled") else "youtube",
+        "defaultPlatform": musiq.enabled_platforms_py_priority()[0],
     }
 
 
@@ -116,13 +114,11 @@ def logged_in(request: WSGIRequest) -> HttpResponse:
 def set_lights_shortcut(request: WSGIRequest) -> None:
     """Request endpoint for the lights shortcut.
     Situated in base because the dropdown is accessible from every page."""
-    return lights_controller.set_lights_shortcut(request)
+    return controller.set_lights_shortcut(request)
 
 
 def upgrade_available(_request: WSGIRequest) -> HttpResponse:
     """Checks whether newer Raveberry version is available."""
-    from core.settings import system
-
     latest_version = system.fetch_latest_version()
     current_version = conf.VERSION
     if latest_version and latest_version != current_version:

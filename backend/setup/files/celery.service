@@ -15,13 +15,13 @@ ExecStartPre=+-/bin/chown www-data:www-data /var/run/celery
 WorkingDirectory={{ config.install_directory }}
 # Use a single w1 node with 6 processes.
 # Many processes are used, because at least 2 are permanently doing background tasks.
-ExecStart=/usr/local/bin/celery -A core multi start w1 \
+ExecStart=/usr/local/bin/celery -A core.tasks multi start w1 \
     --logfile="logs/%n%I.log" \
     --loglevel="INFO" -O fair -c 6
 ExecStop=/usr/local/bin/celery multi stopwait w1 \
     --logfile="logs/%n%I.log" \
     --loglevel="INFO"
-ExecReload=/usr/local/bin/celery -A core multi restart w1 \
+ExecReload=/usr/local/bin/celery -A core.tasks multi restart w1 \
     --logfile="logs/%n%I.log" \
     --loglevel="INFO" -O fair -c 6
 Restart=always

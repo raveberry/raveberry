@@ -97,3 +97,23 @@ Navigate with your browser to your fork on github and "compare & pull request"
 Give your PR a good title and description that we can see what you've added / fixed
 Check if the diff of your changes is what you expected
 Push the "Create pull request" button!
+
+## Type Checking & Linting
+
+Check types
+```
+# mypy does not work if backend/__init__.py is present
+# alternatively, the config could be adapted to allow running mypy from the backend/ folder,
+# but then IDEs would not be able to use mypy
+rm backend/__init__.py
+mypy
+git checkout backend/__init__.py
+```
+Lint code
+```
+pylint backend/core backend/main
+pylint --disable=missing-module-docstring,missing-class-docstring,missing-function-docstring backend/tests
+## the .pylintrc only works with files in backend/, change directory to lint the binary
+cd bin
+pylint raveberry
+```
