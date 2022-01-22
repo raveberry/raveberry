@@ -36,7 +36,6 @@ DEBUG = strtobool(os.environ.get("DJANGO_DEBUG", "0"))
 TESTING = "test" in sys.argv
 
 DOCKER = strtobool(os.environ.get("DOCKER", "0"))
-DOCKER_ICECAST = strtobool(os.environ.get("DOCKER_ICECAST", "0"))
 
 ALLOWED_HOSTS = ["*"]
 

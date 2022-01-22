@@ -65,7 +65,7 @@ def context(request: WSGIRequest) -> Dict[str, Any]:
         "spotify_enabled": storage.get("spotify_enabled"),
         "soundcloud_enabled": storage.get("soundcloud_enabled"),
         "jamendo_enabled": storage.get("jamendo_enabled"),
-        "streaming_enabled": conf.DOCKER_ICECAST or storage.get("output") == "icecast",
+        "streaming_enabled": storage.get("output") == "icecast",
     }
 
 
