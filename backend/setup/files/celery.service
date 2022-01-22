@@ -13,6 +13,7 @@ Group=www-data
 ExecStartPre=+/bin/mkdir -p /var/run/celery
 ExecStartPre=+-/bin/chown www-data:www-data /var/run/celery
 WorkingDirectory={{ config.install_directory }}
+Environment="PYTHONOPTIMIZE=2"
 # Use a single w1 node with 6 processes.
 # Many processes are used, because at least 2 are permanently doing background tasks.
 ExecStart=/usr/local/bin/celery -A core.tasks multi start w1 \

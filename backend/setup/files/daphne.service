@@ -9,7 +9,7 @@ PIDFile=/run/daphne/pid
 User=www-data
 Group=www-data
 WorkingDirectory={{ config.install_directory }}
-Environment="DJANGO_SETTINGS_MODULE=main.settings" "DJANGO_NO_CELERY=1"
+Environment="DJANGO_SETTINGS_MODULE=main.settings" "DJANGO_NO_CELERY=1" "PYTHONOPTIMIZE=2"
 ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application
 StandardOutput=file:{{ config.install_directory }}/logs/daphne_info.log
 StandardError=file:{{ config.install_directory }}/logs/daphne_error.log
