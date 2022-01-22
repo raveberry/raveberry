@@ -20,8 +20,12 @@ def start() -> None:
 
 
 def _check_internet() -> None:
+    host = storage.get("connectivity_host")
+    if not host:
+        redis.put("has_internet", False)
+        return
     response = subprocess.call(
-        ["ping", "-c", "1", "-W", "3", "1.1.1.1"], stdout=subprocess.DEVNULL
+        ["ping", "-c", "1", "-W", "3", host], stdout=subprocess.DEVNULL
     )
     if response == 0:
         redis.put("has_internet", True)
@@ -180,6 +184,14 @@ def set_forbidden_keywords(request: WSGIRequest) -> HttpResponse:
     """Sets the keywords to filter out of results."""
     value, response = extract_value(request.POST)
     storage.put("forbidden_keywords", value)
+    return response
+
+
+@control
+def set_connectivity_host(request: WSGIRequest) -> HttpResponse:
+    """Sets the host that is pinged to check the internet connection."""
+    value, response = extract_value(request.POST)
+    storage.put("connectivity_host", value)
     return response
 
 

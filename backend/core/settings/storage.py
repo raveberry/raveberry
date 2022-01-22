@@ -34,6 +34,7 @@ defaults = {
     "max_queue_length": 0,
     "additional_keywords": "",
     "forbidden_keywords": "",
+    "connectivity_host": "1.1.1.1",
     # platforms
     "local_enabled": True,
     "youtube_enabled": True,
