@@ -1,6 +1,7 @@
 import {state} from './update';
 import {keyOfElement} from './buttons';
 import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui-touch-punch';
 
 /** Allows reordering of the queue when not voting. */
 export function onReady() {
