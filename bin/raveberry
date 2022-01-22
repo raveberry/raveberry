@@ -136,7 +136,7 @@ help        show this help and exit""",
 
     @staticmethod
     def _start_processes(
-        use_celery: bool
+        use_celery: bool,
     ) -> Tuple[Optional[subprocess.Popen], Optional[subprocess.Popen]]:
         mopidy: Optional[subprocess.Popen] = None
         celery: Optional[subprocess.Popen] = None

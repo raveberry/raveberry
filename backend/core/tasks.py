@@ -17,7 +17,7 @@ if strtobool(os.environ.get("DJANGO_NO_CELERY", "0")):
 
         def task(self, function: Callable) -> Callable:
             """This decorator mocks celery's delay function.
-           This delay() creates a thread and starts it."""
+            This delay() creates a thread and starts it."""
 
             def delay(*args: Any, **kwargs: Any) -> None:
                 thread = Thread(target=function, args=args, kwargs=kwargs, daemon=True)

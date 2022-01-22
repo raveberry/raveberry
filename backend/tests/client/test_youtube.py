@@ -59,7 +59,7 @@ class YoutubeTests(MusicTest):
     def _poll_musiq_state(
         self, break_condition: Callable[[dict], bool], timeout: float = 1
     ) -> dict:
-        """ Wrap the poll method of the super class to skip tests if Youtube doesn't play along."""
+        """Wrap the poll method of the super class to skip tests if Youtube doesn't play along."""
         try:
             return super()._poll_musiq_state(break_condition, timeout=timeout)
         except AssertionError:

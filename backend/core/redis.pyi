@@ -3,10 +3,7 @@ from typing import Dict, List, Literal, Tuple, overload
 from redis import Redis
 
 DeviceInitialized = Literal[
-    "ring_initialized",
-    "wled_initialized",
-    "strip_initialized",
-    "screen_initialized",
+    "ring_initialized", "wled_initialized", "strip_initialized", "screen_initialized"
 ]
 
 connection: Redis
@@ -73,7 +70,6 @@ def get(key: Literal["active_requests"]) -> int: ...
 def get(key: Literal["last_user_count_update"]) -> float: ...
 @overload
 def get(key: Literal["last_requests"]) -> Dict[str, float]: ...
-
 @overload
 def put(key: Literal["playing"], value: bool) -> None: ...
 @overload

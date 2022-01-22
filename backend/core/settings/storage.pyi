@@ -21,16 +21,10 @@ PlatformSuggestions = Literal[
 ]
 
 DeviceBrightness = Literal[
-    "ring_brightness",
-    "strip_brightness",
-    "wled_brightness",
-    "screen_brightness",
+    "ring_brightness", "strip_brightness", "wled_brightness", "screen_brightness"
 ]
 DeviceMonochrome = Literal[
-    "ring_monochrome",
-    "strip_monochrome",
-    "wled_monochrome",
-    "screen_monochrome",
+    "ring_monochrome", "strip_monochrome", "wled_monochrome", "screen_monochrome"
 ]
 DeviceProgram = Literal[
     "ring_program",
@@ -177,7 +171,6 @@ def get(key: Literal["last_screen_program"]) -> str: ...
 def get(key: Literal["initial_resolution"]) -> tuple[int, int]: ...
 @overload
 def get(key: Literal["dynamic_resolution"]) -> bool: ...
-
 @overload
 def put(key: Literal["voting_enabled"], value: bool) -> None: ...
 @overload
