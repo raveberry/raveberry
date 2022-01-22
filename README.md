@@ -3,7 +3,7 @@
 [![Build Status](https://img.shields.io/github/workflow/status/raveberry/raveberry/Publish%20Raveberry)](https://github.com/raveberry/raveberry/actions/workflows/publish.yml)
 [![PyPI](https://img.shields.io/pypi/v/raveberry)](https://pypi.org/project/raveberry/)
 [![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/raveberry?style=social)](https://www.reddit.com/r/raveberry/)
-[![Discord](https://img.shields.io/discord/920392796173631500?logo=discord&style=social)](https://discord.gg/dy7Jxvjj9H )
+[![Discord](https://img.shields.io/badge/-discord?style=social&logo=discord&label=Chat%20on%20Discord)](https://discord.gg/dy7Jxvjj9H)
 
 Raveberry is a multi user music server that allows democratic selection of songs.
 
