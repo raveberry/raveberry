@@ -22,17 +22,17 @@ User.objects.create_user('mod', password='$MOD_PASSWORD')
 
 from core.settings import storage
 if '$SPOTIFY_USERNAME' or '$SPOTIFY_PASSWORD' or '$SPOTIFY_CLIENT_ID' or '$SPOTIFY_CLIENT_SECRET':
-	storage.set('spotify_username', '$SPOTIFY_USERNAME')
-	storage.set('spotify_password', '$SPOTIFY_PASSWORD')
-	storage.set('spotify_client_id', '$SPOTIFY_CLIENT_ID')
-	storage.set('spotify_client_secret', '$SPOTIFY_CLIENT_SECRET')
-	storage.set('spotify_enabled', True)
+	storage.put('spotify_username', '$SPOTIFY_USERNAME')
+	storage.put('spotify_password', '$SPOTIFY_PASSWORD')
+	storage.put('spotify_client_id', '$SPOTIFY_CLIENT_ID')
+	storage.put('spotify_client_secret', '$SPOTIFY_CLIENT_SECRET')
+	storage.put('spotify_enabled', True)
 if '$SOUNDCLOUD_AUTH_TOKEN':
-	storage.set('soundcloud_auth_token', '$SOUNDCLOUD_AUTH_TOKEN')
-	storage.set('soundcloud_enabled', True)
+	storage.put('soundcloud_auth_token', '$SOUNDCLOUD_AUTH_TOKEN')
+	storage.put('soundcloud_enabled', True)
 if '$JAMENDO_CLIENT_ID':
-	storage.set('jamendo_client_id', '$JAMENDO_CLIENT_ID')
-	storage.set('jamendo_enabled', True)
+	storage.put('jamendo_client_id', '$JAMENDO_CLIENT_ID')
+	storage.put('jamendo_enabled', True)
 EOF
 
 	if [ "$ADMIN_PASSWORD" == "admin" ]; then
