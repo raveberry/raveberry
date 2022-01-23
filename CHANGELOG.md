@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.3 - 2022-01-23
+
+- Hotspot status shows whether it would start without homewifi instead of whether it is currently enabled
+- Changed message when no online suggestions are returned
+- Each section in settings can be collapsed, making them much more usable
+- PYTHONOPTIMIZE set to 1. pycparser has problems with level 2.
+
 ## 0.10.2 - 2022-01-22
 
 - Refactoring: mypy and pylint run without complaining
