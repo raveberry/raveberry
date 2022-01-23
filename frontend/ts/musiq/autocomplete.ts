@@ -152,8 +152,8 @@ export function onReady() {
 
     if (item.type == 'error') {
       const suggestionDiv = $('<div>')
-          .append('<i class="fas fa-exclamation-circle suggestion-type"></i>')
-          .append($('<em>').text('error'));
+          .append('<i class="fas fa-question suggestion-type"></i>')
+          .append($('<em>').text('nothing found'));
       return $('<li class="ui-menu-item-with-icon"></li>')
           .data('item.autocomplete', item)
           .append(suggestionDiv)
