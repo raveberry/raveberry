@@ -1,3 +1,16 @@
+.settings-collapser {
+	// allow (de)collapsing of disabled sections
+	pointer-events: auto;
+	transition: 0.3s;
+	transform: rotate(0deg);
+}
+.settings-collapser.collapsed{
+	transform: rotate(-90deg);
+}
+#settings .list-item {
+	display: none;
+}
+
 #most-active-device {
 	white-space: pre;
 }

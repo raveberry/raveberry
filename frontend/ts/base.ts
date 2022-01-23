@@ -330,15 +330,23 @@ function ripple() {
   let y = null;
   if ($(this).parent().hasClass('anim-container')) {
     x = parseInt($(this).css('margin-left')) +
-      parseInt($(this).css('padding-left'));
+        parseInt($(this).css('padding-left'));
     y = parseInt($(this).css('margin-top')) +
-      parseInt($(this).css('padding-top'));
+        parseInt($(this).css('padding-top'));
     // compensate one-sided margin hack
     x += (parseInt($(this).parent().css('margin-right')) -
-      parseInt($(this).parent().css('margin-left'))) / 3;
+        parseInt($(this).parent().css('margin-left'))) / 3;
 
     // Add the element to the parent element, since it does not move
     $(this).parent().prepend('<span class=\'ripple\'></span>');
+  } else if ($(this).hasClass('settings-collapser')) {
+    x = parseInt($(this).css('margin-left')) +
+        parseInt($(this).css('padding-left'));
+    // properly center the effect
+    x -= 4.5;
+    y = parseInt($(this).css('margin-top')) +
+        parseInt($(this).css('padding-top'));
+    $(this).prepend('<span class=\'ripple\'></span>');
   } else {
     // Get the center of the $(this)
     x = $(this).position().left +

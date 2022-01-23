@@ -70,8 +70,8 @@ function updateState(state) {
   }
 
   if (!state.settings.systemInstall) {
-    $('.system-install-only').addClass('is-disabled');
-    $('.system-install-only').attr('disabled-note',
+    $('.install-only').addClass('is-disabled');
+    $('.install-only').attr('disabled-note',
         'This feature is only available in a system install.');
   } else {
     for (const module of
@@ -388,8 +388,48 @@ export function onReady() {
     post(urls['settings']['upgrade-raveberry']);
   });
 
+  const collapseAnimationOptions = {
+    // slideToggle
+    height: 'toggle',
+    marginTop: 'toggle',
+    marginBottom: 'toggle',
+    paddingTop: 'toggle',
+    paddingBottom: 'toggle',
+    // fadeToggle
+    opacity: 'toggle',
+  };
+
+  // show basic settings by default
+  if (localStorageGet("Basic Settings:collapsed") === null) {
+    localStorageSet("Basic Settings:collapsed", false);
+  }
+
+  $('.list-header').each((_, li) => {
+    const storageKey = $(li).children('span').text() + ':collapsed';
+    if (localStorageGet(storageKey) === false) {
+      $(li).siblings('.list-item').animate(collapseAnimationOptions, 'fast');
+      // explicitly set display: flex, otherwise the layout is broken.
+      $(li).siblings('.list-item').css('display', 'flex');
+      $(li).children('.settings-collapser').toggleClass('collapsed');
+    }
+  });
+
+  $('.settings-collapser').on('click tap', function() {
+    $(this).parent().siblings('.list-item')
+        .animate(collapseAnimationOptions, 'fast');
+    $(this).parent().siblings('.list-item').css('display', 'flex');
+    $(this).toggleClass('collapsed');
+
+    const storageKey = $(this).siblings('span').text() + ':collapsed';
+    localStorageSet(storageKey, $(this).hasClass('collapsed'));
+  });
+
   const fragment = window.location.hash.substr(1);
   if (fragment == 'show-changelog') {
+    $('#about').siblings('.list-item')
+        .animate(collapseAnimationOptions, 'fast');
+    $('#about').siblings('.list-item').css('display', 'flex');
+    $('#about').children('.settings-collapser').toggleClass('collapsed');
     $('#update-banner').remove();
     $.get(urls['settings']['get-changelog']).done(function(response) {
       $('#changelog').html(snarkdown(response));

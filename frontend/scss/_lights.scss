@@ -6,3 +6,9 @@ input[type="color"] {
 .disabled .list-header {
 	color: var(--silent-text);
 }
+
+#screen-options .list-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
