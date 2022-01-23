@@ -35,7 +35,7 @@ services:
       - db
       - redis
     environment:
-      - PYTHONOPTIMIZE=2
+      - PYTHONOPTIMIZE=1
       - ADMIN_PASSWORD
       - MOD_PASSWORD
       - REMOTE_URL
@@ -107,7 +107,7 @@ services:
       - celery
       - mopidy
     environment:
-      - PYTHONOPTIMIZE=2
+      - PYTHONOPTIMIZE=1
       - ADMIN_PASSWORD
       - MOD_PASSWORD
       - REMOTE_URL
