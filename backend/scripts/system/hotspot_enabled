@@ -1,2 +1,2 @@
 #!/bin/bash
-! systemctl is-active --quiet hostapd
+! systemctl is-enabled --quiet hostapd
