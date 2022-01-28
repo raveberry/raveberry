@@ -1,6 +1,6 @@
 import setuptools
 
-with open("backend/VERSION") as f:
+with open("raveberry/VERSION") as f:
     version = f.read().strip()
 
 with open("README.md") as f:
@@ -14,15 +14,15 @@ def parse_requirements(lines):
     )
 
 
-with open("backend/requirements/common.txt") as f:
+with open("raveberry/requirements/common.txt") as f:
     run_packages = parse_requirements(f.read().splitlines())
-with open("backend/requirements/youtube.txt") as f:
+with open("raveberry/requirements/youtube.txt") as f:
     run_packages.extend(parse_requirements(f.read().splitlines()))
 
-with open("backend/requirements/install.txt") as f:
+with open("raveberry/requirements/install.txt") as f:
     install_packages = parse_requirements(f.read().splitlines())
 
-with open("backend/requirements/screenvis.txt") as f:
+with open("raveberry/requirements/screenvis.txt") as f:
     screenvis_packages = parse_requirements(f.read().splitlines())
 
 setuptools.setup(
