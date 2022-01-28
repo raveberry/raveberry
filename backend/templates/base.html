@@ -81,31 +81,51 @@
 			<div id="menu">
 				<div class="menu-row">
 					<div id="users-container">
-						<i class="fas fa-user"></i>
-						<span id="users"></span>
+						<div class="with-description">
+							<div>
+								<i class="fas fa-user"></i>
+								<span id="users"></span>
+							</div>
+							<span>Active</span>
+						</div>
 					</div>
-					<div id="visitors-container">
+					<div id="visitors-container" class="with-description">
+						<div id="visitors"></div>
 						<span>Visitors</span>
-						<span id="visitors"></span>
 					</div>
 					<div id="theme-controls">
-						<i id="light-theme" class="fas fa-sun"></i>
-						<i id="dark-theme" class="fas fa-moon"></i>
+						<div class="with-description">
+							<i id="light-theme" class="fas fa-sun"></i>
+							<span>Light</span>
+						</div>
+						<div class="with-description">
+							<i id="dark-theme" class="fas fa-moon"></i>
+							<span>Dark</span>
+						</div>
 					</div>
 				</div>
 				<div class="menu-row"{%if not controls_enabled and not is_admin%} style='display: none;'{%endif%}>
-					<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
-						<i class="fas fa-sliders-h"></i>
-					</a>
-					<div id="lights-controls">
-						<i class="fas fa-lightbulb icon-disabled" id="lights-indicator"></i>
-						<a href="{% url 'lights' %}">
-							<i class="fas fa-cog"></i>
+					<div class="with-description">
+						<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
+							<i class="fas fa-sliders-h"></i>
 						</a>
+						<span>Settings</span>
 					</div>
-                    <a href="{% url 'network-info' %}">
-                        <i class="fas fa-qrcode"></i>
-                    </a>
+					<div class="with-description">
+						<div id="lights-controls">
+							<i class="fas fa-lightbulb icon-disabled" id="lights-indicator"></i>
+							<a href="{% url 'lights' %}">
+								<i class="fas fa-cog"></i>
+							</a>
+						</div>
+						<span>Lights</span>
+					</div>
+					<div class="with-description">
+						<a href="{% url 'network-info' %}">
+							<i class="fas fa-qrcode"></i>
+						</a>
+						<span>Quick Access</span>
+					</div>
 				</div>
 				<div class="menu-row">
 					<a id="web-link" target="_blank" href="https://raveberry.party/" class="unlink"><i class="fas fa-globe"></i></a>

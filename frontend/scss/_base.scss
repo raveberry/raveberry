@@ -83,57 +83,34 @@
 	margin: 16px;
 	margin-bottom: 0px;
 	font-size: xx-large;
+	color: var(--normal-text);
 }
 #menu i {
 	padding: 5px;
+}
+#menu svg {
+	padding: 5px;
+}
+.with-description {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+.with-description>span {
+	margin-top: -5px;
+	font-size: small;
 }
 .menu-row {
 	display: flex;
 	justify-content: space-between;
 }
-
-#users-container {
-	width: 25%;
+.menu-row>*{
+	min-width: 85px;
 	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-}
-#users-container>*{
-	padding: 5px;
-}
-#users {
-	color: var(--normal-text);
+	justify-content: center;
 }
 
-#visitors-container {
-	width: 50%;
-	color: var(--normal-text);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	font-size: medium;
-}
-#visitors {
-	font-size: x-large;
-}
-
-#theme-controls {
-	width: 25%;
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-}
-#theme-controls > i.icon-enabled{
-	color: theme-color('contrast');
-}
-
-#lights-controls {
-	width: 25%;
-	max-width: 80px;
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-}
 #lights-indicator.icon-enabled {
 	color: yellow;
 }
@@ -141,18 +118,13 @@
 #shareberry-icon {
 	fill: var(--normal-text);
 	margin-bottom: 6px;
-	margin-right: 4px;
-}
-
-#content {
-	padding: 8px;
 }
 
 #platform-controls {
-	width: 25%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-wrap: wrap;
 }
 
 #platform-controls > i.icon-enabled#youtube {
