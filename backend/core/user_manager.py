@@ -86,7 +86,7 @@ def try_vote(request_ip: str, queue_key: int, amount: int) -> bool:
         allowed = True
         # expire these entries to avoid accumulation over long runtimes.
         pipe.multi()
-        pipe.set(entry, new_vote, expire=24 * 60 * 60)
+        pipe.set(entry, new_vote, ex=24 * 60 * 60)
 
     redis.connection.transaction(check_entry, entry)
     return allowed
