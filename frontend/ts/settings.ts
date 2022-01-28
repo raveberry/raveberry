@@ -414,14 +414,13 @@ export function onReady() {
     }
   });
 
-  $('.settings-collapser').on('click tap', function() {
-    $(this).parent().siblings('.list-item')
-        .animate(collapseAnimationOptions, 'fast');
-    $(this).parent().siblings('.list-item').css('display', 'flex');
-    $(this).toggleClass('collapsed');
+  $('.list-header').on('click tap', function() {
+    $(this).siblings('.list-item').animate(collapseAnimationOptions, 'fast');
+    $(this).siblings('.list-item').css('display', 'flex');
+    $(this).children('.settings-collapser').toggleClass('collapsed');
 
-    const storageKey = $(this).siblings('span').text() + ':collapsed';
-    localStorageSet(storageKey, $(this).hasClass('collapsed'));
+    const storageKey = $(this).children('span').text() + ':collapsed';
+    localStorageSet(storageKey, $(this).children('.settings-collapser').hasClass('collapsed'));
   });
 
   const fragment = window.location.hash.substr(1);
