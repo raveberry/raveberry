@@ -201,10 +201,12 @@
     groups: bluetooth
     append: yes
 - name: Bluetooth permissions for pulse
-  user:
-    name: pulse
-    groups: bluetooth
-    append: yes
+  shell: adduser pulse bluetooth
+  # for some reason this leads to "[Errno 28] No space left on device in /var/run/pulse/.cargo" on Github Actions
+  #user:
+  #  name: pulse
+  #  groups: bluetooth
+  #  append: yes
 - name: Cache directory access permissions for mopidy
   user:
     name: mopidy
