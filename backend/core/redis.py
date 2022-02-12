@@ -25,6 +25,7 @@ defaults = {
     "stop_playback_loop": False,
     "alarm_playing": False,
     "alarm_requested": False,
+    "alarm_duration": 10.0,
     "backup_playing": False,
     # lights
     "lights_active": False,

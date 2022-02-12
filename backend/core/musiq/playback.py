@@ -24,6 +24,7 @@ from core.lights import controller as lights_controller
 from core.musiq import controller, musiq
 from core.settings import settings, storage
 from core.tasks import app
+from core.musiq import song_utils
 
 queue_changed = redis.Event("queue_changed")
 buzzer_stopped = redis.Event("buzzer_stopped")
@@ -85,7 +86,7 @@ class Playback:
         def _on_playback_started(_event) -> None:
             self.playback_started.set()
 
-    def play_alarm(self, interrupt=False) -> None:
+    def play_alarm(self, interrupt=False, from_buzzer=True) -> None:
         """Play the alarm sound. If specified, interrupts the currently playing song."""
         redis.put("alarm_playing", True)
         lights_controller.alarm_started()
@@ -95,15 +96,23 @@ class Playback:
             # interrupt the current song if its playing
             if interrupt:
                 self.player.tracklist.clear()
-            self.player.tracklist.add(
-                uris=[
-                    "file://"
-                    + urllib.parse.quote(
-                        os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
-                    )
-                ]
-            )
+
+            success_probability = storage.get("buzzer_success_probability")
+            if success_probability >= 0 and from_buzzer:
+                if random.random() <= success_probability:
+                    folder = "resources/sounds/yes"
+                else:
+                    folder = "resources/sounds/no"
+                choice = random.choice(os.listdir(os.path.join(conf.BASE_DIR, folder)))
+                path = os.path.join(conf.BASE_DIR, folder, choice)
+            else:
+                path = os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
+            duration = song_utils.get_metadata(path)["duration"]
+
+            redis.put("alarm_duration", duration)
+            self.player.tracklist.add(uris=["file://" + urllib.parse.quote(path)])
             self.player.playback.play()
+
         self.playback_started.wait(timeout=1)
 
         musiq.update_state()
@@ -255,7 +264,7 @@ class Playback:
                 # Warning: if this duration does not fit the duration of the actual alarm,
                 # Raveberry's internal state gets desynced and weird errors happen
                 current_song.created += datetime.timedelta(
-                    seconds=musiq.get_alarm_metadata()["duration"]
+                    seconds=redis.get("alarm_duration")
                 )
                 current_song.save()
 
@@ -282,7 +291,7 @@ class Playback:
         if user_manager.partymode_enabled() and random.random() < storage.get(
             "alarm_probability"
         ):
-            self.play_alarm()
+            self.play_alarm(from_buzzer=False)
 
         if not queue.exists() and storage.get("backup_stream"):
             redis.put("backup_playing", True)
@@ -295,6 +304,9 @@ class Playback:
     def loop(self) -> None:
         """The main loop of the player.
         Takes a song from the queue and plays it until it is finished."""
+
+        self.player.tracklist.set_consume(True)
+
         while True:
 
             if redis.get("stop_playback_loop"):

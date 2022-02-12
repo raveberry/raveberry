@@ -12,13 +12,15 @@
 	--elevated-background: #2d3039;
 	--silent-text: #6c757d;
 	--normal-text: #9198aa;
+	--contrast: #ffffff;
 }
 html.light {
-  --background: #ffffff;
-  --list-border: #ced4da;
-  --elevated-background: #f7f7f7;
-  --silent-text: #999999;
-  --normal-text: #495057;
+	--background: #ffffff;
+	--list-border: #ced4da;
+	--elevated-background: #f7f7f7;
+	--silent-text: #999999;
+	--normal-text: #495057;
+	--contrast: #000000;
 }
 
 :root {

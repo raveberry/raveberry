@@ -16,7 +16,7 @@ The `admin` user has full access to the page. This user is automatically the sup
 
 * Logging can be toggled. If enabled, Raveberry logs the user requests and which songs were played.
 
-* You can define the number of active users that are necessary to switch on the alarm and the probability with which it is triggered after every song. The sound file `alarm.mp3` was taken from [soundbible.com](http://soundbible.com/2176-Submarine-Diving.html), original by Daniel Simion, used under CC BY / slightly modified.
+* You can define the number of active users that are necessary to switch on the alarm and the probability with which it is triggered after every song.
 
 * The number of negative votes needed to remove a song can be changed.
 

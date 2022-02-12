@@ -157,6 +157,10 @@ class PlaylistProvider(MusicProvider):
             pass
         return False
 
+    def on_cooldown(self) -> bool:
+        # Playlist cooldown is unnecessary because cooldown is checked for each song
+        return False
+
     def persist(self, session_key: str, archive: bool = True) -> None:
         if self.is_radio():
             return

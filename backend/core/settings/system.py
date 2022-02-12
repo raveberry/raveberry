@@ -251,14 +251,20 @@ def enable_remote(_request: WSGIRequest) -> None:
 @control
 def disable_celery(_request: WSGIRequest) -> None:
     """Disables the use of celery and switches to using threads instead."""
-    subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_celery"])
+    returncode = subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_celery"])
+    if returncode == 1:
+        # celery is already disabled
+        return
     sys.exit(0)
 
 
 @control
 def enable_celery(_request: WSGIRequest) -> None:
     """Enables the use of celery for long running tasks."""
-    subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_celery"])
+    returncode = subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_celery"])
+    if returncode == 1:
+        # celery is already enabled
+        return
     sys.exit(0)
 
 

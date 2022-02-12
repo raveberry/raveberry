@@ -26,16 +26,12 @@
 			<input type="checkbox" id="ip-checking">
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">New music only</span>
-			<input type="checkbox" id="new-music-only">
+			<span class="description">Downvotes to kick</span>
+			<input id="downvotes-to-kick"/>
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Logging</span>
 			<input type="checkbox" id="logging-enabled">
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Online Suggestions</span>
-			<input type="checkbox" id="online-suggestions">
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Show new hashtags by default</span>
@@ -50,47 +46,12 @@
 			<input type="checkbox" id="dynamic-embedded-stream">
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">Number of suggestions</span>
+			<span class="description">Online Suggestions</span>
+			<input type="checkbox" id="online-suggestions">
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Number of offline suggestions</span>
 			<input id="number-of-suggestions"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">People to Party</span>
-			<input id="people-to-party"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Alarm Probability (from 0 to 1)</span>
-			<input id="alarm-probability"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Minimum time between buzzers (in seconds)</span>
-			<input id="buzzer-cooldown"/>
-		</li>
-		<li class="list-group-item list-item centered">
-			<button class="btn" id="trigger-alarm">Trigger Alarm</button>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Downvotes to kick</span>
-			<input id="downvotes-to-kick"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Max Download Size (MB, 0 to disable)</span>
-			<input id="max-download-size"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Max Songs Enqueued per Playlist</span>
-			<input id="max-playlist-items"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Max number of songs in queue (0 to disable)</span>
-			<input id="max-queue-length"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Add this to every query</span>
-			<input id="additional-keywords"/>
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Do not enqueue Songs containing these Words (Only Spotify and Soundcloud)</span>
-			<input id="forbidden-keywords"/>
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Host that is pinged to test Internet Connection. "localhost" to force online, leave empty to force offline.</span>
@@ -108,6 +69,70 @@
 			<div>
 				<i class="fas fa-sync" id="update-user-count"></i>
 			</div>
+		</li>
+	</ul>
+
+	<ul class="list-group">
+		<li class="list-group-item list-header">
+			<i class="fas fa-angle-down settings-collapser collapsed"></i>
+			<span>Queue Control</span>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">New music only</span>
+			<input type="checkbox" id="new-music-only">
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Minimum time that needs to pass before a song can be queued again (requires logging; in hours, 0 to disable)</span>
+			<input id="song-cooldown"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Max download size (MB, 0 to disable)</span>
+			<input id="max-download-size"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Max songs enqueued per playlist</span>
+			<input id="max-playlist-items"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Max number of songs in queue (0 to disable)</span>
+			<input id="max-queue-length"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Add this to every query</span>
+			<input id="additional-keywords"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Do not enqueue songs containing these words (only Spotify and Soundcloud)</span>
+			<input id="forbidden-keywords"/>
+		</li>
+		<li class="list-group-item list-item centered">
+			<button class="btn" id="delete-current-song">Delete Current Song</button>
+		</li>
+	</ul>
+
+	<ul class="list-group">
+		<li class="list-group-item list-header">
+			<i class="fas fa-angle-down settings-collapser collapsed"></i>
+			<span>Party</span>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">People to Party</span>
+			<input id="people-to-party"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Alarm Probability after each song (from 0 to 1)</span>
+			<input id="alarm-probability"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Minimum time between buzzers (in seconds)</span>
+			<input id="buzzer-cooldown"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Buzzer success probability. (0 to 1, <0 for default sound)</span>
+			<input id="buzzer-success-probability"/>
+		</li>
+		<li class="list-group-item list-item centered">
+			<button class="btn" id="trigger-alarm">Trigger Alarm</button>
 		</li>
 	</ul>
 
@@ -150,7 +175,7 @@
 		<li class="list-group-item list-item">
 			<span class="description">
 				Client ID
-				<a href="https://mopidy.com/ext/spotify/#authentication" data-toggle="tooltip" target="_blank" title="Click here to get the credentials">
+				<a href="https://mopidy.com/ext/spotify/#authentication" data-toggle="tooltip" target="_blank" rel="noopener" title="Click here to get the credentials">
 					<i class="fas fa-question-circle"></i>
 				</a>
 			</span>
@@ -181,7 +206,7 @@
 		<li class="list-group-item list-item">
 			<span class="description">
 				Authentication Token
-				<a href="https://mopidy.com/ext/soundcloud/#authentication" data-toggle="tooltip" target="_blank" title="Click here to get the credentials">
+				<a href="https://mopidy.com/ext/soundcloud/#authentication" data-toggle="tooltip" target="_blank" rel="noopener" title="Click here to get the credentials">
 					<i class="fas fa-question-circle"></i>
 				</a>
 			</span>
@@ -208,7 +233,7 @@
 		<li class="list-group-item list-item">
 		<span class="description">
 			Client ID
-			<a href="https://devportal.jamendo.com/admin/applications" data-toggle="tooltip" target="_blank" title="Click here to get a client id">
+			<a href="https://devportal.jamendo.com/admin/applications" data-toggle="tooltip" target="_blank" rel="noopener" title="Click here to get a client id">
 				<i class="fas fa-question-circle"></i>
 			</a>
 		</span>
@@ -271,8 +296,7 @@
 			<span class="description">Player status (restarting player/server might fix errors)</span>
 			<span id="player-status"></span>
 		</li>
-		<li class="list-group-item list-item">
-			<button class="btn" id="delete-current-song">Delete Current Song</button>
+		<li class="list-group-item list-item centered">
 			<button class="btn" id="restart-player">Restart Player</button>
 		</li>
 	</ul>
@@ -404,7 +428,7 @@
 	<ul class="list-group install-only">
 		<li class="list-group-item list-header">
 			<i class="fas fa-angle-down settings-collapser collapsed"></i>
-			<span>System Settings</span>
+			<span>System</span>
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Hotspot Enabled (without considering homewifi):</span>
@@ -455,7 +479,7 @@
 	<ul class="list-group install-only">
 		<li class="list-group-item list-header">
 			<i class="fas fa-angle-down settings-collapser collapsed"></i>
-			<span>Power Settings</span>
+			<span>Power</span>
 		</li>
 		<li class="list-group-item list-item">
 			<button class="btn" id="restart-server">Restart Server</button>

@@ -21,18 +21,25 @@
     state: reloaded
     name: nginx
 
+- name: Check if daphne override is inactive
+  stat:
+    path: /etc/systemd/system/daphne.service.d.override-inactive
+  register: daphne_override
 - name: daphne service
   template:
     src: files/daphne.service
     dest: /etc/systemd/system/daphne.service
-- name: Create override directory for daphne service
-  file:
-    path: /etc/systemd/system/daphne.service.d
-    state: directory
-- name: daphne override config
-  copy:
-    src: files/celery_enabled.conf
-    dest: /etc/systemd/system/daphne.service.d/celery_enabled.conf
+- name: Create daphne override
+  when: not daphne_override.stat.exists
+  block:
+  - name: "Create daphne override: Create override directory for daphne service"
+    file:
+      path: /etc/systemd/system/daphne.service.d
+      state: directory
+  - name: "Create daphne override: daphne override config"
+    copy:
+      src: files/celery_enabled.conf
+      dest: /etc/systemd/system/daphne.service.d/celery_enabled.conf
 - name: celery service
   template:
     src: files/celery.service

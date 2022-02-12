@@ -1,0 +1,3 @@
+`resources/sounds/alarm.m4a`: [Submarine Diving](http://soundbible.com/2176-Submarine-Diving.html) from Daniel Simion, used under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), slightly modified.
+`resources/no/wrong.mp3`: [Wrong Answer Sound Effect](https://orangefreesounds.com/wrong-answer-sound-effect/) from Alexander, used under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), slightly modified.
+`resources/yes/tada.mp3`: [Ta Da](https://soundbible.com/1003-Ta-Da.html) from Mike Koenig, used under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), slightly modified.

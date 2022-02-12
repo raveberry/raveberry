@@ -45,6 +45,10 @@ class Screen(Device):
         subprocess.call("xset s noblank".split())
         subprocess.call("xset -dpms".split())
 
+        # ignore the scale factor for large displays,
+        # we always render fullscreen without scaling
+        os.environ["WINIT_X11_SCALE_FACTOR"] = "1"
+
         # method should additionally check whether hdmi is connected
         # however, I found no way to do that
         # without hdmi_force_hotplug=1:

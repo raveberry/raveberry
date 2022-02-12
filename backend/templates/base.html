@@ -6,6 +6,7 @@
 		<!-- Required meta tags -->
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="referrer" content="strict-origin-when-cross-origin">
 
 		<link rel="stylesheet" href="{% static "style.css" %}"/>
 
@@ -60,7 +61,7 @@
 		</div>
 		<div id="demo-banner" class="information-banner" {%if demo%}style="display: block;"{%endif%}>
 			<i class="fas fa-info-circle"></i>
-			This is a demo version of Raveberry with music from <a target="_blank" href="https://www.jamendo.com/start" class="unlink">Jamendo</a>
+			This is a demo version of Raveberry with music from <a target="_blank" rel="noopener" href="https://www.jamendo.com/start" class="unlink">Jamendo</a>
 		</div>
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
@@ -128,33 +129,92 @@
 					</div>
 				</div>
 				<div class="menu-row">
-					<a id="web-link" target="_blank" href="https://raveberry.party/" class="unlink"><i class="fas fa-globe"></i></a>
-					<div id="platform-controls">
-                        {%if local_enabled%}<i id="local" class="fas fa-hdd icon-disabled"></i>{%endif%}
-                        {%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon-disabled"></i>{%endif%}
-						{%if spotify_enabled%}<i id="spotify" class="fab fa-spotify icon-disabled"></i>{%endif%}
-                        {%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon-disabled"></i>{%endif%}
-						{%if jamendo_enabled%}<i id="jamendo" class="fab fa-jamendo icon-disabled"></i>{%endif%}
+					<div id="raveberry-links">
+						<div class="with-description">
+							<a id="web-link" target="_blank" rel="noopener" href="https://raveberry.party/" class="unlink"><i class="fas fa-globe"></i></a>
+							<span>Website</span>
+						</div>
+						<div class="with-description">
+							<a href="{{ apk_link }}" download>
+								<svg id="shareberry-icon" height="42px" width="42px">
+									<use href="{% static "shareberry.svg" %}#icon"></use>
+								</svg>
+							</a>
+							<span>App</span>
+						</div>
 					</div>
-					<a href="{{ apk_link }}" download>
-						<svg id="shareberry-icon" height="35px" width="35px">
-							<use href="{% static "shareberry.svg" %}#icon"></use>
-						</svg>
-					</a>
+					<div class="with-description">
+						<div id="platform-controls">
+							{%if local_enabled%}<i id="local" class="fas fa-hdd icon-disabled"></i>{%endif%}
+							{%if youtube_enabled%}<i id="youtube" class="fab fa-youtube icon-disabled"></i>{%endif%}
+							{%if spotify_enabled%}<i id="spotify" class="fab fa-spotify icon-disabled"></i>{%endif%}
+							{%if soundcloud_enabled%}<i id="soundcloud" class="fab fa-soundcloud icon-disabled"></i>{%endif%}
+							{%if jamendo_enabled%}<i id="jamendo" class="fab fa-jamendo icon-disabled"></i>{%endif%}
+						</div>
+						<span>Preferred</span>
+					</div>
+					<div class="with-description">
+						<i class="fas fa-comment-dots" id="open-feedback-dialog"></i>
+						<span>Feedback</span>
+					</div>
 				</div>
-				{% if streaming_enabled %}
-                <div class="menu-row">
-                    <div></div>
-                    <a id="stream-link" target="_blank" href="/stream" class="unlink">
-                        <i class="fas fa-headphones"></i>
-                    </a>
-                </div>
-				{% endif %}
 			</div>
 		</div>
 		<div id="content">
 			{% block content %}
 			{% endblock %}
+		</div>
+
+		<div id="feedback-modal" class="modal fade" role="dialog">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div id="feedback-title">Send Feedback to the Developer</div>
+					<div>
+						<span>How do you like Raveberry?</span>
+						<div id="feedback-emoji">
+							<i class="fas fa-angry icon-disabled"></i>
+							<i class="fas fa-frown icon-disabled"></i>
+							<i class="fas fa-meh icon-disabled"></i>
+							<i class="fas fa-smile icon-disabled"></i>
+							<i class="fas fa-laugh icon-disabled"></i>
+						</div>
+					</div>
+					<div>
+						<span>Add a comment (optional):</span>
+						<textarea rows="3" maxlength="3900" id="feedback-message"></textarea>
+					</div>
+					<button class="btn" id="submit-feedback">Submit</button>
+					<div>
+						<span>You can also reach out via:</span>
+						<div id="feedback-links">
+							<div class="with-description">
+								<a id="web-link" target="_blank" rel="noopener" href="https://github.com/raveberry/raveberry/issues" class="unlink">
+									<i class="fab fa-github" id="github"></i>
+								</a>
+								<span>Github</span>
+							</div>
+							<div class="with-description">
+								<a id="web-link" target="_blank" rel="noopener" href="https://discord.gg/dy7Jxvjj9H" class="unlink">
+									<i class="fab fa-discord" id="discord"></i>
+								</a>
+								<span>Discord</span>
+							</div>
+							<div class="with-description">
+								<a id="web-link" target="_blank" rel="noopener" href="https://www.reddit.com/r/raveberry" class="unlink">
+									<i class="fab fa-reddit" id="reddit"></i>
+								</a>
+								<span>Reddit</span>
+							</div>
+							<div class="with-description">
+								<a id="web-link" target="_blank" rel="noopener" href="mailto:raveberry@jhacker.de" class="unlink">
+									<i class="fas fa-envelope"></i>
+								</a>
+								<span>Mail</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div id="toast-container">

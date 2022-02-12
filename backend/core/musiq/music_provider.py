@@ -62,6 +62,11 @@ class MusicProvider:
         """Returns whether this resource has been manually requested at least once."""
         raise NotImplementedError()
 
+    def on_cooldown(self) -> bool:
+        """Returns whether this resource is currently on cooldown and may not be requested.
+        Sets the provider error."""
+        raise NotImplementedError()
+
     def persist(self, session_key: str, archive: bool = True) -> None:
         """Updates the database.
         Creates an archived entry or updates it.
@@ -97,6 +102,10 @@ class MusicProvider:
         if storage.get("new_music_only"):
             if self.was_requested_before():
                 self.error = "Only new music is allowed!"
+                raise ProviderError(self.error)
+
+        if storage.get("song_cooldown") != 0:
+            if self.on_cooldown():
                 raise ProviderError(self.error)
 
         self.enqueue_placeholder(manually_requested)

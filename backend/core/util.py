@@ -96,7 +96,12 @@ def service_installed(service: str) -> bool:
     """Returns whether the given systemd service is installed."""
     if not service.endswith(".service"):
         service += ".service"
-    out = subprocess.check_output(["systemctl", "list-unit-files", service], text=True)
+    try:
+        out = subprocess.check_output(
+            ["systemctl", "list-unit-files", service], text=True
+        )
+    except subprocess.CalledProcessError:
+        return False
     return len(out.splitlines()) > 3
 
 

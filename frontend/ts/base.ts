@@ -231,7 +231,7 @@ export function reconnect() {
 export function decideScrolling(span, secondsPerPixel, staticSeconds) {
   const spaceAvailable = span.parent().width();
   const spaceNeeded = span.width();
-  if (spaceAvailable < spaceNeeded) {
+  if (spaceAvailable - spaceNeeded > 1) {
     // an overflow is happening, start scrolling
 
     const spaceOverflowed = spaceNeeded - spaceAvailable;
@@ -568,6 +568,32 @@ export function onReady() {
     }
     localStorageSet('platform', 'jamendo', 1);
     updatePlatformClasses();
+  });
+
+  $('#open-feedback-dialog').on('click tap', function() {
+    $('#feedback-modal').modal('show');
+  });
+
+  $('#feedback-emoji i').on('click tap', function() {
+    $('#feedback-emoji i').removeClass('icon-enabled');
+    $('#feedback-emoji i').addClass('icon-disabled');
+    $(this).removeClass('icon-disabled');
+    $(this).addClass('icon-enabled');
+  });
+
+  $('#submit-feedback').on('click tap', function() {
+    const message = $('#feedback-message').val();
+    const score = $('#feedback-emoji').children('.icon-enabled').index();
+    $.post('https://feedback.raveberry.party/v1/submit', {
+      score: score,
+      message: message,
+    }).done(() => {
+      $('#feedback-message').val('');
+      successToast('Thank you!');
+    }).fail((response) => {
+      errorToast('Submit failed');
+    });
+    $('#feedback-modal').modal('hide');
   });
 
   // request initial state update

@@ -5,7 +5,7 @@ then echo "Please run as root"
 fi
 
 if [ -d /etc/systemd/system/daphne.service.d.override-inactive ]; then
-	exit
+	exit 1
 fi
 
 mv /etc/systemd/system/daphne.service.d /etc/systemd/system/daphne.service.d.override-inactive

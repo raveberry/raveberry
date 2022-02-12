@@ -1,13 +1,21 @@
 """This module contains the base class of all song providers."""
-
+import datetime
 import logging
 from typing import Optional, Type, List, Dict, Callable, Tuple
 
 from django.db import transaction
 from django.db.models.expressions import F
 from django.http.response import HttpResponse
+from django.utils import timezone
 
-from core.models import ArchivedQuery, ArchivedSong, QueuedSong, RequestLog
+from core.models import (
+    ArchivedQuery,
+    ArchivedSong,
+    QueuedSong,
+    RequestLog,
+    CurrentSong,
+    PlayLog,
+)
 from core.musiq import musiq, playback, song_utils
 from core.musiq.music_provider import MusicProvider, WrongUrlError
 from core.musiq.song_utils import Metadata
@@ -233,6 +241,28 @@ class SongProvider(MusicProvider):
                 return True
         except ArchivedSong.DoesNotExist:
             pass
+        return False
+
+    def on_cooldown(self) -> bool:
+        try:
+            current_song = CurrentSong.objects.get()
+        except (CurrentSong.DoesNotExist, CurrentSong.MultipleObjectsReturned):
+            current_song = None
+        if playback.queue.filter(external_url=self.get_external_url()).count() > 0 or (
+            current_song is not None
+            and current_song.external_url == self.get_external_url()
+        ):
+            self.error = "Song already in queue"
+            return True
+        latest_log = (
+            PlayLog.objects.filter(song__url=self.get_external_url())
+            .order_by("-created")
+            .first()
+        )
+        cooldown = datetime.timedelta(hours=storage.get("song_cooldown"))
+        if latest_log is not None and timezone.now() - latest_log.created < cooldown:
+            self.error = "Song was played recently"
+            return True
         return False
 
     def persist(self, session_key: str, archive: bool = True) -> None:

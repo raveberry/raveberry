@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.10.4 - 2022-02-12
+
+- Added song cooldown option that prevents a song from being enqueued again for a given time
+- Added buzzer success probability option. Custom sounds can be provided in resources/yes and resources/no.
+- Dropdown icons have descriptions
+- Removed link to /stream from dropdown
+- Added button to send feedback
+- Moved "Delete Current Song" button to Queue Control, which is available on docker setup
+- Visualization correctly works on big screens. Previously, a scaling would lead to an only partially visible visualization.
+- Prevent hashtag scrolling for distances < 1 pixel
+- Fixed bug where the is-service-active check would crash for uninstalled services
+- Do nothing if the currently active task strategy is requested
+
 ## 0.10.3 - 2022-01-23
 
 - Hotspot status shows whether it would start without homewifi instead of whether it is currently enabled
