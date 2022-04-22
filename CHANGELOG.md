@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.5 - 2022-04-22
+
+- Different Levels of interactivity can be set in the settings: Full Control, Full Voting, Upvotes only, No Control
+- Added option to enqueue songs at the top of the queue rather than the bottom
+- Fixed a bug where the main page could not be loaded when no song provider was enabled
+- Dynamic streaming possible with Youtube songs
+
 ## 0.10.4 - 2022-02-12
 
 - Added song cooldown option that prevents a song from being enqueued again for a given time
