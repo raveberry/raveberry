@@ -32,7 +32,9 @@ def control(func: Callable) -> Callable:
     At least mod privilege is required during voting."""
 
     def _decorator(request: WSGIRequest) -> HttpResponse:
-        if storage.get("voting_enabled") and not user_manager.has_controls(
+        if storage.get(
+            "interactivity"
+        ) != storage.Interactivity.full_control and not user_manager.has_controls(
             request.user
         ):
             return HttpResponseForbidden()

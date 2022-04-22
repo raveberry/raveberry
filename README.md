@@ -197,6 +197,11 @@ Red text means that Raveberry can't communicate with the player anymore. Either 
 
 To fix this, first restart the player (`/settings` in "Sound Output") and wait a few seconds. If it still does not work, restart the server (`/settings` at the bottom).
 
+### How do I enter my Spotify credentials?
+To enable Spotify support, install Raveberry with `spotify: true` in `raveberry.yaml`.
+When Raveberry is up and running, go to `/settings` and enter your credentials in the `Spotify` section.
+Create the required client ID and client secret [here](https://mopidy.com/ext/spotify/#authentication).
+
 ### I can't log in, it always says "Please reload"
 You ran into CSRF protection. This happens when you host Raveberry behind a proxy and the protocols don't match up, e.g. `http://demo.raveberry.party` vs `https://demo.raveberry.party`.
 

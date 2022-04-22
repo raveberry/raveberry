@@ -17,11 +17,12 @@
 			  '{{ path.name }}': '/ajax/{{ path.pattern }}',
 			{% endfor %}
 			};
-			{% if voting_enabled %}
-			let VOTING_ENABLED = true;
-			{% else %}
-			let VOTING_ENABLED = false;
-			{% endif %}
+			let INTERACTIVITY = "{{ interactivity }}";
+			let INTERACTIVITIES = {
+			{% for name, description in interactivities.items %}
+			  {{name}}: "{{description}}",
+			{% endfor %}
+			};
 			{% if is_admin %}
 			let ADMIN = true;
 			{% else %}
@@ -105,7 +106,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="menu-row"{%if not controls_enabled and not is_admin%} style='display: none;'{%endif%}>
+				<div class="menu-row"{%if not controls_enabled%} style='display: none;'{%endif%}>
 					<div class="with-description">
 						<a href="{% url 'settings' %}"{%if not is_admin%} style='visibility: hidden;'{%endif%}>
 							<i class="fas fa-sliders-h"></i>

@@ -7,6 +7,16 @@ from cachetools import TTLCache, cached
 from core import models
 from core.util import strtobool
 
+
+class Interactivity:
+    """An enum containing all possible interactivity level descriptions."""
+
+    full_control = "Full Public Control"
+    full_voting = "Up- and Downvoting"
+    upvotes_only = "Upvotes Only"
+    no_control = "No Control"
+
+
 PlatformEnabled = Literal
 PlatformSuggestions = Literal
 DeviceBrightness = Literal
@@ -16,7 +26,7 @@ DeviceProgram = Literal
 # maps key to default and type of value
 defaults = {
     # basic settings
-    "voting_enabled": False,
+    "interactivity": "Full Public Control",
     "ip_checking": False,
     "downvotes_to_kick": 2,
     "logging_enabled": True,
@@ -27,6 +37,7 @@ defaults = {
     "number_of_suggestions": 20,
     "connectivity_host": "1.1.1.1",
     "new_music_only": False,
+    "enqueue_first": False,
     "song_cooldown": 0.0,
     "max_download_size": 0.0,
     "max_playlist_items": 10,

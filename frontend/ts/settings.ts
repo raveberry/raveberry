@@ -32,6 +32,8 @@ function updateState(state) {
       element.prop('checked', value);
     } else if (element.is('input')) {
       element.val(value);
+    } else if (element.is('select')) {
+      element.val(value);
     } else if (element.is('div')) {
       element.text(value);
     } else if (element.is('span')) {
@@ -160,6 +162,11 @@ export function onReady() {
       registerPostOnClick(key);
     }
   }
+
+  $('#interactivity').on('change', function() {
+    post(urls['settings']['set-interactivity'],
+        {value: (<HTMLInputElement> this).value});
+  });
 
   registerPostOnClick('trigger-alarm');
 
@@ -400,8 +407,8 @@ export function onReady() {
   };
 
   // show basic settings by default
-  if (localStorageGet("Basic Settings:collapsed") === null) {
-    localStorageSet("Basic Settings:collapsed", false);
+  if (localStorageGet('Basic Settings:collapsed') === null) {
+    localStorageSet('Basic Settings:collapsed', false);
   }
 
   $('.list-header').each((_, li) => {
@@ -420,7 +427,8 @@ export function onReady() {
     $(this).children('.settings-collapser').toggleClass('collapsed');
 
     const storageKey = $(this).children('span').text() + ':collapsed';
-    localStorageSet(storageKey, $(this).children('.settings-collapser').hasClass('collapsed'));
+    localStorageSet(storageKey,
+        $(this).children('.settings-collapser').hasClass('collapsed'));
   });
 
   const fragment = window.location.hash.substr(1);

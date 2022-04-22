@@ -18,8 +18,12 @@
 			<span>Basic Settings</span>
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">Voting</span>
-			<input type="checkbox" id="voting-enabled">
+			<span class="description">Interactivity (how much normal users can influence the queue)</span>
+			<select class="form-control" id="interactivity">
+				{% for name,description in interactivities.items %}
+				<option data-name="{{name}}">{{ description }}</option>
+				{% endfor %}
+			</select>
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">IP vote checking</span>
@@ -42,7 +46,7 @@
 			<input type="checkbox" id="embed-stream">
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">Clients stream songs directly instead of using /stream (currently only Jamendo)</span>
+			<span class="description">Clients stream songs directly instead of using /stream (only Youtube and Jamendo)</span>
 			<input type="checkbox" id="dynamic-embedded-stream">
 		</li>
 		<li class="list-group-item list-item">
@@ -82,7 +86,11 @@
 			<input type="checkbox" id="new-music-only">
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">Minimum time that needs to pass before a song can be queued again (requires logging; in hours, 0 to disable)</span>
+			<span class="description">Add new songs to the top of the queue instead of to the bottom</span>
+			<input type="checkbox" id="enqueue-first">
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Song cooldown (Minimum time before a song can be queued again. Requires logging. In hours, 0 to disable)</span>
 			<input id="song-cooldown"/>
 		</li>
 		<li class="list-group-item list-item">

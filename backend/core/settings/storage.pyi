@@ -38,10 +38,10 @@ DeviceProgram = Literal[
 ]
 
 cache: TTLCache = TTLCache(ttl=10, maxsize=128)
+
 @overload
 def get(
     key: Literal[
-        "voting_enabled",
         "ip_checking",
         "logging_enabled",
         "hashtags_active",
@@ -49,6 +49,7 @@ def get(
         "dynamic_embedded_stream",
         "online_suggestions",
         "new_music_only",
+        "enqueue_first",
         "local_enabled",
         "youtube_enabled",
         "spotify_enabled",
@@ -102,6 +103,7 @@ def get(
 @overload
 def get(
     key: Literal[
+        "interactivity",
         "connectivity_host",
         "additional_keywords",
         "forbidden_keywords",
@@ -131,7 +133,6 @@ def get(key: Literal["fixed_color"]) -> tuple[float, float, float]: ...
 @overload
 def put(
     key: Literal[
-        "voting_enabled",
         "ip_checking",
         "logging_enabled",
         "hashtags_active",
@@ -139,6 +140,7 @@ def put(
         "dynamic_embedded_stream",
         "online_suggestions",
         "new_music_only",
+        "enqueue_first",
         "local_enabled",
         "youtube_enabled",
         "spotify_enabled",
@@ -195,6 +197,7 @@ def put(
 @overload
 def put(
     key: Literal[
+        "interactivity",
         "connectivity_host",
         "additional_keywords",
         "forbidden_keywords",

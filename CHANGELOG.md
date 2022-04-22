@@ -3,7 +3,7 @@
 ## 0.10.4 - 2022-02-12
 
 - Added song cooldown option that prevents a song from being enqueued again for a given time
-- Added buzzer success probability option. Custom sounds can be provided in resources/yes and resources/no.
+- Added buzzer success probability option. Custom sounds can be provided in `resources/sounds/yes` and `resources/sounds/no`.
 - Dropdown icons have descriptions
 - Removed link to /stream from dropdown
 - Added button to send feedback

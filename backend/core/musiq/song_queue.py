@@ -32,7 +32,11 @@ class SongQueue(models.Manager):
 
     @transaction.atomic
     def enqueue(
-        self, metadata: "Metadata", manually_requested: bool, votes=0
+        self,
+        metadata: "Metadata",
+        manually_requested: bool,
+        votes=0,
+        enqueue_first=False,
     ) -> QueuedSong:
         """Creates a new song at the end of the queue and returns it."""
         last = self.last()
@@ -48,6 +52,8 @@ class SongQueue(models.Manager):
             external_url=metadata["external_url"],
             stream_url=metadata["stream_url"],
         )
+        if enqueue_first:
+            self.prioritize(song.id)
         return song
 
     @transaction.atomic

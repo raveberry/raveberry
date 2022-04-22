@@ -116,7 +116,7 @@ class QueueVotingTests(MusicTest):
         self._setup_test_library()
         self._add_local_playlist()
 
-        storage.put("voting_enabled", True)
+        storage.put("interactivity", storage.Interactivity.full_voting)
         self.client.logout()
 
     def tearDown(self) -> None:

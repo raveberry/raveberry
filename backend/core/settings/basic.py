@@ -5,7 +5,7 @@ from __future__ import annotations
 import subprocess
 
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 
 from core import redis, user_manager
 from core.musiq import playback
@@ -34,10 +34,16 @@ def _check_internet() -> None:
 
 
 @control
-def set_voting_enabled(request: WSGIRequest) -> HttpResponse:
+def set_interactivity(request: WSGIRequest) -> HttpResponse:
     """Enables or disables voting based on the given value."""
     value, response = extract_value(request.POST)
-    storage.put("voting_enabled", strtobool(value))
+    if value not in [
+        getattr(storage.Interactivity, attr)
+        for attr in dir(storage.Interactivity)
+        if not attr.startswith("__")
+    ]:
+        return HttpResponseBadRequest("Invalid value")
+    storage.put("interactivity", value)
     return response
 
 
@@ -130,6 +136,14 @@ def set_new_music_only(request: WSGIRequest) -> HttpResponse:
     """Enables or disables the new music only mode based on the given value."""
     value, response = extract_value(request.POST)
     storage.put("new_music_only", strtobool(value))
+    return response
+
+
+@control
+def set_enqueue_first(request: WSGIRequest) -> HttpResponse:
+    """Enables or disables the new music only mode based on the given value."""
+    value, response = extract_value(request.POST)
+    storage.put("enqueue_first", strtobool(value))
     return response
 
 

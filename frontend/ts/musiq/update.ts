@@ -226,19 +226,22 @@ function createQueueItem() {
   const controls = $('<span/>')
       .addClass('queue-info-controls')
       .appendTo(info);
-  if (VOTING_ENABLED) {
+  if (INTERACTIVITY === INTERACTIVITIES.fullVoting ||
+    INTERACTIVITY === INTERACTIVITIES.upvotesOnly) {
     $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-up')
         .addClass('vote-up')
         .appendTo(controls);
+  }
+  if (INTERACTIVITY === INTERACTIVITIES.fullVoting) {
     $('<i/>')
         .addClass('fas')
         .addClass('fa-chevron-circle-down')
         .addClass('vote-down')
         .appendTo(controls);
   }
-  if (!VOTING_ENABLED || CONTROLS_ENABLED) {
+  if (CONTROLS_ENABLED) {
     $('<i/>')
         .addClass('fas')
         .addClass('fa-level-up-alt')
@@ -259,7 +262,8 @@ function createQueueItem() {
  */
 function updateInformation(entry, song) {
   const index = entry.find('.queue-index');
-  if (VOTING_ENABLED) {
+  if (INTERACTIVITY === INTERACTIVITIES.upvotesOnly ||
+    INTERACTIVITY === INTERACTIVITIES.fullVoting) {
     index.text(song.votes);
   } else {
     index.text(song.index);

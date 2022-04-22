@@ -6,7 +6,7 @@ import 'jquery-ui-touch-punch';
 /** Allows reordering of the queue when not voting. */
 export function onReady() {
   // enable drag and drop for the song queue
-  if (VOTING_ENABLED) {
+  if (INTERACTIVITY !== INTERACTIVITIES.fullControl) {
     return;
   }
 

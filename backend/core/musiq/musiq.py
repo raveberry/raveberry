@@ -54,7 +54,7 @@ def get_alarm_metadata() -> "Metadata":
     }
 
 
-def enabled_platforms_py_priority() -> List[str]:
+def enabled_platforms_by_priority() -> List[str]:
     """Returns a list of all available platforms, ordered by priority."""
     # local music can only be searched explicitly by key and thus is last
     return [
@@ -86,7 +86,7 @@ def get_providers(
         return [provider]
 
     providers: List[MusicProvider] = []
-    for platform in enabled_platforms_py_priority():
+    for platform in enabled_platforms_by_priority():
         module = importlib.import_module(f"core.musiq.{platform}")
         if playlist:
             provider_class = getattr(module, f"{platform.title()}PlaylistProvider")
@@ -249,7 +249,10 @@ def state_dict() -> Dict[str, Any]:
     song_queue = []
     total_time = 0
     all_songs = queue.all()
-    if storage.get("voting_enabled"):
+    if storage.get("interactivity") in [
+        storage.Interactivity.upvotes_only,
+        storage.Interactivity.full_voting,
+    ]:
         all_songs = all_songs.order_by("-votes", "index")
     for song in all_songs:
         song_dict = model_to_dict(song)

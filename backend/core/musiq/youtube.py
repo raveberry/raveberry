@@ -156,6 +156,10 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
     def check_cached(self) -> bool:
         if not self.id:
+            # id could not be extracted from query, needs to be serched
+            return False
+        if storage.get("dynamic_embedded_stream"):
+            # youtube streaming links need to be fetched each time the song is requested
             return False
         return os.path.isfile(self.get_path())
 
@@ -245,6 +249,8 @@ class YoutubeSongProvider(SongProvider, Youtube):
 
     def gather_metadata(self) -> bool:
         self.metadata = self.get_local_metadata(self.get_path())
+        if "url" in self.info_dict:
+            self.metadata["stream_url"] = self.info_dict["url"]
         return True
 
     def get_suggestion(self) -> str:

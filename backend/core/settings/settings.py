@@ -84,7 +84,7 @@ def state_dict() -> Dict[str, Any]:
     state = base.state_dict()
 
     settings_state: Dict[str, Any] = {}
-    settings_state["votingEnabled"] = get("voting_enabled")
+    settings_state["interactivity"] = get("interactivity")
     settings_state["ipChecking"] = get("ip_checking")
     settings_state["downvotesToKick"] = get("downvotes_to_kick")
     settings_state["loggingEnabled"] = get("logging_enabled")
@@ -96,6 +96,7 @@ def state_dict() -> Dict[str, Any]:
     settings_state["connectivityHost"] = get("connectivity_host")
     settings_state["hasInternet"] = redis.get("has_internet")
     settings_state["newMusicOnly"] = get("new_music_only")
+    settings_state["enqueueFirst"] = get("enqueue_first")
     settings_state["songCooldown"] = get("song_cooldown")
     settings_state["maxDownloadSize"] = get("max_download_size")
     settings_state["maxPlaylistItems"] = get("max_playlist_items")

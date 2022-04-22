@@ -54,10 +54,17 @@ def context(request: WSGIRequest) -> Dict[str, Any]:
     _increment_counter()
     return {
         "base_urls": urls.base_paths,
-        "voting_enabled": storage.get("voting_enabled"),
+        "interactivity": storage.get("interactivity"),
+        "interactivities": {
+            "fullControl": storage.Interactivity.full_control,
+            "fullVoting": storage.Interactivity.full_voting,
+            "upvotesOnly": storage.Interactivity.upvotes_only,
+            "noControl": storage.Interactivity.no_control,
+        },
         "hashtag": _get_random_hashtag(),
         "demo": conf.DEMO,
-        "controls_enabled": user_manager.has_controls(request.user),
+        "controls_enabled": user_manager.has_controls(request.user)
+        or storage.get("interactivity") == storage.Interactivity.full_control,
         "is_admin": user_manager.is_admin(request.user),
         "apk_link": _get_apk_link(),
         "local_enabled": storage.get("local_enabled"),
@@ -72,6 +79,10 @@ def context(request: WSGIRequest) -> Dict[str, Any]:
 def state_dict() -> Dict[str, Any]:
     """This function constructs a base state dictionary with website wide state.
     Pages sending states extend this state dictionary."""
+    try:
+        default_platform = musiq.enabled_platforms_by_priority()[0]
+    except IndexError:
+        default_platform = ""
     return {
         "partymode": user_manager.partymode_enabled(),
         "users": user_manager.get_count(),
@@ -81,7 +92,7 @@ def state_dict() -> Dict[str, Any]:
         "lightsEnabled": redis.get("lights_active"),
         "playbackError": redis.get("playback_error"),
         "alarm": redis.get("alarm_playing"),
-        "defaultPlatform": musiq.enabled_platforms_py_priority()[0],
+        "defaultPlatform": default_platform,
     }
 
 

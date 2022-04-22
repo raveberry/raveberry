@@ -145,7 +145,10 @@ class Playback:
 
         # select the next song depending on settings
         song: Optional[models.QueuedSong]
-        if storage.get("voting_enabled"):
+        if storage.get("interactivity") in [
+            storage.Interactivity.upvotes_only,
+            storage.Interactivity.full_voting,
+        ]:
             with transaction.atomic():
                 song = queue.confirmed().order_by("-votes", "index")[0]
                 song_id = song.id
@@ -193,7 +196,10 @@ class Playback:
                 url=current_song.external_url
             )
             votes: Optional[int]
-            if storage.get("voting_enabled"):
+            if storage.get("interactivity") in [
+                storage.Interactivity.upvotes_only,
+                storage.Interactivity.full_voting,
+            ]:
                 votes = current_song.votes
             else:
                 votes = None
@@ -285,6 +291,7 @@ class Playback:
                     "stream_url": current_song.stream_url,
                 },
                 False,
+                enqueue_first=False,
             )
             queue_changed.set()
 
