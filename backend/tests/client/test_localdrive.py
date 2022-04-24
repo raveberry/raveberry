@@ -13,43 +13,48 @@ class LocaldriveTests(MusicTest):
     def test_suggested_song(self) -> None:
         suggestion = json.loads(
             self.client.get(
-                reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
+                reverse("offline-suggestions"),
+                {"term": "backbeat", "playlist": "false"},
             ).content
         )[-1]
         self._request_suggestion(suggestion["key"])
         state = self._poll_musiq_state(lambda state: state["musiq"]["currentSong"])
         current_song = state["musiq"]["currentSong"]
-        # which song is enqueued is not deterministic, as they all are named identically…
-        # self.assertEqual(
-        #    current_song["externalUrl"], "local_library/ogg/file_example_OOG_1MG.ogg"
-        # )
-        # self.assertEqual(current_song["duration"], 27)
+        self.assertEqual(
+            current_song["externalUrl"], "local_library/other/Backbeat.mp3"
+        )
+        self.assertAlmostEqual(current_song["duration"], 46, delta=1)
         self.assertEqual(current_song["artist"], "Kevin MacLeod")
-        self.assertEqual(current_song["title"], "Impact Moderato")
+        self.assertEqual(current_song["title"], "Backbeat")
 
     def test_suggested_playlist(self) -> None:
         state = self._add_local_playlist()
         self.assertEqual(
             state["musiq"]["currentSong"]["externalUrl"],
-            "local_library/ogg/file_example_OOG_1MG.ogg",
+            "local_library/other/Backbeat.mp3",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][0]["externalUrl"],
-            "local_library/ogg/file_example_OOG_2MG.ogg",
+            "local_library/other/Forest Frolic Loop.mp3",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][1]["externalUrl"],
-            "local_library/ogg/file_example_OOG_1MG.ogg",
+            "local_library/other/Village Tarantella.mp3",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][2]["externalUrl"],
-            "local_library/ogg/file_example_OOG_2MG.ogg",
+            "local_library/heroes/Gothamlicious.mp3",
+        )
+        self.assertEqual(
+            state["musiq"]["songQueue"][3]["externalUrl"],
+            "local_library/heroes/New Hero in Town.mp3",
         )
 
     def test_autoplay(self) -> None:
         suggestion = json.loads(
             self.client.get(
-                reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
+                reverse("offline-suggestions"),
+                {"term": "backbeat", "playlist": "false"},
             ).content
         )[-1]
         self.client.post(
@@ -76,7 +81,8 @@ class LocaldriveTests(MusicTest):
     def test_radio(self) -> None:
         suggestion = json.loads(
             self.client.get(
-                reverse("offline-suggestions"), {"term": "impact", "playlist": "false"}
+                reverse("offline-suggestions"),
+                {"term": "backbeat", "playlist": "false"},
             ).content
         )[-1]
         self._request_suggestion(suggestion["key"])

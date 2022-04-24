@@ -28,7 +28,6 @@ class YoutubeDLLogger:
         self.test.skipTest(msg)
 
 
-@skip("Youtube Tests fail in CI")
 class YoutubeTests(MusicTest):
     def setUp(self) -> None:
         super().setUp()

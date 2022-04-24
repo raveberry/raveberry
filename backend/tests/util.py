@@ -18,34 +18,33 @@ def admin_login(client: Client) -> None:
 def download_test_library() -> bool:
     test_library = os.path.join(settings.TEST_CACHE_DIR, "test_library")
     pathlib.Path(test_library).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(os.path.join(test_library, "ogg")).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(os.path.join(test_library, "mp3")).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(os.path.join(test_library, "heroes")).mkdir(
+        parents=True, exist_ok=True
+    )
+    pathlib.Path(os.path.join(test_library, "other")).mkdir(parents=True, exist_ok=True)
 
-    ogg_filenames = ["file_example_OOG_1MG.ogg", "file_example_OOG_2MG.ogg"]
-    mp3_filenames = [
-        "file_example_MP3_700KB.mp3",
-        "file_example_MP3_1MG.mp3",
-        "file_example_MP3_2MG.mp3",
-    ]
-    for filename in ogg_filenames:
-        target_filename = os.path.join(os.path.join(test_library, "ogg"), filename)
+    heroes = ["Gothamlicious.mp3", "New Hero in Town.mp3"]
+    other = ["Backbeat.mp3", "Forest Frolic Loop.mp3", "Village Tarantella.mp3"]
+
+    for filename in heroes:
+        target_filename = os.path.join(os.path.join(test_library, "heroes"), filename)
         if os.path.isfile(target_filename):
             continue
         try:
             urllib.request.urlretrieve(
-                "https://file-examples-com.github.io/uploads/2017/11/" + filename,
+                "https://freepd.com/music/" + filename.replace(" ", "%20"),
                 target_filename,
             )
         except urllib.error.URLError:
             return False
 
-    for filename in mp3_filenames:
-        target_filename = os.path.join(os.path.join(test_library, "mp3"), filename)
+    for filename in other:
+        target_filename = os.path.join(os.path.join(test_library, "other"), filename)
         if os.path.isfile(target_filename):
             continue
         try:
             urllib.request.urlretrieve(
-                "https://file-examples-com.github.io/uploads/2017/11/" + filename,
+                "https://freepd.com/music/" + filename.replace(" ", "%20"),
                 target_filename,
             )
         except urllib.error.URLError:
