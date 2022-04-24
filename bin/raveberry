@@ -281,6 +281,10 @@ help        show this help and exit""",
 
     def install(self, config_confirmed=False, use_default_password=False) -> None:
         """Install Raveberry into the system."""
+        if not shutil.which("rsync"):
+            print("Please install rsync")
+            print("\tsudo apt install rsync")
+            sys.exit(1)
         if not shutil.which("ansible-playbook"):
             print("Please install the required dependencies:")
             print("\tpip3 install raveberry[install]")
