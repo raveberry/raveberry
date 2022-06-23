@@ -218,12 +218,18 @@ if not os.path.exists(os.path.join(BASE_DIR, "static/admin")):
     if not DOCKER:
         # create symlink to admin static files if not present
         # In the docker setup, the nginx container includes the static files on build
-        os.symlink(
-            STATIC_ADMIN,
-            os.path.join(BASE_DIR, "static/admin"),
-            target_is_directory=True,
-        )
-        print("linked static admin files")
+        try:
+            os.symlink(
+                STATIC_ADMIN,
+                os.path.join(BASE_DIR, "static/admin"),
+                target_is_directory=True,
+            )
+            print("linked static admin files")
+        except FileExistsError:
+            # Sometimes this happened during installation, even though we check right before,
+            # maybe because of a race condition.
+            # The try/except should prevent crashing the installation.
+            pass
 
 # channels
 ASGI_APPLICATION = "main.routing.APPLICATION"

@@ -223,15 +223,18 @@ def set_feed_cava(request: WSGIRequest) -> None:
 @control
 def list_outputs(_request: WSGIRequest) -> JsonResponse:
     """Returns a list of all sound output devices currently available."""
-    output = subprocess.check_output(
-        "pactl list short sinks".split(),
-        env={"PULSE_SERVER": conf.PULSE_SERVER},
-        universal_newlines=True,
-    )
-    tokenized_lines = [line.split() for line in output.splitlines()]
+    if conf.DOCKER:
+        sinks = ["default", "client"]
+    else:
+        output = subprocess.check_output(
+            "pactl list short sinks".split(),
+            env={"PULSE_SERVER": conf.PULSE_SERVER},
+            universal_newlines=True,
+        )
+        tokenized_lines = [line.split() for line in output.splitlines()]
 
-    sinks = ["fakesink", "icecast", "snapcast"]
-    sinks.extend([sink[1] for sink in tokenized_lines if len(sink) >= 2])
+        sinks = ["fakesink", "client", "icecast", "snapcast"]
+        sinks.extend([sink[1] for sink in tokenized_lines if len(sink) >= 2])
 
     return JsonResponse(sinks, safe=False)
 
@@ -240,7 +243,7 @@ def _set_output(output: str) -> HttpResponse:
     icecast_installed = util.service_installed("icecast2")
     snapcast_installed = util.service_installed("snapserver")
 
-    if output == "fakesink":
+    if output == "fakesink" or output == "client":
         mopidy_output = "fakesink"
     elif output == "icecast":
         if not icecast_installed:
@@ -291,7 +294,10 @@ def set_output(request: WSGIRequest) -> HttpResponse:
 
     storage.put("output", output)
 
-    return _set_output(output)
+    if conf.DOCKER:
+        return HttpResponse()
+    else:
+        return _set_output(output)
 
 
 @control

@@ -1,5 +1,4 @@
 FROM nginx
-RUN rm /etc/nginx/conf.d/default.conf
-COPY docker/nginx.conf /etc/nginx/conf.d
+COPY docker/nginx.template /etc/nginx/templates/default.conf.template
 COPY backend/static /usr/share/nginx/static
 EXPOSE 80

@@ -42,12 +42,8 @@
 			<input type="checkbox" id="hashtags-active">
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">Embed stream</span>
-			<input type="checkbox" id="embed-stream">
-		</li>
-		<li class="list-group-item list-item">
-			<span class="description">Clients stream songs directly instead of using /stream (only Youtube and Jamendo)</span>
-			<input type="checkbox" id="dynamic-embedded-stream">
+			<span class="description">Only privileged users can stream audio</span>
+			<input type="checkbox" id="privileged-stream">
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Online Suggestions</span>
@@ -287,12 +283,12 @@
 		</li>
 	</ul>
 
-	<ul class="list-group install-only">
+	<ul class="list-group">
 		<li class="list-group-item list-header">
 			<i class="fas fa-angle-down settings-collapser collapsed"></i>
 			<span>Sound Output</span>
 		</li>
-		<li class="list-group-item list-item">
+		<li class="list-group-item list-item install-only">
 			<span class="description">Duplicate audio into visualization if available</span>
 			<input type="checkbox" id="feed-cava">
 		</li>
@@ -304,7 +300,7 @@
 			<span class="description">Player status (restarting player/server might fix errors)</span>
 			<span id="player-status"></span>
 		</li>
-		<li class="list-group-item list-item centered">
+		<li class="list-group-item list-item centered install-only">
 			<button class="btn" id="restart-player">Restart Player</button>
 		</li>
 	</ul>

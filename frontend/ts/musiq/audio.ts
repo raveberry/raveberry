@@ -9,7 +9,7 @@ export function syncAudioStream(userClicked = false) {
     return;
   }
   const audio = <any>$('audio')[0];
-  if (DYNAMIC_EMBEDDED_STREAM) {
+  if (CLIENT_STREAMING) {
     if (state.currentSong && !state.currentSong.streamUrl) {
       // a song is playing but it provided no stream url
       $('#stream-control').css('color', 'var(--red)');

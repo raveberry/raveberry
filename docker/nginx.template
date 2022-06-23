@@ -1,5 +1,5 @@
 upstream daphne {
-	server daphne:9000;
+	server ${DAPHNE_HOST}:${DAPHNE_PORT};
 }
 
 server {
@@ -50,8 +50,8 @@ server {
 		# if not available this doesn't keep nginx from booting
 		# https://stackoverflow.com/questions/32845674/setup-nginx-not-to-crash-if-host-in-upstream-is-not-found
 		resolver 127.0.0.11 valid=30s;
-		set $upstream_icecast icecast;
-		proxy_pass http://$upstream_icecast:8000;
+		set $upstream_icecast ${ICECAST_HOST};
+		proxy_pass http://$upstream_icecast:${ICECAST_PORT};
 	}
 
 }

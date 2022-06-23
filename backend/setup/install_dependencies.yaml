@@ -19,6 +19,8 @@
     pkg:
     # python package management
     - python3-pip
+    # copy files to remote
+    - rsync
     # ping
     - inetutils-ping
     # webserver

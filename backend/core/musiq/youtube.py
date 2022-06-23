@@ -158,7 +158,7 @@ class YoutubeSongProvider(SongProvider, Youtube):
         if not self.id:
             # id could not be extracted from query, needs to be serched
             return False
-        if storage.get("dynamic_embedded_stream"):
+        if storage.get("output") == "client":
             # youtube streaming links need to be fetched each time the song is requested
             return False
         return os.path.isfile(self.get_path())
@@ -227,11 +227,11 @@ class YoutubeSongProvider(SongProvider, Youtube):
         return True
 
     def make_available(self) -> bool:
-        if not os.path.isfile(self.get_path()):
-            musiq.update_state()
-            # only download the file if it was not already downloaded
-            return self._download()
-        return True
+        if os.path.isfile(self.get_path()):
+            # don't download the file if it is already cached
+            return True
+        musiq.update_state()
+        return self._download()
 
     def get_path(self) -> str:
         """Return the path in the local filesystem to the cached sound file of this song."""

@@ -253,6 +253,10 @@ class Playback:
                     except (requests.exceptions.ConnectionError, MopidyError):
                         # error during state get, skip until reconnected
                         error = True
+            # use internal timekeeping to decide when a song is over to lower mopidy performance use
+            #current_song = models.CurrentSong.objects.get()
+            #if (timezone.now() - current_song.created).total_seconds() > current_song.duration:
+            #    break
             time.sleep(0.1)
             if redis.get("stop_playback_loop"):
                 # in order to stop the playback thread, return False, making the main loop restart.

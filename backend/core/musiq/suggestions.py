@@ -202,12 +202,28 @@ def _offline_playlist_suggestions(query: str) -> List[SuggestionResult]:
         )
     for playlist in playlist_results:
         archived_playlist = ArchivedPlaylist.objects.get(id=playlist["id"])
+        platform = song_utils.determine_playlist_type(archived_playlist)
         result_dict: SuggestionResult = {
             "key": playlist["id"],
             "value": playlist["title"],
             "counter": playlist["counter"],
-            "type": song_utils.determine_playlist_type(archived_playlist),
+            "type": platform,
         }
+        first_entry = archived_playlist.entries.first()
+        if first_entry and platform == "local":
+            # don't suggest local playlists if their first song is not cached
+            # i.e. not at the expected location
+            try:
+                first_song = ArchivedSong.objects.filter(url=first_entry.url).get()
+                if not first_song.cached:
+                    continue
+            except ArchivedSong.DoesNotExist:
+                continue
+        else:
+            # don't suggest songs if the respective platform is disabled
+            assert platform in ["youtube", "spotify", "soundcloud", "jamendo"]
+            if not storage.get(cast(PlatformEnabled, f"{platform}_enabled")):
+                continue
         results.append(result_dict)
     return results
 

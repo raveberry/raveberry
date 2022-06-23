@@ -196,8 +196,10 @@ def index(request: WSGIRequest) -> HttpResponse:
     context["urls"] = urls.musiq_paths
     context["additional_keywords"] = storage.get("additional_keywords")
     context["forbidden_keywords"] = storage.get("forbidden_keywords")
-    context["embed_stream"] = storage.get("embed_stream")
-    context["dynamic_embedded_stream"] = storage.get("dynamic_embedded_stream")
+    context["client_streaming"] = storage.get("output") == "client"
+    context["show_stream"] = storage.get("output") in ["client", "icecast"] and (
+        not storage.get("privileged_stream") or context["controls_enabled"]
+    )
     for platform in ["youtube", "spotify", "soundcloud", "jamendo"]:
         if (
             storage.get("online_suggestions")

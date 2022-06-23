@@ -131,6 +131,11 @@ services:
     image: raveberry/raveberry-nginx
     ports:
       - "80:80"
+    environment:
+      - DAPHNE_HOST
+      - DAPHNE_PORT
+      - ICECAST_HOST
+      - ICECAST_PORT
     depends_on:
       - daphne
     restart: always

@@ -80,18 +80,10 @@ def set_hashtags_active(request: WSGIRequest) -> HttpResponse:
 
 
 @control
-def set_embed_stream(request: WSGIRequest) -> HttpResponse:
+def set_privileged_stream(request: WSGIRequest) -> HttpResponse:
     """Enables or disables logging of requests and play logs based on the given value."""
     value, response = extract_value(request.POST)
-    storage.put("embed_stream", strtobool(value))
-    return response
-
-
-@control
-def set_dynamic_embedded_stream(request: WSGIRequest) -> HttpResponse:
-    """Enables or disables dynamic streaming based on the given value."""
-    value, response = extract_value(request.POST)
-    storage.put("dynamic_embedded_stream", strtobool(value))
+    storage.put("privileged_stream", strtobool(value))
     return response
 
 

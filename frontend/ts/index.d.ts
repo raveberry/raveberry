@@ -13,7 +13,7 @@ declare let CONTROLS_ENABLED: boolean;
 
 declare let ADDITIONAL_KEYWORDS: string;
 declare let FORBIDDEN_KEYWORDS: string;
-declare let DYNAMIC_EMBEDDED_STREAM: boolean;
+declare let CLIENT_STREAMING: boolean;
 declare let YOUTUBE_SUGGESTIONS: number;
 declare let SPOTIFY_SUGGESTIONS: number;
 declare let SOUNDCLOUD_SUGGESTIONS: number;
