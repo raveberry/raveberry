@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.6 - 2022-06-23
+
+- Docker setup works with arbitrary container names
+- Simplified client streaming settings
+- Client streaming configurable from docker setup
+- Playlists are not suggested if the platform is not available
+- Fixed apt dependencies during install
+- Don't crash the install when admin files are already present
+
 ## 0.10.5 - 2022-04-22
 
 - Different Levels of interactivity can be set in the settings: Full Control, Full Voting, Upvotes only, No Control
