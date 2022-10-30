@@ -138,6 +138,9 @@ class JamendoSongProvider(SongProvider, Jamendo):
                 self.error = f"id {self.id} not found"
                 return False
         assert result
+        if not result["audiodownload_allowed"]:
+            self.error = "streaming not allowed for this song"
+            return False
         self.metadata["artist"] = result["artist_name"]
         self.metadata["title"] = result["name"]
         self.metadata["duration"] = result["duration"]
