@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.7 - 2022-10-30
+
+- Check whether Jamendo songs are streamable before enqueuing them
+
 ## 0.10.6 - 2022-06-23
 
 - Docker setup works with arbitrary container names
