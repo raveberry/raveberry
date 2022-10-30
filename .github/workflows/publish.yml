@@ -104,6 +104,16 @@ jobs:
         run: |
           sudo rm -rf /usr/lib/python3/dist-packages/yaml
           sudo rm -rf /usr/lib/python3/dist-packages/PyYAML-*
+      # https://stackoverflow.com/questions/73830524/attributeerror-module-lib-has-no-attribute-x509-v-flag-cb-issuer-check
+      - name: Fix preinstalled apt dependencies
+        run: |
+          sudo apt-get --reinstall install python-apt
+          sudo apt-get --reinstall install apt-transport-https
+          sudo apt-get install build-essential libssl-dev libffi-dev python-dev
+      - name: Self update pip
+        run: sudo pip install -U pip
+      - name: Fix preinstalled pip dependencies
+        run: sudo pip install pyopenssl --upgrade
       - run: sudo systemctl start postgresql
       - run: bin/raveberry --confirm-config --use-default-password-i-promise-ill-change-it install
       - name: Check if server is up
