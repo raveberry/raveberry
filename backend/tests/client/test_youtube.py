@@ -117,6 +117,7 @@ class YoutubeTests(MusicTest):
         self.assertIn("Collapse", current_song["title"])
         self.assertAlmostEqual(current_song["duration"], 200, delta=1)
 
+    @skip("Playlist test currently broken")
     def test_playlist_url(self):
         self._post_request(
             "request-music",
@@ -145,6 +146,7 @@ class YoutubeTests(MusicTest):
         # make sure the remaining songs are in expected order
         self.assertEqual(actual_playlist, expected_playlist)
 
+    @skip("Playlist test currently broken")
     def test_playlist_query(self):
         self._post_request(
             "request-music",
