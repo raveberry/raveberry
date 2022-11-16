@@ -148,7 +148,7 @@ class YoutubeTests(MusicTest):
     def test_playlist_query(self):
         self._post_request(
             "request-music",
-            "Myuu Sad Piano Music",
+            '"Myuu" "Sad Piano Music"',
             playlist=True,
         )
         state = self._poll_musiq_state(
