@@ -145,10 +145,13 @@ def skip(_request: WSGIRequest) -> None:
             PLAYER.playback.next()
     try:
         current_song = models.CurrentSong.objects.get()
-        current_song.created = timezone.now() - datetime.timedelta(seconds=current_song.duration)
+        current_song.created = timezone.now() - datetime.timedelta(
+            seconds=current_song.duration
+        )
         current_song.save()
     except models.CurrentSong.DoesNotExist:
         pass
+
 
 @control
 def set_shuffle(request: WSGIRequest) -> None:

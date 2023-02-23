@@ -34,7 +34,6 @@ queue = models.QueuedSong.objects
 # this lock is released when restarting mopidy (which happens in another Thread)
 player_lock = redis.connection.lock("player_lock", thread_local=False)
 
-
 def start() -> None:
     """Initializes this module by starting the playback and buzzer loop."""
     _handle_buzzer.delay()
@@ -254,8 +253,8 @@ class Playback:
                         # error during state get, skip until reconnected
                         error = True
             # use internal timekeeping to decide when a song is over to lower mopidy performance use
-            #current_song = models.CurrentSong.objects.get()
-            #if (timezone.now() - current_song.created).total_seconds() > current_song.duration:
+            # current_song = models.CurrentSong.objects.get()
+            # if (timezone.now() - current_song.created).total_seconds() > current_song.duration:
             #    break
             time.sleep(0.1)
             if redis.get("stop_playback_loop"):

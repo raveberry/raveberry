@@ -1,4 +1,4 @@
-[MASTER]
+[MAIN]
 disable=
 	# triggers for Popen. Since processes are used across different functions,
 	# using contextmanagers is not possible
@@ -7,14 +7,11 @@ disable=
 	import-error,
 	# used for conditional importing and sometimes for resolving circular dependencies
     import-outside-toplevel,
-	# false positives in base classes and mocks
-	no-self-use,
 	# sometimes there needs to be a class, even if it's just for one method
 	too-few-public-methods,
 	# isinstance(False, int) returns True, because bool subclasses int.
 	# isinstance is not a valid replacement for type() is bool
 	unidiomatic-typecheck,
-module=backend
 init-hook="import sys;sys.path.insert(0, 'backend')"
 load-plugins=pylint_django
 django-settings-module=backend.main.settings
