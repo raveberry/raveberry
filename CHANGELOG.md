@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.11.0 - 2023-12-09
+
+- New Spotify feature: device playback
+- Any logged in Spotify app can be used as playback device
+- Local playback is still possible, can switch between the two
+- Credentials are checked for both local and device mode
+- Added documentation on how to provide credentials
+- Abstraction for two different players: mopidy and spotify
+
+- Youtube Music is used for searches
+- music.youtube.com links are parsed correctly
+- Client streaming for Youtube did not work reliably, was removed
+- Sound outputs have more descriptive names and are grouped
+- Docker setup also logs low severity messages
+- Too frequent alarms are prevented
+- Storing dark/light theme preferences does not clash with django's
+
+
 ## 0.10.7 - 2022-10-30
 
 - Check whether Jamendo songs are streamable before enqueuing them
