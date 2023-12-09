@@ -15,14 +15,12 @@ from django.http import HttpResponseForbidden
 from django.http.response import HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from mopidyapi import MopidyAPI
 
 from core import models, redis, user_manager
-from core.musiq import musiq, playback
+from core.musiq import musiq, playback, player
 from core.settings import storage
 from core.util import extract_value
 
-PLAYER = MopidyAPI(host=conf.MOPIDY_HOST, port=conf.MOPIDY_PORT)
 SEEK_DISTANCE = 10
 
 
@@ -56,9 +54,7 @@ def start() -> None:
 @control
 def restart(_request: WSGIRequest) -> None:
     """Restarts the current song from the beginning."""
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            PLAYER.playback.seek(0)
+    player.restart()
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.created = timezone.now()
@@ -70,10 +66,7 @@ def restart(_request: WSGIRequest) -> None:
 @control
 def seek_backward(_request: WSGIRequest) -> None:
     """Jumps back in the current song."""
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            current_position = PLAYER.playback.get_time_position()
-            PLAYER.playback.seek(current_position - SEEK_DISTANCE * 1000)
+    player.seek_backward(SEEK_DISTANCE)
     try:
         current_song = models.CurrentSong.objects.get()
         now = timezone.now()
@@ -88,9 +81,7 @@ def seek_backward(_request: WSGIRequest) -> None:
 def play(_request: WSGIRequest) -> None:
     """Resumes the current song if it is paused.
     No-op if already playing."""
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            PLAYER.playback.play()
+    player.play()
     try:
         # move the creation timestamp into the future for the duration of the pause
         # this ensures that the progress calculation (starting from created) is correct
@@ -103,15 +94,11 @@ def play(_request: WSGIRequest) -> None:
     except models.CurrentSong.DoesNotExist:
         pass
     storage.put("paused", False)
+    redis.put("paused", False)
 
 
-@control
-def pause(_request: WSGIRequest) -> None:
-    """Pauses the current song if it is playing.
-    No-op if already paused."""
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            PLAYER.playback.pause()
+def _pause() -> None:
+    player.pause()
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.last_paused = timezone.now()
@@ -119,15 +106,20 @@ def pause(_request: WSGIRequest) -> None:
     except models.CurrentSong.DoesNotExist:
         pass
     storage.put("paused", True)
+    redis.put("paused", True)
+
+
+@control
+def pause(_request: WSGIRequest) -> None:
+    """Pauses the current song if it is playing.
+    No-op if already paused."""
+    _pause()
 
 
 @control
 def seek_forward(_request: WSGIRequest) -> None:
     """Jumps forward in the current song."""
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            current_position = PLAYER.playback.get_time_position()
-            PLAYER.playback.seek(current_position + SEEK_DISTANCE * 1000)
+    player.seek_forward(SEEK_DISTANCE)
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.created -= datetime.timedelta(seconds=SEEK_DISTANCE)
@@ -136,13 +128,9 @@ def seek_forward(_request: WSGIRequest) -> None:
         pass
 
 
-@control
-def skip(_request: WSGIRequest) -> None:
-    """Skips the current song and continues with the next one."""
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            redis.put("backup_playing", False)
-            PLAYER.playback.next()
+def _skip() -> None:
+    player.skip()
+    redis.put("backup_playing", False)
     try:
         current_song = models.CurrentSong.objects.get()
         current_song.created = timezone.now() - datetime.timedelta(
@@ -151,6 +139,12 @@ def skip(_request: WSGIRequest) -> None:
         current_song.save()
     except models.CurrentSong.DoesNotExist:
         pass
+
+
+@control
+def skip(_request: WSGIRequest) -> None:
+    """Skips the current song and continues with the next one."""
+    _skip()
 
 
 @control
@@ -191,10 +185,9 @@ def _set_volume(volume) -> None:
         )
     except (FileNotFoundError, subprocess.CalledProcessError):
         # pulse is not installed or there is no server running.
-        # change mopidy's volume
-        with playback.mopidy_command() as allowed:
-            if allowed:
-                PLAYER.mixer.set_volume(round(volume * 100))
+        # TODO: why does this hang with spotipy?
+        # it can't change the volume on the phone, but it should simply raise an error which gets catched and then move on
+        player.set_volume(volume)
 
 
 @control
@@ -221,10 +214,8 @@ def remove_all(request: WSGIRequest) -> HttpResponse:
     """Empties the queue. Only admin is permitted to do this."""
     if not user_manager.is_admin(request.user):
         return HttpResponseForbidden()
-    with playback.mopidy_command() as allowed:
-        if allowed:
-            with transaction.atomic():
-                playback.queue.all().delete()
+    with transaction.atomic():
+        playback.queue.all().delete()
     return HttpResponse()
 
 
@@ -313,9 +304,7 @@ def vote(request: WSGIRequest) -> HttpResponse:
                 "downvotes_to_kick"
             )
         ):
-            with playback.mopidy_command() as allowed:
-                if allowed:
-                    PLAYER.playback.next()
+            _skip()
     except models.CurrentSong.DoesNotExist:
         pass
 

@@ -2,51 +2,113 @@
 
 from __future__ import annotations
 
+import json
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
+import spotipy
 from django.http.response import HttpResponse
+from spotipy import SpotifyOAuth, SpotifyStateError
 
 from core.musiq import song_utils
 from core.musiq.playlist_provider import PlaylistProvider
 from core.musiq.song_provider import SongProvider
 from core.musiq.spotify_web import OAuthClient
 from core.settings import storage
+from core import redis
+
+
+class staticproperty(property):
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()
+
+
+def _get_auth_response_storage(self, open_browser=False):
+    response = storage.get("spotify_authorized_url")
+    state, code = SpotifyOAuth.parse_auth_response_url(response)
+    if self.state is not None and self.state != state:
+        raise SpotifyStateError(self.state, state)
+    return code
+
+
+class DatabaseCacheHandler(spotipy.CacheHandler):
+    """A cache handler for spotipy OAuth that stores the token info in the database."""
+
+    def get_cached_token(self):
+        token_info = storage.get("spotipy_token_info")
+        if not token_info:
+            return None
+        return json.loads(token_info)
+
+    def save_token_to_cache(self, token_info):
+        storage.put("spotipy_token_info", json.dumps(token_info))
 
 
 class Spotify:
     """This class contains code for both the song and playlist provider"""
 
-    _web_client: OAuthClient = None  # type: ignore[assignment]
+    _device_api = None  # type: ignore[assignment]
+    _mopidy_api = None  # type: ignore[assignment]
 
-    @property
-    def web_client(self) -> OAuthClient:
-        """Returns the web client if it was already created.
+    @staticmethod
+    def device_api():
+        client_id = storage.get(key="spotify_device_client_id")
+        client_secret = storage.get(key="spotify_device_client_secret")
+        redirect_uri = storage.get(key="spotify_redirect_uri")
+        scope = "user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative user-library-read"
+
+        auth_manager = SpotifyOAuth(
+            client_id=client_id,
+            client_secret=client_secret,
+            redirect_uri=redirect_uri,
+            scope=scope,
+            cache_handler=DatabaseCacheHandler(),
+        )
+        auth_manager._get_auth_response_interactive = (
+            _get_auth_response_storage.__get__(auth_manager)
+        )
+
+        return spotipy.Spotify(auth_manager=auth_manager)
+
+    @staticmethod
+    def mopidy_api():
+        client_id = storage.get(key="spotify_mopidy_client_id")
+        client_secret = storage.get(key="spotify_mopidy_client_secret")
+        return OAuthClient(
+            base_url="https://api.spotify.com/v1",
+            refresh_url="https://auth.mopidy.com/spotify/token",
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+
+    @staticmethod
+    def create_device_api():
+        Spotify._device_api = Spotify.device_api()
+
+    @staticmethod
+    def create_mopidy_api():
+        Spotify._mopidy_api = Spotify.mopidy_api()
+
+    @staticproperty
+    def api(cls):
+        """Returns the spotify client if it was already created.
         If not, it is created using the spotify credentials from the database."""
-        if Spotify._web_client is None:
-            client_id = storage.get(key="spotify_client_id")
-            client_secret = storage.get(key="spotify_client_secret")
-            Spotify._web_client = OAuthClient(
-                base_url="https://api.spotify.com/v1",
-                refresh_url="https://auth.mopidy.com/spotify/token",
-                client_id=client_id,
-                client_secret=client_secret,
-            )
-        return Spotify._web_client
+        if redis.get("active_player") == "spotify":
+            if cls._device_api is None:
+                cls.create_device_api()
+            return cls._device_api
+        elif redis.get("active_player") == "mopidy":
+            if cls._mopidy_api is None:
+                cls.create_mopidy_api()
+            return cls._mopidy_api
 
     def get_search_suggestions(
         self, query: str, playlist: bool
     ) -> List[Tuple[str, str]]:
         """Returns a list of suggested items for the given query.
         Returns playlists if :param playlist: is True, songs otherwise."""
-        result = self.web_client.get(
-            "search",
-            params={
-                "q": query,
-                "limit": "20",
-                "market": "from_token",
-                "type": "playlist" if playlist else "track",
-            },
+        result = self.api.search(
+            query, limit=20, type="playlist" if playlist else "track"
         )
 
         if playlist:
@@ -106,15 +168,7 @@ class SpotifySongProvider(SongProvider, Spotify):
     def gather_metadata(self) -> bool:
         """Fetches metadata for this song's uri from Spotify."""
         if not self.id:
-            results = self.web_client.get(
-                "search",
-                params={
-                    "q": self.query,
-                    "limit": "50",
-                    "market": "from_token",
-                    "type": "track",
-                },
-            )
+            results = self.api.search(self.query, type="track")
 
             result = self.first_unfiltered_item(
                 results["tracks"]["items"],
@@ -124,7 +178,7 @@ class SpotifySongProvider(SongProvider, Spotify):
                 return False
             self.id = result["id"]
         else:
-            result = self.web_client.get(f"tracks/{self.id}", params={"limit": "1"})
+            result = self.api.track(self.id)
         assert result
         try:
             self.metadata["artist"] = result["artists"][0]["name"]
@@ -150,10 +204,7 @@ class SpotifySongProvider(SongProvider, Spotify):
         return "https://open.spotify.com/track/" + self.id
 
     def get_suggestion(self) -> str:
-        result = self.web_client.get(
-            "recommendations",
-            params={"limit": "1", "market": "from_token", "seed_tracks": self.id},
-        )
+        result = self.api.recommendations(limit=1, seed_tracks=[self.id])
 
         try:
             external_url = result["tracks"][0]["external_urls"]["spotify"]
@@ -164,13 +215,8 @@ class SpotifySongProvider(SongProvider, Spotify):
         return external_url
 
     def request_radio(self, session_key: str) -> HttpResponse:
-        result = self.web_client.get(
-            "recommendations",
-            params={
-                "limit": storage.get("max_playlist_items"),
-                "market": "from_token",
-                "seed_tracks": self.id,
-            },
+        result = self.api.recommendations(
+            limit=storage.get("max_playlist_items"), seed_tracks=[self.id]
         )
 
         for track in result["tracks"]:
@@ -202,38 +248,30 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
         # what kind of collection of songs they are.
         # This is considered acceptable, generating external urls from playlist is never required
         # and finding cached lists still works as extracted ids still match
-        self._spotify_endpoint = "playlists"
+        self._spotify_type = "playlist"
         if query:
             if query.startswith("https://open.spotify.com/playlist/"):
-                self._spotify_endpoint = "playlists"
+                self._spotify_type = "playlist"
             elif query.startswith("https://open.spotify.com/artist/"):
-                self._spotify_endpoint = "artists"
+                self._spotify_type = "artist"
             elif query.startswith("https://open.spotify.com/album/"):
-                self._spotify_endpoint = "albums"
+                self._spotify_type = "album"
             super().__init__(query, key)
 
     def search_id(self) -> Optional[str]:
-        result = self.web_client.get(
-            "search",
-            params={
-                "q": self.query,
-                "limit": "1",
-                "market": "from_token",
-                "type": "artist,album,playlist",
-            },
-        )
+        result = self.api.search(self.query, limit=1, type="album,artist,playlist")
 
         try:
-            list_info = result["artists"]["items"][0]
-            self._spotify_endpoint = "artists"
+            list_info = result["albums"]["items"][0]
+            self._spotify_type = "album"
         except IndexError:
             try:
-                list_info = result["albums"]["items"][0]
-                self._spotify_endpoint = "albums"
+                list_info = result["artists"]["items"][0]
+                self._spotify_type = "artist"
             except IndexError:
                 try:
                     list_info = result["playlists"]["items"][0]
-                    self._spotify_endpoint = "playlists"
+                    self._spotify_type = "playlist"
                 except IndexError:
                     self.error = "No playlist found"
                     return None
@@ -245,45 +283,37 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
 
     def fetch_metadata(self) -> bool:
         if self.title is None:
-            result = self.web_client.get(
-                f"{self._spotify_endpoint}/{self.id}", params={"fields": "name"}
-            )
+            if self._spotify_type == "playlist":
+                result = self.api.playlist(self.id, fields="name")
+            elif self._spotify_type == "artist":
+                result = self.api.artist(self.id, fields="name")
+            elif self._spotify_type == "album":
+                result = self.api.album(self.id, fields="name")
+            else:
+                assert False
             self.title = result["name"]
 
         # download at most 50 tracks for a playlist (spotifys maximum)
         # for more tracks paging would need to be implemented
-        if self._spotify_endpoint == "playlists":
-            result = self.web_client.get(
-                f"playlists/{self.id}/tracks",
-                params={
-                    "fields": "items(track(external_urls(spotify)))",
-                    "limit": "50",
-                    "market": "from_token",
-                },
+        if self._spotify_type == "playlist":
+            result = self.api.playlist_tracks(
+                self.id, fields="items(track(external_urls(spotify)))"
             )
             track_infos = result["items"]
             for track_info in track_infos:
-                self.urls.append(track_info["track"]["external_urls"]["spotify"])
-        elif self._spotify_endpoint == "artists":
-            result = self.web_client.get(
-                f"artists/{self.id}/top-tracks",
-                params={
-                    "fields": "tracks(external_urls(spotify))",
-                    "limit": "50",
-                    "market": "from_token",
-                },
-            )
+                try:
+                    self.urls.append(track_info["track"]["external_urls"]["spotify"])
+                except KeyError:
+                    # skip songs that have no urls
+                    pass
+        elif self._spotify_type == "artist":
+            result = self.api.artist_top_tracks(self.id)
             tracks = result["tracks"]
             for track in tracks:
                 self.urls.append(track["external_urls"]["spotify"])
-        elif self._spotify_endpoint == "albums":
-            result = self.web_client.get(
-                f"albums/{self.id}/tracks",
-                params={
-                    "fields": "items(external_urls(spotify))",
-                    "limit": "50",
-                    "market": "from_token",
-                },
+        elif self._spotify_type == "album":
+            result = self.api.album_tracks(
+                self.id, fields="items(external_urls(spotify))"
             )
             tracks = result["items"]
             for track in tracks:

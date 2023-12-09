@@ -20,6 +20,7 @@ class Event:
 def get(
     key: Literal[
         "playing",
+        "paused",
         "playback_error",
         "stop_playback_loop",
         "alarm_playing",
@@ -42,10 +43,10 @@ def get(
 def get(key: Literal["active_requests"]) -> int: ...
 @overload
 def get(
-    key: Literal["alarm_duration", "current_fps", "last_user_count_update"]
+    key: Literal["alarm_duration", "last_buzzer", "current_fps", "last_user_count_update"]
 ) -> float: ...
 @overload
-def get(key: Literal["library_scan_progress"]) -> str: ...
+def get(key: Literal["active_player", "library_scan_progress"]) -> str: ...
 @overload
 def get(key: Literal["led_programs", "screen_programs"]) -> List[str]: ...
 @overload
@@ -60,6 +61,7 @@ def get(key: Literal["last_requests"]) -> Dict[str, float]: ...
 def put(
     key: Literal[
         "playing",
+        "paused",
         "playback_error",
         "stop_playback_loop",
         "alarm_playing",
@@ -83,11 +85,11 @@ def put(
 def put(key: Literal["active_requests"], value: int) -> None: ...
 @overload
 def put(
-    key: Literal["alarm_duration", "current_fps", "last_user_count_update"],
+    key: Literal["alarm_duration", "last_buzzer", "current_fps", "last_user_count_update"],
     value: float,
 ) -> None: ...
 @overload
-def put(key: Literal["library_scan_progress"], value: str) -> None: ...
+def put(key: Literal["active_player", "library_scan_progress"], value: str) -> None: ...
 @overload
 def put(key: Literal["led_programs", "screen_programs"], value: List[str]) -> None: ...
 @overload

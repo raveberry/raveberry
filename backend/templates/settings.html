@@ -8,6 +8,8 @@
 		'{{ path.name }}': '/ajax/settings/{{ path.pattern }}',
 	{% endfor %}
 	};
+	SPOTIFY_SCOPE = '{{ spotify_scope }}';
+	SPOTIFY_OAUTH_AUTHORIZE_URL = '{{ spotify_oauth_authorize_url }}';
 {% endblock %}
 
 {% block content %}
@@ -169,28 +171,56 @@
 			<input id="spotify-suggestions"/>
 		</li>
 		<li class="list-group-item list-item">
+			Info on how to get credentials
+			<a href="https://github.com/raveberry/raveberry/blob/master/docs/spotify.md" target="_blank" rel="noopener">Readme</a>
+		</li>
+		<li class="list-group-item list-item">
+			<b>Credentials for device playback</b>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Client ID</span>
+			<input id="spotify-device-client-id"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Client Secret</span>
+			<input id="spotify-device-client-secret"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Redirect Uri</span>
+			<input id="spotify-redirect-uri"/>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Open this:</span>
+			<div id="spotify-authorize-url"></div>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Auth Url</span>
+			<input id="spotify-authorized-url"/>
+		</li>
+		<li class="list-group-item list-item centered">
+			<button class="btn" id="set-spotify-device-credentials">Set Credentials</button>
+		</li>
+		<li class="list-group-item list-item">
+			<b>Credentials for local playback</b>
+		</li>
+		<li class="list-group-item list-item">
 			<span class="description">Username</span>
 			<input id="spotify-username"/>
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Password</span>
-			<input type="password" id="spotify-password"/>
+			<input id="spotify-password"/>
 		</li>
 		<li class="list-group-item list-item">
-			<span class="description">
-				Client ID
-				<a href="https://mopidy.com/ext/spotify/#authentication" data-toggle="tooltip" target="_blank" rel="noopener" title="Click here to get the credentials">
-					<i class="fas fa-question-circle"></i>
-				</a>
-			</span>
-			<input id="spotify-client-id"/>
+			<span class="description">Client ID</span>
+			<input id="spotify-mopidy-client-id"/>
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Client Secret</span>
-			<input type="password" id="spotify-client-secret"/>
+			<input id="spotify-mopidy-client-secret"/>
 		</li>
 		<li class="list-group-item list-item centered">
-			<button class="btn" id="set-spotify-credentials">Set Credentials</button>
+			<button class="btn" id="set-spotify-mopidy-credentials">Set Credentials</button>
 		</li>
 	</ul>
 
@@ -294,7 +324,11 @@
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Output</span>
-			<input id="output"/>
+			<select class="form-control" id="output">
+			</select>
+		</li>
+		<li class="list-group-item list-item">
+			Make sure to disable all other platforms when choosing a Spotify device for playback.
 		</li>
 		<li class="list-group-item list-item">
 			<span class="description">Player status (restarting player/server might fix errors)</span>

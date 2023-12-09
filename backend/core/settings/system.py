@@ -16,7 +16,7 @@ from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest
 
-from core.musiq.playback import player_lock
+from core.musiq.mopidy_player import mopidy_lock
 from core.settings import storage
 from core.settings.settings import control
 
@@ -25,7 +25,7 @@ def restart_mopidy() -> None:
     """Restarts the mopidy systemd service."""
     subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
     try:
-        player_lock.release()
+        mopidy_lock.release()
     except redis.exceptions.LockError:
         # the lock was already released
         pass
@@ -46,8 +46,8 @@ def update_mopidy_config(output: str) -> None:
 
     spotify_username = storage.get("spotify_username")
     spotify_password = storage.get("spotify_password")
-    spotify_client_id = storage.get("spotify_client_id")
-    spotify_client_secret = storage.get("spotify_client_secret")
+    spotify_client_id = storage.get("spotify_mopidy_client_id")
+    spotify_client_secret = storage.get("spotify_mopidy_client_secret")
     soundcloud_auth_token = storage.get("soundcloud_auth_token")
     jamendo_client_id = storage.get("jamendo_client_id")
 

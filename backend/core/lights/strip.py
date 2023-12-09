@@ -17,7 +17,8 @@ class Strip(Device):
             from board import SCL, SDA
             import busio
             from adafruit_pca9685 import PCA9685
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, ImportError):
+            # There is a problem with board.py installs, catch it with the ImportError
             return
 
         try:

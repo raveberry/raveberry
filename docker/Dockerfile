@@ -2,7 +2,7 @@ FROM raveberry/raveberry-dependencies
 
 WORKDIR /opt/raveberry
 
-RUN pip install -U -r /youtube.txt &&\
+RUN pip install -U -r /youtube.txt -r /spotify.txt -r /soundcloud.txt &&\
 	rm -rf ~/.cache/pip &&\
 	mkdir logs
 

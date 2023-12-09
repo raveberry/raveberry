@@ -74,7 +74,7 @@
   args:
     stdin: |
       from core.models import Setting
-      for key in ['spotify_username', 'spotify_password', 'spotify_client_id', 'spotify_client_secret', 'soundcloud_auth_token', 'jamendo_client_id']:
+      for key in ['spotify_username', 'spotify_password', 'spotify_mopidy_client_id', 'spotify_mopidy_client_secret', 'soundcloud_auth_token', 'jamendo_client_id']:
         try:
           print(Setting.objects.get(key=key).value)
         except Setting.DoesNotExist:

@@ -5,6 +5,8 @@
 -r frontend_build.txt
 -r frontend_test.txt
 -r backend_test.txt
+-r youtube.txt
+-r spotify.txt
 black
 django-stubs
 mypy

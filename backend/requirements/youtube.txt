@@ -1,1 +1,2 @@
 yt-dlp>=2021.12.1
+ytmusicapi>=1.3.2

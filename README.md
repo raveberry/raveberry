@@ -1,6 +1,6 @@
 # Raveberry
 
-[![Build Status](https://img.shields.io/github/workflow/status/raveberry/raveberry/Publish%20Raveberry)](https://github.com/raveberry/raveberry/actions/workflows/publish.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/raveberry/raveberry/publish.yml)](https://github.com/raveberry/raveberry/actions/workflows/publish.yml)
 [![PyPI](https://img.shields.io/pypi/v/raveberry)](https://pypi.org/project/raveberry/)
 [![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/raveberry?style=social)](https://www.reddit.com/r/raveberry/)
 [![Discord](https://img.shields.io/badge/-discord?style=social&logo=discord&label=Chat%20on%20Discord)](https://discord.gg/dy7Jxvjj9H)
@@ -197,10 +197,13 @@ Red text means that Raveberry can't communicate with the player anymore. Either 
 
 To fix this, first restart the player (`/settings` in "Sound Output") and wait a few seconds. If it still does not work, restart the server (`/settings` at the bottom).
 
-### How do I enter my Spotify credentials?
-To enable Spotify support, install Raveberry with `spotify: true` in `raveberry.yaml`.
-When Raveberry is up and running, go to `/settings` and enter your credentials in the `Spotify` section.
-Create the required client ID and client secret [here](https://mopidy.com/ext/spotify/#authentication).
+### How do I use Spotify?
+To enable Spotify support, install Raveberry with `spotify: true` in `raveberry.yaml`. Read how to enter your credentials [here](docs/spotify.md).
+
+### During installation I get `error: externally-managed-environment`
+Solution: `sudo mv /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3.11/EXTERNALLY-MANAGED.old`  
+With debian bookworm, system-wide installation of python packages is strongly discouraged. While this is a noble approach, Raveberry is very integrated and needs to be installed system-wide. An installation in a virtualenv will not work for the full install.  
+Note that this will allow system-wide installation for all packages, not only `raveberry`.
 
 ### I can't log in, it always says "Please reload"
 You ran into CSRF protection. This happens when you host Raveberry behind a proxy and the protocols don't match up, e.g. `http://demo.raveberry.party` vs `https://demo.raveberry.party`.
@@ -243,7 +246,7 @@ Now you can start the server with `raveberry run`, login with admin:admin at `lo
 ## Special Thanks
 
 * All the awesome people that created [Mopidy](https://mopidy.com/) for this incredibly versatile music player.
-    * Especially [Mopidy-Spotify](https://github.com/mopidy/mopidy-spotify), without which I could not have added Spotify support.
+    * Especially [Mopidy-Spotify](https://github.com/mopidy/mopidy-spotify) for their continued efforts to keep Spotify playback possible.
 * [django](https://www.djangoproject.com/) for providing one of the best documentations I have ever encountered.
 * [@karlstav](https://github.com/karlstav) for his audio visualizer [`cava`](https://github.com/karlstav/cava).
 * [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) for greatly simplifying the interaction with YouTube.

@@ -25,10 +25,10 @@ class SpotifyTests(MusicTest):
             key="spotify_password", defaults={"value": password}
         )
         Setting.objects.update_or_create(
-            key="spotify_client_id", defaults={"value": client_id}
+            key="spotify_mopidy_client_id", defaults={"value": client_id}
         )
         Setting.objects.update_or_create(
-            key="spotify_client_secret", defaults={"value": client_secret}
+            key="spotify_mopidy_client_secret", defaults={"value": client_secret}
         )
 
         self.client.post(reverse("set-spotify-enabled"), {"value": "true"})
@@ -67,7 +67,7 @@ class SpotifyTests(MusicTest):
         )
         self.assertEqual(current_song["artist"], "Myuu")
         self.assertEqual(current_song["title"], "Collapse")
-        self.assertAlmostEqual(current_song["duration"], 262, delta=1)
+        self.assertAlmostEqual(current_song["duration"], 200, delta=1)
 
     def test_playlist_url(self) -> None:
         self.client.post(
@@ -86,30 +86,30 @@ class SpotifyTests(MusicTest):
         )
         self.assertEqual(
             state["musiq"]["currentSong"]["externalUrl"],
-            "https://open.spotify.com/track/3uYgQ819EExqKhxr2ILFok?si=4d9cb47691b040d8",
+            "https://open.spotify.com/track/3uYgQ819EExqKhxr2ILFok",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][0]["externalUrl"],
-            "https://open.spotify.com/track/43TuwMfK9h8b0rtbkdWCYJ?si=e9b3691d30a04d63",
+            "https://open.spotify.com/track/43TuwMfK9h8b0rtbkdWCYJ",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][1]["externalUrl"],
-            "https://open.spotify.com/track/7JsBddAbtHCjdEtMobVfyL?si=769700894b15418d",
+            "https://open.spotify.com/track/7JsBddAbtHCjdEtMobVfyL",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][2]["externalUrl"],
-            "https://open.spotify.com/track/01Rk5ZPcMeQLxBEAcxZMju?si=4d05965e1acb4e03",
+            "https://open.spotify.com/track/01Rk5ZPcMeQLxBEAcxZMju",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][3]["externalUrl"],
-            "https://open.spotify.com/track/7y6D7PitToNpVycQ2WuUPi?si=f4de2f2dcb584701",
+            "https://open.spotify.com/track/7y6D7PitToNpVycQ2WuUPi",
         )
 
     def test_playlist_query(self):
         self.client.post(
             reverse("request-music"),
             {
-                "query": "Myuu The Dark Piano, Vol. 1 Album",
+                "query": "Myuu The Dark Piano, Vol. 3 Album",
                 "playlist": "true",
                 "platform": "spotify",
             },
@@ -122,23 +122,23 @@ class SpotifyTests(MusicTest):
         )
         self.assertEqual(
             state["musiq"]["currentSong"]["externalUrl"],
-            "https://open.spotify.com/track/3uYgQ819EExqKhxr2ILFok?si=4d9cb47691b040d8",
+            "https://open.spotify.com/track/4TCltHCj9FTS36rK7XZXMx",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][0]["externalUrl"],
-            "https://open.spotify.com/track/43TuwMfK9h8b0rtbkdWCYJ?si=e9b3691d30a04d63",
+            "https://open.spotify.com/track/1eo3KheI9C0uvp4PlmTdrc",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][1]["externalUrl"],
-            "https://open.spotify.com/track/7JsBddAbtHCjdEtMobVfyL?si=769700894b15418d",
+            "https://open.spotify.com/track/1UnNQ4xqCGFH279AQi68XE",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][2]["externalUrl"],
-            "https://open.spotify.com/track/01Rk5ZPcMeQLxBEAcxZMju?si=4d05965e1acb4e03",
+            "https://open.spotify.com/track/0161x17UsgPtluoi4OIVI8",
         )
         self.assertEqual(
             state["musiq"]["songQueue"][3]["externalUrl"],
-            "https://open.spotify.com/track/7y6D7PitToNpVycQ2WuUPi?si=f4de2f2dcb584701",
+            "https://open.spotify.com/track/7yISlDyywvoXKgz6WxRKAI",
         )
 
     def test_autoplay(self):

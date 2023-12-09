@@ -48,7 +48,8 @@ class MusicProvider:
 
     def remove_placeholder(self) -> None:
         """Removes the placeholder in the queue that represents this resource.
-        Called if there was an error and this element needs to be removed from the queue."""
+        Called if there was an error and this element needs to be removed from the queue.
+        """
         raise NotImplementedError()
 
     def make_available(self) -> bool:

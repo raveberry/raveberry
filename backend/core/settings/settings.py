@@ -54,7 +54,10 @@ def _add_system_install_state(settings_state: Dict[str, Any]) -> None:
             subprocess.call(["/usr/local/sbin/raveberry/homewifi_enabled"]) != 0
         )
         settings_state["hotspotEnabled"] = (
-            subprocess.call(["/usr/local/sbin/raveberry/hotspot_enabled"]) != 0
+            subprocess.call(
+                ["/usr/local/sbin/raveberry/hotspot_enabled"], stderr=subprocess.DEVNULL
+            )
+            != 0
         )
         settings_state["wifiProtectionEnabled"] = (
             subprocess.call(["/usr/local/sbin/raveberry/wifi_protection_enabled"]) != 0
@@ -156,6 +159,10 @@ def index(request: WSGIRequest) -> HttpResponse:
     else:
         context["local_library"] = "/"
     context["version"] = conf.VERSION
+    context[
+        "spotify_scope"
+    ] = "user-read-playback-state user-modify-playback-state user-library-read playlist-read-private playlist-read-collaborative"
+    context["spotify_oauth_authorize_url"] = "https://accounts.spotify.com/authorize"
     return render(request, "settings.html", context)
 
 

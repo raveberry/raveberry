@@ -280,7 +280,7 @@ LOGGING = {
             "class": "logging.StreamHandler",
         },
         "docker": {
-            "level": "ERROR",
+            "level": "INFO",
             "formatter": "precise",
             "class": "logging.StreamHandler",
         },

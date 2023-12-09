@@ -55,8 +55,13 @@ defaults = {
     "spotify_suggestions": 2,
     "spotify_username": "",
     "spotify_password": "",
-    "spotify_client_id": "",
-    "spotify_client_secret": "",
+    "spotify_device_client_id": "",
+    "spotify_device_client_secret": "",
+    "spotify_mopidy_client_id": "",
+    "spotify_mopidy_client_secret": "",
+    "spotify_redirect_uri": "",
+    "spotify_authorized_url": "",
+    "spotipy_token_info": "",
     "soundcloud_enabled": False,
     "soundcloud_suggestions": 2,
     "soundcloud_auth_token": "",
@@ -119,11 +124,14 @@ defaults = {
 # This is especially advantageous for suggestions which check whether platforms are enabled.
 # There is a data inconsistency issue when a setting is changed in one process.
 # Only that process would flush its cache, others would retain the stale value.
-# This could be fixed by communicating the cache flush through redis.
 # However, with the daphne setup there is currently only one process handling requests,
 # and settings are never changed outside a request (especially not in a celery worker).
 # So this is fine as long as no additional daphne (or other) workers are used.
+# However, settings are accessed in both the lights and the playback worker.
 # The lights flushes the cache in its update function.
+# The playback worker accesses the "paused" state very often,
+# so it is stored both in redis and the db.
+# Alternatively, the cache flush could be communicated through redis.
 cache: TTLCache = TTLCache(ttl=10, maxsize=128)
 
 

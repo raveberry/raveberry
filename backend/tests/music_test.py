@@ -5,7 +5,7 @@ from threading import Thread
 from django.conf import settings as conf
 from django.urls import reverse
 
-from core.musiq import playback, controller
+from core.musiq import playback, mopidy_player
 from core.settings import storage
 from tests import util
 from tests.raveberry_test import RaveberryTest
@@ -30,7 +30,7 @@ class MusicTest(RaveberryTest):
         self.playback_thread.start()
 
         # mute player for testing
-        self.player = controller.PLAYER
+        self.player = mopidy_player.PLAYER
         self.player.mixer.set_volume(0)
 
     def tearDown(self):

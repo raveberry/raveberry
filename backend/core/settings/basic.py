@@ -222,8 +222,8 @@ def set_buzzer_success_probability(request: WSGIRequest) -> HttpResponse:
 @control
 def trigger_alarm(_request: WSGIRequest) -> None:
     """Manually triggers an alarm."""
-    playback.trigger_alarm()
-    # because a state update is sent after every control (including this one)
-    # a state update with alarm not being set would be sent
-    # prevent this by manually setting this redis variable prematurely
-    redis.put("alarm_playing", True)
+    if playback.trigger_alarm():
+        # because a state update is sent after every control (including this one)
+        # a state update with alarm not being set would be sent
+        # prevent this by manually setting this redis variable prematurely
+        redis.put("alarm_playing", True)

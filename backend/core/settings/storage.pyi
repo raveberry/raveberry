@@ -5,6 +5,12 @@ from cachetools import TTLCache
 # Sometimes the storage functions are accessed dynamically.
 # Comfort mypy by telling it the value will still be one of the specified ones.
 
+class Interactivity:
+        full_control = "Full Public Control"
+        full_voting = "Up- and Downvoting"
+        upvotes_only = "Upvotes Only"
+        no_control = "No Control"
+
 PlatformEnabled = Literal[
     "local_enabled",
     "youtube_enabled",
@@ -108,8 +114,13 @@ def get(
         "forbidden_keywords",
         "spotify_username",
         "spotify_password",
-        "spotify_client_id",
-        "spotify_client_secret",
+        "spotify_device_client_id",
+        "spotify_device_client_secret",
+        "spotify_mopidy_client_id",
+        "spotify_mopidy_client_secret",
+        "spotify_redirect_uri",
+        "spotify_authorized_url",
+        "spotipy_token_info",
         "soundcloud_auth_token",
         "jamendo_client_id",
         "output",
@@ -201,8 +212,13 @@ def put(
         "forbidden_keywords",
         "spotify_username",
         "spotify_password",
-        "spotify_client_id",
-        "spotify_client_secret",
+        "spotify_device_client_id",
+        "spotify_device_client_secret",
+        "spotify_mopidy_client_id",
+        "spotify_mopidy_client_secret",
+        "spotify_redirect_uri",
+        "spotify_authorized_url",
+        "spotipy_token_info",
         "soundcloud_auth_token",
         "jamendo_client_id",
         "output",

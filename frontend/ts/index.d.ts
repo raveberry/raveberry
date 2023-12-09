@@ -19,6 +19,9 @@ declare let SPOTIFY_SUGGESTIONS: number;
 declare let SOUNDCLOUD_SUGGESTIONS: number;
 declare let JAMENDO_SUGGESTIONS: number;
 
+declare let SPOTIFY_SCOPE: string;
+declare let SPOTIFY_OAUTH_AUTHORIZE_URL: string;
+
 interface JQuery {
   // unfortunately, bootstrap and jqueryui
   // introduce conflicts with types 'button' and 'tooltip'

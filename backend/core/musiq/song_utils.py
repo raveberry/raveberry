@@ -37,7 +37,10 @@ def determine_url_type(url: str) -> str:
     """Returns the service the given url corresponds to."""
     if url.startswith("local_library/"):
         return "local"
-    if url.startswith("https://www.youtube.com/"):
+    if url.startswith("https://www.youtube.com/") or url.startswith(
+        "https://music.youtube.com/"
+    ):
+        # we handle both urls, but normalize them to www.youtube.com links
         return "youtube"
     if url.startswith("https://open.spotify.com/"):
         return "spotify"

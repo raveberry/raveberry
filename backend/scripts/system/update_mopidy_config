@@ -32,4 +32,4 @@ sed -i -r -e "0,/^client_id/s/(^client_id\s*=).*/\1 $4/" /etc/mopidy/mopidy.conf
 sed -i -r -e "s/(^client_secret\s*=).*/\1 $5/" /etc/mopidy/mopidy.conf
 sed -i -r -e "s/(^auth_token\s*=).*/\1 $6/" /etc/mopidy/mopidy.conf
 # only replace last occurrence
-sed -i -r -e "$ s/(^client_id\s*=).*/\1 $7/" /etc/mopidy/mopidy.conf
+tac /etc/mopidy/mopidy.conf | sed -r -e "0,/^client_id/s/(^client_id\s*=).*/\1 $7/" | tac | tee >/dev/null /etc/mopidy/mopidy.conf

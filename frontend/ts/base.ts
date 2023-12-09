@@ -34,15 +34,20 @@ export function localStorageGet(key) {
   if (!itemStr) {
     return null;
   }
-  const item = JSON.parse(itemStr);
-  if (item.expiry) {
-    const now = new Date();
-    if (now.getTime() > item.expiry) {
-      localStorage.removeItem(key);
-      return null;
+  try {
+    const item = JSON.parse(itemStr);
+    if (item.expiry) {
+      const now = new Date();
+      if (now.getTime() > item.expiry) {
+        localStorage.removeItem(key);
+        return null;
+      }
     }
+    return item.value;
+  } catch (e) {
+    // the stored json might be in wrong format
+    return null;
   }
-  return item.value;
 }
 /** Deletes the entry for the given key from local storage.
  * @param {string} key the key to remove
@@ -414,7 +419,7 @@ export function handleUpdateBanner() {
 
 /** General setup of the page. */
 export function onReady() {
-  if (localStorageGet('theme') == 'light') {
+  if (localStorageGet('raveberry-theme') == 'light') {
     $('html').addClass('light');
     $('#light-theme').addClass('icon-enabled');
     $('#dark-theme').addClass('icon-disabled');
@@ -524,14 +529,14 @@ export function onReady() {
       return;
     }
     toggleTheme();
-    localStorageSet('theme', 'light');
+    localStorageSet('raveberry-theme', 'light');
   });
   $('#dark-theme').on('click tap', function() {
     if ($(this).hasClass('icon-enabled')) {
       return;
     }
     toggleTheme();
-    localStorageSet('theme', 'dark');
+    localStorageSet('raveberry-theme', 'dark');
   });
 
   $('#local').on('click tap', function() {

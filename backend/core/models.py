@@ -39,7 +39,8 @@ class Counter(models.Model):
 
 class ArchivedSong(models.Model):
     """Stores an archived song.
-    url identifies the song uniquely in the database and on the internet (if applicable)."""
+    url identifies the song uniquely in the database and on the internet (if applicable).
+    """
 
     url = models.CharField(max_length=2000, unique=True)
     artist = models.CharField(max_length=1000)
@@ -66,7 +67,6 @@ class ArchivedSong(models.Model):
         }
 
     class Meta:
-
         indexes = (
             [
                 GinIndex(
@@ -85,7 +85,8 @@ class ArchivedSong(models.Model):
 
 class ArchivedPlaylist(models.Model):
     """Stores an archived playlist.
-    url identifies the playlist uniquely in the database and on the internet (if applicable)."""
+    url identifies the playlist uniquely in the database and on the internet (if applicable).
+    """
 
     id: int
     entries: QuerySet
@@ -254,7 +255,7 @@ class Setting(models.Model):
     """key value storage for persistent settings."""
 
     key = models.CharField(max_length=200, unique=True)
-    value = models.CharField(max_length=200)
+    value = models.CharField(max_length=1000)
 
     def __str__(self) -> str:
         return self.key + ": " + ("None" if self.value is None else self.value)

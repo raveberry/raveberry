@@ -60,7 +60,6 @@ class OAuthClient:
         retries=3,
         retry_statuses=(500, 502, 503, 429),
     ):
-
         if client_id and client_secret:
             self._auth = (client_id, client_secret)
         else:
@@ -269,6 +268,76 @@ class OAuthClient:
                 seconds = time.mktime(date_tuple) - time.time()
         return max(0, seconds)
 
+    """ These methods were added to provide compatibility with spotify.py's api.
+    They are no complete compatibility layer, they only provide what is used in Raveberry."""
+
+    def search(self, q, limit=10, offset=0, type="track"):
+        return self.get(
+            "search",
+            params={
+                "q": q,
+                "limit": limit,
+                "offset": offset,
+                "type": type,
+            },
+        )
+
+    def track(self, track_id):
+        return self.get(f"tracks/{track_id}", params={"limit": "1"})
+
+    def playlist(self, playlist_id, fields=None):
+        return self.get(f"playlists/{playlist_id}", params={"fields": fields})
+
+    def artist(self, artist_id, fields=None):
+        return self.get(f"artists/{artist_id}", params={"fields": fields})
+
+    def album(self, album_id, fields=None):
+        return self.get(f"albums/{album_id}", params={"fields": fields})
+
+    def playlist_tracks(
+        self,
+        playlist_id,
+        fields=None,
+        limit=100,
+        offset=0,
+    ):
+        return self.get(
+            f"playlists/{playlist_id}/tracks",
+            params={
+                "fields": fields,
+                "limit": limit,
+                "offset": offset,
+            },
+        )
+
+    def artist_top_tracks(self, artist_id):
+        return self.get(
+            f"artists/{artist_id}/top-tracks",
+            params={
+                "fields": "tracks(external_urls(spotify))",
+                "limit": 10,
+                "country": "US",
+            },
+        )
+
+    def album_tracks(self, album_id, fields=None):
+        return self.get(
+            f"albums/{album_id}/tracks",
+            params={
+                "fields": fields,
+                "limit": 50,
+            },
+        )
+
+    def recommendations(self, seed_tracks=[], limit=20):
+        return self.get(
+            f"recommendations",
+            params={
+                "seed_tracks": ",".join(seed_tracks),
+                "limit": limit,
+            },
+        )
+
 
 class WebResponse(dict):
     def __init__(self, url, data, expires=0.0, etag=None, status_code=400):
@@ -390,7 +459,6 @@ class WebResponse(dict):
 
 
 class SpotifyOAuthClient(OAuthClient):
-
     TRACK_FIELDS = (
         "next,items(track(type,uri,name,duration_ms,disc_number,track_number,"
         "artists,album,is_playable,linked_from.uri))"

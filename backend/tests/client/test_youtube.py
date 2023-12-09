@@ -1,10 +1,11 @@
 import os
+import sys
 from typing import Callable, Optional
 
 import yt_dlp
 from django.conf import settings
 from django.urls import reverse
-from unittest import skip
+from unittest import skip, skipIf
 
 from core.musiq.youtube import Youtube
 from core.settings import storage
@@ -100,16 +101,18 @@ class YoutubeTests(MusicTest):
             self.skipTest("This IP sent too many requests to Youtube.")
 
     def test_query(self) -> None:
-        self._post_request("request-music", "Myuu Collapse")
+        self._post_request("request-music", "Myuu Disintegrating")
         current_song = self._poll_current_song()
         self.assertEqual(
-            current_song["externalUrl"], "https://www.youtube.com/watch?v=ZvD8QSO7NPw"
+            current_song["externalUrl"], "https://www.youtube.com/watch?v=piFJVwr1YYA"
         )
-        self.assertIn("Collapse", current_song["title"])
-        self.assertAlmostEqual(current_song["duration"], 200, delta=1)
+        self.assertIn("Disintegrating", current_song["title"])
+        self.assertAlmostEqual(current_song["duration"], 284, delta=1)
 
     def test_url(self):
-        self._post_request("request-music", "Collapse - Myuu")
+        self._post_request(
+            "request-music", "https://www.youtube.com/watch?v=ZvD8QSO7NPw"
+        )
         current_song = self._poll_current_song()
         self.assertEqual(
             current_song["externalUrl"], "https://www.youtube.com/watch?v=ZvD8QSO7NPw"
@@ -117,7 +120,6 @@ class YoutubeTests(MusicTest):
         self.assertIn("Collapse", current_song["title"])
         self.assertAlmostEqual(current_song["duration"], 200, delta=1)
 
-    @skip("Playlist test currently broken")
     def test_playlist_url(self):
         self._post_request(
             "request-music",
@@ -146,7 +148,7 @@ class YoutubeTests(MusicTest):
         # make sure the remaining songs are in expected order
         self.assertEqual(actual_playlist, expected_playlist)
 
-    @skip("Playlist test currently broken")
+    @skip("Albums not yet supported")
     def test_playlist_query(self):
         self._post_request(
             "request-music",
@@ -175,6 +177,10 @@ class YoutubeTests(MusicTest):
         # make sure the remaining songs are in expected order
         self.assertEqual(actual_playlist, expected_playlist)
 
+    @skipIf(
+        not sys.argv[-1].endswith("test_autoplay"),
+        "This test can only be run individually.",
+    )
     def test_autoplay(self) -> None:
         self._post_request(
             "request-music", "https://www.youtube.com/watch?v=ZvD8QSO7NPw"
@@ -182,6 +188,7 @@ class YoutubeTests(MusicTest):
         self._poll_current_song()
         self.client.post(reverse("set-autoplay"), {"value": "true"})
         # make sure a song was downloaded into the queue
+        # sometimes this fails due to long songs taking too long to download
         state = self._poll_musiq_state(
             lambda state: len(state["musiq"]["songQueue"]) == 1
             and state["musiq"]["songQueue"][0]["internalUrl"],

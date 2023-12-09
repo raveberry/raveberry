@@ -1,4 +1,4 @@
-"""This module handles playback of music."""
+"""This module handles playback flow of music."""
 
 from __future__ import annotations
 
@@ -7,115 +7,88 @@ import logging
 import os
 import random
 import time
-import urllib.parse
-from contextlib import contextmanager
-from threading import Event
-from typing import Iterator, Optional, Tuple
+from typing import Optional, Tuple
 
-import requests
 from django.conf import settings as conf
 from django.db import connection, transaction
 from django.utils import timezone
-from mopidyapi.client import MopidyAPI
-from mopidyapi.exceptions import MopidyError
 
 from core import models, redis, user_manager
 from core.lights import controller as lights_controller
-from core.musiq import controller, musiq
-from core.settings import settings, storage
+from core.musiq import musiq
+from core.settings import storage
 from core.tasks import app
 from core.musiq import song_utils
+from core.models import CurrentSong
 
 queue_changed = redis.Event("queue_changed")
 buzzer_stopped = redis.Event("buzzer_stopped")
 
 queue = models.QueuedSong.objects
 
-# this lock is released when restarting mopidy (which happens in another Thread)
-player_lock = redis.connection.lock("player_lock", thread_local=False)
+
+class PlaybackError(Exception):
+    pass
+
 
 def start() -> None:
     """Initializes this module by starting the playback and buzzer loop."""
+    paused = storage.get("paused")
+    redis.put("paused", paused)
     _handle_buzzer.delay()
     _loop.delay()
-
-
-def set_playback_error(error: bool) -> None:
-    """Sets the playback error. Updates musiq state when the state changes."""
-    if redis.get("playback_error"):
-        if not error:
-            redis.put("playback_error", False)
-            musiq.update_state()
-            settings.update_state()
-    else:
-        if error:
-            redis.put("playback_error", True)
-            musiq.update_state()
-            settings.update_state()
 
 
 class Playback:
     """Class containing all playback related methods."""
 
     def __init__(self):
-        # the celery worker needs its own player instance.
-        # if we use a module-wide instance, methods can be used,
-        # but events do not register correctly (probably due to thread boundary)
-        if conf.TESTING:
-            # to reduce the amount of created mopidy connections,
-            # use the controller's instance during testing
-            # this works because everything is run in a single process
-            self.player = controller.PLAYER
-        else:
-            self.player: MopidyAPI = MopidyAPI(
-                host=conf.MOPIDY_HOST, port=conf.MOPIDY_PORT
-            )
-        self.playback_started = Event()
+        from core.musiq.mopidy_player import MopidyPlayer
+        from core.musiq.spotify_player import SpotifyPlayer
+
         redis.put("playing", False)
 
         queue.delete_placeholders()
 
-        with mopidy_command(important=True):
-            self.player.playback.stop()
-            self.player.tracklist.clear()
-            # make songs disappear from tracklist after being played
-            self.player.tracklist.set_consume(True)
+        self.players = {
+            "mopidy": MopidyPlayer(),
+            "spotify": SpotifyPlayer(),
+        }
 
-        @self.player.on_event("track_playback_started")
-        def _on_playback_started(_event) -> None:
-            self.playback_started.set()
+        if storage.get("output").startswith("spotify-"):
+            redis.put("active_player", "spotify")
+        else:
+            redis.put("active_player", "mopidy")
+
+    def player(self):
+        return self.players[redis.get("active_player")]
 
     def play_alarm(self, interrupt=False, from_buzzer=True) -> None:
         """Play the alarm sound. If specified, interrupts the currently playing song."""
         redis.put("alarm_playing", True)
         lights_controller.alarm_started()
-        self.playback_started.clear()
 
-        with mopidy_command(important=True):
-            # interrupt the current song if its playing
-            if interrupt:
-                self.player.tracklist.clear()
-
-            success_probability = storage.get("buzzer_success_probability")
-            if success_probability >= 0 and from_buzzer:
-                if random.random() <= success_probability:
-                    folder = "resources/sounds/yes"
-                else:
-                    folder = "resources/sounds/no"
-                choice = random.choice(os.listdir(os.path.join(conf.BASE_DIR, folder)))
-                path = os.path.join(conf.BASE_DIR, folder, choice)
+        success_probability = storage.get("buzzer_success_probability")
+        if success_probability >= 0 and from_buzzer:
+            if random.random() <= success_probability:
+                folder = "resources/sounds/yes"
             else:
-                path = os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
-            duration = song_utils.get_metadata(path)["duration"]
+                folder = "resources/sounds/no"
+            choice = random.choice(os.listdir(os.path.join(conf.BASE_DIR, folder)))
+            path = os.path.join(conf.BASE_DIR, folder, choice)
+        else:
+            path = os.path.join(conf.BASE_DIR, "resources/sounds/alarm.m4a")
+        duration = song_utils.get_metadata(path)["duration"]
 
-            redis.put("alarm_duration", duration)
-            self.player.tracklist.add(uris=["file://" + urllib.parse.quote(path)])
-            self.player.playback.play()
+        redis.put("alarm_duration", duration)
 
-        self.playback_started.wait(timeout=1)
+        self.player().play_alarm(interrupt, path)
 
         musiq.update_state()
-        self._wait_until_song_end()
+
+        # TODO: is it a very bad idea to simply sleep here for the duration of the alarm?
+        # self._wait_until_song_end()
+        time.sleep(duration)
 
         lights_controller.alarm_stopped()
         redis.put("alarm_playing", False)
@@ -128,7 +101,8 @@ class Playback:
         """Returns the next song that should be played, or None if no song should be played.
         Additionally returns whether the song was recovered from the database (True)
         or dequeued from the queue (False)."""
-        self.playback_started.clear()
+        # TODO: is this playback_started clear necessary?
+        # self.playback_started.clear()
 
         if models.CurrentSong.objects.exists():
             # recover interrupted song from database
@@ -222,7 +196,7 @@ class Playback:
 
         if recovered:
             # continue with the current song (approximately) where we last left
-            if storage.get("paused"):
+            if redis.get("paused"):
                 catch_up = round(
                     (current_song.last_paused - current_song.created).total_seconds()
                     * 1000
@@ -244,14 +218,21 @@ class Playback:
         # playback_ended.wait()
         error = False
         while True:
-            with mopidy_command() as allowed:
-                if allowed:
-                    try:
-                        if self.player.playback.get_state() == "stopped":
-                            break
-                    except (requests.exceptions.ConnectionError, MopidyError):
-                        # error during state get, skip until reconnected
-                        error = True
+            current_song = CurrentSong.objects.get()
+            try:
+                if self.player().should_stop_waiting(error):
+                    break
+            except PlaybackError:
+                error = True
+            paused = redis.get("paused")
+            if paused:
+                # stay in the loop, the song won't end while paused
+                # progress = (current_song.last_paused - current_song.created).total_seconds()
+                pass
+            else:
+                progress = (timezone.now() - current_song.created).total_seconds()
+                if progress >= current_song.duration:
+                    break
             # use internal timekeeping to decide when a song is over to lower mopidy performance use
             # current_song = models.CurrentSong.objects.get()
             # if (timezone.now() - current_song.created).total_seconds() > current_song.duration:
@@ -267,7 +248,6 @@ class Playback:
                 # the current song was interrupted and needs to be resumed at the correct position
                 # returning False will notify the main loop about this interruption,
                 # making it restart the song correctly
-                current_song = models.CurrentSong.objects.get()
                 # we don't want the song to skip over the time when the alarm was playing
                 # thus, we offset the creation date of the current song by the length of the alarm
                 # Warning: if this duration does not fit the duration of the actual alarm,
@@ -305,9 +285,7 @@ class Playback:
 
         if not queue.exists() and storage.get("backup_stream"):
             redis.put("backup_playing", True)
-            # play backup stream
-            self.player.tracklist.add(uris=[storage.get("backup_stream")])
-            self.player.playback.play()
+            self.player().play_backup_stream()
 
         musiq.update_state()
 
@@ -315,9 +293,11 @@ class Playback:
         """The main loop of the player.
         Takes a song from the queue and plays it until it is finished."""
 
-        self.player.tracklist.set_consume(True)
-
         while True:
+            if redis.get("playback_error"):
+                # sleep for a short while so continuing errors don't lead to busy loops
+                time.sleep(0.5)
+                continue
 
             if redis.get("stop_playback_loop"):
                 break
@@ -328,37 +308,14 @@ class Playback:
 
             catch_up = self._catch_up(current_song, recovered)
 
-            with mopidy_command(important=True):
-                # after a restart consume may be set to False again, so make sure it is on
-                self.player.tracklist.clear()
-                self.player.tracklist.set_consume(True)
-                self.player.tracklist.add(uris=[current_song.internal_url])
-                # temporarily mute mopidy in case we need to seek but mopidy does not react directly
-                # this allows us to seek first and then unmute, preventing audible skips
-                volume = self.player.mixer.get_volume()
-                if catch_up is not None and catch_up >= 0:
-                    self.player.mixer.set_volume(0)
-                # mopidy can only seek when the song is playing
-                # also we do not continue without the playing state properly set.
-                # otherwise waiting might exit before the song started
-                self.player.playback.play()
-                if not self.playback_started.wait(timeout=1):
-                    # mopidy did not acknowledge that it started the song
-                    # to make sure it is not in an error state,
-                    # restart the loop and retry to start the song
-                    # also prevents "queue-eating" bug,
-                    # where mopidy in a failed state would refuse to play any song,
-                    # but raveberry keeps on sending songs from the queue
-                    logging.warning("playback_started event did not trigger")
-                    set_playback_error(True)
-                    self.player.mixer.set_volume(volume)
-                    continue
-                set_playback_error(False)
-                if catch_up is not None and catch_up >= 0:
-                    self.player.playback.seek(catch_up)
-                    if storage.get("paused"):
-                        self.player.playback.pause()
-                    self.player.mixer.set_volume(volume)
+            try:
+                self.player().start_song(current_song, catch_up)
+            except PlaybackError:
+                # when a song can't be started, pause the playback
+                # and have the user restart playback manually after fixing the error
+                musiq.controller._pause()
+                musiq.update_state()
+                continue
             redis.put("playing", True)
 
             musiq.update_state()
@@ -371,11 +328,13 @@ class Playback:
                     # or when an interrupting alarm was initiated.
                     # we do not delete the current song but recover its state by restarting the loop
                     storage.put("paused", False)
+                    redis.put("paused", False)
                     redis.put("playing", False)
                     continue
             # Allowing new songs to start playing while paused introduces many edge cases
             # Instead of dealing with them, always start playback when skipping a paused song
             storage.put("paused", False)
+            redis.put("paused", False)
             redis.put("playing", False)
 
             current_song.delete()
@@ -397,26 +356,8 @@ def _handle_buzzer() -> None:
     except ModuleNotFoundError:
         return
     buzzer = gpiozero.Button(16)
-    last_press = timezone.now() - datetime.timedelta(
-        seconds=storage.get("buzzer_cooldown")
-    )
 
     def on_press():
-        nonlocal last_press
-
-        # do not allow the buzzer to be pressed too frequently
-        if (timezone.now() - last_press).total_seconds() < storage.get(
-            "buzzer_cooldown"
-        ):
-            logging.warning("buzzer pressed too quickly")
-            return
-        # do not allow an alarm to be triggered while one is already playing
-        # or when an alarm is currently in the process of being played
-        if redis.get("alarm_playing") or redis.get("alarm_requested"):
-            logging.warning("last buzzer alarm not yet finished")
-            return
-        last_press = timezone.now()
-
         trigger_alarm()
 
     buzzer.when_pressed = on_press
@@ -425,8 +366,19 @@ def _handle_buzzer() -> None:
     buzzer_stopped.wait()
 
 
-def trigger_alarm() -> None:
+def trigger_alarm() -> bool:
     """Initiate an alarm."""
+    # do not allow the alarm to be triggered too frequently
+    now = time.time()
+    if (now - redis.get("last_buzzer")) < storage.get("buzzer_cooldown"):
+        logging.warning("alarm triggered too quickly")
+        return False
+    # do not allow an alarm to be triggered while one is already playing
+    # or when an alarm is currently in the process of being played
+    if redis.get("alarm_playing") or redis.get("alarm_requested"):
+        logging.warning("last alarm not yet finished")
+        return False
+    redis.put("last_buzzer", now)
     if redis.get("playing"):
         # if a song is currently playing, inform the loop waiting for the song to end
         # about this alarm. It will interrupt the current song and play the alarm
@@ -435,6 +387,7 @@ def trigger_alarm() -> None:
         # insert a special queue song to wake up the main loop and make it play the alarm
         queue.enqueue(musiq.get_alarm_metadata(), True)
         queue_changed.set()
+    return True
 
 
 def handle_autoplay(url: Optional[str] = None) -> None:
@@ -466,28 +419,6 @@ def handle_autoplay(url: Optional[str] = None) -> None:
         else:
             provider = SongProvider.create(external_url=suggestion)
             provider.request("", archive=False, manually_requested=False)
-
-
-@contextmanager
-def mopidy_command(important: bool = False) -> Iterator[bool]:
-    """A context that should be used around every mopidy command used.
-    Makes sure that commands occur sequentially, as mopidy can not handle parallel inputs.
-    Use it like this:
-    with mopidy_command() as allowed:
-        if allowed:
-            # mopidy command
-    :param important: If True, wait until the lock is released.
-    If not, return 'False' after a timeout."""
-    timeout: Optional[int] = 3
-    if important:
-        timeout = None
-    if player_lock.acquire(blocking_timeout=timeout):
-        yield True
-        player_lock.release()
-    else:
-        logging.warning("mopidy command could not be executed")
-        set_playback_error(True)
-        yield False
 
 
 def stop() -> None:

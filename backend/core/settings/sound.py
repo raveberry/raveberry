@@ -1,6 +1,7 @@
 """This module handles all settings related to sound output."""
 from __future__ import annotations
 
+import logging
 import re
 import subprocess
 import time
@@ -10,6 +11,7 @@ from typing import Optional
 from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from spotipy import SpotifyException
 
 from core import redis, util
 from core.models import CurrentSong
@@ -223,8 +225,13 @@ def set_feed_cava(request: WSGIRequest) -> None:
 @control
 def list_outputs(_request: WSGIRequest) -> JsonResponse:
     """Returns a list of all sound output devices currently available."""
+    fakesink = {"id": "fakesink", "name": "No playback"}
+    client = {"id": "client", "name": "Browser playback"}
+    icecast = {"id": "icecast", "name": "Icecast"}
+    snapcast = {"id": "snapcast", "name": "Snapcast"}
+
     if conf.DOCKER:
-        sinks = ["default", "client"]
+        sinks = [fakesink, client]
     else:
         output = subprocess.check_output(
             "pactl list short sinks".split(),
@@ -233,8 +240,24 @@ def list_outputs(_request: WSGIRequest) -> JsonResponse:
         )
         tokenized_lines = [line.split() for line in output.splitlines()]
 
-        sinks = ["fakesink", "client", "icecast", "snapcast"]
-        sinks.extend([sink[1] for sink in tokenized_lines if len(sink) >= 2])
+        sinks = [fakesink, client, icecast, snapcast]
+        for sink in tokenized_lines:
+            if len(sink) < 2:
+                continue
+            sink_id = sink[1]
+            try:
+                sink_name = sink_id.split(".")[1]
+            except IndexError:
+                sink_name = sink_id
+            sinks.append({"id": f"pulse-{sink_id}", "name": f"[local] {sink_name}"})
+
+    if storage.get("spotify_enabled"):
+        from core.musiq.spotify import Spotify
+
+        for device in Spotify.device_api().devices()["devices"]:
+            sinks.append(
+                {"id": f"spotify-{device['id']}", "name": f"[spotify] {device['name']}"}
+            )
 
     return JsonResponse(sinks, safe=False)
 
@@ -242,6 +265,8 @@ def list_outputs(_request: WSGIRequest) -> JsonResponse:
 def _set_output(output: str) -> HttpResponse:
     icecast_installed = util.service_installed("icecast2")
     snapcast_installed = util.service_installed("snapserver")
+
+    use_spotify_player = False
 
     if output == "fakesink" or output == "client":
         mopidy_output = "fakesink"
@@ -257,7 +282,18 @@ def _set_output(output: str) -> HttpResponse:
 
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/enable_snapcast"])
         mopidy_output = "snapcast"
-    else:
+    elif output.startswith("spotify-") and storage.get("spotify_enabled"):
+        output = output[len("spotify-") :]
+        from core.musiq.spotify import Spotify
+
+        try:
+            Spotify.device_api().transfer_playback(output)
+        except SpotifyException:
+            return HttpResponseBadRequest("Device not available")
+        use_spotify_player = True
+        mopidy_output = "fakesink"
+    elif output.startswith("pulse-"):
+        output = output[len("pulse-") :]
         try:
             subprocess.run(
                 ["pactl", "set-default-sink", output],
@@ -269,6 +305,9 @@ def _set_output(output: str) -> HttpResponse:
             mopidy_output = "pulse"
         except subprocess.CalledProcessError as error:
             return HttpResponseBadRequest(error.stderr)
+    else:
+        logging.warning("Unknown sound output requested. Setting to fakesink.")
+        mopidy_output = "fakesink"
 
     if icecast_installed and output != "icecast":
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_icecast"])
@@ -276,6 +315,11 @@ def _set_output(output: str) -> HttpResponse:
         subprocess.call(["sudo", "/usr/local/sbin/raveberry/disable_snapcast"])
 
     system.update_mopidy_config(mopidy_output)
+
+    if use_spotify_player:
+        redis.put("active_player", "spotify")
+    else:
+        redis.put("active_player", "mopidy")
 
     return HttpResponse(
         "Output was set. Restarting the current song might be necessary."
@@ -289,7 +333,7 @@ def set_output(request: WSGIRequest) -> HttpResponse:
     if not output:
         return HttpResponseBadRequest("No output selected")
 
-    if output == request.POST.get("output"):
+    if output == storage.get("output"):
         return HttpResponseBadRequest("Output unchanged")
 
     storage.put("output", output)
