@@ -107,6 +107,7 @@ jobs:
       # https://stackoverflow.com/questions/73830524/attributeerror-module-lib-has-no-attribute-x509-v-flag-cb-issuer-check
       - name: Fix preinstalled apt dependencies
         run: |
+          sudo apt-get --reinstall install python-is-python3
           sudo apt-get --reinstall install python3-apt
           sudo apt-get --reinstall install apt-transport-https
           sudo apt-get install build-essential libssl-dev libffi-dev python-dev
