@@ -44,7 +44,6 @@ class Playback:
 
     def __init__(self):
         from core.musiq.mopidy_player import MopidyPlayer
-        from core.musiq.spotify_player import SpotifyPlayer
 
         redis.put("playing", False)
 
@@ -52,8 +51,11 @@ class Playback:
 
         self.players = {
             "mopidy": MopidyPlayer(),
-            "spotify": SpotifyPlayer(),
         }
+        if storage.get("spotify_enabled"):
+            from core.musiq.spotify_player import SpotifyPlayer
+
+            self.players["spotify"] = SpotifyPlayer()
 
         if storage.get("output").startswith("spotify-"):
             redis.put("active_player", "spotify")

@@ -11,7 +11,6 @@ from typing import Optional
 from django.conf import settings as conf
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from spotipy import SpotifyException
 
 from core import redis, util
 from core.models import CurrentSong
@@ -285,6 +284,8 @@ def _set_output(output: str) -> HttpResponse:
     elif output.startswith("spotify-") and storage.get("spotify_enabled"):
         output = output[len("spotify-") :]
         from core.musiq.spotify import Spotify
+
+        from spotipy import SpotifyException
 
         try:
             Spotify.device_api().transfer_playback(output)
