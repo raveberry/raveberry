@@ -1,5 +1,5 @@
 server {
-	listen 80 default_server;
+	listen "{{ config.port | default('80') }}" default_server;
 	server_tokens off;
 
 	gzip on;

@@ -7,6 +7,8 @@
 install_directory: /opt/raveberry/
 # Changes the system's hostname. With this hostname the server will be accessible in the network. Leave blank to keep the system's hostname.
 hostname: raveberry
+# The port where raveberry will be available
+port: 80
 
 ### Music sources ###
 # Play the audio of videos from YouTube.
