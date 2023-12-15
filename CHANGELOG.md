@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.1 - 2023-12-15
+
+- nginx port can be customized
+- "Max Playlist Length" setting honored for Spotify playlists
+
 ## 0.11.0 - 2023-12-09
 
 - New Spotify feature: device playback
