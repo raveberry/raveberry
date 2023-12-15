@@ -31,18 +31,7 @@ def start() -> None:
         # if youtube is not available, overwrite the database to disable it
         storage.put("youtube_enabled", False)
 
-    # Spotify has no python dependencies we could easily check.
-    try:
-        spotify_available = (
-            conf.DOCKER
-            or "[spotify]"
-            in subprocess.check_output(["mopidy", "config"], stderr=subprocess.DEVNULL)
-            .decode()
-            .splitlines()
-        )
-    except FileNotFoundError:
-        # mopidy is not installed (eg in docker). Since we can't check, enable
-        spotify_available = True
+    spotify_available = conf.DOCKER or importlib.util.find_spec("spotipy") is not None
     redis.put("spotify_available", spotify_available)
     if not spotify_available:
         storage.put("spotify_enabled", False)
