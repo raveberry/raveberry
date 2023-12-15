@@ -297,7 +297,9 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
         # for more tracks paging would need to be implemented
         if self._spotify_type == "playlist":
             result = self.api.playlist_tracks(
-                self.id, fields="items(track(external_urls(spotify)))"
+                self.id,
+                fields="items(track(external_urls(spotify)))",
+                limit=storage.get("max_playlist_items"),
             )
             track_infos = result["items"]
             for track_info in track_infos:
@@ -307,13 +309,17 @@ class SpotifyPlaylistProvider(PlaylistProvider, Spotify):
                     # skip songs that have no urls
                     pass
         elif self._spotify_type == "artist":
-            result = self.api.artist_top_tracks(self.id)
+            result = self.api.artist_top_tracks(
+                self.id, limit=storage.get("max_playlist_items")
+            )
             tracks = result["tracks"]
             for track in tracks:
                 self.urls.append(track["external_urls"]["spotify"])
         elif self._spotify_type == "album":
             result = self.api.album_tracks(
-                self.id, fields="items(external_urls(spotify))"
+                self.id,
+                fields="items(external_urls(spotify))",
+                limit=storage.get("max_playlist_items"),
             )
             tracks = result["items"]
             for track in tracks:

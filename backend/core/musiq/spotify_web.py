@@ -310,22 +310,22 @@ class OAuthClient:
             },
         )
 
-    def artist_top_tracks(self, artist_id):
+    def artist_top_tracks(self, artist_id, limit=10):
         return self.get(
             f"artists/{artist_id}/top-tracks",
             params={
                 "fields": "tracks(external_urls(spotify))",
-                "limit": 10,
+                "limit": limit,
                 "country": "US",
             },
         )
 
-    def album_tracks(self, album_id, fields=None):
+    def album_tracks(self, album_id, fields=None, limit=50):
         return self.get(
             f"albums/{album_id}/tracks",
             params={
                 "fields": fields,
-                "limit": 50,
+                "limit": limit,
             },
         )
 
