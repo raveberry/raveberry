@@ -60,9 +60,10 @@ class CoreConfig(AppConfig):
             tasks.start()
 
             worker.start()
+            # platforms needs to start before musiq because mopidy_available is checked there
+            platforms.start()
             musiq.start()
             basic.start()
-            platforms.start()
 
             def stop_workers() -> None:
                 # wake up the playback thread and stop it

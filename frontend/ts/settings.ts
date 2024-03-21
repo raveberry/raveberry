@@ -168,6 +168,11 @@ export function onReady() {
         {value: (<HTMLInputElement> this).value});
   });
 
+  $('#color-indication').on('change', function() {
+    post(urls['settings']['set-color-indication'],
+        {value: (<HTMLInputElement> this).value});
+  });
+
   registerPostOnClick('trigger-alarm');
 
   registerPostOnClick('check-internet');

@@ -61,6 +61,20 @@ def context(request: WSGIRequest) -> Dict[str, Any]:
             "upvotesOnly": storage.Interactivity.upvotes_only,
             "noControl": storage.Interactivity.no_control,
         },
+        "color_indication": user_manager.has_privilege(
+            request.user, storage.get("color_indication")
+        ),
+        # We pass the color to the user here for two reasons
+        # 1. a color is assigned to every user on page load, not on first interaction
+        # 2. during state updates every session receives all information,
+        #    thus we would have to send the mapping to everyone, revealing session keys
+        "user_color": user_manager.color_of(request.session.session_key),
+        "privileges": {
+            "everybody": storage.Privileges.everybody,
+            "mod": storage.Privileges.mod,
+            "admin": storage.Privileges.admin,
+            "nobody": storage.Privileges.nobody,
+        },
         "hashtag": _get_random_hashtag(),
         "demo": conf.DEMO,
         "controls_enabled": user_manager.has_controls(request.user)
@@ -119,6 +133,12 @@ def logged_in(request: WSGIRequest) -> HttpResponse:
     if user_manager.is_admin(request.user):
         return HttpResponseRedirect(reverse("settings"))
     return HttpResponseRedirect(reverse("musiq"))
+
+
+def set_user_color(request: WSGIRequest) -> None:
+    """Set user color for indication of votes.
+    Situated in base because the dropdown is accessible from every page."""
+    return user_manager.set_user_color(request)
 
 
 def set_lights_shortcut(request: WSGIRequest) -> None:

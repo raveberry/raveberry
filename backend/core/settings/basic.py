@@ -48,6 +48,20 @@ def set_interactivity(request: WSGIRequest) -> HttpResponse:
 
 
 @control
+def set_color_indication(request: WSGIRequest) -> HttpResponse:
+    """Enables or disables voting based on the given value."""
+    value, response = extract_value(request.POST)
+    if value not in [
+        getattr(storage.Privileges, attr)
+        for attr in dir(storage.Privileges)
+        if not attr.startswith("__")
+    ]:
+        return HttpResponseBadRequest("Invalid value")
+    storage.put("color_indication", value)
+    return response
+
+
+@control
 def set_ip_checking(request: WSGIRequest) -> HttpResponse:
     """Enables or disables ip checking based on the given value."""
     value, response = extract_value(request.POST)

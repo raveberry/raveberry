@@ -102,6 +102,7 @@ body {
 	cursor: pointer;
 }
 #demo-banner {
+	display: block;
 	position: relative;
 	background-color: var(--yellow);
 	z-index: 5;
@@ -191,6 +192,34 @@ body {
 		transform: scale(2);
 		opacity: 0;
 	}
+}
+
+// button transition animation
+// https://stackoverflow.com/questions/28988665/css-js-icon-morphing
+.anim-container {
+	transition: .3s;
+	position: relative;
+}
+.anim-container i {
+	position: absolute;
+	padding: 0px !important;
+	transition: .3s;
+}
+.anim-container .default{
+	opacity: 1;
+	transform: rotate(0);
+}
+.anim-container .other {
+	opacity: 0;
+	transform: rotate(-135deg);
+}
+.anim-container.morphed .default {
+	opacity: 0;
+	transform: rotate(135deg);
+}
+.anim-container.morphed .other {
+	opacity: 1;
+	transform: rotate(0);
 }
 
 #content ul {

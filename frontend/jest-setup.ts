@@ -19,6 +19,7 @@ global['INTERACTIVITIES'] = {
     upvotesOnly: "Upvotes Only",
     noControl: "No Control",
 }
+global['COLOR_INDICATION'] = false;
 global['ADMIN'] = false;
 global['CONTROLS_ENABLED'] = false;
 // used in musiq tests

@@ -17,6 +17,15 @@ class Interactivity:
     no_control = "No Control"
 
 
+class Privileges:
+    """An enum containing all privilege levels."""
+
+    everybody = "Everybody"
+    mod = "Mod and Admin"
+    admin = "Admin Only"
+    nobody = "Nobody"
+
+
 PlatformEnabled = Literal
 PlatformSuggestions = Literal
 DeviceBrightness = Literal
@@ -26,8 +35,11 @@ DeviceProgram = Literal
 # maps key to default and type of value
 defaults = {
     # basic settings
-    "interactivity": "Full Public Control",
+    "interactivity": Interactivity.full_control,
     "ip_checking": False,
+    "color_indication": Privileges.nobody,
+    "color_offset": 0.0,
+    "next_color_index": 0,
     "downvotes_to_kick": 2,
     "logging_enabled": True,
     "hashtags_active": True,

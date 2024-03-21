@@ -43,24 +43,31 @@ class Playback:
     """Class containing all playback related methods."""
 
     def __init__(self):
-        from core.musiq.mopidy_player import MopidyPlayer
+        from core.musiq.fake_player import FakePlayer
 
         redis.put("playing", False)
 
         queue.delete_placeholders()
 
         self.players = {
-            "mopidy": MopidyPlayer(),
+            "fake": FakePlayer(),
         }
+
         if redis.get("spotify_available"):
             from core.musiq.spotify_player import SpotifyPlayer
 
             self.players["spotify"] = SpotifyPlayer()
+        if redis.get("mopidy_available"):
+            from core.musiq.mopidy_player import MopidyPlayer
+
+            self.players["mopidy"] = MopidyPlayer()
 
         if redis.get("spotify_available") and storage.get("output").startswith(
             "spotify-"
         ):
             redis.put("active_player", "spotify")
+        elif not redis.get("mopidy_available"):
+            redis.put("active_player", "fake")
         else:
             redis.put("active_player", "mopidy")
 

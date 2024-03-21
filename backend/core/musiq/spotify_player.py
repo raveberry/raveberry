@@ -4,16 +4,13 @@ import logging
 from contextlib import contextmanager
 from typing import Iterator
 
+import requests.exceptions
 from spotipy import SpotifyException, SpotifyOauthError
 
-from core import redis
 from core.musiq.playback import PlaybackError
 from core.musiq import player
 from core.musiq.spotify import Spotify
 from core.musiq import song_utils
-
-# this lock is released when restarting mopidy (which happens in another Thread)
-mopidy_lock = redis.connection.lock("mopidy_lock", thread_local=False)
 
 
 @contextmanager
@@ -24,7 +21,11 @@ def spotify_api(reraise: bool = False) -> Iterator:
         yield
         # after a successful api call, there is no error with spotify
         player.set_playback_error(False)
-    except (SpotifyException, SpotifyOauthError) as e:
+    except (
+        SpotifyException,
+        SpotifyOauthError,
+        requests.exceptions.ConnectionError,
+    ) as e:
         logging.warning("Spotify API Error: %s", e)
         player.set_playback_error(True)
         if reraise:
@@ -32,7 +33,7 @@ def spotify_api(reraise: bool = False) -> Iterator:
 
 
 class SpotifyPlayer(player.Player):
-    """Class containing methods to interface with mopidy."""
+    """Class containing methods to interface with Spotify."""
 
     def start_song(self, song, catch_up: float):
         if song_utils.determine_url_type(song.external_url) != "spotify":
@@ -47,7 +48,11 @@ class SpotifyPlayer(player.Player):
                 if catch_up is not None and catch_up >= 0:
                     Spotify.api.seek_track(catch_up)
                     # Spotify.api.volume(volume)
-        except SpotifyException:
+        except (
+            SpotifyException,
+            SpotifyOauthError,
+            requests.exceptions.ConnectionError,
+        ):
             raise PlaybackError("Spotify API error")
 
     def play_alarm(self, interrupt: bool, alarm_path: str) -> None:

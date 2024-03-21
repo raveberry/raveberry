@@ -88,6 +88,7 @@ def state_dict() -> Dict[str, Any]:
 
     settings_state: Dict[str, Any] = {}
     settings_state["interactivity"] = get("interactivity")
+    settings_state["colorIndication"] = get("color_indication")
     settings_state["ipChecking"] = get("ip_checking")
     settings_state["downvotesToKick"] = get("downvotes_to_kick")
     settings_state["loggingEnabled"] = get("logging_enabled")

@@ -13,7 +13,7 @@
 	height: 1.5rem;
 	width: 1.5rem;
 	min-width: 1.5rem;
-	font-size:.375rem;
+	font-size: x-large;
 }
 #music-input {
 	min-width: 100px;
@@ -152,8 +152,32 @@ span.clearable input {
 }
 
 #song-votes {
-	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	font-size: x-large;
+}
+#current-song-votes {
+	flex-grow: 0;
+}
+#song-votes > i {
+	flex-grow: 0;
+	padding: 0 6px 0 6px;
+}
+.current-song-vote-indicators {
+	display: flex;
+	align-items: center;
+	width: 0px;
+	height: 1.5em;
+	font-size: small;
+	flex-grow: 1;
+	overflow: hidden;
+}
+.current-song-vote-indicators > i {
+	padding: 0 1px 0 1px;
+}
+#current-song-upvote-indicators {
+	flex-direction: row-reverse;
 }
 #song-controls {
 	text-align: center;
@@ -172,42 +196,10 @@ span.clearable input {
 	height: 1.5rem;
 	width: 1.5rem;
 	min-width: 1.5rem;
+	font-size: xx-large;
 
 	// css hack to center play button
 	margin-right: 31px;
-}
-// button transition animation
-// https://stackoverflow.com/questions/28988665/css-js-icon-morphing
-.anim-container {
-	height: 2rem;
-	width: 2rem;
-	font-size: .5rem;
-	transition: .3s;
-	position: relative;
-}
-.anim-container i {
-	position: absolute;
-	// also has to be adapted to container size
-	font-size: 4em !important;
-	height: 1em;
-	width: 1em;
-	transition: .3s;
-}
-.anim-container .default{
-	opacity: 1;
-	transform: rotate(0);
-}
-.anim-container .other {
-	opacity: 0;
-	transform: rotate(-135deg);
-}
-.anim-container.morphed .default {
-	opacity: 0;
-	transform: rotate(135deg);
-}
-.anim-container.morphed .other {
-	opacity: 1;
-	transform: rotate(0);
 }
 
 #additional-controls {
@@ -297,11 +289,28 @@ $entry-height: 50px;
 	padding-left: 5px;
 	padding-right: 5px;
 }
+.queue-info {
+	display: flex;
+	align-items: center;
+}
+.vote-indicators {
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	height: 100%;
+	font-size: x-small;
+}
+.vote-indicators > * {
+	margin: 0px 2px 0px 2px;
+}
 .queue-info-time {
+	padding-right: 5px;
 	font-size: small;
+	flex-shrink: 0;
 }
 .queue-info-controls {
-	float: right;
+	margin: auto 0 auto auto;
+	flex-shrink: 0;
 }
 .queue-info-controls>i {
 	padding-left: 8px;

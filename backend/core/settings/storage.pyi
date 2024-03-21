@@ -11,6 +11,12 @@ class Interactivity:
         upvotes_only = "Upvotes Only"
         no_control = "No Control"
 
+class Privileges:
+        everybody = "Everybody"
+        mod = "Mod and Admin"
+        admin = "Admin Only"
+        nobody = "Nobody"
+
 PlatformEnabled = Literal[
     "local_enabled",
     "youtube_enabled",
@@ -75,6 +81,7 @@ def get(
 @overload
 def get(
     key: Literal[
+        "next_color_index",
         "downvotes_to_kick",
         "number_of_suggestions",
         "max_playlist_items",
@@ -91,6 +98,7 @@ def get(
 @overload
 def get(
     key: Literal[
+        "color_offset",
         "song_cooldown",
         "max_download_size",
         "alarm_probability",
@@ -109,6 +117,7 @@ def get(
 def get(
     key: Literal[
         "interactivity",
+        "color_indication",
         "connectivity_host",
         "additional_keywords",
         "forbidden_keywords",
@@ -171,6 +180,7 @@ def put(
 @overload
 def put(
     key: Literal[
+        "next_color_index",
         "downvotes_to_kick",
         "number_of_suggestions",
         "max_playlist_items",
@@ -188,6 +198,7 @@ def put(
 @overload
 def put(
     key: Literal[
+        "color_offset",
         "song_cooldown",
         "max_download_size",
         "alarm_probability",
@@ -207,6 +218,7 @@ def put(
 def put(
     key: Literal[
         "interactivity",
+        "color_indication",
         "connectivity_host",
         "additional_keywords",
         "forbidden_keywords",

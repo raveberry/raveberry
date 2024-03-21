@@ -20,7 +20,7 @@ DeviceInitialized = Literal
 # maps key to default and type of value
 defaults = {
     # playback
-    "active_player": "mopidy",
+    "active_player": "fake",
     "playing": False,
     "paused": False,
     "playback_error": False,
@@ -43,6 +43,7 @@ defaults = {
     "current_fps": 0.0,
     # settings
     "has_internet": False,
+    "mopidy_available": False,
     "youtube_available": False,
     "spotify_available": False,
     "soundcloud_available": False,

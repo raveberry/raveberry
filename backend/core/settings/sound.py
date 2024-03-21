@@ -229,7 +229,7 @@ def list_outputs(_request: WSGIRequest) -> JsonResponse:
     icecast = {"id": "icecast", "name": "Icecast"}
     snapcast = {"id": "snapcast", "name": "Snapcast"}
 
-    if conf.DOCKER:
+    if conf.DOCKER or not redis.get("mopidy_available"):
         sinks = [fakesink, client]
     else:
         output = subprocess.check_output(
@@ -319,6 +319,8 @@ def _set_output(output: str) -> HttpResponse:
 
     if use_spotify_player:
         redis.put("active_player", "spotify")
+    elif not redis.get("mopidy_available"):
+        redis.put("active_player", "fake")
     else:
         redis.put("active_player", "mopidy")
 

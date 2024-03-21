@@ -17,7 +17,7 @@ from core.models import (
     PlayLog,
 )
 from core.musiq import musiq, playback, song_utils
-from core.musiq.music_provider import MusicProvider, WrongUrlError
+from core.musiq.music_provider import MusicProvider, WrongUrlError, ProviderError
 from core.musiq.song_utils import Metadata
 from core.settings import storage
 
@@ -78,7 +78,7 @@ class SongProvider(MusicProvider):
 
             provider_class = JamendoSongProvider
         if not provider_class:
-            raise NotImplementedError(f"No provider for given song: {external_url}")
+            raise ProviderError(f"No provider for given song: {external_url}")
         if not query and external_url:
             query = external_url
         provider = provider_class(query, key)

@@ -72,7 +72,7 @@ class PlaylistProvider(MusicProvider):
 
             provider_class = LocalPlaylistProvider
         if not provider_class:
-            raise NotImplementedError(f"No provider for given playlist: {query}, {key}")
+            raise ProviderError(f"No provider for given playlist: {query}, {key}")
         provider = provider_class(query, key)
         return provider
 

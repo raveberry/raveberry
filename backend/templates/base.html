@@ -11,31 +11,25 @@
 		<link rel="stylesheet" href="{% static "style.css" %}"/>
 
 		<script>
-			CSRF_TOKEN = "{{ csrf_token }}";
+			const CSRF_TOKEN = "{{ csrf_token }}";
+			// needs to be hoisted for tests
 			urls = {
 			{% for path in base_urls %}
 			  '{{ path.name }}': '/ajax/{{ path.pattern }}',
 			{% endfor %}
 			};
-			let INTERACTIVITY = "{{ interactivity }}";
-			let INTERACTIVITIES = {
+			const INTERACTIVITY = "{{ interactivity }}";
+			const INTERACTIVITIES = {
 			{% for name, description in interactivities.items %}
 			  {{name}}: "{{description}}",
 			{% endfor %}
 			};
-			{% if is_admin %}
-			let ADMIN = true;
-			{% else %}
-			let ADMIN = false;
-			{% endif %}
-			{% if controls_enabled %}
-			let CONTROLS_ENABLED = true;
-			{% else %}
-			let CONTROLS_ENABLED = false;
-			{% endif %}
+            const COLOR_INDICATION = {% if color_indication %}true{% else %}false{% endif %};
+			const ADMIN = {% if is_admin %}true{% else %}false{% endif %};
+			const CONTROLS_ENABLED = {% if controls_enabled %}true{% else %}false{% endif %};
             // Popper is only used for dropdowns and tooltips, neither of which is used
             // https://getbootstrap.com/docs/5.0/getting-started/introduction/
-			var Popper = function(){}
+			const Popper = function(){}
 			{% block js %}
 			{% endblock %}
 		</script>
@@ -60,10 +54,12 @@
 				<span id="goto-update">show me</span> <span id="remind-updates">remind me later</span> <span id="ignore-updates">don't ask again</span>
 			</div>
 		</div>
-		<div id="demo-banner" class="information-banner" {%if demo%}style="display: block;"{%endif%}>
+		{% if demo %}
+		<div id="demo-banner" class="information-banner" style="display: block;">
 			<i class="fas fa-info-circle"></i>
 			This is a demo version of Raveberry with music from <a target="_blank" rel="noopener" href="https://www.jamendo.com/start" class="unlink">Jamendo</a>
 		</div>
+		{% endif %}
 		<nav class="navbar">
 			<a class="navbar-brand" href="/">
 				<svg id="navbar-icon" height="35px" width="38.8px">
@@ -97,12 +93,17 @@
 					</div>
 					<div id="theme-controls">
 						<div class="with-description">
-							<i id="light-theme" class="fas fa-sun"></i>
-							<span>Light</span>
+							<div id="theme-container" class="anim-container">
+								<i id="dark-theme" class="fas fa-moon default"></i>
+								<i id="light-theme" class="fas fa-sun other"></i>
+							</div>
+							<span id="theme-description">Theme</span>
 						</div>
 						<div class="with-description">
-							<i id="dark-theme" class="fas fa-moon"></i>
-							<span>Dark</span>
+							<div id="user-color-container">
+								<input type="color" id="user-color" value="{{ user_color }}"/>
+							</div>
+							<span>Votes</span>
 						</div>
 					</div>
 				</div>
@@ -248,5 +249,14 @@
 				</div>
 			</div>
 		</div>
+		{% if demo %}
+		<footer>
+			<span>© <span id="year"></span></span>
+			<a href="/legal">Legal Notice</a>
+		</footer>
+		<script>
+			document.getElementById("year").innerHTML = new Date().getFullYear();
+		</script>
+		{% endif %}
 	</body>
 </html>

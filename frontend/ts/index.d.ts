@@ -1,26 +1,28 @@
 /* eslint no-unused-vars: off */
-declare let CSRF_TOKEN: string;
-declare let urls: { string: string; };
-declare let INTERACTIVITY: string;
-declare let INTERACTIVITIES: {
+declare const CSRF_TOKEN: string;
+declare const urls: { string: string; };
+declare const INTERACTIVITY: string;
+declare const INTERACTIVITIES: {
     fullControl: string;
     fullVoting: string;
     upvotesOnly: string;
     noControl: string;
 };
+declare const COLOR_INDICATION: boolean;
+// needs to be writable for tests
 declare let ADMIN: boolean;
-declare let CONTROLS_ENABLED: boolean;
+declare const CONTROLS_ENABLED: boolean;
 
-declare let ADDITIONAL_KEYWORDS: string;
-declare let FORBIDDEN_KEYWORDS: string;
-declare let CLIENT_STREAMING: boolean;
-declare let YOUTUBE_SUGGESTIONS: number;
-declare let SPOTIFY_SUGGESTIONS: number;
-declare let SOUNDCLOUD_SUGGESTIONS: number;
-declare let JAMENDO_SUGGESTIONS: number;
+declare const ADDITIONAL_KEYWORDS: string;
+declare const FORBIDDEN_KEYWORDS: string;
+declare const CLIENT_STREAMING: boolean;
+declare const YOUTUBE_SUGGESTIONS: number;
+declare const SPOTIFY_SUGGESTIONS: number;
+declare const SOUNDCLOUD_SUGGESTIONS: number;
+declare const JAMENDO_SUGGESTIONS: number;
 
-declare let SPOTIFY_SCOPE: string;
-declare let SPOTIFY_OAUTH_AUTHORIZE_URL: string;
+declare const SPOTIFY_SCOPE: string;
+declare const SPOTIFY_OAUTH_AUTHORIZE_URL: string;
 
 interface JQuery {
   // unfortunately, bootstrap and jqueryui

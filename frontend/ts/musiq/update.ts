@@ -83,6 +83,44 @@ export function updateState(newState) {
 
     $('#current-song-votes').text(currentSong.votes);
 
+    if (COLOR_INDICATION) {
+      const upvoteIndicators = $('#current-song-upvote-indicators');
+      const downvoteIndicators = $('#current-song-downvote-indicators');
+      upvoteIndicators.empty();
+      downvoteIndicators.empty();
+      if (currentSong.requestedBy !== null) {
+        const requesterVoteIndicator = $('<i/>')
+            .addClass('fas')
+            .css("color", currentSong.requestedBy)
+            .css("font-size", "medium");
+        if (currentSong.requesterVote >= 0) {
+          if (currentSong.requesterVote > 0) {
+            requesterVoteIndicator.addClass('fa-chevron-circle-up')
+          } else {
+            requesterVoteIndicator.addClass('fa-minus-circle')
+          }
+          requesterVoteIndicator.appendTo(upvoteIndicators)
+        } else {
+          requesterVoteIndicator.addClass('fa-chevron-circle-down')
+              .appendTo(downvoteIndicators)
+        }
+      }
+      for (const color of currentSong.upvotes) {
+        $('<i/>')
+            .addClass('fas')
+            .addClass('fa-chevron-circle-up')
+            .css("color", color)
+            .appendTo(upvoteIndicators);
+      }
+      for (const color of currentSong.downvotes) {
+        $('<i/>')
+            .addClass('fas')
+            .addClass('fa-chevron-circle-down')
+            .css("color", color)
+            .appendTo(downvoteIndicators);
+      }
+    }
+
     $('#progress-bar').css('transition', 'none');
     $('#progress-bar').css('width', state.progress + '%');
     // Trigger a reflow, flushing the CSS changes
@@ -157,6 +195,9 @@ export function updateState(newState) {
       <div class="queue-title">{{ song.artist }} - {{ song.title }}</div>
       <div class="queue-info">
         <span class="queue-info-time">{{ song.duration-formatted }}</span>
+        <span class="vote-indicators">
+          <!-- 0-n <i class="fas fa-chevron-circle-up vote-indicator-0"><i/> -->
+        </span>
         <span class="queue-info-controls">
           {% if voting-system %}
           <i class="fas fa-chevron-circle-up vote-up"></i>
@@ -223,6 +264,9 @@ function createQueueItem() {
   $('<span/>')
       .addClass('queue-info-time')
       .appendTo(info);
+  $('<span/>')
+      .addClass('vote-indicators')
+      .appendTo(info);
   const controls = $('<span/>')
       .addClass('queue-info-controls')
       .appendTo(info);
@@ -282,6 +326,39 @@ function updateInformation(entry, song) {
 
   const time = entry.find('.queue-info-time');
   time.text(song.durationFormatted);
+
+  if (COLOR_INDICATION) {
+    const voteIndicators = entry.find('.vote-indicators');
+    voteIndicators.empty();
+    if (song.requestedBy !== null) {
+      const requesterVoteIndicator = $('<i/>')
+          .addClass('fas')
+          .css("color", song.requestedBy)
+          .css("font-size", "small")
+          .appendTo(voteIndicators);
+      if (song.requesterVote < 0) {
+        requesterVoteIndicator.addClass('fa-chevron-circle-down')
+      } else if (song.requesterVote == 0) {
+        requesterVoteIndicator.addClass('fa-minus-circle')
+      } else {
+        requesterVoteIndicator.addClass('fa-chevron-circle-up')
+      }
+    }
+    for (const color of song.upvotes) {
+      $('<i/>')
+          .addClass('fas')
+          .addClass('fa-chevron-circle-up')
+          .css("color", color)
+          .appendTo(voteIndicators);
+    }
+    for (const color of song.downvotes) {
+      $('<i/>')
+          .addClass('fas')
+          .addClass('fa-chevron-circle-down')
+          .css("color", color)
+          .appendTo(voteIndicators);
+    }
+  }
 
   const previousVote = localStorageGet('vote-' + song.id);
   if (previousVote == '+') {

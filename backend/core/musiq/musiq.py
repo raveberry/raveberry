@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib
 import logging
 import os
@@ -77,13 +78,18 @@ def get_providers(
         # an archived entry was requested.
         # The key determines the Provider
         provider: MusicProvider
-        if playlist:
-            provider = PlaylistProvider.create(query, key)
-        else:
-            provider = SongProvider.create(query, key)
-        if provider is None:
-            raise ProviderError("No provider found for requested key")
-        return [provider]
+        try:
+            if playlist:
+                provider = PlaylistProvider.create(query, key)
+            else:
+                provider = SongProvider.create(query, key)
+            return [provider]
+        except ProviderError:
+            # No provider is available for the requested key
+            # This might be because the platform of that archived song is not available anymore
+            # -> treat the request like a search query
+            # delete the key so the archived song for the different platform is disregarded
+            key = None
 
     providers: List[MusicProvider] = []
     for platform in enabled_platforms_by_priority():
@@ -173,6 +179,10 @@ def request_music(request: WSGIRequest) -> HttpResponse:
             assert queue_key
             user_manager.try_vote(user_manager.get_client_ip(request), queue_key, 1)
 
+        if storage.get("color_indication") != storage.Privileges.nobody:
+            user_manager.register_song(request, queue_key)
+            user_manager.register_vote(request, queue_key, 1)
+
     return JsonResponse({"message": provider.ok_message, "key": queue_key})
 
 
@@ -215,6 +225,25 @@ def index(request: WSGIRequest) -> HttpResponse:
     return render(request, "musiq.html", context)
 
 
+def _add_color_indication(engagement, song_dict) -> None:
+    requested_by = None
+    votes = {}
+    if engagement is not None:
+        requested_by, votes = ast.literal_eval(engagement)
+    song_dict["requestedBy"] = user_manager.color_of(requested_by)
+    song_dict["requesterVote"] = votes.get(requested_by, 0)
+    song_dict["upvotes"] = []
+    song_dict["downvotes"] = []
+    for session_key, amount in votes.items():
+        if session_key == requested_by:
+            continue
+        color = user_manager.color_of(session_key)
+        if amount > 0:
+            song_dict["upvotes"].append(color)
+        else:
+            song_dict["downvotes"].append(color)
+
+
 def state_dict() -> Dict[str, Any]:
     """Extends the base state with musiq-specific information and returns it."""
     state = base.state_dict()
@@ -234,6 +263,9 @@ def state_dict() -> Dict[str, Any]:
         current_song_dict["durationFormatted"] = song_utils.format_seconds(
             current_song_dict["duration"]
         )
+        if storage.get("color_indication") != storage.Privileges.nobody:
+            engagement = redis.connection.get(f"engagement-{current_song.queue_key}")
+            _add_color_indication(engagement, current_song_dict)
         musiq_state["currentSong"] = current_song_dict
 
         paused = storage.get("paused")
@@ -241,7 +273,10 @@ def state_dict() -> Dict[str, Any]:
             progress = (current_song.last_paused - current_song.created).total_seconds()
         else:
             progress = (timezone.now() - current_song.created).total_seconds()
-        progress /= current_song.duration
+        try:
+            progress /= current_song.duration
+        except ZeroDivisionError:
+            progress = 1
         musiq_state["progress"] = progress * 100
     except CurrentSong.DoesNotExist:
         musiq_state["currentSong"] = None
@@ -262,6 +297,9 @@ def state_dict() -> Dict[str, Any]:
         song_dict["durationFormatted"] = song_utils.format_seconds(
             song_dict["duration"]
         )
+        if storage.get("color_indication"):
+            engagement = redis.connection.get(f"engagement-{song.id}")
+            _add_color_indication(engagement, song_dict)
         song_queue.append(song_dict)
         if song_dict["duration"] < 0:
             # skip duration of placeholders

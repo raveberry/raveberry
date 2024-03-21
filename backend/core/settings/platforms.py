@@ -20,6 +20,23 @@ from core.util import extract_value, strtobool
 def start() -> None:
     """Initializes this module by checking which platforms are available to use."""
 
+    # mopidy is available if the server can be connected to
+    import socket
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    location = (conf.MOPIDY_HOST, int(conf.MOPIDY_PORT))
+    mopidy_available = True
+    try:
+        check = sock.connect_ex(location)
+        if check != 0:
+            mopidy_available = False
+    except (ConnectionRefusedError, socket.gaierror):
+        # check for gaierror because docker compose setups might not be able to resolve the hostname
+        mopidy_available = False
+    finally:
+        sock.close()
+    redis.put("mopidy_available", mopidy_available)
+
     # local songs are enabled if a library is set
     local_enabled = os.path.islink(library.get_library_path())
     storage.put("local_enabled", local_enabled)

@@ -8,8 +8,8 @@
 		'{{ path.name }}': '/ajax/settings/{{ path.pattern }}',
 	{% endfor %}
 	};
-	SPOTIFY_SCOPE = '{{ spotify_scope }}';
-	SPOTIFY_OAUTH_AUTHORIZE_URL = '{{ spotify_oauth_authorize_url }}';
+	const SPOTIFY_SCOPE = '{{ spotify_scope }}';
+	const SPOTIFY_OAUTH_AUTHORIZE_URL = '{{ spotify_oauth_authorize_url }}';
 {% endblock %}
 
 {% block content %}
@@ -24,6 +24,14 @@
 			<select class="form-control" id="interactivity">
 				{% for name,description in interactivities.items %}
 				<option data-name="{{name}}">{{ description }}</option>
+				{% endfor %}
+			</select>
+		</li>
+		<li class="list-group-item list-item">
+			<span class="description">Voting behavior is visible to</span>
+			<select class="form-control" id="color-indication">
+				{% for name,description in privileges.items %}
+					<option data-name="{{name}}">{{ description }}</option>
 				{% endfor %}
 			</select>
 		</li>

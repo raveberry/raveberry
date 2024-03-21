@@ -304,18 +304,20 @@ function updatePlatformClasses() {
 function toggleTheme() {
   if ($('html').hasClass('light')) {
     $('html').removeClass('light');
+    localStorageSet('raveberry-theme', 'dark');
 
-    $('#light-theme').removeClass('icon-enabled');
-    $('#light-theme').addClass('icon-disabled');
-    $('#dark-theme').removeClass('icon-disabled');
-    $('#dark-theme').addClass('icon-enabled');
+    $('#dark-theme').before($('#light-theme'));
+    setTimeout(function() {
+      $('#theme-container').removeClass('morphed');
+    }, 50);
   } else {
     $('html').addClass('light');
+    localStorageSet('raveberry-theme', 'light');
 
-    $('#light-theme').removeClass('icon-disabled');
-    $('#light-theme').addClass('icon-enabled');
-    $('#dark-theme').removeClass('icon-enabled');
-    $('#dark-theme').addClass('icon-disabled');
+    $('#light-theme').before($('#dark-theme'));
+    setTimeout(function() {
+      $('#theme-container').addClass('morphed');
+    }, 50);
   }
 }
 
@@ -338,9 +340,11 @@ function ripple() {
         parseInt($(this).css('padding-left'));
     y = parseInt($(this).css('margin-top')) +
         parseInt($(this).css('padding-top'));
-    // compensate one-sided margin hack
-    x += (parseInt($(this).parent().css('margin-right')) -
-        parseInt($(this).parent().css('margin-left'))) / 3;
+    if ($(this).parent().is('#play-button-container')) {
+      // compensate one-sided margin hack
+      x += (parseInt($(this).parent().css('margin-right')) -
+          parseInt($(this).parent().css('margin-left'))) / 3;
+    }
 
     // Add the element to the parent element, since it does not move
     $(this).parent().prepend('<span class=\'ripple\'></span>');
@@ -420,12 +424,7 @@ export function handleUpdateBanner() {
 /** General setup of the page. */
 export function onReady() {
   if (localStorageGet('raveberry-theme') == 'light') {
-    $('html').addClass('light');
-    $('#light-theme').addClass('icon-enabled');
-    $('#dark-theme').addClass('icon-disabled');
-  } else {
-    $('#light-theme').addClass('icon-disabled');
-    $('#dark-theme').addClass('icon-enabled');
+    toggleTheme();
   }
 
   // add the csrf token to every post request
@@ -524,19 +523,17 @@ export function onReady() {
     });
   });
 
-  $('#light-theme').on('click tap', function() {
-    if ($(this).hasClass('icon-enabled')) {
-      return;
-    }
+  $('#theme-container').on('click tap', function() {
     toggleTheme();
-    localStorageSet('raveberry-theme', 'light');
   });
-  $('#dark-theme').on('click tap', function() {
-    if ($(this).hasClass('icon-enabled')) {
-      return;
-    }
-    toggleTheme();
-    localStorageSet('raveberry-theme', 'dark');
+
+  $('#user-color').on('change', function() {
+    $.post(urls['set-user-color'], {value: $('#user-color').val()}).done(function(response) {
+      successToast(response);
+    }).fail(function(response) {
+      errorToast(response.responseText);
+    });
+    infoToast('');
   });
 
   $('#local').on('click tap', function() {

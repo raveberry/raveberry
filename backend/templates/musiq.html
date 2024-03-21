@@ -2,17 +2,17 @@
 {% load static %}
 
 {% block js %}
-    let ADDITIONAL_KEYWORDS = '{{ additional_keywords }}';
-    let FORBIDDEN_KEYWORDS = '{{ forbidden_keywords }}';
+    const ADDITIONAL_KEYWORDS = '{{ additional_keywords }}';
+    const FORBIDDEN_KEYWORDS = '{{ forbidden_keywords }}';
 	{% if client_streaming %}
-	let CLIENT_STREAMING = true;
+	const CLIENT_STREAMING = true;
 	{% else %}
-	let CLIENT_STREAMING = false;
+	const CLIENT_STREAMING = false;
 	{% endif %}
-	YOUTUBE_SUGGESTIONS = {{ youtube_suggestions|default:0 }};
-	SPOTIFY_SUGGESTIONS = {{ spotify_suggestions|default:0 }};
-	SOUNDCLOUD_SUGGESTIONS = {{ soundcloud_suggestions|default:0 }};
-	JAMENDO_SUGGESTIONS = {{ jamendo_suggestions|default:0 }};
+	const YOUTUBE_SUGGESTIONS = {{ youtube_suggestions|default:0 }};
+	const SPOTIFY_SUGGESTIONS = {{ spotify_suggestions|default:0 }};
+	const SOUNDCLOUD_SUGGESTIONS = {{ soundcloud_suggestions|default:0 }};
+	const JAMENDO_SUGGESTIONS = {{ jamendo_suggestions|default:0 }};
 
     urls['state'] = '{% url 'musiq-state' %}';
 	urls['musiq'] = {
@@ -53,9 +53,11 @@
 		</div>
 	</li>
 	<li class="list-group-item" id="song-votes"{% if not "vot" in interactivity %} style="display: none"{%endif%}>
+		<div class="current-song-vote-indicators" id="current-song-upvote-indicators"></div>
 		<i class="fas fa-chevron-circle-up vote-up"></i>
 		<span id="current-song-votes"></span>
 		<i class="fas fa-chevron-circle-down vote-down"></i>
+		<div class="current-song-vote-indicators" id="current-song-downvote-indicators"></div>
 	</li>
 	<li class="list-group-item" id="song-controls"{% if not controls_enabled %} style="display: none"{%endif%}>
 		<div id="song-control-icons">

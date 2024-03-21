@@ -111,6 +111,29 @@
 	justify-content: center;
 }
 
+#theme-container {
+	display: inline-block;
+
+	width: 1em;
+	height: 1em;
+	margin: 5px;
+}
+#user-color-container {
+	border-radius: 50%;
+	margin: 5px;
+	height: 1em;
+	width: 1em;
+	overflow: hidden;
+}
+#user-color {
+	padding: 0px;
+	border: none;
+	outline: none;
+
+	height: 200%;
+	transform: translateX(-10px) translateY(-10px);
+}
+
 #lights-indicator.icon-enabled {
 	color: yellow;
 }
@@ -184,4 +207,18 @@
 }
 #feedback-links i#reddit {
 	color: #ff4500;
+}
+
+footer {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	margin-bottom: 1px;
+	display: flex;
+	justify-content: center;
+	font-size: small;
+}
+footer > * {
+	margin: 0px 5px 0px 5px;
+	color: var(--normal-text);
 }

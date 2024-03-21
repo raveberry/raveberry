@@ -72,6 +72,11 @@ help        show this help and exit""",
             help="use Celery to handle long running tasks",
         )
         parser.add_argument(
+            "--nomopidy",
+            action="store_true",
+            help="don't start mopidy if it isn't running",
+        )
+        parser.add_argument(
             "--use-default-password-i-promise-ill-change-it",
             action="store_true",
             help="don't ask for an admin password and use 'admin'",
@@ -109,7 +114,7 @@ help        show this help and exit""",
             parser.print_help()
             sys.exit(1)
         elif command == "run":
-            self.run_server(args.celery)
+            self.run_server(args.nomopidy, args.celery)
         elif command == "install":
             self.install(
                 config_confirmed=args.confirm_config,
@@ -136,24 +141,26 @@ help        show this help and exit""",
 
     @staticmethod
     def _start_processes(
+        nomopidy: bool,
         use_celery: bool,
     ) -> Tuple[Optional[subprocess.Popen], Optional[subprocess.Popen]]:
         mopidy: Optional[subprocess.Popen] = None
         celery: Optional[subprocess.Popen] = None
-        try:
-            subprocess.check_call("pgrep mopidy".split(), stdout=subprocess.DEVNULL)
-        except subprocess.CalledProcessError:
-            print("mopidy not yet running, waiting for it to come up...")
-            mopidy = subprocess.Popen(  # pylint: disable=consider-using-with
-                ["mopidy"], stderr=subprocess.PIPE, text=True
-            )
-            # wait until mopidy started its server
-            assert mopidy.stderr
-            for line in mopidy.stderr:
-                line = line.strip()
-                print(line)
-                if "HTTP server running" in line:
-                    break
+        if not nomopidy:
+            try:
+                subprocess.check_call("pgrep mopidy".split(), stdout=subprocess.DEVNULL)
+            except subprocess.CalledProcessError:
+                print("mopidy not yet running, waiting for it to come up...")
+                mopidy = subprocess.Popen(  # pylint: disable=consider-using-with
+                    ["mopidy"], stderr=subprocess.PIPE, text=True
+                )
+                # wait until mopidy started its server
+                assert mopidy.stderr
+                for line in mopidy.stderr:
+                    line = line.strip()
+                    print(line)
+                    if "HTTP server running" in line:
+                        break
         if use_celery:
             try:
                 subprocess.check_call(
@@ -167,7 +174,7 @@ help        show this help and exit""",
                 )
         return mopidy, celery
 
-    def run_server(self, use_celery=False) -> None:
+    def run_server(self, nomopidy=False, use_celery=False) -> None:
         """Run Raveberry with user privileges."""
         spec = importlib.util.find_spec("django")
         if spec is None:
@@ -180,7 +187,7 @@ help        show this help and exit""",
         print("This is the basic raveberry version using a debug server.")
         print("To install with all features run `raveberry install`")
 
-        mopidy, celery = self._start_processes(use_celery)
+        mopidy, celery = self._start_processes(nomopidy, use_celery)
 
         additional_env = {}
         if not use_celery:

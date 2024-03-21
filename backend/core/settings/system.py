@@ -10,19 +10,21 @@ import sys
 from typing import Dict, Optional, Tuple
 
 import cachetools.func
-import redis.exceptions
 import requests
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest
 
-from core.musiq.mopidy_player import mopidy_lock
+from core import redis
 from core.settings import storage
 from core.settings.settings import control
 
 
 def restart_mopidy() -> None:
     """Restarts the mopidy systemd service."""
+    from core.musiq.mopidy_player import mopidy_lock
+    import redis.exceptions
+
     subprocess.call(["sudo", "/usr/local/sbin/raveberry/restart_mopidy"])
     try:
         mopidy_lock.release()
@@ -36,6 +38,10 @@ def update_mopidy_config(output: str) -> None:
     If no config_file is given, the default one is used."""
     if settings.DOCKER:
         # raveberry cannot restart mopidy in the docker setup
+        return
+
+    if not redis.get("mopidy_available"):
+        # mopidy can't be used if it is not available
         return
 
     if output == "pulse":
@@ -298,6 +304,8 @@ def shutdown_system(_request: WSGIRequest) -> None:
 @cachetools.func.ttl_cache(ttl=60 * 60 * 24)
 def fetch_latest_version() -> Optional[str]:
     """Looks up the newest version number from PyPi and returns it."""
+    if not redis.get("has_internet"):
+        return None
     # https://github.com/pypa/pip/issues/9139
     # these subprocesses are expected to fail
     # move to pip index versions raveberry once that's not experimental anymore

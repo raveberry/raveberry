@@ -27,6 +27,10 @@ module.exports = {
       }),
     ],
   },
+  performance: {
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000,
+  },
   externals: {
     // Popper is only used for dropdowns and tooltips, neither of which is used
     // https://getbootstrap.com/docs/5.0/getting-started/introduction/
