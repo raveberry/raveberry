@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.2 - 2024-03-21
+
+- Voting behavior is indicated
+- Users are represented by different colors
+- Users can override their assigned color
+- Needs to be enabled in settings
+
+- Requested songs from random suggestion for unavailable platforms are no longer discarded
+- Instead they are searched for in available platforms
+- Fake player no longer relies on mopidy
+
 ## 0.11.1 - 2023-12-15
 
 - nginx port can be customized
