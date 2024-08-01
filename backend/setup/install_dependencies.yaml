@@ -11,8 +11,8 @@
     url: https://apt.mopidy.com/mopidy.gpg
 - name: Add mopidy repository
   apt_repository:
-    # from https://apt.mopidy.com/buster.list
-    repo: deb https://apt.mopidy.com/ buster main contrib non-free
+    # from https://apt.mopidy.com/bullseye.list
+    repo: deb https://apt.mopidy.com/ bullseye main contrib non-free
 
 - name: Install apt dependencies (may take some time)
   apt:
