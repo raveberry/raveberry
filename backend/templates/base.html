@@ -99,12 +99,14 @@
 							</div>
 							<span id="theme-description">Theme</span>
 						</div>
+						{% if color_indication %}
 						<div class="with-description">
 							<div id="user-color-container">
 								<input type="color" id="user-color" value="{{ user_color }}"/>
 							</div>
 							<span>Votes</span>
 						</div>
+						{% endif %}
 					</div>
 				</div>
 				<div class="menu-row"{%if not controls_enabled%} style='display: none;'{%endif%}>
