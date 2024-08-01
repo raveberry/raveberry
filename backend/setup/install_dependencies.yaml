@@ -43,6 +43,19 @@
     # needed for postgresql_db
     - acl
 
+# allow pip to install system wide packages
+- name: Backup externally managed config for python
+  copy:
+    src: /usr/lib/python3.11/EXTERNALLY-MANAGED
+    remote_src: True
+    dest: /usr/lib/python3.11/EXTERNALLY-MANAGED.old
+  failed_when: no
+
+- name: Allow installation of python system packages
+  file:
+    path: /usr/lib/python3.11/EXTERNALLY-MANAGED
+    state: absent
+
 # update pip so cryptography wheels can be installed
 - name: pip self-update
   pip:
