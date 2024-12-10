@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.4 - 2024-12-10
+
+- adapt mopidy-spotify installation according to https://github.com/mopidy/mopidy-spotify
+- volume normalization: install arm64 package for aarch64 architecture during install
+
 ## 0.11.3 - 2024-08-01
 
 - Update mopidy repository to debian bullseye
