@@ -83,11 +83,28 @@
 - name: Install Spotify dependencies
   when: config.spotify is defined and config.spotify
   block:
-    - name: "Install Spotify dependencies: Install apt dependencies"
+    - name: "Install Spotify dependencies: Download gst-plugin-spotify"
+      when: ansible_facts['architecture'] == 'x86_64'
+      get_url:
+        url: https://github.com/kingosticks/gst-plugins-rs-build/releases/download/gst-plugin-spotify_0.14.0-alpha.1-1/gst-plugin-spotify_0.14.0.alpha.1-1_amd64.deb
+        dest: /tmp/gst-plugin-spotify.deb
+    - name: "Install Spotify dependencies: Download gst-plugin-spotify"
+      # even for 64bit Raspberry Pi the armhf package needs to be installed due to the 32bit userland
+      when: ansible_facts['architecture'] == 'armv7l' or ansible_facts['architecture'] == 'aarch64'
+      get_url:
+        url: https://github.com/kingosticks/gst-plugins-rs-build/releases/download/gst-plugin-spotify_0.14.0-alpha.1-1/gst-plugin-spotify_0.14.0.alpha.1-1_armhf.deb
+        dest: /tmp/gst-plugin-spotify.deb
+    - name: "Install Spotify dependencies: Download gst-plugin-spotify"
+      when: ansible_facts['architecture'] == 'armv8l'
+      get_url:
+        url: https://github.com/kingosticks/gst-plugins-rs-build/releases/download/gst-plugin-spotify_0.14.0-alpha.1-1/gst-plugin-spotify_0.14.0.alpha.1-1_arm64.deb
+        dest: /tmp/gst-plugin-spotify.deb
+    - name: "Install Spotify dependencies: Install gst-plugin-spotify"
       apt:
-        pkg:
-        - mopidy-spotify
-        - libspotify-dev
+        deb: /tmp/gst-plugin-spotify.deb
+    - name: "Install Spotify dependencies: Install Mopidy-Spotify"
+      pip:
+        name: Mopidy-Spotify==5.0.0a3
     - name: "Install Spotify dependencies: Install python dependencies"
       pip:
         requirements: "{{ config.install_directory }}/requirements/spotify.txt"
@@ -176,7 +193,7 @@
         url: http://launchpadlibrarian.net/335256808/faad_2.7-8+deb7u1build0.14.04.1_armhf.deb
         dest: /tmp/faad2.deb
     - name: "Install rganalysis: Download faad2"
-      when: ansible_facts['architecture'] == 'armv8l'
+      when: ansible_facts['architecture'] == 'armv8l' or ansible_facts['architecture'] == 'armv8l'
       get_url:
         url: http://launchpadlibrarian.net/335256691/faad_2.7-8+deb7u1build0.14.04.1_arm64.deb
         dest: /tmp/faad2.deb
