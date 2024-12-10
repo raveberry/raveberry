@@ -25,14 +25,13 @@ class YoutubeDLLogger:
         pass
 
     def error(self, msg: str) -> None:
-        print(msg)
+        self.test.tearDown()
         self.test.skipTest(msg)
 
 
 class YoutubeTests(MusicTest):
     def setUp(self) -> None:
         super().setUp()
-
         try:
             # try to find out whether youtube is happy with us this time
             # send a request and skip the test if there is an error
@@ -43,6 +42,7 @@ class YoutubeTests(MusicTest):
                     ["https://www.youtube.com/watch?v=ZvD8QSO7NPw"]
                 )
         except (yt_dlp.utils.ExtractorError, yt_dlp.utils.DownloadError) as error:
+            super().tearDown()
             self.skipTest(
                 f"Error when interacting with youtube, skipping test: {error}"
             )
