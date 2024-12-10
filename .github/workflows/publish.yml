@@ -8,17 +8,17 @@ jobs:
   build-frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
       - run: pip install -r backend/requirements/frontend_build.txt
       - run: yarn --cwd frontend install
       - run: yarn --cwd frontend build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: frontend-files
           path: |
@@ -29,14 +29,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-frontend
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-files
           path: backend/static/
@@ -73,8 +73,8 @@ jobs:
       # in order to use the raveberry/raveberry-mopidy container,
       # we would need to share the songs cache. Instead, run mopidy on the host.
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       - name: Install pip dependencies
@@ -93,8 +93,8 @@ jobs:
   test-install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       - name: Install pip dependencies
@@ -133,7 +133,7 @@ jobs:
       docker-status: ${{ steps.comparison.outputs.docker-status }}
       pypi-status: ${{ steps.comparison.outputs.pypi-status }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       # https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-environment-variable
       - run: echo "GITHUB_VERSION=$(cat backend/VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
       - run: echo "PYPI_VERSION=$(curl -Ls https://pypi.org/pypi/raveberry/json | jq -r .info.version | tr -d '[:space:]')" >> $GITHUB_ENV
@@ -149,12 +149,12 @@ jobs:
     if: needs.check-versions.outputs.pypi-status == 'update'
     # from https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-files
           path: backend/static/
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       - name: Install pypa/build
@@ -172,13 +172,13 @@ jobs:
     needs: [test-frontend, test-backend, test-install, check-versions]
     if: needs.check-versions.outputs.docker-status == 'update'
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-files
           path: backend/static/
       - run: echo "VERSION=$(cat backend/VERSION | tr -d '[:space:]')" >> $GITHUB_ENV
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
       - uses: docker/login-action@v1
