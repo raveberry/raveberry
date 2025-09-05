@@ -1,4 +1,6 @@
 ansible==10.*
 # newer pyyaml versions don't have wheels on piwheels
 pyyaml>=5.4 --only-binary=pyyaml
+# so ansible can use the postgres module
+psycopg2>=2.8.0
 

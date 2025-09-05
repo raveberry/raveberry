@@ -110,8 +110,6 @@ jobs:
           sudo apt-get --reinstall install python3-apt
           sudo apt-get --reinstall install apt-transport-https
           sudo apt-get install build-essential libssl-dev libffi-dev
-      - name: Self update pip
-        run: sudo pip install -U pip
       - name: Fix preinstalled pip dependencies
         run: sudo pip install pyopenssl --upgrade
       - run: sudo systemctl start postgresql
