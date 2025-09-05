@@ -119,6 +119,33 @@
         load-module module-null-sink sink_name=cava
         update-sink-proplist cava device.description="virtual sink for cava"
       marker: "# {mark} ANSIBLE MANAGED BLOCK virtual sink"
+  - name: "pulseaudio: disable pipewire"
+    become: false
+    # ignore if the service does not exist on the system
+    ignore_errors: true
+    systemd:
+      scope: "user"
+      enabled: no
+      state: "stopped"
+      name: pipewire
+  - name: "pulseaudio: disable wireplumber"
+    become: false
+    # ignore if the service does not exist on the system
+    ignore_errors: true
+    systemd:
+      scope: "user"
+      enabled: no
+      state: "stopped"
+      name: wireplumber
+  - name: "pulseaudio: disable pipewire.socket"
+    become: false
+    # ignore if the service does not exist on the system
+    ignore_errors: true
+    systemd:
+      scope: "user"
+      enabled: no
+      state: "stopped"
+      name: pipewire.socket
 
 - name: mopidy config skeleton
   copy:
