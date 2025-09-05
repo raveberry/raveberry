@@ -1,4 +1,4 @@
-ansible==5.*
+ansible==10.*
 # newer pyyaml versions don't have wheels on piwheels
 pyyaml>=5.4 --only-binary=pyyaml
 
