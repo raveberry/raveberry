@@ -1,9 +1,15 @@
 # Changelog
 
+## 0.11.5 - 2025-12-10
+
+- Disable pipewire services during installation
+- Use newer ansible version that is compatible with python 3.12
+- Added aarch64 to possible architectures for volume normalization package
+
 ## 0.11.4 - 2024-12-10
 
-- adapt mopidy-spotify installation according to https://github.com/mopidy/mopidy-spotify
-- volume normalization: install arm64 package for aarch64 architecture during install
+- Adapt mopidy-spotify installation according to https://github.com/mopidy/mopidy-spotify
+- Volume normalization: install arm64 package for aarch64 architecture during install
 
 ## 0.11.3 - 2024-08-01
 
