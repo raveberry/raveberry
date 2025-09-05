@@ -76,7 +76,7 @@ def scan_library(request: WSGIRequest) -> HttpResponse:
 def _count_files(library_path: str) -> int:
     last_update = time.time()
     filecount = 0
-    for (dirpath, _, filenames) in os.walk(library_path):
+    for dirpath, _, filenames in os.walk(library_path):
         now = time.time()
         if now - last_update > UPDATE_FREQUENCY:
             last_update = now
@@ -93,7 +93,7 @@ def _scan_files(library_path: str, filecount: int) -> Tuple[int, int]:
     last_update = time.time()
     files_scanned = 0
     files_added = 0
-    for (dirpath, _, filenames) in os.walk(library_path):
+    for dirpath, _, filenames in os.walk(library_path):
         if os.path.abspath(dirpath) == os.path.abspath(conf.SONGS_CACHE_DIR):
             # do not add files handled by raveberry as local files
             continue
