@@ -295,5 +295,5 @@
     hour: "6"
     minute: "0"
     user: www-data
-    job: "/usr/bin/python3 {{ config.install_directory }}/manage.py syncsongmetadata"
+    job: "{{ config.install_directory }}/.venv/bin/python3 {{ config.install_directory }}/manage.py syncsongmetadata"
 

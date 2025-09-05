@@ -16,10 +16,10 @@
   block:
     - name: "Prepare database: Apply migrations"
       become_user: www-data
-      command: python3 "{{ config.install_directory }}/manage.py" migrate
+      command: '"{{ config.install_directory }}/.venv/bin/python3" "{{ config.install_directory }}/manage.py" migrate'
     - name: "Prepare database: Create users"
       become_user: www-data
-      command: python3 "{{ config.install_directory }}/manage.py" shell
+      command: '"{{ config.install_directory }}/.venv/bin/python3" "{{ config.install_directory }}/manage.py" shell'
       args:
         stdin: |
           from django.contrib.auth.models import User
@@ -66,11 +66,11 @@
 
 - name: "Migrate database"
   become_user: www-data
-  command: python3 "{{ config.install_directory }}/manage.py" migrate
+  command: '"{{ config.install_directory }}/.venv/bin/python3" "{{ config.install_directory }}/manage.py" migrate'
 
 - name: Get credentials
   become_user: www-data
-  command: python3 "{{ config.install_directory }}/manage.py" shell
+  command: '"{{ config.install_directory }}/.venv/bin/python3" "{{ config.install_directory }}/manage.py" shell'
   args:
     stdin: |
       from core.models import Setting

@@ -200,11 +200,6 @@ To fix this, first restart the player (`/settings` in "Sound Output") and wait a
 ### How do I use Spotify?
 To enable Spotify support, install Raveberry with `spotify: true` in `raveberry.yaml`. Read how to enter your credentials [here](docs/spotify.md).
 
-### During installation I get `error: externally-managed-environment`
-Solution: `sudo mv /usr/lib/python3.11/EXTERNALLY-MANAGED /usr/lib/python3.11/EXTERNALLY-MANAGED.old`  
-With debian bookworm, system-wide installation of python packages is strongly discouraged. While this is a noble approach, Raveberry is very integrated and needs to be installed system-wide. An installation in a virtualenv will not work for the full install.  
-Note that this will allow system-wide installation for all packages, not only `raveberry`.
-
 ### I can't log in, it always says "Please reload"
 You ran into CSRF protection. This happens when you host Raveberry behind a proxy and the protocols don't match up, e.g. `http://demo.raveberry.party` vs `https://demo.raveberry.party`.
 

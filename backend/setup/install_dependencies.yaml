@@ -19,6 +19,7 @@
     pkg:
     # python package management
     - python3-pip
+    - python3-virtualenv
     # copy files to remote
     - rsync
     # ping
@@ -34,7 +35,7 @@
     - pulseaudio-module-bluetooth
     # database
     - postgresql
-    - libpq-dev # required for psycopg2
+    - python3-psycopg2
     # channel layer
     - redis-server
     # remote connection
@@ -43,27 +44,16 @@
     # needed for postgresql_db
     - acl
 
-# allow pip to install system wide packages
-- name: Backup externally managed config for python
-  copy:
-    src: /usr/lib/python3.11/EXTERNALLY-MANAGED
-    remote_src: True
-    dest: /usr/lib/python3.11/EXTERNALLY-MANAGED.old
-  failed_when: no
-
-- name: Allow installation of python system packages
-  file:
-    path: /usr/lib/python3.11/EXTERNALLY-MANAGED
-    state: absent
-
 # update pip so cryptography wheels can be installed
 - name: pip self-update
   pip:
+    virtualenv: "{{ config.install_directory }}/.venv"
     name: pip
     state: latest
 
 - name: Install python dependencies (may take some time)
   pip:
+    virtualenv: "{{ config.install_directory }}/.venv"
     requirements: "{{ config.install_directory }}/requirements/prod.txt"
 
 # Block name copied into every task
@@ -78,6 +68,7 @@
         - ffmpeg
     - name: "Install Youtube dependencies: Install python dependencies"
       pip:
+        virtualenv: "{{ config.install_directory }}/.venv"
         requirements: "{{ config.install_directory }}/requirements/youtube.txt"
 
 - name: Install Spotify dependencies
@@ -104,9 +95,11 @@
         deb: /tmp/gst-plugin-spotify.deb
     - name: "Install Spotify dependencies: Install Mopidy-Spotify"
       pip:
+        virtualenv: "{{ config.install_directory }}/.venv"
         name: Mopidy-Spotify==5.0.0a3
     - name: "Install Spotify dependencies: Install python dependencies"
       pip:
+        virtualenv: "{{ config.install_directory }}/.venv"
         requirements: "{{ config.install_directory }}/requirements/spotify.txt"
 
 - name: Install Soundcloud dependencies
@@ -118,6 +111,7 @@
         - mopidy-soundcloud
     - name: "Install Soundcloud dependencies: Install python dependencies"
       pip:
+        virtualenv: "{{ config.install_directory }}/.venv"
         requirements: "{{ config.install_directory }}/requirements/soundcloud.txt"
 
 
@@ -140,16 +134,19 @@
         - xorg # X is needed for displaying
     - name: "Install screen visualization dependencies: Install python dependencies"
       pip:
+        virtualenv: "{{ config.install_directory }}/.venv"
         requirements: "{{ config.install_directory }}/requirements/screenvis.txt"
 
 - name: Install buzzer dependencies
   when: config.buzzer is defined and config.buzzer
   pip:
+    virtualenv: "{{ config.install_directory }}/.venv"
     requirements: "{{ config.install_directory }}/requirements/buzzer.txt"
 
 - name: Install led visualization dependencies
   when: config.led_visualization
   pip:
+    virtualenv: "{{ config.install_directory }}/.venv"
     requirements: "{{ config.install_directory }}/requirements/ledvis.txt"
 
 - name: Install cava
@@ -202,6 +199,7 @@
         deb: /tmp/faad2.deb
     - name: "Install rganalysis: Install rganalysis"
       pip:
+        virtualenv: "{{ config.install_directory }}/.venv"
         name: https://github.com/DarwinAwardWinner/rganalysis/archive/refs/tags/v3.6.zip
 
 - name: Check if omxplayer executable is present

@@ -2,6 +2,7 @@
 
 ## 0.11.5 - 2025-12-10
 
+- Use virtualenv instead of modifying system packages
 - Disable pipewire services during installation
 - Use newer ansible version that is compatible with python 3.12
 - Added aarch64 to possible architectures for volume normalization package

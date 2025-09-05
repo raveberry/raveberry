@@ -10,7 +10,7 @@ User=www-data
 Group=www-data
 WorkingDirectory={{ config.install_directory }}
 Environment="DJANGO_SETTINGS_MODULE=main.settings" "DJANGO_NO_CELERY=1" "PYTHONOPTIMIZE=1"
-ExecStart=/usr/local/bin/daphne --bind 0.0.0.0 --port 9000 main.asgi:application
+ExecStart="{{ config.install_directory }}/.venv/bin/daphne" --bind 0.0.0.0 --port 9000 main.asgi:application
 StandardOutput=file:{{ config.install_directory }}/logs/daphne_info.log
 StandardError=file:{{ config.install_directory }}/logs/daphne_error.log
 ExecReload=/bin/kill -s HUP $MAINPID
