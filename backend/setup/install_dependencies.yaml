@@ -193,7 +193,7 @@
         url: http://launchpadlibrarian.net/335256808/faad_2.7-8+deb7u1build0.14.04.1_armhf.deb
         dest: /tmp/faad2.deb
     - name: "Install rganalysis: Download faad2"
-      when: ansible_facts['architecture'] == 'armv8l' or ansible_facts['architecture'] == 'armv8l'
+      when: ansible_facts['architecture'] == 'armv8l' or ansible_facts['architecture'] == 'armv8l' or ansible_facts['architecture'] == 'aarch64'
       get_url:
         url: http://launchpadlibrarian.net/335256691/faad_2.7-8+deb7u1build0.14.04.1_arm64.deb
         dest: /tmp/faad2.deb
